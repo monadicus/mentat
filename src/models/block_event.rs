@@ -1,7 +1,7 @@
 use super::*;
 
 /// BlockEvent represents the addition or removal of a BlockIdentifier from storage. Streaming BlockEvents allows lightweight clients to update their own state without needing to implement their own syncing logic.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct BlockEvent {
     /// sequence is the unique identifier of a BlockEvent within the context of a NetworkIdentifier.
     pub sequence: u64,

@@ -1,7 +1,7 @@
 use super::*;
 
 /// Coin contains its unique identifier and the amount it represents.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Coin {
     /// CoinIdentifier uniquely identifies a Coin.
     pub coin_identifier: CoinIdentifier,

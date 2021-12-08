@@ -1,7 +1,7 @@
 use super::*;
 
 /// EventsBlocksResponse contains an ordered collection of BlockEvents and the max retrievable sequence.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct EventsBlocksResponse {
     /// max_sequence is the maximum available sequence number to fetch.
     pub max_sequence: u64,

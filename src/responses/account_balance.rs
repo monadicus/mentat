@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use super::*;
 
 /// An AccountBalanceResponse is returned on the /account/balance endpoint. If an account has a balance for each AccountIdentifier describing it (ex: an ERC-20 token balance on a few smart contracts), an account balance request must be made with each AccountIdentifier. The coins field was removed and replaced by by /account/coins in v1.4.7.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct AccountBalanceResponse {
     /// The block_identifier uniquely identifies a block in a particular network.
     pub block_identifier: BlockIdentifier,

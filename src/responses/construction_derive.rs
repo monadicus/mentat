@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use super::*;
 
 /// ConstructionDeriveResponse is returned by the /construction/derive endpoint.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionDeriveResponse {
     /// [DEPRECATED by account_identifier in v1.4.4] Address in network-specific format.
     pub address: Option<String>,

@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use super::*;
 
 /// The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated).
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct AccountIdentifier {
     /// The address may be a cryptographic public key (or some encoding of it) or a provided username.
     pub address: String,

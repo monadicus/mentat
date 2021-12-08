@@ -1,7 +1,7 @@
 use super::*;
 
 /// AccountCoinsRequest is utilized to make a request on the /account/coins endpoint.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct AccountCoinsRequest {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: NetworkIdentifier,

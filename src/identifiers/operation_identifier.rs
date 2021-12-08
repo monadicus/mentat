@@ -1,7 +1,7 @@
 use super::*;
 
 /// The operation_identifier uniquely identifies an operation within a transaction.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct OperationIdentifier {
     /// The operation index is used to ensure each operation has a unique identifier within a transaction. This index is only relative to the transaction and NOT GLOBAL. The operations in each transaction should start from index 0. To clarify, there may not be any notion of an operation index in the blockchain being described.
     pub index: u64,

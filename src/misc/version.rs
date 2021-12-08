@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use super::*;
 
 /// The Version object is utilized to inform the client of the versions of different components of the Rosetta implementation.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Version {
     /// The rosetta_version is the version of the Rosetta interface the implementation adheres to. This can be useful for clients looking to reliably parse responses.
     pub rosetta_version: String,

@@ -1,7 +1,7 @@
 use super::*;
 
 /// PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RelatedTransaction {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: Option<NetworkIdentifier>,

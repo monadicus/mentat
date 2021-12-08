@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use super::*;
 
 /// CallRequest is the input to the /call endpoint.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct CallRequest {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: NetworkIdentifier,

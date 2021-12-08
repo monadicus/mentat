@@ -1,7 +1,7 @@
 use super::*;
 
 /// A BlockRequest is utilized to make a block request on the /block endpoint.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct BlockRequest {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: NetworkIdentifier,

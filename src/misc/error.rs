@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use super::*;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Error {
     pub code: u32,
     pub message: String,
