@@ -8,7 +8,7 @@ pub struct Allow {
     /// All Operation.Type this implementation supports. Any type that is returned during parsing that is not listed here will cause client validation to error.
     pub operation_types: Vec<String>,
     /// All Errors that this implementation could return. Any error that is returned during parsing that is not listed here will cause client validation to error.
-    pub errors: Vec<Error>,
+    pub errors: Vec<ApiError>,
     /// Any Rosetta implementation that supports querying the balance of an account at any height in the past should set this to true.
     pub historical_balance_lookup: bool,
     /// If populated, timestamp_start_index indicates the first block index where block timestamps are considered valid (i.e. all blocks less than timestamp_start_index could have invalid timestamps). This is useful when the genesis block (or blocks) of a network have timestamp 0. If not populated, block timestamps are assumed to be valid for all available blocks.

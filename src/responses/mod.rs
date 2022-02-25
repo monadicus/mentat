@@ -1,7 +1,6 @@
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
 use crate::identifiers::*;
 use crate::models::*;
+use rocket::serde::{json::Value, Deserialize, Serialize};
 
 mod account_balance;
 pub use account_balance::*;

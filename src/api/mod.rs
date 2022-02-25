@@ -1,6 +1,7 @@
-
 mod construction;
 use std::net::SocketAddr;
+
+use rocket::serde::json::Json;
 
 pub use construction::*;
 
@@ -10,12 +11,12 @@ pub use data::*;
 mod indexer;
 pub use indexer::*;
 
-mod result;
-pub use result::*;
-
+use crate::errors::Result;
 use crate::requests::*;
 use crate::responses::*;
 
 pub struct Caller {
     pub ip: SocketAddr,
 }
+
+pub type Response<T> = Result<Json<T>>;

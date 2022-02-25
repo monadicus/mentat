@@ -1,5 +1,4 @@
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
+use rocket::serde::{json::Value, Deserialize, Serialize};
 
 mod account_identifier;
 pub use account_identifier::*;

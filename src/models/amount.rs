@@ -1,5 +1,5 @@
-use indexmap::IndexMap;
 use super::*;
+use indexmap::IndexMap;
 
 /// Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency.
 #[derive(Serialize, Deserialize, Debug, Default)]
