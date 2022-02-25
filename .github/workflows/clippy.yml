@@ -10,7 +10,7 @@ env:
 
 jobs:
   fmt:
-    name: Check Formatting
+    name: Check Clippy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
