@@ -1,1 +1,6 @@
 /target
+
+# Emacs gitignore files
+*~
+\#*\#
+.\#*
