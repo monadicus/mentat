@@ -1,0 +1,46 @@
+request_funds(1){
+  find_account{
+    currency = {"symbol":"ALEO", "decimals":18};
+    random_account = find_balance({
+      "minimum_balance":{
+        "value": "0",
+        "currency": {{currency}}
+      },
+      "create_limit":1
+    });
+  },
+
+  // Create a separate scenario to request funds so that
+  // the address we are using to request funds does not
+  // get rolled back if funds do not yet exist.
+  request{
+    loaded_account = find_balance({
+      "account_identifier": {{random_account.account_identifier}},
+      "minimum_balance":{
+        "value": "1000000000000000000",
+        "currency": {{currency}}
+      }
+      "require_coin":true
+    });
+  }
+}
+
+create_account(1){
+  create{
+    network = {"network":"Testnet3", "blockchain":"Aleo"};
+    key = generate_key({"curve_type": "bls12"});
+    account = derive({
+      "network_identifier": {{network}},
+      "public_key": {{key.public_key}}
+    });
+
+    // If the account is not saved, the key will be lost!
+    save_account({
+      "account_identifier": {{account.account_identifier}},
+      "keypair": {{key}}
+    });
+  }
+}
+
+// transfer
+// return_funds
