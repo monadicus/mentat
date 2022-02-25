@@ -4,5 +4,5 @@ use super::*;
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct TransactionIdentifier {
     /// Any transactions that are attributable only to a block (ex: a block event) should use the hash of the block as the identifier.
-    pub hash: String,    
+    pub hash: String,
 }

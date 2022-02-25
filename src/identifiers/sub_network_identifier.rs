@@ -8,5 +8,4 @@ pub struct SubNetworkIdentifier {
     pub network: String,
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
-    
 }

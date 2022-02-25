@@ -1,8 +1,4 @@
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
-
-mod error;
-pub use error::*;
+use rocket::serde::{json::Value, Deserialize, Serialize};
 
 mod operation_status;
 pub use operation_status::*;

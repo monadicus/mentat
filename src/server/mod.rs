@@ -1,31 +1,26 @@
-mod dummy_data;
 mod dummy_construction;
+mod dummy_data;
 mod dummy_indexer;
 
-use std::{convert::Infallible, net::SocketAddr, pin::Pin, sync::Arc};
+use std::{
+    net::{Ipv4Addr, SocketAddr},
+    sync::Arc,
+};
 
-use http::StatusCode;
-use warp::{Filter, Future, reply::{Json, WithStatus}};
+use rocket::serde::json::Json;
+use rocket::{post, routes, Config, State};
 
-use crate::{api::*, requests::*, responses::*, misc::Error};
+use crate::{api::*, errors::*, requests::*, responses::*};
 
-use self::{dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi, dummy_indexer::DummyIndexerApi};
-
+use self::{
+    dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi,
+};
 
 pub struct Server {
     construction_api: Arc<dyn ConstructionApi>,
     data_api: Arc<dyn DataApi>,
     indexer_api: Arc<dyn IndexerApi>,
-}
-
-fn not_implemented<T>() -> Result<T> {
-    Err(Error {
-        code: 501,
-        message: "Not Implemented".to_string(),
-        description: None,
-        retriable: false,
-        details: Default::default(),
-    })
 }
 
 impl Default for Server {
@@ -38,25 +33,25 @@ impl Default for Server {
     }
 }
 
-macro_rules! route {
-    ($path:expr, $api:expr, $method:ident) => {
-        {
-            let api = $api.clone();
-            $path.and(warp::addr::remote())
-            .and(warp::body::json())
-            .and_then(move |ip: Option<SocketAddr>, data: _| -> Pin<Box<dyn Future<Output=Result<WithStatus<Json>, Infallible>> + Send>> {
-                let api = api.clone();
-                Box::pin(async move {
-                    let response = api.$method(Caller {
-                        ip: ip.unwrap(),
-                    }, data).await;
-                    match response {
-                        Ok(response) => Ok(warp::reply::with_status(warp::reply::json(&response), StatusCode::OK)),
-                        Err(error) => Ok(warp::reply::with_status(warp::reply::json(&error), StatusCode::INTERNAL_SERVER_ERROR)),
-                    }
-                })
-            })
-        }
+macro_rules! api_routes {
+    (rocket: $rocket:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
+	$(
+	    $(
+		$(
+		    #[post($path, format = "json", data = "<req_data>")]
+		    async fn $method(
+			server: &State<Server>,
+			ip: SocketAddr,
+			req_data: Json<$req>
+		    ) -> Response<$resp> {
+			let c = Caller { ip };
+			server.$api.$method(c, req_data.into_inner()).await
+		    }
+
+		    $rocket = $rocket.mount($route_base, routes![$method]);
+		)*
+	    )*
+	)*
     }
 }
 
@@ -89,55 +84,197 @@ impl Server {
         self.indexer_api = indexer_api;
     }
 
-    pub async fn serve(self, address: impl Into<SocketAddr>) {
-        let network_list = route!(warp::path!("network" / "list"), self.data_api, network_list);
-        let network_options = route!(warp::path!("network" / "options"), self.data_api, network_options);
-        let network_status = route!(warp::path!("network" / "status"), self.data_api, network_status);
+    pub async fn serve(self, address: Ipv4Addr, port: u16) {
+        let config = Config {
+            port,
+            address: address.into(),
+            ..Config::default()
+        };
+        let mut rocket = rocket::custom(&config);
 
-        let account_balance = route!(warp::path!("account" / "balance"), self.data_api, account_balance);
-        let account_coins = route!(warp::path!("account" / "coins"), self.data_api, account_coins);
+        api_routes! {
+                rocket: rocket,
 
-        let block = route!(warp::path!("block"), self.data_api, block);
-        let block_transaction = route!(warp::path!("block" / "transaction"), self.data_api, block_transaction);
+                api_group {
+            api: data_api,
 
-        let mempool = route!(warp::path!("mempool"), self.data_api, mempool);
-        let mempool_transaction = route!(warp::path!("mempool" / "transaction"), self.data_api, mempool_transaction);
+            route_group {
+                route_base: "/network",
 
-        let construction_combine = route!(warp::path!("construction" / "combine"), self.construction_api, combine);
-        let construction_derive = route!(warp::path!("construction" / "derive"), self.construction_api, derive);
-        let construction_hash = route!(warp::path!("construction" / "hash"), self.construction_api, hash);
-        let construction_metadata = route!(warp::path!("construction" / "metadata"), self.construction_api, metadata);
-        let construction_parse = route!(warp::path!("construction" / "parse"), self.construction_api, parse);
-        let construction_payloads = route!(warp::path!("construction" / "payloads"), self.construction_api, payloads);
-        let construction_preprocess = route!(warp::path!("construction" / "preprocess"), self.construction_api, preprocess);
-        let construction_submit = route!(warp::path!("construction" / "submit"), self.construction_api, submit);
+                route {
+                path: "/list",
+                method: network_list,
+                req_data: MetadataRequest,
+                resp_data: NetworkListResponse,
+                        }
 
-        let events_blocks = route!(warp::path!("events" / "blocks"), self.indexer_api, events_blocks);
+                        route {
+                path: "/options",
+                method: network_options,
+                req_data: NetworkRequest,
+                resp_data: NetworkOptionsResponse,
+                        }
 
-        let search_transactions = route!(warp::path!("search" / "transactions"), self.indexer_api, search_transactions);
+                        route {
+                path: "/status",
+                method: network_status,
+                req_data: NetworkRequest,
+                resp_data: NetworkStatusResponse,
+                        }
+            }
 
-        warp::serve(warp::post()
-            .and(
-                network_list
-                .or(network_options)
-                .or(network_status)
-                .or(account_balance)
-                .or(account_coins)
-                .or(block)
-                .or(block_transaction)
-                .or(mempool)
-                .or(mempool_transaction)
-                .or(construction_combine)
-                .or(construction_derive)
-                .or(construction_hash)
-                .or(construction_metadata)
-                .or(construction_parse)
-                .or(construction_payloads)
-                .or(construction_preprocess)
-                .or(construction_submit)
-                .or(events_blocks)
-                .or(search_transactions)
-            ))
-            .run(address).await
+            route_group {
+                route_base: "/account",
+
+                route {
+                path: "/balance",
+                method: account_balance,
+                req_data: AccountBalanceRequest,
+                resp_data: AccountBalanceResponse,
+                }
+
+                route {
+                path: "/coins",
+                method: account_coins,
+                req_data: AccountCoinsRequest,
+                resp_data: AccountCoinsResponse,
+                }
+            }
+
+            route_group {
+                route_base: "/block",
+
+                route {
+                path: "/",
+                method: block,
+                req_data: BlockRequest,
+                resp_data: BlockResponse,
+                }
+
+                route {
+                path: "/transaction",
+                method: block_transaction,
+                req_data: BlockTransactionRequest,
+                resp_data: BlockTransactionResponse,
+                }
+            }
+
+            route_group {
+                route_base: "/mempool",
+
+                route {
+                path: "/",
+                method: mempool,
+                req_data: NetworkRequest,
+                resp_data: MempoolResponse,
+                }
+
+                route {
+                path: "/transaction",
+                method: mempool_transaction,
+                req_data: MempoolTransactionRequest,
+                resp_data: MempoolTransactionResponse,
+                }
+            }
+            }
+
+            api_group {
+            api: construction_api,
+
+            route_group {
+                route_base: "/construction",
+
+                route {
+                path: "/combine",
+                method: combine,
+                req_data: ConstructionCombineRequest,
+                resp_data: ConstructionCombineResponse,
+                }
+
+                route {
+                path: "/derive",
+                method: derive,
+                req_data: ConstructionDeriveRequest,
+                resp_data: ConstructionDeriveResponse,
+                }
+
+                route {
+                path: "/hash",
+                method: hash,
+                req_data: ConstructionHashRequest,
+                resp_data: TransactionIdentifierResponse,
+                }
+
+                route {
+                path: "/metadata",
+                method: metadata,
+                req_data: ConstructionMetadataRequest,
+                resp_data: ConstructionMetadataResponse,
+                }
+
+                route {
+                path: "/parse",
+                method: parse,
+                req_data: ConstructionParseRequest,
+                resp_data: ConstructionParseResponse,
+                }
+
+                route {
+                path: "/payloads",
+                method: payloads,
+                req_data: ConstructionPayloadsRequest,
+                resp_data: ConstructionPayloadsResponse,
+                }
+
+                route {
+                path: "/preprocess",
+                method: preprocess,
+                req_data: ConstructionPreprocessRequest,
+                resp_data: ConstructionPreprocessResponse,
+                }
+
+                route {
+                path: "/submit",
+                method: submit,
+                req_data: ConstructionSubmitRequest,
+                resp_data: TransactionIdentifierResponse,
+                }
+            }
+            }
+
+            api_group {
+            api: indexer_api,
+
+            route_group {
+                route_base: "/events",
+
+                    route {
+                    path: "/blocks",
+                    method: events_blocks,
+                    req_data: EventsBlocksRequest,
+                    resp_data: EventsBlocksResponse,
+                }
+            }
+
+            route_group {
+                route_base: "/search",
+                 route {
+                 path: "/transactions",
+                 method: search_transactions,
+                 req_data: SearchTransactionsRequest,
+                 resp_data: SearchTransactionsResponse,
+                 }
+            }
+            }
+        }
+
+        rocket
+            .manage(self)
+            .ignite()
+            .await
+            .expect("Failed to iginite rocket")
+            .launch()
+            .await
+            .expect("Failed to start server");
     }
 }
