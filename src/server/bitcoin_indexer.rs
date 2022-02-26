@@ -22,15 +22,24 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: EventsBlocksRequest,
     ) -> Response<EventsBlocksResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/events/blocks"))
             .json(&data)
             .send()
             .await
-            .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn search_transactions(
@@ -38,14 +47,23 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: SearchTransactionsRequest,
     ) -> Response<SearchTransactionsResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
             .json(&data)
             .send()
             .await
-            .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 }
