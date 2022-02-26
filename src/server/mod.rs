@@ -2,6 +2,10 @@ mod dummy_construction;
 mod dummy_data;
 mod dummy_indexer;
 
+mod bitcoin_construction;
+mod bitcoin_data;
+mod bitcoin_indexer;
+
 use std::{
     net::{Ipv4Addr, SocketAddr},
     sync::Arc,
@@ -13,8 +17,9 @@ use rocket::{post, routes, Config, State};
 use crate::{api::*, errors::*, requests::*, responses::*};
 
 use self::{
-    dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
-    dummy_indexer::DummyIndexerApi,
+    bitcoin_construction::BitcoinConstructionApi, bitcoin_data::BitcoinDataApi,
+    bitcoin_indexer::BitcoinIndexerApi, dummy_construction::DummyConstructionApi,
+    dummy_data::DummyDataApi, dummy_indexer::DummyIndexerApi,
 };
 
 pub struct Server {
@@ -58,6 +63,14 @@ macro_rules! api_routes {
 impl Server {
     pub fn new() -> Self {
         Default::default()
+    }
+
+    pub fn bitcoin() -> Self {
+        Server {
+            construction_api: Arc::new(BitcoinConstructionApi::default()),
+            data_api: Arc::new(BitcoinDataApi::default()),
+            indexer_api: Arc::new(BitcoinIndexerApi::default()),
+        }
     }
 
     pub fn with_data_api<T: DataApi + 'static>(&mut self, data_api: T) {
