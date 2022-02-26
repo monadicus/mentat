@@ -29,8 +29,11 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn derive(
@@ -45,8 +48,11 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn hash(
@@ -61,8 +67,11 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn metadata(
@@ -77,8 +86,11 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn parse(
@@ -93,8 +105,11 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn payloads(
@@ -109,8 +124,11 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn preprocess(
@@ -125,8 +143,11 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 
     async fn submit(
@@ -141,7 +162,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             .send()
             .await
             .unwrap();
-        let data = resp.json().await.unwrap();
-        Ok(Json(data))
+
+        match resp.json().await {
+            Ok(d) => Ok(Json(d)),
+            Err(e) => ApiError::internal_server(anyhow!(e)),
+        }
     }
 }
