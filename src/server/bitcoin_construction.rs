@@ -22,13 +22,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionCombineRequest,
     ) -> Response<ConstructionCombineResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/combine"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
@@ -41,13 +47,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionDeriveRequest,
     ) -> Response<ConstructionDeriveResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/derive"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
@@ -60,13 +72,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionHashRequest,
     ) -> Response<TransactionIdentifierResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/hash"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
@@ -79,13 +97,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionMetadataRequest,
     ) -> Response<ConstructionMetadataResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/metadata"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
@@ -98,13 +122,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionParseRequest,
     ) -> Response<ConstructionParseResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/parse"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
@@ -117,13 +147,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPayloadsRequest,
     ) -> Response<ConstructionPayloadsResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/payloads"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
@@ -136,13 +172,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPreprocessRequest,
     ) -> Response<ConstructionPreprocessResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/preprocess"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
@@ -155,13 +197,19 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionSubmitRequest,
     ) -> Response<TransactionIdentifierResponse> {
-        let resp = self
+        let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
             .json(&data)
             .send()
             .await
-            .unwrap();
+        {
+            Ok(resp) => resp,
+            Err(e) => {
+                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
+                return Err(MentatError::Internal(err));
+            }
+        };
 
         match resp.json().await {
             Ok(d) => Ok(Json(d)),
