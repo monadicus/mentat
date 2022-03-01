@@ -31,15 +31,14 @@ impl IndexerApi for BitcoinIndexerApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn search_transactions(
@@ -56,14 +55,13 @@ impl IndexerApi for BitcoinIndexerApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 }

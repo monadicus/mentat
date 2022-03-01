@@ -31,15 +31,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn derive(
@@ -56,15 +55,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn hash(
@@ -81,15 +79,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn metadata(
@@ -106,15 +103,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn parse(
@@ -131,15 +127,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn payloads(
@@ -156,15 +151,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn preprocess(
@@ -181,15 +175,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn submit(
@@ -206,14 +199,13 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 }

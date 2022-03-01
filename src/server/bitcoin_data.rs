@@ -31,15 +31,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn network_options(
@@ -56,15 +55,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn network_status(
@@ -81,15 +79,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn account_balance(
@@ -106,15 +103,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn account_coins(
@@ -131,15 +127,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn block(&self, _caller: Caller, data: BlockRequest) -> Response<BlockResponse> {
@@ -152,15 +147,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn block_transaction(
@@ -177,15 +171,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn mempool(&self, _caller: Caller, data: NetworkRequest) -> Response<MempoolResponse> {
@@ -198,15 +191,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn mempool_transaction(
@@ -223,14 +215,13 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 }
