@@ -1,6 +1,7 @@
 /target
 /tools/cli-data
 tools/rosetta-cli-conf/testnet/aleo_config.json
+tools/log
 
 # Emacs gitignore files
 *~

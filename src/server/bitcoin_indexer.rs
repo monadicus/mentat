@@ -1,5 +1,9 @@
 use super::*;
 use reqwest::Client;
+#[cfg(feature = "debug")]
+use serde::Serialize;
+#[cfg(feature = "debug")]
+use std::{fs, io::Write};
 
 pub struct BitcoinIndexerApi {
     client: Client,
@@ -15,6 +19,18 @@ impl Default for BitcoinIndexerApi {
     }
 }
 
+#[cfg(feature = "debug")]
+pub fn log_payload<T: Serialize>(route: &str, payload: &T) {
+    let t = format!("{}: {}\n", route, serde_json::to_string(payload).unwrap());
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open("log.json")
+        .unwrap();
+    file.write_all(t.as_bytes()).unwrap();
+}
+
 #[async_trait::async_trait]
 impl IndexerApi for BitcoinIndexerApi {
     async fn events_blocks(
@@ -22,6 +38,8 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: EventsBlocksRequest,
     ) -> Response<EventsBlocksResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/events/blocks", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/events/blocks"))
@@ -46,6 +64,8 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: SearchTransactionsRequest,
     ) -> Response<SearchTransactionsResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/submit", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
