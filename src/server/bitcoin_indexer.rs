@@ -39,7 +39,7 @@ impl IndexerApi for BitcoinIndexerApi {
         data: EventsBlocksRequest,
     ) -> Response<EventsBlocksResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/events/blocks", &data);
+        log_payload("input /events/blocks", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/events/blocks"))
@@ -56,7 +56,10 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /events/blocks", &out);
+        Ok(Json(out))
     }
 
     async fn search_transactions(
@@ -65,7 +68,7 @@ impl IndexerApi for BitcoinIndexerApi {
         data: SearchTransactionsRequest,
     ) -> Response<SearchTransactionsResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/submit", &data);
+        log_payload("input  /construction/submit", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
@@ -82,6 +85,9 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/submit", &out);
+        Ok(Json(out))
     }
 }

@@ -25,7 +25,7 @@ impl DataApi for BitcoinDataApi {
         data: MetadataRequest,
     ) -> Response<NetworkListResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/network/list", &data);
+        log_payload("input  /network/list", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/list"))
@@ -42,7 +42,10 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /network/list", &out);
+        Ok(Json(out))
     }
 
     async fn network_options(
@@ -51,7 +54,7 @@ impl DataApi for BitcoinDataApi {
         data: NetworkRequest,
     ) -> Response<NetworkOptionsResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/network/options", &data);
+        log_payload("input  /network/options", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/options"))
@@ -68,7 +71,10 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /network/options", &out);
+        Ok(Json(out))
     }
 
     async fn network_status(
@@ -77,7 +83,7 @@ impl DataApi for BitcoinDataApi {
         data: NetworkRequest,
     ) -> Response<NetworkStatusResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/network/status", &data);
+        log_payload("input  /network/status", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/status"))
@@ -94,7 +100,10 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /network/status", &out);
+        Ok(Json(out))
     }
 
     async fn account_balance(
@@ -103,7 +112,7 @@ impl DataApi for BitcoinDataApi {
         data: AccountBalanceRequest,
     ) -> Response<AccountBalanceResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/account/balance", &data);
+        log_payload("input  /account/balance", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/balance"))
@@ -120,7 +129,10 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /account/balance", &out);
+        Ok(Json(out))
     }
 
     async fn account_coins(
@@ -129,7 +141,7 @@ impl DataApi for BitcoinDataApi {
         data: AccountCoinsRequest,
     ) -> Response<AccountCoinsResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/account/coins", &data);
+        log_payload("input /account/coins", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/coins"))
@@ -146,12 +158,15 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /account/coins", &out);
+        Ok(Json(out))
     }
 
     async fn block(&self, _caller: Caller, data: BlockRequest) -> Response<BlockResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/block", &data);
+        log_payload("input /block", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block"))
@@ -168,7 +183,10 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /block", &out);
+        Ok(Json(out))
     }
 
     async fn block_transaction(
@@ -177,7 +195,7 @@ impl DataApi for BitcoinDataApi {
         data: BlockTransactionRequest,
     ) -> Response<BlockTransactionResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/block/transaction", &data);
+        log_payload("input  /block/transaction", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block/transaction"))
@@ -194,12 +212,15 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /block/transaction", &out);
+        Ok(Json(out))
     }
 
     async fn mempool(&self, _caller: Caller, data: NetworkRequest) -> Response<MempoolResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/mempool", &data);
+        log_payload("input  /mempool", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool"))
@@ -216,7 +237,10 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /mempool", &out);
+        Ok(Json(out))
     }
 
     async fn mempool_transaction(
@@ -225,7 +249,7 @@ impl DataApi for BitcoinDataApi {
         data: MempoolTransactionRequest,
     ) -> Response<MempoolTransactionResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/mempool/transaction", &data);
+        log_payload("input  /mempool/transaction", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool/transaction"))
@@ -242,6 +266,9 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /mempool/transaction", &out);
+        Ok(Json(out))
     }
 }

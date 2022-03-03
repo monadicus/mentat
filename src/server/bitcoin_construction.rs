@@ -25,7 +25,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionCombineRequest,
     ) -> Response<ConstructionCombineResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/combine", &data);
+        log_payload("input  /construction/combine", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/combine"))
@@ -42,7 +42,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/combine", &out);
+        Ok(Json(out))
     }
 
     async fn derive(
@@ -51,7 +54,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionDeriveRequest,
     ) -> Response<ConstructionDeriveResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/derive", &data);
+        log_payload("input  /construction/derive", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/derive"))
@@ -68,7 +71,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/derive", &out);
+        Ok(Json(out))
     }
 
     async fn hash(
@@ -77,7 +83,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionHashRequest,
     ) -> Response<TransactionIdentifierResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/hash", &data);
+        log_payload("input  /construction/hash", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/hash"))
@@ -94,7 +100,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/hash", &out);
+        Ok(Json(out))
     }
 
     async fn metadata(
@@ -103,7 +112,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionMetadataRequest,
     ) -> Response<ConstructionMetadataResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/metadata", &data);
+        log_payload("input  /construction/metadata", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/metadata"))
@@ -120,7 +129,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/metadata", &out);
+        Ok(Json(out))
     }
 
     async fn parse(
@@ -129,7 +141,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionParseRequest,
     ) -> Response<ConstructionParseResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/parse", &data);
+        log_payload("input  /construction/parse", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/parse"))
@@ -146,7 +158,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/parse", &out);
+        Ok(Json(out))
     }
 
     async fn payloads(
@@ -155,7 +170,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionPayloadsRequest,
     ) -> Response<ConstructionPayloadsResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/payloads", &data);
+        log_payload("input  /construction/payloads", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/payloads"))
@@ -172,7 +187,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/payloads", &out);
+        Ok(Json(out))
     }
 
     async fn preprocess(
@@ -181,7 +199,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionPreprocessRequest,
     ) -> Response<ConstructionPreprocessResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/preprocess", &data);
+        log_payload("input  /construction/preprocess", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/preprocess"))
@@ -198,7 +216,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/preprocess", &out);
+        Ok(Json(out))
     }
 
     async fn submit(
@@ -207,7 +228,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionSubmitRequest,
     ) -> Response<TransactionIdentifierResponse> {
         #[cfg(feature = "debug")]
-        log_payload("/construction/submit", &data);
+        log_payload("input  /construction/submit", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
@@ -224,6 +245,9 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        Ok(Json(resp.json().await?))
+        let out = resp.json().await?;
+        #[cfg(feature = "debug")]
+        log_payload("output /construction/submit", &out);
+        Ok(Json(out))
     }
 }
