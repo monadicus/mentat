@@ -11,7 +11,6 @@ use std::{
     sync::Arc,
 };
 
-use anyhow::anyhow;
 use rocket::serde::json::Json;
 use rocket::{post, routes, Config, State};
 

@@ -1,0 +1,23 @@
+{
+    "network": {
+        "blockchain": "Bitcoin",
+        "network": "Mainnet"
+    },
+    "online_url": "http://localhost:3030",
+    "data_directory": "cli-data",
+    "http_timeout": 300,
+    "max_retries": 5,
+    "max_online_connections": 1000,
+    "tip_delay": 630720000,
+    "compression_disabled": true,
+    "memory_limit_disabled": true,
+    "data": {
+        "initial_balance_fetch_disabled": true,
+        "end_conditions": {
+            "reconciliation_coverage": {
+                "coverage": 0.95,
+                "from_tip": false
+            }
+        }
+    }
+}

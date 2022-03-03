@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use indexmap::IndexMap;
 use rocket::{
     response::{self, Responder},
@@ -13,29 +15,20 @@ pub struct ApiError {
     code: u16,
     message: String,
     description: Option<String>,
-    retryable: bool,
+    retriable: bool,
+    #[serde(default)]
     details: IndexMap<String, Value>,
 }
 
 impl ApiError {
-    pub fn internal_server<T>(error: anyhow::Error) -> Result<T> {
-        Err(MentatError::Internal(ApiError {
-            code: 500,
-            message: "Internal Server Error".to_string(),
-            description: Some(error.to_string()),
-            retryable: false,
-            details: Default::default(),
-        }))
-    }
-
-    pub fn not_implemented<T>() -> Result<T> {
-        Err(MentatError::NotImplemented(ApiError {
+    pub fn not_implemented() -> MentatError {
+        MentatError::NotImplemented(ApiError {
             code: 501,
             message: "Not Implemented".to_string(),
             description: None,
-            retryable: false,
+            retriable: false,
             details: Default::default(),
-        }))
+        })
     }
 }
 
@@ -54,3 +47,15 @@ pub enum MentatError {
 }
 
 pub type Result<T, E = MentatError> = std::result::Result<T, E>;
+
+impl<T: Display> From<T> for MentatError {
+    fn from(e: T) -> Self {
+        MentatError::Internal(ApiError {
+            code: 500,
+            message: "Internal Server Error".to_string(),
+            description: Some(e.to_string()),
+            retriable: false,
+            details: Default::default(),
+        })
+    }
+}

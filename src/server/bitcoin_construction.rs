@@ -1,3 +1,5 @@
+#[cfg(feature = "debug")]
+use super::bitcoin_indexer::debug;
 use super::*;
 use reqwest::Client;
 
@@ -22,6 +24,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionCombineRequest,
     ) -> Response<ConstructionCombineResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/combine", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/combine"))
@@ -31,15 +35,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn derive(
@@ -47,6 +50,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionDeriveRequest,
     ) -> Response<ConstructionDeriveResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/derive", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/derive"))
@@ -56,15 +61,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn hash(
@@ -72,6 +76,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionHashRequest,
     ) -> Response<TransactionIdentifierResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/hash", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/hash"))
@@ -81,15 +87,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn metadata(
@@ -97,6 +102,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionMetadataRequest,
     ) -> Response<ConstructionMetadataResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/metadata", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/metadata"))
@@ -106,15 +113,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn parse(
@@ -122,6 +128,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionParseRequest,
     ) -> Response<ConstructionParseResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/parse", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/parse"))
@@ -131,15 +139,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn payloads(
@@ -147,6 +154,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPayloadsRequest,
     ) -> Response<ConstructionPayloadsResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/payloads", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/payloads"))
@@ -156,15 +165,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn preprocess(
@@ -172,6 +180,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPreprocessRequest,
     ) -> Response<ConstructionPreprocessResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/preprocess", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/preprocess"))
@@ -181,15 +191,14 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn submit(
@@ -197,6 +206,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionSubmitRequest,
     ) -> Response<TransactionIdentifierResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/construction/submit", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
@@ -206,14 +217,13 @@ impl ConstructionApi for BitcoinConstructionApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 }

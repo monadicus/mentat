@@ -1,3 +1,5 @@
+#[cfg(feature = "debug")]
+use super::bitcoin_indexer::debug;
 use super::*;
 use reqwest::Client;
 
@@ -22,6 +24,8 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MetadataRequest,
     ) -> Response<NetworkListResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/network/list", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/list"))
@@ -31,15 +35,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn network_options(
@@ -47,6 +50,8 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
     ) -> Response<NetworkOptionsResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/network/options", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/options"))
@@ -56,15 +61,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn network_status(
@@ -72,6 +76,8 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
     ) -> Response<NetworkStatusResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/network/status", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/status"))
@@ -81,15 +87,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn account_balance(
@@ -97,6 +102,8 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountBalanceRequest,
     ) -> Response<AccountBalanceResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/account/balance", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/balance"))
@@ -106,15 +113,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn account_coins(
@@ -122,6 +128,8 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountCoinsRequest,
     ) -> Response<AccountCoinsResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/account/coins", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/coins"))
@@ -131,18 +139,19 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn block(&self, _caller: Caller, data: BlockRequest) -> Response<BlockResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/block", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block"))
@@ -152,15 +161,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn block_transaction(
@@ -168,6 +176,8 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: BlockTransactionRequest,
     ) -> Response<BlockTransactionResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/block/transaction", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block/transaction"))
@@ -177,18 +187,19 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn mempool(&self, _caller: Caller, data: NetworkRequest) -> Response<MempoolResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/mempool", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool"))
@@ -198,15 +209,14 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 
     async fn mempool_transaction(
@@ -214,6 +224,8 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MempoolTransactionRequest,
     ) -> Response<MempoolTransactionResponse> {
+        #[cfg(feature = "debug")]
+        log_payload("/mempool/transaction", &data);
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool/transaction"))
@@ -223,14 +235,13 @@ impl DataApi for BitcoinDataApi {
         {
             Ok(resp) => resp,
             Err(e) => {
-                let err: ApiError = serde_json::from_str(&e.to_string()).unwrap();
-                return Err(MentatError::Internal(err));
+                return Err(match serde_json::from_str(&e.to_string()) {
+                    Ok(s) => MentatError::Internal(s),
+                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                })
             }
         };
 
-        match resp.json().await {
-            Ok(d) => Ok(Json(d)),
-            Err(e) => ApiError::internal_server(anyhow!(e)),
-        }
+        Ok(Json(resp.json().await?))
     }
 }

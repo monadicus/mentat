@@ -9,7 +9,7 @@ impl IndexerApi for DummyIndexerApi {
         _caller: Caller,
         _data: EventsBlocksRequest,
     ) -> Response<EventsBlocksResponse> {
-        ApiError::not_implemented()
+        Err(ApiError::not_implemented())
     }
 
     async fn search_transactions(
@@ -17,6 +17,6 @@ impl IndexerApi for DummyIndexerApi {
         _caller: Caller,
         _data: SearchTransactionsRequest,
     ) -> Response<SearchTransactionsResponse> {
-        ApiError::not_implemented()
+        Err(ApiError::not_implemented())
     }
 }
