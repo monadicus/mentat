@@ -1,5 +1,7 @@
 # Build Snarkos Mentat
-FROM ubuntu:20.04 as snarkos-mentat-builder
+FROM ubuntu:20.04 as rosetta-mentat-builder
+ARG SERVICE="rosetta-snarkos"
+ARG BRANCH="containerized-deployment"
 
 RUN mkdir -p /app \
   && chown -R nobody:nogroup /app
@@ -12,12 +14,13 @@ ENV TZ Etc/UTC
 RUN apt-get update && apt-get install -y build-essential curl git
 
 # Install Rust stable
-RUN curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs -sSf | sh -s -- -y \
-    && echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+RUN curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN git clone git@github.com:monadicus/mentat.git \
+RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
     && cd mentat \
-    && cargo build --release
+    && cargo build --release --bin "$SERVICE" --features "$SERVICE" \
+    && mv ./target/release/"$SERVICE" /app
 
 # Build Rosetta Server Components
 FROM ubuntu:20.04 as rosetta-builder
@@ -45,7 +48,7 @@ COPY . src
 RUN cd src \
   && go build \
   && cd .. \
-  && mv src/rosetta-snarkos /app/rosetta-snarkos \
+  && mv src/$SERVICE /app/$SERVICE \
   && mv src/assets/* /app \
   && rm -rf src 
 
@@ -64,7 +67,7 @@ RUN mkdir -p /app \
 WORKDIR /app
 
 # Copy binary from snarkos-mentat-builder
-COPY --from=snarkos-mentat-builder /app/snarkos-mentat /app/snarkos-mentat
+COPY --from=rosetta-mentat-builder /app/$SERVICE /app/$SERVICE
 
 # Copy binary from rosetta-builder
 COPY --from=rosetta-builder /app/* /app/
@@ -72,4 +75,4 @@ COPY --from=rosetta-builder /app/* /app/
 # Set permissions for everything added to /app
 RUN chmod -R 755 /app/*
 
-CMD ["/app/rosetta-bitcoin"]
+CMD ["/app/$SERVICE"]
