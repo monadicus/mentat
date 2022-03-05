@@ -9,7 +9,7 @@ build-snarkos:
 	docker build -t rosetta-snarkos:latest https://github.com/monadicus/mentat.git --build-arg SERVICE=rosetta-snarkos
 
 build-local-snarkos:
-	docker build -t rosetta-snarkos:latest . --build-arg SERVICE=rosetta-snarkos
+	docker build --no-cache -t rosetta-snarkos:latest . --build-arg SERVICE=rosetta-snarkos
 
 build-release-snarkos:
 	# make sure to always set version with vX.X.X
@@ -40,3 +40,6 @@ check-format:
 
 test:
 	cargo test --all
+
+clean:
+	cargo clean

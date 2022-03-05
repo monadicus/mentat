@@ -1,5 +1,8 @@
 use mentat::server::Server;
-use std::net::Ipv4Addr;
+use std::{
+    env,
+    net::Ipv4Addr
+};
 
 mod construction_api;
 mod data_api;
@@ -11,5 +14,8 @@ async fn main() {
     server.with_construction_api(construction_api::SnarkosConstructionApi::default());
     server.with_data_api(data_api::SnarkosDataApi::default());
     server.with_indexer_api(indexer_api::SnarkosIndexerApi::default());
-    server.serve(Ipv4Addr::new(127, 0, 0, 1), 3030).await;
+
+    let port = env::var("PORT").unwrap_or("8080".to_string()).parse().unwrap_or(8080);
+    
+    server.serve(Ipv4Addr::new(0, 0, 0, 0), port).await;
 }
