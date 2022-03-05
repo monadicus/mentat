@@ -1,5 +1,5 @@
-#[cfg(feature = "debug")]
-use super::bitcoin_indexer::debug;
+#[cfg(debug_assertions)]
+use super::bitcoin_indexer::log_payload;
 use super::*;
 use reqwest::Client;
 
@@ -24,8 +24,11 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MetadataRequest,
     ) -> Response<NetworkListResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /network/list", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /network/list",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/list"))
@@ -42,10 +45,13 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /network/list", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn network_options(
@@ -53,8 +59,11 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
     ) -> Response<NetworkOptionsResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /network/options", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /network/options",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/options"))
@@ -71,10 +80,13 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /network/options", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn network_status(
@@ -82,8 +94,11 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
     ) -> Response<NetworkStatusResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /network/status", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /network/status",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/status"))
@@ -100,10 +115,13 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /network/status", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn account_balance(
@@ -111,8 +129,11 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountBalanceRequest,
     ) -> Response<AccountBalanceResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /account/balance", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /account/balance",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/balance"))
@@ -129,10 +150,13 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /account/balance", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn account_coins(
@@ -140,8 +164,11 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountCoinsRequest,
     ) -> Response<AccountCoinsResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input /account/coins", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /account/coins",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/coins"))
@@ -158,15 +185,18 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /account/coins", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn block(&self, _caller: Caller, data: BlockRequest) -> Response<BlockResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input /block", &data);
+        #[cfg(debug_assertions)]
+        log_payload("input  /block", serde_json::to_string(&data).unwrap());
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block"))
@@ -183,10 +213,13 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /block", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn block_transaction(
@@ -194,8 +227,11 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: BlockTransactionRequest,
     ) -> Response<BlockTransactionResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /block/transaction", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /block/transaction",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block/transaction"))
@@ -212,15 +248,18 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /block/transaction", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn mempool(&self, _caller: Caller, data: NetworkRequest) -> Response<MempoolResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /mempool", &data);
+        #[cfg(debug_assertions)]
+        log_payload("input  /mempool", serde_json::to_string(&data).unwrap());
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool"))
@@ -237,10 +276,13 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /mempool", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn mempool_transaction(
@@ -248,8 +290,11 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MempoolTransactionRequest,
     ) -> Response<MempoolTransactionResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /mempool/transaction", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /mempool/transaction",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool/transaction"))
@@ -266,9 +311,12 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /mempool/transaction", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 }

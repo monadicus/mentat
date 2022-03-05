@@ -1,9 +1,7 @@
 use super::*;
 use reqwest::Client;
-#[cfg(feature = "debug")]
-use serde::Serialize;
-#[cfg(feature = "debug")]
-use std::{fs, io::Write};
+#[cfg(debug_assertions)]
+use std::{fmt, fs, io::Write};
 
 pub struct BitcoinIndexerApi {
     client: Client,
@@ -19,9 +17,9 @@ impl Default for BitcoinIndexerApi {
     }
 }
 
-#[cfg(feature = "debug")]
-pub fn log_payload<T: Serialize>(route: &str, payload: &T) {
-    let t = format!("{}: {}\n", route, serde_json::to_string(payload).unwrap());
+#[cfg(debug_assertions)]
+pub fn log_payload<T: fmt::Display>(route: &str, payload: T) {
+    let t = format!("{}: {}\n", route, payload);
     let mut file = fs::OpenOptions::new()
         .write(true)
         .append(true)
@@ -38,8 +36,11 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: EventsBlocksRequest,
     ) -> Response<EventsBlocksResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input /events/blocks", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /events/blocks",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/events/blocks"))
@@ -56,10 +57,13 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /events/blocks", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn search_transactions(
@@ -67,8 +71,11 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: SearchTransactionsRequest,
     ) -> Response<SearchTransactionsResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/submit", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/submit",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
@@ -85,9 +92,9 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/submit", &out);
-        Ok(Json(out))
+        Ok(Json(serde_json::from_str(&out)?))
     }
 }

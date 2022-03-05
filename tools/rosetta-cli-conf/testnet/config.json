@@ -8,7 +8,7 @@
     "http_timeout": 300,
     "max_retries": 5,
     "max_online_connections": 1000,
-    "tip_delay": 630720000,
+    "tip_delay": 1300,
     "memory_limit_disabled": true,
     "compression_disabled": true,
     "construction": {

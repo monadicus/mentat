@@ -1,5 +1,5 @@
-#[cfg(feature = "debug")]
-use super::bitcoin_indexer::debug;
+#[cfg(debug_assertions)]
+use super::bitcoin_indexer::log_payload;
 use super::*;
 use reqwest::Client;
 
@@ -24,8 +24,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionCombineRequest,
     ) -> Response<ConstructionCombineResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/combine", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/combine",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/combine"))
@@ -42,10 +45,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/combine", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn derive(
@@ -53,8 +59,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionDeriveRequest,
     ) -> Response<ConstructionDeriveResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/derive", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/derive",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/derive"))
@@ -71,10 +80,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/derive", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn hash(
@@ -82,8 +94,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionHashRequest,
     ) -> Response<TransactionIdentifierResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/hash", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/hash",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/hash"))
@@ -100,10 +115,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/hash", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn metadata(
@@ -111,8 +129,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionMetadataRequest,
     ) -> Response<ConstructionMetadataResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/metadata", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/metadata",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/metadata"))
@@ -129,10 +150,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/metadata", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn parse(
@@ -140,8 +164,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionParseRequest,
     ) -> Response<ConstructionParseResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/parse", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/parse",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/parse"))
@@ -158,10 +185,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/parse", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn payloads(
@@ -169,8 +199,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPayloadsRequest,
     ) -> Response<ConstructionPayloadsResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/payloads", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/payloads",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/payloads"))
@@ -187,10 +220,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/payloads", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn preprocess(
@@ -198,8 +234,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPreprocessRequest,
     ) -> Response<ConstructionPreprocessResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/preprocess", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/preprocess",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/preprocess"))
@@ -216,10 +255,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/preprocess", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 
     async fn submit(
@@ -227,8 +269,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionSubmitRequest,
     ) -> Response<TransactionIdentifierResponse> {
-        #[cfg(feature = "debug")]
-        log_payload("input  /construction/submit", &data);
+        #[cfg(debug_assertions)]
+        log_payload(
+            "input  /construction/submit",
+            serde_json::to_string(&data).unwrap(),
+        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
@@ -245,9 +290,12 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.json().await?;
-        #[cfg(feature = "debug")]
+        let out = resp.text().await?;
+        #[cfg(debug_assertions)]
         log_payload("output /construction/submit", &out);
-        Ok(Json(out))
+        match serde_json::from_str(&out) {
+            Ok(o) => Ok(Json(o)),
+            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
+        }
     }
 }
