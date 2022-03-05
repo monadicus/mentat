@@ -10,6 +10,8 @@ use rocket::{
     Request, Responder as DeriveResponder,
 };
 
+use crate::api::Response;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ApiError {
     code: u16,
@@ -21,14 +23,14 @@ pub struct ApiError {
 }
 
 impl ApiError {
-    pub fn not_implemented() -> MentatError {
-        MentatError::NotImplemented(ApiError {
+    pub fn not_implemented<T>() -> Response<T> {
+        Err(MentatError::NotImplemented(ApiError {
             code: 501,
             message: "Not Implemented".to_string(),
             description: None,
             retriable: false,
             details: Default::default(),
-        })
+        }))
     }
 }
 

@@ -9,7 +9,7 @@ impl DataApi for DummyDataApi {
         _caller: Caller,
         _data: MetadataRequest,
     ) -> Response<NetworkListResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn network_options(
@@ -17,7 +17,7 @@ impl DataApi for DummyDataApi {
         _caller: Caller,
         _data: NetworkRequest,
     ) -> Response<NetworkOptionsResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn network_status(
@@ -25,7 +25,7 @@ impl DataApi for DummyDataApi {
         _caller: Caller,
         _data: NetworkRequest,
     ) -> Response<NetworkStatusResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn account_balance(
@@ -33,7 +33,7 @@ impl DataApi for DummyDataApi {
         _caller: Caller,
         _data: AccountBalanceRequest,
     ) -> Response<AccountBalanceResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn account_coins(
@@ -41,11 +41,11 @@ impl DataApi for DummyDataApi {
         _caller: Caller,
         _data: AccountCoinsRequest,
     ) -> Response<AccountCoinsResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn block(&self, _caller: Caller, _data: BlockRequest) -> Response<BlockResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn block_transaction(
@@ -53,11 +53,11 @@ impl DataApi for DummyDataApi {
         _caller: Caller,
         _data: BlockTransactionRequest,
     ) -> Response<BlockTransactionResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn mempool(&self, _caller: Caller, _data: NetworkRequest) -> Response<MempoolResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn mempool_transaction(
@@ -65,6 +65,6 @@ impl DataApi for DummyDataApi {
         _caller: Caller,
         _data: MempoolTransactionRequest,
     ) -> Response<MempoolTransactionResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 }

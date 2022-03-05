@@ -9,7 +9,7 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionCombineRequest,
     ) -> Response<ConstructionCombineResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn derive(
@@ -17,7 +17,7 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionDeriveRequest,
     ) -> Response<ConstructionDeriveResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn hash(
@@ -25,7 +25,7 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionHashRequest,
     ) -> Response<TransactionIdentifierResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn metadata(
@@ -33,7 +33,7 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionMetadataRequest,
     ) -> Response<ConstructionMetadataResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn parse(
@@ -41,7 +41,7 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionParseRequest,
     ) -> Response<ConstructionParseResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn payloads(
@@ -49,7 +49,7 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionPayloadsRequest,
     ) -> Response<ConstructionPayloadsResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn preprocess(
@@ -57,7 +57,7 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionPreprocessRequest,
     ) -> Response<ConstructionPreprocessResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 
     async fn submit(
@@ -65,6 +65,6 @@ impl ConstructionApi for DummyConstructionApi {
         _caller: Caller,
         _data: ConstructionSubmitRequest,
     ) -> Response<TransactionIdentifierResponse> {
-        Err(ApiError::not_implemented())
+        ApiError::not_implemented()
     }
 }
