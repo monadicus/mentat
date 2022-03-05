@@ -5,6 +5,7 @@ use mentat::{
     responses::*,
 };
 
+#[derive(Default)]
 pub struct SnarkosDataApi;
 
 #[async_trait::async_trait]
