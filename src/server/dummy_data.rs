@@ -56,10 +56,6 @@ impl DataApi for DummyDataApi {
         Err(ApiError::not_implemented())
     }
 
-    async fn call(&self, _caller: Caller, _data: CallRequest) -> Response<CallResponse> {
-        Err(ApiError::not_implemented())
-    }
-
     async fn mempool(&self, _caller: Caller, _data: NetworkRequest) -> Response<MempoolResponse> {
         Err(ApiError::not_implemented())
     }

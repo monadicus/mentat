@@ -1,7 +1,9 @@
+mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
 mod dummy_indexer;
 
+mod bitcoin_call;
 mod bitcoin_construction;
 mod bitcoin_data;
 mod bitcoin_indexer;
@@ -17,15 +19,17 @@ use rocket::{post, routes, Config, State};
 use crate::{api::*, errors::*, requests::*, responses::*};
 
 use self::{
-    bitcoin_construction::BitcoinConstructionApi, bitcoin_data::BitcoinDataApi,
-    bitcoin_indexer::BitcoinIndexerApi, dummy_construction::DummyConstructionApi,
-    dummy_data::DummyDataApi, dummy_indexer::DummyIndexerApi,
+    bitcoin_call::BitcoinCallApi, bitcoin_construction::BitcoinConstructionApi,
+    bitcoin_data::BitcoinDataApi, bitcoin_indexer::BitcoinIndexerApi, dummy_call::DummyCallApi,
+    dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi,
 };
 
 pub struct Server {
     construction_api: Arc<dyn ConstructionApi>,
     data_api: Arc<dyn DataApi>,
     indexer_api: Arc<dyn IndexerApi>,
+    call_api: Arc<dyn CallApi>,
 }
 
 impl Default for Server {
@@ -34,6 +38,7 @@ impl Default for Server {
             construction_api: Arc::new(DummyConstructionApi),
             data_api: Arc::new(DummyDataApi),
             indexer_api: Arc::new(DummyIndexerApi),
+            call_api: Arc::new(DummyCallApi),
         }
     }
 }
@@ -70,6 +75,7 @@ impl Server {
             construction_api: Arc::new(BitcoinConstructionApi::default()),
             data_api: Arc::new(BitcoinDataApi::default()),
             indexer_api: Arc::new(BitcoinIndexerApi::default()),
+            call_api: Arc::new(BitcoinCallApi::default()),
         }
     }
 
@@ -95,6 +101,14 @@ impl Server {
 
     pub fn with_dyn_indexer_api(&mut self, indexer_api: Arc<dyn IndexerApi>) {
         self.indexer_api = indexer_api;
+    }
+
+    pub fn with_call_api<T: CallApi + 'static>(&mut self, call_api: T) {
+        self.with_dyn_call_api(Arc::new(call_api));
+    }
+
+    pub fn with_dyn_call_api(&mut self, call_api: Arc<dyn CallApi>) {
+        self.call_api = call_api;
     }
 
     pub async fn serve(self, address: Ipv4Addr, port: u16) {
@@ -277,6 +291,21 @@ impl Server {
                  req_data: SearchTransactionsRequest,
                  resp_data: SearchTransactionsResponse,
                  }
+            }
+            }
+
+            api_group {
+                api: call_api,
+
+            route_group {
+                route_base: "/call",
+
+                route {
+                path: "/",
+                method: call,
+                req_data: CallRequest,
+                resp_data: CallResponse,
+                }
             }
             }
         }

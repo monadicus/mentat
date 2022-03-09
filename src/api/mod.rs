@@ -11,6 +11,9 @@ pub use data::*;
 mod indexer;
 pub use indexer::*;
 
+mod call;
+pub use call::*;
+
 use crate::errors::Result;
 use crate::requests::*;
 use crate::responses::*;
