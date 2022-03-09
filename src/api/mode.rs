@@ -1,7 +1,5 @@
 use std::env;
 
-use super::Response;
-
 pub enum Mode {
     Online,
     Offline,
@@ -9,26 +7,21 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub fn handle<R>(
-        &self,
-        on: impl Fn() -> Response<R>,
-        off: impl Fn() -> Response<R>,
-        neither: impl Fn() -> Response<R>,
-    ) -> Response<R> {
-        match self {
-            Mode::Online => on(),
-            Mode::Offline => off(),
-            Mode::Neither => neither(),
-        }
+    pub fn is_offline(&self) -> bool {
+        matches!(&self, Mode::Online)
+    }
+
+    pub fn is_online(&self) -> bool {
+        matches!(&self, Mode::Online)
     }
 }
 
 impl Default for Mode {
     fn default() -> Self {
         match env::var("MODE").as_deref() {
-            Ok("ONLINE") => Mode::Online,
+            Ok("NEITHER") => Mode::Neither,
             Ok("OFFLINE") => Mode::Offline,
-            _ => Mode::Neither,
+            _ => Mode::Online,
         }
     }
 }

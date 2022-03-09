@@ -7,7 +7,6 @@ pub trait IndexerApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: EventsBlocksRequest,
-        _mode: &ModeState,
     ) -> Response<EventsBlocksResponse> {
         ApiError::not_implemented()
     }
@@ -17,8 +16,28 @@ pub trait IndexerApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: SearchTransactionsRequest,
-        _mode: &ModeState,
     ) -> Response<SearchTransactionsResponse> {
         ApiError::not_implemented()
+    }
+}
+
+#[async_trait::async_trait]
+pub trait CallIndexerApi: IndexerApi + Send + Sync {
+    async fn call_events_blocks(
+        &self,
+        caller: Caller,
+        data: EventsBlocksRequest,
+        _mode: &ModeState,
+    ) -> Response<EventsBlocksResponse> {
+        self.events_blocks(caller, data).await
+    }
+
+    async fn call_search_transactions(
+        &self,
+        caller: Caller,
+        data: SearchTransactionsRequest,
+        _mode: &ModeState,
+    ) -> Response<SearchTransactionsResponse> {
+        self.search_transactions(caller, data).await
     }
 }

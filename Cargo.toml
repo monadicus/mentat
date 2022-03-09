@@ -8,11 +8,16 @@ rust-version = "1.59.0"
 name = "rosetta-snarkos"
 path = "rosetta-snarkos/server.rs"
 
+[[bin]]
+name = "rosetta-bitcoin"
+path = "rosetta-bitcoin/server.rs"
+
 [features]
 _network = ["async-trait", "indexmap"]
 client = ["_network", "reqwest", "serde", "serde_json"]
 default = ["server"]
-rosetta-snarkos = ["server"]
+rosetta-bitcoin = ["server", "rocket"]
+rosetta-snarkos = ["server", "reqwest"]
 server = ["_network", "serde", "serde_json", "reqwest", "rocket"]
 
 [dependencies]

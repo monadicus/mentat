@@ -52,8 +52,4 @@ COPY --from=rosetta-mentat-builder /app/$SERVICE /app/rosetta-mentat-service
 # Set permissions for everything added to /app
 RUN chmod -R 755 /app/*
 
-# Run the node(I think the app needs to handle this as bitcoin-rosetta never runs this binary)
-RUN curl -fsSL --remote-name https://s3-us-west-1.amazonaws.com/aleo.parameters/posw.proving.b2d14c7 && mkdir -p /root/.aleo/resources && mv posw.proving.b2d14c7 /root/.aleo/resources
-RUN /app/node-runner --node 0.0.0.0:4132 --rpc 0.0.0.0:3032 --trial --verbosity 2 &
-
 CMD ["/app/rosetta-mentat-service"]

@@ -1,10 +1,9 @@
-use mentat::api::ConstructionApi;
+use mentat::api::{CallConstructionApi, ConstructionApi};
 
 #[derive(Default)]
 pub struct SnarkosConstructionApi;
 
 #[async_trait::async_trait]
-impl ConstructionApi for SnarkosConstructionApi {
-    // #[cfg(feature = "rosetta-snarkos-mainnet")]
-    // #[cfg(feature = "rosetta-snarkos-testnet")]
-}
+impl CallConstructionApi for SnarkosConstructionApi {}
+
+impl ConstructionApi for SnarkosConstructionApi {}

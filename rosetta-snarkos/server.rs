@@ -5,6 +5,7 @@ use std::{env, net::Ipv4Addr, sync::Arc};
 mod construction_api;
 mod data_api;
 mod indexer_api;
+mod node;
 
 #[rocket::main]
 async fn main() {
@@ -22,5 +23,7 @@ async fn main() {
         .parse()
         .unwrap_or(8080);
 
-    server.serve(address, port).await;
+    server
+        .serve(address, port, node::SnarkOSNode::default())
+        .await;
 }
