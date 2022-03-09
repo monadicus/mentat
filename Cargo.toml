@@ -11,8 +11,8 @@ path = "rosetta-snarkos/server.rs"
 [features]
 _network = ["async-trait", "indexmap"]
 client = ["_network", "reqwest", "serde", "serde_json"]
-rosetta-snarkos = ["server"]
 default = ["server"]
+rosetta-snarkos = ["server"]
 server = ["_network", "serde", "serde_json", "reqwest", "rocket"]
 
 [dependencies]

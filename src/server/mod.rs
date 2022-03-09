@@ -9,6 +9,7 @@ mod bitcoin_data;
 mod bitcoin_indexer;
 
 use std::{
+    env,
     net::{Ipv4Addr, SocketAddr},
     sync::Arc,
 };
@@ -25,20 +26,32 @@ use self::{
     dummy_indexer::DummyIndexerApi,
 };
 
+pub enum Network {
+    Mainnet,
+    Testnet,
+}
+
 pub struct Server {
     construction_api: Arc<dyn ConstructionApi>,
     data_api: Arc<dyn DataApi>,
     indexer_api: Arc<dyn IndexerApi>,
-    call_api: Arc<dyn CallApi>,
+    call_api: Arc<dyn CallerCallApi>,
+    network: Network,
 }
 
 impl Default for Server {
     fn default() -> Self {
+        let network = match env::var("NETWORK").as_deref() {
+            Ok("TESTNET") => Network::Testnet,
+	    _ => Network::Mainnet,
+        };
+
         Self {
             construction_api: Arc::new(DummyConstructionApi),
             data_api: Arc::new(DummyDataApi),
             indexer_api: Arc::new(DummyIndexerApi),
             call_api: Arc::new(DummyCallApi),
+            network,
         }
     }
 }
@@ -77,38 +90,60 @@ impl Server {
             data_api: Arc::new(BitcoinDataApi::default()),
             indexer_api: Arc::new(BitcoinIndexerApi::default()),
             call_api: Arc::new(BitcoinCallApi::default()),
+            network: Network::Mainnet,
         }
     }
 
-    pub fn with_data_api<T: DataApi + 'static>(&mut self, data_api: T) {
-        self.with_dyn_data_api(Arc::new(data_api));
+    pub fn with_data_api<T: DataApi + 'static>(
+        &mut self,
+        mainnet_data_api: T,
+        testnet_data_api: T,
+    ) {
+        match self.network {
+            Network::Mainnet => self.with_dyn_data_api(Arc::new(mainnet_data_api)),
+            Network::Testnet => self.with_dyn_data_api(Arc::new(testnet_data_api)),
+        }
     }
 
     pub fn with_dyn_data_api(&mut self, data_api: Arc<dyn DataApi>) {
         self.data_api = data_api;
     }
 
-    pub fn with_construction_api<T: ConstructionApi + 'static>(&mut self, construction_api: T) {
-        self.with_dyn_construction_api(Arc::new(construction_api));
+    pub fn with_construction_api<T: ConstructionApi + 'static>(
+        &mut self,
+        mainnet_construction_api: T,
+        testnet_construction_api: T,
+    ) {
+        match self.network {
+            Network::Mainnet => self.with_dyn_construction_api(Arc::new(mainnet_construction_api)),
+            Network::Testnet => self.with_dyn_construction_api(Arc::new(testnet_construction_api)),
+        }
     }
 
     pub fn with_dyn_construction_api(&mut self, construction_api: Arc<dyn ConstructionApi>) {
         self.construction_api = construction_api;
     }
 
-    pub fn with_indexer_api<T: IndexerApi + 'static>(&mut self, indexer_api: T) {
-        self.with_dyn_indexer_api(Arc::new(indexer_api));
+    pub fn with_indexer_api<T: IndexerApi + 'static>(
+        &mut self,
+        mainnet_indexer_api: T,
+        testnet_indexer_api: T,
+    ) {
+        match self.network {
+            Network::Mainnet => self.with_dyn_indexer_api(Arc::new(mainnet_indexer_api)),
+            Network::Testnet => self.with_dyn_indexer_api(Arc::new(testnet_indexer_api)),
+        }
     }
 
     pub fn with_dyn_indexer_api(&mut self, indexer_api: Arc<dyn IndexerApi>) {
         self.indexer_api = indexer_api;
     }
 
-    pub fn with_call_api<T: CallApi + 'static>(&mut self, call_api: T) {
+    pub fn with_call_api<T: CallerCallApi + 'static>(&mut self, call_api: T) {
         self.with_dyn_call_api(Arc::new(call_api));
     }
 
-    pub fn with_dyn_call_api(&mut self, call_api: Arc<dyn CallApi>) {
+    pub fn with_dyn_call_api(&mut self, call_api: Arc<dyn CallerCallApi>) {
         self.call_api = call_api;
     }
 
@@ -303,7 +338,7 @@ impl Server {
 
                     route {
                         path: "/",
-                        method: call,
+                        method: call_call,
                         req_data: CallRequest,
                         resp_data: CallResponse,
                     }

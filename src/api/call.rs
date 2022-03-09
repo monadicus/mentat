@@ -11,5 +11,7 @@ pub trait CallApi: Send + Sync {
 #[async_trait::async_trait]
 pub trait CallerCallApi: CallApi + Send + Sync {
     /// Make a Network-Specific Procedure Call
-    async fn call_call(&self, _caller: Caller, data: CallRequest) -> Response<CallResponse>;
+    async fn call_call(&self, _caller: Caller, data: CallRequest, mode: ModeState) -> Response<CallResponse> {
+	ApiError::not_implemented()
+    }
 }

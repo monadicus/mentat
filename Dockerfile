@@ -3,7 +3,7 @@ ARG SERVICE="rosetta-snarkos"
 
 
 # Build Rosetta Mentat
-FROM ubuntu:20.04 as rosetta-mentat-builder
+FROM alpine:3.15.0 as rosetta-mentat-builder
 
 ARG SERVICE="rosetta-snarkos"
 ARG BRANCH="containerized-deployment"
@@ -16,7 +16,7 @@ WORKDIR /app
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ Etc/UTC
 
-RUN apt-get update && apt-get install -y build-essential curl git
+RUN apk -U upgrade && apk add alpine-sdk
 
 # Install Rust stable
 RUN curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs -sSf | sh -s -- -y
@@ -28,13 +28,12 @@ RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
     && mv ./target/release/"$SERVICE" /app
 
 ## Build Final Image
-FROM ubuntu:20.04
+FROM alpine:3.15.0
 
 ARG SERVICE="rosetta-snarkos"
 ENV ADDRESS "0.0.0.0"
 
-RUN apt-get update && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apk update
 
 RUN mkdir -p /app \
   && chown -R nobody:nogroup /app \

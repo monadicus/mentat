@@ -1,6 +1,6 @@
 use mentat::server::Server;
 
-use std::{env, net::Ipv4Addr};
+use std::{env, net::Ipv4Addr, sync::Arc};
 
 mod construction_api;
 mod data_api;
@@ -9,9 +9,9 @@ mod indexer_api;
 #[rocket::main]
 async fn main() {
     let mut server = Server::new();
-    server.with_construction_api(construction_api::SnarkosConstructionApi::default());
-    server.with_data_api(data_api::SnarkosDataApi::default());
-    server.with_indexer_api(indexer_api::SnarkosIndexerApi::default());
+    server.with_dyn_construction_api(Arc::new(construction_api::SnarkosConstructionApi::default()));
+    server.with_dyn_data_api(Arc::new(data_api::SnarkosDataApi::default()));
+    server.with_dyn_indexer_api(Arc::new(indexer_api::SnarkosIndexerApi::default()));
 
     let address = env::var("ADDRESS")
         .unwrap_or_else(|_| "localhost".to_string())

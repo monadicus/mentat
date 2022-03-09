@@ -47,3 +47,6 @@ impl CallApi for BitcoinCallApi {
         }
     }
 }
+
+#[async_trait::async_trait]
+impl CallerCallApi for BitcoinCallApi {}
