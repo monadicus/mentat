@@ -1,17 +1,15 @@
 # Build Service Node
 FROM alpine:3.15.0 as mentat-node-builder
 ARG SERVICE="rosetta-snarkos"
+ARG BRANCH="containerized-deployment"
 
 RUN mkdir -p /app \
   && chown -R nobody:nogroup /app
 WORKDIR /app
 
-RUN apk -U upgrade && apk add cargo clang gcc git g++ libressl-dev linux-headers openssl rust
+RUN apk -U upgrade && apk add curl
 
-RUN git clone https://github.com/AleoHQ/snarkOS.git --depth 1 \
-    && cd snarkOS \
-    && cargo build --release \
-    && mv ./target/release/snarkos /app/node-runner
+RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/monadicus/mentat/$BRANCH/$SERVICE/install.sh | sh
 
 # Build Rosetta Mentat
 FROM alpine:edge as rosetta-mentat-builder
