@@ -35,6 +35,7 @@ impl IndexerApi for BitcoinIndexerApi {
         &self,
         _caller: Caller,
         data: EventsBlocksRequest,
+        _mode: &ModeState,
     ) -> Response<EventsBlocksResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -70,6 +71,7 @@ impl IndexerApi for BitcoinIndexerApi {
         &self,
         _caller: Caller,
         data: SearchTransactionsRequest,
+        _mode: &ModeState,
     ) -> Response<SearchTransactionsResponse> {
         #[cfg(debug_assertions)]
         log_payload(

@@ -23,6 +23,7 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: MetadataRequest,
+        _mode: &ModeState,
     ) -> Response<NetworkListResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -58,6 +59,7 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: NetworkRequest,
+        _mode: &ModeState,
     ) -> Response<NetworkOptionsResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -93,6 +95,7 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: NetworkRequest,
+        _mode: &ModeState,
     ) -> Response<NetworkStatusResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -128,6 +131,7 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: AccountBalanceRequest,
+        _mode: &ModeState,
     ) -> Response<AccountBalanceResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -163,6 +167,7 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: AccountCoinsRequest,
+        _mode: &ModeState,
     ) -> Response<AccountCoinsResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -194,7 +199,12 @@ impl DataApi for BitcoinDataApi {
         }
     }
 
-    async fn block(&self, _caller: Caller, data: BlockRequest) -> Response<BlockResponse> {
+    async fn block(
+        &self,
+        _caller: Caller,
+        data: BlockRequest,
+        _mode: &ModeState,
+    ) -> Response<BlockResponse> {
         #[cfg(debug_assertions)]
         log_payload("input  /block", serde_json::to_string(&data).unwrap());
         let resp = match self
@@ -226,6 +236,7 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: BlockTransactionRequest,
+        _mode: &ModeState,
     ) -> Response<BlockTransactionResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -257,7 +268,12 @@ impl DataApi for BitcoinDataApi {
         }
     }
 
-    async fn mempool(&self, _caller: Caller, data: NetworkRequest) -> Response<MempoolResponse> {
+    async fn mempool(
+        &self,
+        _caller: Caller,
+        data: NetworkRequest,
+        _mode: &ModeState,
+    ) -> Response<MempoolResponse> {
         #[cfg(debug_assertions)]
         log_payload("input  /mempool", serde_json::to_string(&data).unwrap());
         let resp = match self
@@ -289,6 +305,7 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: MempoolTransactionRequest,
+        _mode: &ModeState,
     ) -> Response<MempoolTransactionResponse> {
         #[cfg(debug_assertions)]
         log_payload(

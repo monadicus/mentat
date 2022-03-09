@@ -23,6 +23,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionCombineRequest,
+        __mode: &ModeState,
     ) -> Response<ConstructionCombineResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -58,6 +59,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionDeriveRequest,
+        _mode: &ModeState,
     ) -> Response<ConstructionDeriveResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -93,6 +95,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionHashRequest,
+        _mode: &ModeState,
     ) -> Response<TransactionIdentifierResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -128,6 +131,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionMetadataRequest,
+        _mode: &ModeState,
     ) -> Response<ConstructionMetadataResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -163,6 +167,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionParseRequest,
+        _mode: &ModeState,
     ) -> Response<ConstructionParseResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -198,6 +203,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionPayloadsRequest,
+        _mode: &ModeState,
     ) -> Response<ConstructionPayloadsResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -233,6 +239,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionPreprocessRequest,
+        _mode: &ModeState,
     ) -> Response<ConstructionPreprocessResponse> {
         #[cfg(debug_assertions)]
         log_payload(
@@ -268,6 +275,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionSubmitRequest,
+        _mode: &ModeState,
     ) -> Response<TransactionIdentifierResponse> {
         #[cfg(debug_assertions)]
         log_payload(

@@ -52,10 +52,11 @@ macro_rules! api_routes {
 		    async fn $method(
 			server: &State<Server>,
 			ip: SocketAddr,
-			req_data: Json<$req>
+			req_data: Json<$req>,
+			mode: &ModeState,
 		    ) -> Response<$resp> {
 			let c = Caller { ip };
-			server.$api.$method(c, req_data.into_inner()).await
+			server.$api.$method(c, req_data.into_inner(), mode).await
 		    }
 
 		    $rocket = $rocket.mount($route_base, routes![$method]);
@@ -312,6 +313,7 @@ impl Server {
 
         rocket
             .manage(self)
+            .manage(Mode::default())
             .ignite()
             .await
             .expect("Failed to iginite rocket")

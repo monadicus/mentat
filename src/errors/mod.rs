@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use indexmap::IndexMap;
 use rocket::{
@@ -23,10 +23,20 @@ pub struct ApiError {
 }
 
 impl ApiError {
-    pub fn not_implemented<T>() -> Response<T> {
+    pub fn not_implemented<R>() -> Response<R> {
         Err(MentatError::NotImplemented(ApiError {
             code: 501,
             message: "Not Implemented".to_string(),
+            description: None,
+            retriable: false,
+            details: Default::default(),
+        }))
+    }
+
+    pub fn wrong_network<P: Debug, R>(payload: P) -> Response<R> {
+        Err(MentatError::Internal(ApiError {
+            code: 500,
+            message: format!("requestNetwork not supported {payload:?}"),
             description: None,
             retriable: false,
             details: Default::default(),

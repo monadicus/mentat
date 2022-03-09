@@ -31,6 +31,7 @@ RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
 FROM ubuntu:20.04
 
 ARG SERVICE="rosetta-snarkos"
+ENV ADDRESS "0.0.0.0"
 
 RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
