@@ -10,7 +10,7 @@ WORKDIR /app
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y curl
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/monadicus/mentat/$BRANCH/$SERVICE/install.sh | sh
+RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/monadicus/mentat/$BRANCH/$SERVICE/install.sh | bash
 
 # Build Rosetta Mentat
 FROM debian:buster-slim as rosetta-mentat-builder
