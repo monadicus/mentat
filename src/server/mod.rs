@@ -136,16 +136,16 @@ impl Server {
     where
         N: NodeRunner,
     {
-	let mode = Mode::default();
+        let mode = Mode::default();
 
-	if mode.is_online() {
-	    node.start_node(
-		address.to_string(),
-		std::process::Command::new("/app/node-runner"),
+        if !mode.is_offline() {
+            node.start_node(
+                address.to_string(),
+                std::process::Command::new("/app/node-runner"),
             )
-		.await
-		.expect("Failed to start node");
-	}
+            .await
+            .expect("Failed to start node");
+        }
 
         let config = Config {
             port,

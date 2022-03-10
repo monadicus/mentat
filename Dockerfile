@@ -1,5 +1,5 @@
 # Build Service Node
-FROM alpine:3.15.0 as mentat-node-builder
+FROM alpine:edge as mentat-node-builder
 ARG SERVICE="rosetta-snarkos"
 ARG BRANCH="containerized-deployment"
 
@@ -29,7 +29,7 @@ RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
     && mv ./target/release/"$SERVICE" /app
 
 ## Build Final Image
-FROM alpine:3.15.0
+FROM alpine:edge
 
 ARG SERVICE="rosetta-snarkos"
 ENV ADDRESS "0.0.0.0"
