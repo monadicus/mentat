@@ -6,7 +6,7 @@ pub struct SnarkOSNode;
 #[async_trait::async_trait]
 impl NodeRunner for SnarkOSNode {
     async fn start_node(
-        self,
+        &self,
         address: String,
         mut cmd: std::process::Command,
     ) -> Result<(), Box<dyn std::error::Error>> {
