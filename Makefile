@@ -5,7 +5,7 @@
 PWD=$(shell pwd)
 NOFILE=100000
 
-SERVICE="rosetta-snarkos"
+SERVICE=rosetta-snarkos
 
 build:
 	docker build -t mentat-$(SERVICE):latest https://github.com/monadicus/mentat.git --build-arg SERVICE=$(SERVICE)
