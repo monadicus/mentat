@@ -35,7 +35,7 @@ impl NodeRunner for SnarkOSNode {
         fn spawn_reader<T: 'static + Read + Send>(out: T, err: bool) {
             let mut reader = BufReader::new(out).lines();
             thread::spawn(move || {
-                while let Ok(line) = reader.next().unwrap() {
+                while let Some(Ok(line)) = reader.next() {
 		    if err {
 			rocket::error!("SnarkOS: {line}");
 		    } else {
