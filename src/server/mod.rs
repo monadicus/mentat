@@ -136,12 +136,16 @@ impl Server {
     where
         N: NodeRunner,
     {
-        node.start_node(
-            address.to_string(),
-            std::process::Command::new("/app/node-runner"),
-        )
-        .await
-        .expect("Failed to start node");
+	let mode = Mode::default();
+
+	if mode.is_online() {
+	    node.start_node(
+		address.to_string(),
+		std::process::Command::new("/app/node-runner"),
+            )
+		.await
+		.expect("Failed to start node");
+	}
 
         let config = Config {
             port,
@@ -344,7 +348,7 @@ impl Server {
 
         rocket
             .manage(self)
-            .manage(Mode::default())
+            .manage(mode)
             .ignite()
             .await
             .expect("Failed to iginite rocket")
