@@ -1,9 +1,9 @@
-use mentat::api::{CallConstructionApi, ConstructionApi};
+use mentat::api::{CallerConstructionApi, ConstructionApi};
 
 #[derive(Default)]
 pub struct SnarkosConstructionApi;
 
 #[async_trait::async_trait]
-impl CallConstructionApi for SnarkosConstructionApi {}
+impl CallerConstructionApi for SnarkosConstructionApi {}
 
 impl ConstructionApi for SnarkosConstructionApi {}

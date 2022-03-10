@@ -22,7 +22,7 @@ pub trait IndexerApi: Send + Sync {
 }
 
 #[async_trait::async_trait]
-pub trait CallIndexerApi: IndexerApi + Send + Sync {
+pub trait CallerIndexerApi: IndexerApi + Send + Sync {
     async fn call_events_blocks(
         &self,
         caller: Caller,

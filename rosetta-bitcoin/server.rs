@@ -2,6 +2,7 @@ use mentat::server::{DummyNode, Server};
 
 use std::{env, net::Ipv4Addr, sync::Arc};
 
+mod call_api;
 mod construction_api;
 mod data_api;
 mod indexer_api;
@@ -12,6 +13,7 @@ pub(crate) use log_payload::log_payload;
 #[rocket::main]
 async fn main() {
     let mut server = Server::new();
+    server.with_dyn_call_api(Arc::new(call_api::BitcoinCallApi::default()));
     server.with_dyn_construction_api(Arc::new(construction_api::BitcoinConstructionApi::default()));
     server.with_dyn_data_api(Arc::new(data_api::BitcoinDataApi::default()));
     server.with_dyn_indexer_api(Arc::new(indexer_api::BitcoinIndexerApi::default()));

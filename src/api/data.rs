@@ -77,7 +77,7 @@ pub trait DataApi: Send + Sync {
 }
 
 #[async_trait::async_trait]
-pub trait CallDataApi: DataApi + Send + Sync {
+pub trait CallerDataApi: DataApi + Send + Sync {
     async fn call_network_list(
         &self,
         caller: Caller,

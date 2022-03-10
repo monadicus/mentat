@@ -1,7 +1,14 @@
 #[cfg(debug_assertions)]
-use super::bitcoin_indexer::log_payload;
-use super::*;
+use super::log_payload;
+
+use mentat::{
+    api::{CallApi, Caller, CallerCallApi, Response},
+    errors::*,
+    requests::*,
+    responses::*,
+};
 use reqwest::Client;
+use rocket::serde::json::Json;
 
 pub struct BitcoinCallApi {
     client: Client,
@@ -16,6 +23,9 @@ impl Default for BitcoinCallApi {
         }
     }
 }
+
+#[async_trait::async_trait]
+impl CallerCallApi for BitcoinCallApi {}
 
 #[async_trait::async_trait]
 impl CallApi for BitcoinCallApi {
@@ -47,6 +57,3 @@ impl CallApi for BitcoinCallApi {
         }
     }
 }
-
-#[async_trait::async_trait]
-impl CallerCallApi for BitcoinCallApi {}

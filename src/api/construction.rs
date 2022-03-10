@@ -76,7 +76,7 @@ pub trait ConstructionApi: Send + Sync {
 }
 
 #[async_trait::async_trait]
-pub trait CallConstructionApi: ConstructionApi + Send + Sync {
+pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
     async fn call_combine(
         &self,
         caller: Caller,

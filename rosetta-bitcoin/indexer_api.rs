@@ -2,7 +2,7 @@
 use super::log_payload;
 
 use mentat::{
-    api::{CallIndexerApi, Caller, IndexerApi, Response},
+    api::{Caller, CallerIndexerApi, IndexerApi, Response},
     errors::*,
     requests::*,
     responses::*,
@@ -25,7 +25,7 @@ impl Default for BitcoinIndexerApi {
 }
 
 #[async_trait::async_trait]
-impl CallIndexerApi for BitcoinIndexerApi {}
+impl CallerIndexerApi for BitcoinIndexerApi {}
 
 #[async_trait::async_trait]
 impl IndexerApi for BitcoinIndexerApi {
