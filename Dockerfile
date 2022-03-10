@@ -24,8 +24,8 @@ WORKDIR /app
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y curl git
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-RUN bash -c "source $HOME/.cargo/env"
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -
+ENV PATH=/root/.cargo/bin:$PATH
 
 RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
     && cd mentat \
