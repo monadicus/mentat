@@ -2,6 +2,7 @@ use super::*;
 
 /// The transaction submission request includes a signed transaction.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct EventsBlocksRequest {
     /// EventsBlocksRequest is utilized to fetch a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state.
     pub network_identifier: NetworkIdentifier,

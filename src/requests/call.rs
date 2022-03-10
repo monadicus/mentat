@@ -4,6 +4,7 @@ use super::*;
 
 /// CallRequest is the input to the /call endpoint.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct CallRequest {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: NetworkIdentifier,

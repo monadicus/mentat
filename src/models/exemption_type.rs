@@ -2,6 +2,7 @@ use super::*;
 
 /// ExemptionType is used to indicate if the live balance for an account subject to a BalanceExemption could increase above, decrease below, or equal the computed balance.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(crate = "rocket::serde")]
 pub enum ExemptionType {
     /// The live balance may increase above or equal the computed balance. This typically occurs with staking rewards that accrue on each block.
     #[serde(rename = "greater_or_equal")]

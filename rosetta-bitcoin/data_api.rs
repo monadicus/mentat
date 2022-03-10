@@ -24,10 +24,10 @@ impl Default for BitcoinDataApi {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl CallerDataApi for BitcoinDataApi {}
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl DataApi for BitcoinDataApi {
     async fn network_list(
         &self,

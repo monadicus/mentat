@@ -13,12 +13,12 @@ name = "rosetta-bitcoin"
 path = "rosetta-bitcoin/server.rs"
 
 [features]
-_network = ["async-trait", "indexmap"]
+_network = ["indexmap", "rocket"]
 client = ["_network", "reqwest", "serde", "serde_json"]
 default = ["server"]
-rosetta-bitcoin = ["server", "rocket"]
-rosetta-snarkos = ["server", "reqwest"]
-server = ["_network", "serde", "serde_json", "reqwest", "rocket"]
+rosetta-bitcoin = ["serde", "serde_json", "server"]
+rosetta-snarkos = ["server"]
+server = ["_network", "reqwest"]
 
 [dependencies]
 async-trait = { version = "0.1", optional = true, default-features = false }

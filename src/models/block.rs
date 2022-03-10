@@ -4,6 +4,7 @@ use super::*;
 
 /// Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. A hard requirement for blocks returned by Rosetta implementations is that they MUST be inalterable: once a client has requested and received a block identified by a specific BlockIndentifier, all future calls for that same BlockIdentifier must return the same block contents.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct Block {
     /// The block_identifier uniquely identifies a block in a particular network.
     pub block_identifier: BlockIdentifier,

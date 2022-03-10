@@ -4,6 +4,7 @@ use super::*;
 
 /// ConstructionDeriveResponse is returned by the /construction/derive endpoint.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct ConstructionDeriveResponse {
     /// [DEPRECATED by account_identifier in v1.4.4] Address in network-specific format.
     pub address: Option<String>,

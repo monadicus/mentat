@@ -33,8 +33,9 @@ FROM alpine:edge
 
 ARG SERVICE="rosetta-snarkos"
 ENV ADDRESS "0.0.0.0"
+ENV ROCKET_ENV "production"
 
-RUN apk update && apk add clang curl gcc git g++ libressl-dev linux-headers openssl
+RUN apk update && apk add ca-certificates clang curl gcc git g++ libressl-dev linux-headers openssl
 
 RUN mkdir -p /app \
   && chown -R nobody:nogroup /app \

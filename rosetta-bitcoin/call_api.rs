@@ -24,10 +24,10 @@ impl Default for BitcoinCallApi {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl CallerCallApi for BitcoinCallApi {}
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl CallApi for BitcoinCallApi {
     async fn call(&self, _caller: Caller, data: CallRequest) -> Response<CallResponse> {
         #[cfg(debug_assertions)]

@@ -4,6 +4,7 @@ use super::*;
 
 /// CallResponse contains the result of a /call invocation.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct CallResponse {
     /// Result contains the result of the /call invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.
     pub result: IndexMap<String, Value>,

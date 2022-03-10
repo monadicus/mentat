@@ -1,6 +1,6 @@
 use super::*;
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 pub trait CallApi: Send + Sync {
     /// Make a Network-Specific Procedure Call
     async fn call(&self, _caller: Caller, _data: CallRequest) -> Response<CallResponse> {
@@ -8,7 +8,7 @@ pub trait CallApi: Send + Sync {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 pub trait CallerCallApi: CallApi + Send + Sync {
     /// Make a Network-Specific Procedure Call
     async fn call_call(

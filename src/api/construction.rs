@@ -1,6 +1,6 @@
 use super::*;
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 pub trait ConstructionApi: Send + Sync {
     /// Combine creates a network-specific transaction from an unsigned transaction and an array of provided signatures. The signed transaction returned from this method will be sent to the /construction/submit endpoint by the _caller.
     async fn combine(
@@ -75,7 +75,7 @@ pub trait ConstructionApi: Send + Sync {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
     async fn call_combine(
         &self,

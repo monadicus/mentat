@@ -24,10 +24,10 @@ impl Default for BitcoinIndexerApi {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl CallerIndexerApi for BitcoinIndexerApi {}
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl IndexerApi for BitcoinIndexerApi {
     async fn events_blocks(
         &self,

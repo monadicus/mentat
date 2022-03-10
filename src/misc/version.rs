@@ -4,6 +4,7 @@ use super::*;
 
 /// The Version object is utilized to inform the client of the versions of different components of the Rosetta implementation.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct Version {
     /// The rosetta_version is the version of the Rosetta interface the implementation adheres to. This can be useful for clients looking to reliably parse responses.
     pub rosetta_version: String,

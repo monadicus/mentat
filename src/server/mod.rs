@@ -132,20 +132,8 @@ impl Server {
         self.call_api = call_api;
     }
 
-    pub async fn serve<N>(self, address: Ipv4Addr, port: u16, node: N)
-    where
-        N: NodeRunner,
-    {
+    pub async fn serve(self, address: Ipv4Addr, port: u16, node: Box<dyn NodeRunner>) {
         let mode = Mode::default();
-
-        if !mode.is_offline() {
-            node.start_node(
-                address.to_string(),
-                std::process::Command::new("/app/node-runner"),
-            )
-            .await
-            .expect("Failed to start node");
-        }
 
         let config = Config {
             port,
@@ -344,6 +332,10 @@ impl Server {
                 }
 
             }
+        }
+	
+	if !mode.is_offline() {
+            rocket = rocket.attach(node);
         }
 
         rocket

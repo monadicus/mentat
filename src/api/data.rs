@@ -1,6 +1,6 @@
 use super::*;
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 pub trait DataApi: Send + Sync {
     /// This endpoint returns a list of NetworkIdentifiers that the Rosetta server supports.
     async fn network_list(
@@ -76,7 +76,7 @@ pub trait DataApi: Send + Sync {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 pub trait CallerDataApi: DataApi + Send + Sync {
     async fn call_network_list(
         &self,

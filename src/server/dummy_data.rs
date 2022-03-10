@@ -2,8 +2,8 @@ use super::*;
 
 pub struct DummyDataApi;
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl CallerDataApi for DummyDataApi {}
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl DataApi for DummyDataApi {}

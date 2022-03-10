@@ -27,5 +27,5 @@ async fn main() {
         .parse()
         .unwrap_or(8080);
 
-    server.serve(address, port, DummyNode::default()).await;
+    server.serve(address, port, Box::new(DummyNode::default())).await;
 }

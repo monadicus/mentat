@@ -2,6 +2,7 @@ use super::*;
 
 /// An AccountBalanceRequest is utilized to make a balance request on the /account/balance endpoint. If the block_identifier is populated, a historical balance query should be performed.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct AccountBalanceRequest {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: NetworkIdentifier,

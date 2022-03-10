@@ -26,6 +26,6 @@ async fn main() {
         .unwrap_or(8080);
 
     server
-        .serve(address, port, node::SnarkOSNode::default())
+        .serve(address, port, Box::new(node::SnarkOSNode::default()))
         .await;
 }

@@ -7,7 +7,7 @@ pub enum Mode {
 
 impl Mode {
     pub fn is_offline(&self) -> bool {
-        matches!(&self, Mode::Online)
+        matches!(&self, Mode::Offline)
     }
 }
 

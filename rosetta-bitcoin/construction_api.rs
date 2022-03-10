@@ -24,10 +24,10 @@ impl Default for BitcoinConstructionApi {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl CallerConstructionApi for BitcoinConstructionApi {}
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl ConstructionApi for BitcoinConstructionApi {
     async fn combine(
         &self,
