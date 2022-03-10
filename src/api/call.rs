@@ -17,7 +17,7 @@ pub trait CallerCallApi: CallApi + Send + Sync {
         data: CallRequest,
         mode: &ModeState,
     ) -> Response<CallResponse> {
-        if mode.is_online() {
+        if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
             self.call(caller, data).await

@@ -81,39 +81,27 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         &self,
         caller: Caller,
         data: ConstructionCombineRequest,
-        mode: &ModeState,
+        _mode: &ModeState,
     ) -> Response<ConstructionCombineResponse> {
-        if mode.is_online() {
-            ApiError::wrong_network(&data)
-        } else {
-            self.combine(caller, data).await
-        }
+        self.combine(caller, data).await
     }
 
     async fn call_derive(
         &self,
         caller: Caller,
         data: ConstructionDeriveRequest,
-        mode: &ModeState,
+        _mode: &ModeState,
     ) -> Response<ConstructionDeriveResponse> {
-        if mode.is_online() {
-            ApiError::wrong_network(&data)
-        } else {
-            self.derive(caller, data).await
-        }
+        self.derive(caller, data).await
     }
 
     async fn call_hash(
         &self,
         caller: Caller,
         data: ConstructionHashRequest,
-        mode: &ModeState,
+        _mode: &ModeState,
     ) -> Response<TransactionIdentifierResponse> {
-        if mode.is_online() {
-            ApiError::wrong_network(&data)
-        } else {
-            self.hash(caller, data).await
-        }
+        self.hash(caller, data).await
     }
 
     async fn call_metadata(
@@ -133,39 +121,27 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         &self,
         caller: Caller,
         data: ConstructionParseRequest,
-        mode: &ModeState,
+        _mode: &ModeState,
     ) -> Response<ConstructionParseResponse> {
-        if mode.is_online() {
-            ApiError::wrong_network(&data)
-        } else {
-            self.parse(caller, data).await
-        }
+        self.parse(caller, data).await
     }
 
     async fn call_payloads(
         &self,
         caller: Caller,
         data: ConstructionPayloadsRequest,
-        mode: &ModeState,
+        _mode: &ModeState,
     ) -> Response<ConstructionPayloadsResponse> {
-        if mode.is_online() {
-            ApiError::wrong_network(&data)
-        } else {
-            self.payloads(caller, data).await
-        }
+        self.payloads(caller, data).await
     }
 
     async fn call_preprocess(
         &self,
         caller: Caller,
         data: ConstructionPreprocessRequest,
-        mode: &ModeState,
+        _mode: &ModeState,
     ) -> Response<ConstructionPreprocessResponse> {
-        if mode.is_online() {
-            ApiError::wrong_network(&data)
-        } else {
-            self.preprocess(caller, data).await
-        }
+        self.preprocess(caller, data).await
     }
 
     async fn call_submit(
