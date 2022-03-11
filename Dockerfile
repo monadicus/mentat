@@ -22,9 +22,9 @@ RUN mkdir -p /app \
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y curl git
+RUN apt-get update && apt-get install -y curl clang gcc git
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH=/root/.cargo/bin:$PATH
 
 RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
