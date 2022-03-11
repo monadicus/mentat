@@ -56,7 +56,7 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        let out = resp.text().await?.to_string();
+        let out = resp.text().await?;
         #[cfg(debug_assertions)]
         log_payload("output /events/blocks", &out);
         match serde_json::from_str(&out) {
@@ -91,7 +91,7 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        let out = resp.text().await?.to_string();
+        let out = resp.text().await?;
         #[cfg(debug_assertions)]
         log_payload("output /construction/submit", &out);
         Ok(Json(serde_json::from_str(&out)?))

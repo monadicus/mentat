@@ -12,20 +12,21 @@ pub struct SnarkOSNode;
 impl NodeRunner for SnarkOSNode {
     async fn start_node(&self, address: String) -> Result<(), Box<dyn std::error::Error>> {
         // also need the address.
-        let mut child =
-            std::process::Command::new("/home/gluax/work/Aleo/snarkOS/target/release/snarkos")
-                .args(&[
-                    "--node",
-                    &format!("{address}:4132"),
-                    "--rpc",
-                    &format!("{address}:3032"),
-                    "--trial",
-                    "--verbosity",
-                    "2",
-                ])
-                .stderr(std::process::Stdio::piped())
-                .stdout(std::process::Stdio::piped())
-                .spawn()?;
+        let snarkos = std::env::var("NODE").unwrap_or_else(|_| "/app/node-runner".to_string());
+
+        let mut child = std::process::Command::new(snarkos)
+            .args(&[
+                "--node",
+                &format!("{address}:4132"),
+                "--rpc",
+                &format!("{address}:3032"),
+                "--trial",
+                "--verbosity",
+                "2",
+            ])
+            .stderr(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .spawn()?;
 
         let stdout = child.stdout.take().unwrap();
         let stderr = child.stderr.take().unwrap();

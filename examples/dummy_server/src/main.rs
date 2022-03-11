@@ -1,8 +1,11 @@
-use mentat::server::{DummyNode, Server};
+use mentat::{
+    server::{DummyNode, Server},
+    tokio,
+};
 use std::net::Ipv4Addr;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let server = Server::default();
     server
         .serve(
@@ -10,5 +13,7 @@ async fn main() {
             3030,
             Box::new(DummyNode::default()),
         )
-        .await;
+        .await?;
+
+    Ok(())
 }
