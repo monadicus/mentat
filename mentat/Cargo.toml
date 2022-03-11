@@ -1,0 +1,26 @@
+[package]
+name = "mentat"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.59.0"
+
+[features]
+_network = ["axum", "indexmap", "serde", "serde_json"]
+client = ["_network", "reqwest"]
+default = ["server"]
+server = ["_network", "opentelemetry", "opentelemetry-jaeger", "tokio", "tower", "tracing", "tracing-opentelemetry", "tracing-subscriber", "tracing-tree"]
+
+[dependencies]
+axum = { version = "0.4.8", optional = true, default-features = false, features = ["http1", "json"] }
+indexmap = { version = "1.7", optional = true, default-features = false, features = ["serde"] }
+serde = { version = "1.0", optional = true, default-features = false, features = ["derive"] }
+serde_json = { version = "1.0", optional = true }
+reqwest = { version = "0.11", optional = true, default-features = false, features = ["json"] }
+tokio = { version = "1.17.0", optional = true, features = ["full"] }
+tower = { version = "0.4.12", optional = true, default-features = false }
+tracing = { version = "0.1.32", optional = true }
+tracing-subscriber = { version = "0.3.9", optional = true, features = ["env-filter"] }
+tracing-tree = { version = "0.2.0", optional = true }
+opentelemetry = { version = "0.17.0", optional = true, features = ["rt-tokio"] }
+opentelemetry-jaeger = { version = "0.16.0", optional = true, features = ["rt-tokio"] }
+tracing-opentelemetry = { version = "0.17.2", optional = true }
