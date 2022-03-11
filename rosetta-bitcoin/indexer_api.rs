@@ -90,7 +90,7 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        let out = resp.text().await?.as_ref();
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /construction/submit", &out);
         Ok(Json(serde_json::from_str(&out)?))

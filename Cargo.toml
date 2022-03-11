@@ -7,10 +7,12 @@ rust-version = "1.59.0"
 [[bin]]
 name = "rosetta-snarkos"
 path = "rosetta-snarkos/server.rs"
+required-features = ["rosetta-snarkos"]
 
 [[bin]]
 name = "rosetta-bitcoin"
 path = "rosetta-bitcoin/server.rs"
+required-features = ["rosetta-bitcoin"]
 
 [features]
 _network = ["indexmap", "rocket"]
