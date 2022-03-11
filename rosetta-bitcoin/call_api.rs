@@ -8,7 +8,7 @@ use mentat::{
     responses::*,
 };
 use reqwest::Client;
-use rocket::serde::json::Json;
+use rocket::serde::json::{Json, serde_json};
 
 pub struct BitcoinCallApi {
     client: Client,

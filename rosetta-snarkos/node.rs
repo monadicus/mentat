@@ -10,10 +10,7 @@ pub struct SnarkOSNode;
 
 #[rocket::async_trait]
 impl NodeRunner for SnarkOSNode {
-    async fn start_node(
-        &self,
-        address: String,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn start_node(&self, address: String) -> Result<(), Box<dyn std::error::Error>> {
         // also need the address.
         let mut child = std::process::Command::new("/app/node-runner")
             .args(&[
@@ -36,12 +33,11 @@ impl NodeRunner for SnarkOSNode {
             let mut reader = BufReader::new(out).lines();
             thread::spawn(move || {
                 while let Some(Ok(line)) = reader.next() {
-		    if err {
-			rocket::error!("SnarkOS: {line}");
-		    } else {
-			rocket::info!("SnarkOS: {line}");
-		    }
-                    
+                    if err {
+                        rocket::error!("SnarkOS: {line}");
+                    } else {
+                        rocket::info!("SnarkOS: {line}");
+                    }
                 }
             });
         }
