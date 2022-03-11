@@ -16,7 +16,7 @@ path = "rosetta-bitcoin/server.rs"
 _network = ["indexmap", "rocket"]
 client = ["_network", "reqwest", "serde", "serde_json"]
 default = ["server"]
-rosetta-bitcoin = ["serde", "serde_json", "server"]
+rosetta-bitcoin = ["server", "reqwest"]
 rosetta-snarkos = ["server", "reqwest"]
 server = ["_network"]
 
