@@ -17,8 +17,8 @@ _network = ["indexmap", "rocket"]
 client = ["_network", "reqwest", "serde", "serde_json"]
 default = ["server"]
 rosetta-bitcoin = ["serde", "serde_json", "server"]
-rosetta-snarkos = ["server"]
-server = ["_network", "reqwest"]
+rosetta-snarkos = ["server", "reqwest"]
+server = ["_network"]
 
 [dependencies]
 indexmap = { version = "1.7", optional = true, default-features = false, features = ["serde"] }
@@ -26,4 +26,5 @@ serde = { version = "1.0", optional = true, default-features = false }
 serde_json = { version = "1.0", optional = true }
 reqwest = { version = "0.11", optional = true, default-features = false, features = ["json"] }
 rocket = { version = "0.5.0-rc.1", optional = true, default-features = false, features = ["json"] }
+jsonrpc_v2_client = { version = "0.2.1", optional = true, default-features = false }
 

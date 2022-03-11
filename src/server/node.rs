@@ -20,7 +20,7 @@ impl Fairing for Box<dyn NodeRunner> {
     async fn on_liftoff(&self, rocket: &Rocket<Orbit>) {
         self.start_node(rocket.config().address.to_string())
             .await
-            .expect("failed to launce node");
+            .expect("failed to launch node");
     }
 }
 
