@@ -1,19 +1,20 @@
 use mentat::{
-    api::{Caller, CallerDataApi, DataApi, Response},
+    api::{Caller, CallerDataApi, DataApi, MentantResponse},
+    async_trait,
     requests::*,
     responses::*,
+    serde_json, tracing, Json,
 };
-use rocket::serde::json::{serde_json, Json};
 
 #[derive(Default)]
 pub struct SnarkosDataApi;
 
-#[rocket::async_trait]
+#[async_trait]
 impl CallerDataApi for SnarkosDataApi {}
 
-#[rocket::async_trait]
+#[async_trait]
 impl DataApi for SnarkosDataApi {
-    async fn block(&self, _caller: Caller, _data: BlockRequest) -> Response<BlockResponse> {
+    async fn block(&self, _caller: Caller, _data: BlockRequest) -> MentantResponse<BlockResponse> {
         let data = serde_json::json!(
         {
         "jsonrpc": "2.0",
@@ -28,7 +29,8 @@ impl DataApi for SnarkosDataApi {
             .json(&data)
             .send()
             .await?;
-        rocket::error!("{:?}", response.text().await);
+        let text = response.text().await?;
+        tracing::debug!("{text}");
 
         Ok(Json(BlockResponse {
             block: None,

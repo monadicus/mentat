@@ -1,10 +1,13 @@
-use mentat::api::{CallerIndexerApi, IndexerApi};
+use mentat::{
+    api::{CallerIndexerApi, IndexerApi},
+    async_trait,
+};
 
 #[derive(Default)]
 pub struct SnarkosIndexerApi;
 
-#[rocket::async_trait]
+#[async_trait]
 impl CallerIndexerApi for SnarkosIndexerApi {}
 
-#[rocket::async_trait]
+#[async_trait]
 impl IndexerApi for SnarkosIndexerApi {}

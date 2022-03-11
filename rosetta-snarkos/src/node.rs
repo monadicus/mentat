@@ -3,28 +3,29 @@ use std::{
     thread,
 };
 
-use mentat::server::NodeRunner;
+use mentat::{async_trait, server::NodeRunner, tracing};
 
 #[derive(Default)]
 pub struct SnarkOSNode;
 
-#[rocket::async_trait]
+#[async_trait]
 impl NodeRunner for SnarkOSNode {
     async fn start_node(&self, address: String) -> Result<(), Box<dyn std::error::Error>> {
         // also need the address.
-        let mut child = std::process::Command::new("/app/node-runner")
-            .args(&[
-                "--node",
-                &format!("{address}:4132"),
-                "--rpc",
-                &format!("{address}:3032"),
-                "--trial",
-                "--verbosity",
-                "2",
-            ])
-            .stderr(std::process::Stdio::piped())
-            .stdout(std::process::Stdio::piped())
-            .spawn()?;
+        let mut child =
+            std::process::Command::new("/home/gluax/work/Aleo/snarkOS/target/release/snarkos")
+                .args(&[
+                    "--node",
+                    &format!("{address}:4132"),
+                    "--rpc",
+                    &format!("{address}:3032"),
+                    "--trial",
+                    "--verbosity",
+                    "2",
+                ])
+                .stderr(std::process::Stdio::piped())
+                .stdout(std::process::Stdio::piped())
+                .spawn()?;
 
         let stdout = child.stdout.take().unwrap();
         let stderr = child.stderr.take().unwrap();
@@ -34,9 +35,9 @@ impl NodeRunner for SnarkOSNode {
             thread::spawn(move || {
                 while let Some(Ok(line)) = reader.next() {
                     if err {
-                        rocket::error!("SnarkOS: {line}");
+                        tracing::error!("SnarkOS: {line}");
                     } else {
-                        rocket::info!("SnarkOS: {line}");
+                        tracing::info!("SnarkOS: {line}");
                     }
                 }
             });

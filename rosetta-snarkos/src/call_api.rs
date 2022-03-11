@@ -1,9 +1,13 @@
-use mentat::api::{CallApi, CallerCallApi};
+use mentat::{
+    api::{CallApi, CallerCallApi},
+    async_trait,
+};
 
 #[derive(Default)]
 pub struct SnarkosCallApi;
 
-#[rocket::async_trait]
+#[async_trait]
 impl CallerCallApi for SnarkosCallApi {}
 
+#[async_trait]
 impl CallApi for SnarkosCallApi {}

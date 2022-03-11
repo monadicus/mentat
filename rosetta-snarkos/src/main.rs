@@ -1,4 +1,4 @@
-use mentat::server::Server;
+use mentat::{server::Server, tokio};
 
 use std::{env, net::Ipv4Addr, sync::Arc};
 
@@ -8,8 +8,8 @@ mod data_api;
 mod indexer_api;
 mod node;
 
-#[rocket::main]
-async fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = Server::new();
     server.with_dyn_call_api(Arc::new(call_api::SnarkosCallApi::default()));
     server.with_dyn_construction_api(Arc::new(construction_api::SnarkosConstructionApi::default()));
@@ -27,5 +27,7 @@ async fn main() {
 
     server
         .serve(address, port, Box::new(node::SnarkOSNode::default()))
-        .await;
+        .await?;
+
+    Ok(())
 }

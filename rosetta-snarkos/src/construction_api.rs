@@ -1,9 +1,12 @@
-use mentat::api::{CallerConstructionApi, ConstructionApi};
+use mentat::{
+    api::{CallerConstructionApi, ConstructionApi},
+    async_trait,
+};
 
 #[derive(Default)]
 pub struct SnarkosConstructionApi;
 
-#[rocket::async_trait]
+#[async_trait]
 impl CallerConstructionApi for SnarkosConstructionApi {}
 
 impl ConstructionApi for SnarkosConstructionApi {}
