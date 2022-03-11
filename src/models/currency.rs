@@ -4,6 +4,7 @@ use super::*;
 
 /// Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Satoshis) to standard units (Bitcoins).
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct Currency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,

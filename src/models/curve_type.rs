@@ -2,6 +2,7 @@ use super::*;
 
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(crate = "rocket::serde")]
 pub enum CurveType {
     /// https://secg.org/sec1-v2.pdf#subsubsection.2.3.3
     #[serde(rename = "secp256k1")]

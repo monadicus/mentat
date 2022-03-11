@@ -2,6 +2,7 @@ use super::*;
 
 /// EventsBlocksResponse contains an ordered collection of BlockEvents and the max retrievable sequence.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct EventsBlocksResponse {
     /// max_sequence is the maximum available sequence number to fetch.
     pub max_sequence: u64,

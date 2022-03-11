@@ -4,6 +4,7 @@ use super::*;
 
 /// A NetworkRequest is utilized to retrieve some data specific exclusively to a NetworkIdentifier.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct NetworkRequest {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: NetworkIdentifier,

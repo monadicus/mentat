@@ -2,6 +2,7 @@ use super::*;
 
 /// BlockTransaction contains a populated Transaction and the BlockIdentifier that contains it.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct BlockTransaction {
     /// The block_identifier uniquely identifies a block in a particular network.
     pub block_identifier: BlockIdentifier,

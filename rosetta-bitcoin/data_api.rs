@@ -1,7 +1,14 @@
 #[cfg(debug_assertions)]
-use super::bitcoin_indexer::log_payload;
-use super::*;
+use super::log_payload;
+
+use mentat::{
+    api::{Caller, CallerDataApi, DataApi, Response},
+    errors::*,
+    requests::*,
+    responses::*,
+};
 use reqwest::Client;
+use rocket::serde::json::{serde_json, Json};
 
 pub struct BitcoinDataApi {
     client: Client,
@@ -17,7 +24,10 @@ impl Default for BitcoinDataApi {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
+impl CallerDataApi for BitcoinDataApi {}
+
+#[rocket::async_trait]
 impl DataApi for BitcoinDataApi {
     async fn network_list(
         &self,
@@ -45,7 +55,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /network/list", &out);
         match serde_json::from_str(&out) {
@@ -80,7 +90,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /network/options", &out);
         match serde_json::from_str(&out) {
@@ -115,7 +125,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /network/status", &out);
         match serde_json::from_str(&out) {
@@ -150,7 +160,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /account/balance", &out);
         match serde_json::from_str(&out) {
@@ -185,7 +195,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /account/coins", &out);
         match serde_json::from_str(&out) {
@@ -213,7 +223,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /block", &out);
         match serde_json::from_str(&out) {
@@ -248,7 +258,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /block/transaction", &out);
         match serde_json::from_str(&out) {
@@ -276,7 +286,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /mempool", &out);
         match serde_json::from_str(&out) {
@@ -311,7 +321,7 @@ impl DataApi for BitcoinDataApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /mempool/transaction", &out);
         match serde_json::from_str(&out) {

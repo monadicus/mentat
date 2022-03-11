@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use indexmap::IndexMap;
 use rocket::{
@@ -10,7 +10,10 @@ use rocket::{
     Request, Responder as DeriveResponder,
 };
 
+use crate::api::Response;
+
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct ApiError {
     code: u16,
     message: String,
@@ -21,14 +24,24 @@ pub struct ApiError {
 }
 
 impl ApiError {
-    pub fn not_implemented() -> MentatError {
-        MentatError::NotImplemented(ApiError {
+    pub fn not_implemented<R>() -> Response<R> {
+        Err(MentatError::NotImplemented(ApiError {
             code: 501,
             message: "Not Implemented".to_string(),
             description: None,
             retriable: false,
             details: Default::default(),
-        })
+        }))
+    }
+
+    pub fn wrong_network<P: Debug, R>(payload: P) -> Response<R> {
+        Err(MentatError::Internal(ApiError {
+            code: 500,
+            message: format!("requestNetwork not supported {payload:?}"),
+            description: None,
+            retriable: false,
+            details: Default::default(),
+        }))
     }
 }
 
@@ -39,6 +52,8 @@ impl<'r> Responder<'r, 'static> for ApiError {
 }
 
 #[derive(Debug, Deserialize, DeriveResponder, Serialize)]
+#[serde(crate = "rocket::serde")]
+
 pub enum MentatError {
     #[response(status = 500, content_type = "json")]
     Internal(ApiError),

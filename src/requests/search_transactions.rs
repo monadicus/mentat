@@ -2,6 +2,7 @@ use super::*;
 
 /// SearchTransactionsRequest is used to search for transactions matching a set of provided conditions in canonical blocks.
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct SearchTransactionsRequest {
     /// The network_identifier specifies which network a particular object is associated with.
     pub network_identifier: NetworkIdentifier,

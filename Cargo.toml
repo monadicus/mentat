@@ -1,21 +1,32 @@
 [package]
 name = "mentat"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
+rust-version = "1.59.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "rosetta-snarkos"
+path = "rosetta-snarkos/server.rs"
+required-features = ["rosetta-snarkos"]
 
-[dependencies]
-serde = { version = "1.0", optional = true, features = ["derive"], default-features = false }
-serde_json = { version = "1.0", optional = true }
-indexmap = { version = "1.7", features = ["serde"], default-features = false }
-async-trait = { version = "0.1", optional = true, default-features = false }
-anyhow = { version = "1.0", optional = true, default-features = false }
-rocket = { version = "0.5.0-rc.1", features = ["json"], optional = true, default-features = false }
-reqwest = { version = "0.11", features = ["json"], optional = true, default-features = false }
+[[bin]]
+name = "rosetta-bitcoin"
+path = "rosetta-bitcoin/server.rs"
+required-features = ["rosetta-bitcoin"]
 
 [features]
-_network = ["async-trait", "anyhow"]
+_network = ["indexmap", "rocket"]
 client = ["_network", "reqwest", "serde", "serde_json"]
-server = ["_network", "reqwest", "rocket"]
-default = ["client", "server"]
+default = ["server"]
+rosetta-bitcoin = ["server", "reqwest"]
+rosetta-snarkos = ["server", "reqwest"]
+server = ["_network"]
+
+[dependencies]
+indexmap = { version = "1.7", optional = true, default-features = false, features = ["serde"] }
+serde = { version = "1.0", optional = true, default-features = false }
+serde_json = { version = "1.0", optional = true }
+reqwest = { version = "0.11", optional = true, default-features = false, features = ["json"] }
+rocket = { version = "0.5.0-rc.1", optional = true, default-features = false, features = ["json"] }
+jsonrpc_v2_client = { version = "0.2.1", optional = true, default-features = false }
+

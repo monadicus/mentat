@@ -1,7 +1,14 @@
-use super::*;
-use reqwest::Client;
 #[cfg(debug_assertions)]
-use std::{fmt, fs, io::Write};
+use super::log_payload;
+
+use mentat::{
+    api::{Caller, CallerIndexerApi, IndexerApi, Response},
+    errors::*,
+    requests::*,
+    responses::*,
+};
+use reqwest::Client;
+use rocket::serde::json::{serde_json, Json};
 
 pub struct BitcoinIndexerApi {
     client: Client,
@@ -17,19 +24,10 @@ impl Default for BitcoinIndexerApi {
     }
 }
 
-#[cfg(debug_assertions)]
-pub fn log_payload<T: fmt::Display>(route: &str, payload: T) {
-    let t = format!("{}: {}\n", route, payload);
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open("log.json")
-        .unwrap();
-    file.write_all(t.as_bytes()).unwrap();
-}
+#[rocket::async_trait]
+impl CallerIndexerApi for BitcoinIndexerApi {}
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
 impl IndexerApi for BitcoinIndexerApi {
     async fn events_blocks(
         &self,
@@ -57,7 +55,7 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /events/blocks", &out);
         match serde_json::from_str(&out) {
@@ -92,7 +90,7 @@ impl IndexerApi for BitcoinIndexerApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /construction/submit", &out);
         Ok(Json(serde_json::from_str(&out)?))

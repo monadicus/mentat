@@ -4,6 +4,7 @@ use super::*;
 
 /// A MempoolTransactionResponse contains an estimate of a mempool transaction. It may not be possible to know the full impact of a transaction in the mempool (ex: fee paid).
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(crate = "rocket::serde")]
 pub struct MempoolTransactionResponse {
     /// Transactions contain an array of Operations that are attributable to the same TransactionIdentifier.
     pub transaction: Transaction,

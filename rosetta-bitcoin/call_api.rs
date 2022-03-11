@@ -1,7 +1,14 @@
 #[cfg(debug_assertions)]
-use super::bitcoin_indexer::log_payload;
-use super::*;
+use super::log_payload;
+
+use mentat::{
+    api::{CallApi, Caller, CallerCallApi, Response},
+    errors::*,
+    requests::*,
+    responses::*,
+};
 use reqwest::Client;
+use rocket::serde::json::{serde_json, Json};
 
 pub struct BitcoinCallApi {
     client: Client,
@@ -17,7 +24,10 @@ impl Default for BitcoinCallApi {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
+impl CallerCallApi for BitcoinCallApi {}
+
+#[rocket::async_trait]
 impl CallApi for BitcoinCallApi {
     async fn call(&self, _caller: Caller, data: CallRequest) -> Response<CallResponse> {
         #[cfg(debug_assertions)]
@@ -38,7 +48,7 @@ impl CallApi for BitcoinCallApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.to_string();
         #[cfg(debug_assertions)]
         log_payload("output /call", &out);
         match serde_json::from_str(&out) {

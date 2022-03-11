@@ -1,7 +1,14 @@
 #[cfg(debug_assertions)]
-use super::bitcoin_indexer::log_payload;
-use super::*;
+use super::log_payload;
+
+use mentat::{
+    api::{Caller, CallerConstructionApi, ConstructionApi, Response},
+    errors::*,
+    requests::*,
+    responses::*,
+};
 use reqwest::Client;
+use rocket::serde::json::{serde_json, Json};
 
 pub struct BitcoinConstructionApi {
     client: Client,
@@ -17,7 +24,10 @@ impl Default for BitcoinConstructionApi {
     }
 }
 
-#[async_trait::async_trait]
+#[rocket::async_trait]
+impl CallerConstructionApi for BitcoinConstructionApi {}
+
+#[rocket::async_trait]
 impl ConstructionApi for BitcoinConstructionApi {
     async fn combine(
         &self,
@@ -45,7 +55,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/combine", &out);
         match serde_json::from_str(&out) {
@@ -80,7 +90,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/derive", &out);
         match serde_json::from_str(&out) {
@@ -115,7 +125,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/hash", &out);
         match serde_json::from_str(&out) {
@@ -150,7 +160,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/metadata", &out);
         match serde_json::from_str(&out) {
@@ -185,7 +195,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/parse", &out);
         match serde_json::from_str(&out) {
@@ -220,7 +230,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/payloads", &out);
         match serde_json::from_str(&out) {
@@ -255,7 +265,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/preprocess", &out);
         match serde_json::from_str(&out) {
@@ -290,7 +300,7 @@ impl ConstructionApi for BitcoinConstructionApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /construction/submit", &out);
         match serde_json::from_str(&out) {
