@@ -12,7 +12,7 @@ use std::{
     sync::Arc,
 };
 
-use rocket::{post, routes, serde::json::Json, Config, State};
+use rocket::{log::LogLevel, post, routes, serde::json::Json, Config, State};
 
 use crate::{api::*, requests::*, responses::*};
 
@@ -138,6 +138,7 @@ impl Server {
         let config = Config {
             port,
             address: address.into(),
+            log_level: LogLevel::Normal,
             ..Config::default()
         };
         let mut rocket = rocket::custom(&config);
@@ -333,8 +334,8 @@ impl Server {
 
             }
         }
-	
-	if !mode.is_offline() {
+
+        if !mode.is_offline() {
             rocket = rocket.attach(node);
         }
 
@@ -343,7 +344,7 @@ impl Server {
             .manage(mode)
             .ignite()
             .await
-            .expect("Failed to iginite rocket")
+            .expect("Failed to ignite rocket")
             .launch()
             .await
             .expect("Failed to start server");
