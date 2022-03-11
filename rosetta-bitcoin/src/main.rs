@@ -9,9 +9,6 @@ mod call_api;
 mod construction_api;
 mod data_api;
 mod indexer_api;
-mod log_payload;
-#[cfg(debug_assertions)]
-pub(crate) use log_payload::log_payload;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

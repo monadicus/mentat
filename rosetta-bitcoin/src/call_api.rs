@@ -1,6 +1,3 @@
-#[cfg(debug_assertions)]
-use super::log_payload;
-
 use mentat::{
     api::{CallApi, Caller, CallerCallApi, MentantResponse},
     async_trait,
@@ -31,8 +28,6 @@ impl CallerCallApi for BitcoinCallApi {}
 #[async_trait]
 impl CallApi for BitcoinCallApi {
     async fn call(&self, _caller: Caller, data: CallRequest) -> MentantResponse<CallResponse> {
-        #[cfg(debug_assertions)]
-        log_payload("input  /call", serde_json::to_string(&data).unwrap());
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/call"))
@@ -51,7 +46,7 @@ impl CallApi for BitcoinCallApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /call", &out);
+        mentat::tracing::debug!("output /call {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),

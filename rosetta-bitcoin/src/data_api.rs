@@ -1,6 +1,3 @@
-#[cfg(debug_assertions)]
-use super::log_payload;
-
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentantResponse},
     async_trait,
@@ -35,11 +32,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MetadataRequest,
     ) -> MentantResponse<NetworkListResponse> {
-        #[cfg(debug_assertions)]
-        log_payload(
-            "input  /network/list",
-            serde_json::to_string(&data).unwrap(),
-        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/list"))
@@ -58,7 +50,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /network/list", &out);
+        mentat::tracing::debug!("output /network/list {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -70,11 +62,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
     ) -> MentantResponse<NetworkOptionsResponse> {
-        #[cfg(debug_assertions)]
-        log_payload(
-            "input  /network/options",
-            serde_json::to_string(&data).unwrap(),
-        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/options"))
@@ -93,7 +80,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /network/options", &out);
+        mentat::tracing::debug!("output /network/options {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -105,11 +92,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
     ) -> MentantResponse<NetworkStatusResponse> {
-        #[cfg(debug_assertions)]
-        log_payload(
-            "input  /network/status",
-            serde_json::to_string(&data).unwrap(),
-        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/network/status"))
@@ -128,7 +110,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /network/status", &out);
+        mentat::tracing::debug!("output /network/status {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -140,11 +122,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountBalanceRequest,
     ) -> MentantResponse<AccountBalanceResponse> {
-        #[cfg(debug_assertions)]
-        log_payload(
-            "input  /account/balance",
-            serde_json::to_string(&data).unwrap(),
-        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/balance"))
@@ -163,7 +140,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /account/balance", &out);
+        mentat::tracing::debug!("output /account/balance {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -175,11 +152,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountCoinsRequest,
     ) -> MentantResponse<AccountCoinsResponse> {
-        #[cfg(debug_assertions)]
-        log_payload(
-            "input  /account/coins",
-            serde_json::to_string(&data).unwrap(),
-        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/account/coins"))
@@ -198,7 +170,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /account/coins", &out);
+        mentat::tracing::debug!("output /account/coins {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -206,8 +178,6 @@ impl DataApi for BitcoinDataApi {
     }
 
     async fn block(&self, _caller: Caller, data: BlockRequest) -> MentantResponse<BlockResponse> {
-        #[cfg(debug_assertions)]
-        log_payload("input  /block", serde_json::to_string(&data).unwrap());
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block"))
@@ -226,7 +196,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /block", &out);
+        mentat::tracing::debug!("output /block {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -238,11 +208,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: BlockTransactionRequest,
     ) -> MentantResponse<BlockTransactionResponse> {
-        #[cfg(debug_assertions)]
-        log_payload(
-            "input  /block/transaction",
-            serde_json::to_string(&data).unwrap(),
-        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/block/transaction"))
@@ -261,7 +226,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /block/transaction", &out);
+        mentat::tracing::debug!("output /block/transaction {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -273,8 +238,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
     ) -> MentantResponse<MempoolResponse> {
-        #[cfg(debug_assertions)]
-        log_payload("input  /mempool", serde_json::to_string(&data).unwrap());
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool"))
@@ -293,7 +256,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /mempool", &out);
+        mentat::tracing::debug!("output /mempool {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -305,11 +268,6 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MempoolTransactionRequest,
     ) -> MentantResponse<MempoolTransactionResponse> {
-        #[cfg(debug_assertions)]
-        log_payload(
-            "input  /mempool/transaction",
-            serde_json::to_string(&data).unwrap(),
-        );
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/mempool/transaction"))
@@ -328,7 +286,7 @@ impl DataApi for BitcoinDataApi {
 
         let out = resp.text().await?;
         #[cfg(debug_assertions)]
-        log_payload("output /mempool/transaction", &out);
+        mentat::tracing::debug!("output /mempool/transaction {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),

@@ -30,6 +30,9 @@ run-testnet-online:
 run-testnet-offline:
 	docker run -d --rm -e "MODE=OFFLINE" -e "NETWORK=TESTNET" -e "PORT=8081" -p 8081:8081 mentat-$(SERVICE):latest
 
+tracing:
+	docker run -d -p6831:6831/udp -p6832:6832/udp -p16686:16686 -p14268:14268 jaegertracing/all-in-one:latest
+
 format:
 	cargo +nightly fmt --all
 
