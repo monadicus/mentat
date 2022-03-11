@@ -43,7 +43,10 @@ macro_rules! api_routes {
                     Extension(mode): ModeState,
                 ) -> MentantResponse<$resp> {
                     let c = Caller { ip };
-                    server.$api.$method(c, req_data, &mode).await
+                    let resp = server.$api.$method(c, req_data, &mode).await;
+                    #[cfg(debug_assertions)]
+                    tracing::debug!("response {}{} {resp:?}", $route_base, $path);
+                    resp
                 }
                 $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
             )*

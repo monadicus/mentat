@@ -7,7 +7,9 @@ pub(crate) fn setup() -> Result<(), Box<dyn std::error::Error>> {
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
     Registry::default()
-        .with(EnvFilter::from_default_env())
+        .with(EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "debug,tower_http=debug".to_string()),
+        ))
         .with(
             HierarchicalLayer::new(2)
                 .with_targets(true)

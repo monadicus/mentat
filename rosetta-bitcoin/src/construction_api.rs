@@ -49,8 +49,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/combine {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -79,8 +77,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/derive {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -109,8 +105,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/hash {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -122,7 +116,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionMetadataRequest,
     ) -> MentantResponse<ConstructionMetadataResponse> {
-        #[cfg(debug_assertions)]
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/metadata"))
@@ -140,8 +133,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/metadata {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -170,8 +161,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/parse {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -200,8 +189,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/payloads {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -230,8 +217,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/preprocess {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -260,8 +245,6 @@ impl ConstructionApi for BitcoinConstructionApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/submit {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),

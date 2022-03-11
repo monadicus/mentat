@@ -49,8 +49,6 @@ impl IndexerApi for BitcoinIndexerApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /events/blocks {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -62,7 +60,6 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: SearchTransactionsRequest,
     ) -> MentantResponse<SearchTransactionsResponse> {
-        #[cfg(debug_assertions)]
         let resp = match self
             .client
             .post(&format!("{}{}", self.url, "/construction/submit"))
@@ -80,8 +77,6 @@ impl IndexerApi for BitcoinIndexerApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /construction/submit {out}");
         Ok(Json(serde_json::from_str(&out)?))
     }
 }

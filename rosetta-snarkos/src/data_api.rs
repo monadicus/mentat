@@ -30,7 +30,7 @@ impl DataApi for SnarkosDataApi {
             .send()
             .await?;
         let text = response.text().await?;
-        tracing::debug!("{text}");
+        tracing::debug!("output /block {text}");
 
         Ok(Json(BlockResponse {
             block: None,

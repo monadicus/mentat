@@ -45,8 +45,6 @@ impl CallApi for BitcoinCallApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /call {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),

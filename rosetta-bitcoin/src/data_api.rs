@@ -49,8 +49,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /network/list {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -79,8 +77,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /network/options {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -109,8 +105,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /network/status {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -139,8 +133,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /account/balance {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -169,8 +161,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /account/coins {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -195,8 +185,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /block {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -225,8 +213,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /block/transaction {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -255,8 +241,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /mempool {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
@@ -285,8 +269,6 @@ impl DataApi for BitcoinDataApi {
         };
 
         let out = resp.text().await?;
-        #[cfg(debug_assertions)]
-        mentat::tracing::debug!("output /mempool/transaction {out}");
         match serde_json::from_str(&out) {
             Ok(o) => Ok(Json(o)),
             Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
