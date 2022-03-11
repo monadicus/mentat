@@ -4,6 +4,8 @@ This document will keep track of what is and isn't currently possible with the a
 
 ## Table
 
+Endpoints denoted with [I] are optional Rosetta Indexer endpoints, and are not mandatory to be implemented in order to conform to the Rosetta API spec.
+
 |     Rosetta Endpoint     |       Possible?        |      SnarkOS Endpoints Involved      |
 |:------------------------:|:----------------------:|:------------------------------------:|
 |     /account/balance     |           No           |                 N/A                  |
@@ -19,10 +21,10 @@ This document will keep track of what is and isn't currently possible with the a
 |  /construction/payloads  |           No           |                 N/A                  |
 | /construction/preprocess |           No           |                 N/A                  |
 |   /construction/submit   |          Yes           |           sendtransaction            |
-|      /events/blocks      |           No           |                 N/A                  |
+|    /events/blocks [I]    |           No           |                 N/A                  |
 |         /mempool         |          Yes           |            getmemorypool             |
 |   /mempool/transaction   |           No           |                 N/A                  |
 |      /network/list       |           No           |                 N/A                  |
 |     /network/options     |           No           |                 N/A                  |
 |     /network/status      |           No           |                 N/A                  |
-|   /search/transactions   |           No           |                 N/A                  |
+| /search/transactions [I] |           No           |                 N/A                  |
