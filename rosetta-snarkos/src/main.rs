@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     server.with_dyn_indexer_api(Arc::new(indexer_api::SnarkosIndexerApi::default()));
 
     let address = env::var("ADDRESS")
-        .unwrap_or_else(|_| "localhost".to_string())
+        .unwrap_or_else(|_| "0.0.0.0".to_string())
         .parse()
         .unwrap_or(Ipv4Addr::new(0, 0, 0, 0));
     let port = env::var("PORT")
