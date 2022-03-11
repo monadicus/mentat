@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let address = env::var("ADDRESS")
         .unwrap_or_else(|_| "localhost".to_string())
         .parse()
-        .unwrap_or(Ipv4Addr::new(127, 0, 0, 1));
+        .unwrap_or(Ipv4Addr::new(0, 0, 0, 0));
     let port = env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())
         .parse()

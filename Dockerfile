@@ -36,7 +36,6 @@ RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
 FROM debian:buster-slim
 
 ARG SERVICE="rosetta-snarkos"
-ENV ADDRESS "0.0.0.0"
 ENV ROCKET_ENV "production"
 
 ENV DEBIAN_FRONTEND noninteractive
