@@ -48,7 +48,7 @@ impl CallApi for BitcoinCallApi {
             }
         };
 
-        let out = resp.text().await?;
+        let out = resp.text().await?.as_ref();
         #[cfg(debug_assertions)]
         log_payload("output /call", &out);
         match serde_json::from_str(&out) {
