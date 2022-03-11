@@ -9,14 +9,12 @@ use mentat::{
 use reqwest::Client;
 
 pub struct BitcoinCallApi {
-    client: Client,
     url: String,
 }
 
 impl Default for BitcoinCallApi {
     fn default() -> Self {
         Self {
-            client: Client::new(),
             url: "http://127.0.0.1:8080".to_string(),
         }
     }
@@ -27,9 +25,13 @@ impl CallerCallApi for BitcoinCallApi {}
 
 #[async_trait]
 impl CallApi for BitcoinCallApi {
-    async fn call(&self, _caller: Caller, data: CallRequest) -> MentantResponse<CallResponse> {
-        let resp = match self
-            .client
+    async fn call(
+        &self,
+        _caller: Caller,
+        data: CallRequest,
+        client: Client,
+    ) -> MentantResponse<CallResponse> {
+        let resp = match client
             .post(&format!("{}{}", self.url, "/call"))
             .json(&data)
             .send()

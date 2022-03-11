@@ -4,19 +4,16 @@ use mentat::{
     errors::*,
     requests::*,
     responses::*,
-    serde_json, Json,
+    serde_json, Client, Json,
 };
-use reqwest::Client;
 
 pub struct BitcoinIndexerApi {
-    client: Client,
     url: String,
 }
 
 impl Default for BitcoinIndexerApi {
     fn default() -> Self {
         Self {
-            client: Client::new(),
             url: "http://127.0.0.1:8080".to_string(),
         }
     }
@@ -31,9 +28,9 @@ impl IndexerApi for BitcoinIndexerApi {
         &self,
         _caller: Caller,
         data: EventsBlocksRequest,
+        client: Client,
     ) -> MentantResponse<EventsBlocksResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/events/blocks"))
             .json(&data)
             .send()
@@ -59,9 +56,9 @@ impl IndexerApi for BitcoinIndexerApi {
         &self,
         _caller: Caller,
         data: SearchTransactionsRequest,
+        client: Client,
     ) -> MentantResponse<SearchTransactionsResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/submit"))
             .json(&data)
             .send()

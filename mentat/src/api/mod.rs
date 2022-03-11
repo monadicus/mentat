@@ -2,6 +2,8 @@ use std::net::SocketAddr;
 
 use axum::Json;
 
+use reqwest::Client;
+
 mod construction;
 pub use construction::*;
 

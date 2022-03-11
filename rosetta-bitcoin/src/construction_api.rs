@@ -4,19 +4,16 @@ use mentat::{
     errors::*,
     requests::*,
     responses::*,
-    serde_json, Json,
+    serde_json, Client, Json,
 };
-use reqwest::Client;
 
 pub struct BitcoinConstructionApi {
-    client: Client,
     url: String,
 }
 
 impl Default for BitcoinConstructionApi {
     fn default() -> Self {
         Self {
-            client: Client::new(),
             url: "http://127.0.0.1:8080".to_string(),
         }
     }
@@ -31,9 +28,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionCombineRequest,
+        client: Client,
     ) -> MentantResponse<ConstructionCombineResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/combine"))
             .json(&data)
             .send()
@@ -59,9 +56,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionDeriveRequest,
+        client: Client,
     ) -> MentantResponse<ConstructionDeriveResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/derive"))
             .json(&data)
             .send()
@@ -87,9 +84,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionHashRequest,
+        client: Client,
     ) -> MentantResponse<TransactionIdentifierResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/hash"))
             .json(&data)
             .send()
@@ -115,9 +112,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionMetadataRequest,
+        client: Client,
     ) -> MentantResponse<ConstructionMetadataResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/metadata"))
             .json(&data)
             .send()
@@ -143,9 +140,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionParseRequest,
+        client: Client,
     ) -> MentantResponse<ConstructionParseResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/parse"))
             .json(&data)
             .send()
@@ -171,9 +168,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionPayloadsRequest,
+        client: Client,
     ) -> MentantResponse<ConstructionPayloadsResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/payloads"))
             .json(&data)
             .send()
@@ -199,9 +196,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionPreprocessRequest,
+        client: Client,
     ) -> MentantResponse<ConstructionPreprocessResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/preprocess"))
             .json(&data)
             .send()
@@ -227,9 +224,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionSubmitRequest,
+        client: Client,
     ) -> MentantResponse<TransactionIdentifierResponse> {
-        let resp = match self
-            .client
+        let resp = match client
             .post(&format!("{}{}", self.url, "/construction/submit"))
             .json(&data)
             .send()

@@ -18,6 +18,9 @@ pub use axum::{self, async_trait, Json};
 pub use serde_json;
 
 #[cfg(feature = "server")]
+pub use reqwest::Client;
+
+#[cfg(feature = "server")]
 pub use tokio;
 
 #[cfg(feature = "server")]

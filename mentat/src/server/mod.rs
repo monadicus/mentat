@@ -2,9 +2,7 @@ mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
 mod dummy_indexer;
-
 mod logging;
-
 mod node;
 pub use node::*;
 
@@ -22,6 +20,7 @@ use self::{
 };
 
 use axum::extract::{self, ConnectInfo, Extension};
+use reqwest::Client;
 use tracing::info;
 
 #[derive(Clone)]
@@ -41,9 +40,10 @@ macro_rules! api_routes {
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): axum::Json<$req>,
                     Extension(mode): ModeState,
+                    Extension(client): Extension<Client>,
                 ) -> MentantResponse<$resp> {
                     let c = Caller { ip };
-                    let resp = server.$api.$method(c, req_data, &mode).await;
+                    let resp = server.$api.$method(c, req_data, &mode, client).await;
                     #[cfg(debug_assertions)]
                     tracing::debug!("response {}{} {resp:?}", $route_base, $path);
                     resp
@@ -346,10 +346,13 @@ impl Server {
             node.start_node(address.to_string()).await?;
         }
 
+        let client = reqwest::Client::new();
+
         app = app.layer(
             tower::ServiceBuilder::new()
                 .layer(Extension(self))
-                .layer(Extension(mode)),
+                .layer(Extension(mode))
+                .layer(Extension(client)),
         );
 
         let addr = SocketAddr::from((address, port));

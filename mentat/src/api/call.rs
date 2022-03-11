@@ -3,7 +3,12 @@ use super::*;
 #[axum::async_trait]
 pub trait CallApi: Send + Sync {
     /// Make a Network-Specific Procedure Call
-    async fn call(&self, _caller: Caller, _data: CallRequest) -> MentantResponse<CallResponse> {
+    async fn call(
+        &self,
+        _caller: Caller,
+        _data: CallRequest,
+        _client: Client,
+    ) -> MentantResponse<CallResponse> {
         ApiError::not_implemented()
     }
 }
@@ -16,11 +21,12 @@ pub trait CallerCallApi: CallApi + Send + Sync {
         caller: Caller,
         data: CallRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<CallResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.call(caller, data).await
+            self.call(caller, data, client).await
         }
     }
 }

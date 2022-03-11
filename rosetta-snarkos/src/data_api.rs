@@ -3,7 +3,7 @@ use mentat::{
     async_trait,
     requests::*,
     responses::*,
-    serde_json, tracing, Json,
+    serde_json, tracing, Client, Json,
 };
 
 #[derive(Default)]
@@ -14,7 +14,12 @@ impl CallerDataApi for SnarkosDataApi {}
 
 #[async_trait]
 impl DataApi for SnarkosDataApi {
-    async fn block(&self, _caller: Caller, _data: BlockRequest) -> MentantResponse<BlockResponse> {
+    async fn block(
+        &self,
+        _caller: Caller,
+        _data: BlockRequest,
+        client: Client,
+    ) -> MentantResponse<BlockResponse> {
         let data = serde_json::json!(
         {
         "jsonrpc": "2.0",
@@ -23,7 +28,6 @@ impl DataApi for SnarkosDataApi {
         "params": [0]
         });
 
-        let client = reqwest::Client::new();
         let response = client
             .post("http://127.0.0.1:3032")
             .json(&data)

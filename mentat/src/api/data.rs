@@ -7,6 +7,7 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: MetadataRequest,
+        _client: Client,
     ) -> MentantResponse<NetworkListResponse> {
         ApiError::not_implemented()
     }
@@ -16,6 +17,7 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: NetworkRequest,
+        _client: Client,
     ) -> MentantResponse<NetworkOptionsResponse> {
         ApiError::not_implemented()
     }
@@ -25,6 +27,7 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: NetworkRequest,
+        _client: Client,
     ) -> MentantResponse<NetworkStatusResponse> {
         ApiError::not_implemented()
     }
@@ -34,6 +37,7 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: AccountBalanceRequest,
+        _client: Client,
     ) -> MentantResponse<AccountBalanceResponse> {
         ApiError::not_implemented()
     }
@@ -43,12 +47,18 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: AccountCoinsRequest,
+        _client: Client,
     ) -> MentantResponse<AccountCoinsResponse> {
         ApiError::not_implemented()
     }
 
     /// Get a block by its Block Identifier. If transactions are returned in the same call to the node as fetching the block, the response should include these transactions in the Block object. If not, an array of Transaction Identifiers should be returned so /block/transaction fetches can be done to get all transaction information. When requesting a block by the hash component of the BlockIdentifier, this request MUST be idempotent: repeated invocations for the same hash-identified block must return the exact same block contents. No such restriction is imposed when requesting a block by height, given that a chain reorg event might cause the specific block at height n to be set to a different one.
-    async fn block(&self, _caller: Caller, _data: BlockRequest) -> MentantResponse<BlockResponse> {
+    async fn block(
+        &self,
+        _caller: Caller,
+        _data: BlockRequest,
+        _client: Client,
+    ) -> MentantResponse<BlockResponse> {
         ApiError::not_implemented()
     }
 
@@ -57,6 +67,7 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: BlockTransactionRequest,
+        _client: Client,
     ) -> MentantResponse<BlockTransactionResponse> {
         ApiError::not_implemented()
     }
@@ -66,6 +77,7 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: NetworkRequest,
+        _client: Client,
     ) -> MentantResponse<MempoolResponse> {
         ApiError::not_implemented()
     }
@@ -75,6 +87,7 @@ pub trait DataApi: Send + Sync {
         &self,
         _caller: Caller,
         _data: MempoolTransactionRequest,
+        _client: Client,
     ) -> MentantResponse<MempoolTransactionResponse> {
         ApiError::not_implemented()
     }
@@ -87,8 +100,9 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: MetadataRequest,
         _mode: &Mode,
+        client: Client,
     ) -> MentantResponse<NetworkListResponse> {
-        self.network_list(caller, data).await
+        self.network_list(caller, data, client).await
     }
 
     async fn call_network_options(
@@ -96,8 +110,9 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: NetworkRequest,
         _mode: &Mode,
+        client: Client,
     ) -> MentantResponse<NetworkOptionsResponse> {
-        self.network_options(caller, data).await
+        self.network_options(caller, data, client).await
     }
 
     async fn call_network_status(
@@ -105,11 +120,12 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: NetworkRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<NetworkStatusResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.network_status(caller, data).await
+            self.network_status(caller, data, client).await
         }
     }
 
@@ -118,11 +134,12 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: AccountBalanceRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<AccountBalanceResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.account_balance(caller, data).await
+            self.account_balance(caller, data, client).await
         }
     }
 
@@ -131,11 +148,12 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: AccountCoinsRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<AccountCoinsResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.account_coins(caller, data).await
+            self.account_coins(caller, data, client).await
         }
     }
 
@@ -144,11 +162,12 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: BlockRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<BlockResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.block(caller, data).await
+            self.block(caller, data, client).await
         }
     }
 
@@ -157,11 +176,12 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: BlockTransactionRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<BlockTransactionResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.block_transaction(caller, data).await
+            self.block_transaction(caller, data, client).await
         }
     }
 
@@ -170,11 +190,12 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: NetworkRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<MempoolResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.mempool(caller, data).await
+            self.mempool(caller, data, client).await
         }
     }
 
@@ -183,11 +204,12 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         caller: Caller,
         data: MempoolTransactionRequest,
         mode: &Mode,
+        client: Client,
     ) -> MentantResponse<MempoolTransactionResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
-            self.mempool_transaction(caller, data).await
+            self.mempool_transaction(caller, data, client).await
         }
     }
 }
