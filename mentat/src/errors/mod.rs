@@ -41,6 +41,16 @@ impl ApiError {
             details: Default::default(),
         }))
     }
+
+    pub fn invalid_account_format<R>() -> MentantResponse<R> {
+        Err(MentatError::Internal(ApiError{
+            code: 12,
+            message: "Invalid account format".to_string(),
+            description: Some("This error is returned when the requested AccountIdentifier is improperly formatted.".to_string()),
+            retriable: true,
+            details: Default::default(),
+        }))
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]

@@ -7,6 +7,10 @@ mod construction_api;
 mod data_api;
 mod indexer_api;
 mod node;
+mod request;
+mod responses;
+
+use request::SnarkOsJrpc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
