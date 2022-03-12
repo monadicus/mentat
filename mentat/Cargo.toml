@@ -8,11 +8,23 @@ rust-version = "1.59.0"
 _network = ["axum", "indexmap", "serde", "serde_json", "reqwest"]
 client = ["_network"]
 default = ["server"]
-server = ["_network", "color-eyre", "opentelemetry", "opentelemetry-jaeger", "tokio", "tower", "tracing", "tracing-error", "tracing-opentelemetry", "tracing-subscriber", "tracing-tree"]
+server = [
+    "_network",
+    "color-backtrace",
+    "opentelemetry",
+    "opentelemetry-jaeger",
+    "tokio",
+    "tower",
+    "tracing",
+    "tracing-error",
+    "tracing-opentelemetry",
+    "tracing-subscriber",
+    "tracing-tree"
+]
 
 [dependencies]
 axum = { version = "0.4.8", optional = true, default-features = false, features = ["http1", "json"] }
-color-eyre = { version = "0.6.1", optional = true }
+color-backtrace = { version = "0.5.1", optional = true }
 indexmap = { version = "1.7", optional = true, default-features = false, features = ["serde"] }
 opentelemetry = { version = "0.17.0", optional = true, features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.16.0", optional = true, features = ["rt-tokio"] }
