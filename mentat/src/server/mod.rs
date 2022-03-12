@@ -145,6 +145,7 @@ impl Server {
         port: u16,
         node: Box<dyn NodeRunner>,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        color_eyre::install()?;
         logging::setup()?;
 
         let mut app = axum::Router::new();
