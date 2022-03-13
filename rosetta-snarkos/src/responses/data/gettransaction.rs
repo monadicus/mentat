@@ -47,6 +47,7 @@ impl Add<GetBlockTransactionsResponse> for GetTransactionResponse {
     type Output = MentatResponse<BlockTransactionResponse>;
 
     fn add(self, other: GetBlockTransactionsResponse) -> Self::Output {
+        // TODO Handle unwrap here
         let transaction = other
             .result
             .transactions
