@@ -10,10 +10,10 @@ use mentat::{
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
-pub struct Event {
-    pub id: u64,
-    pub index: u64,
-    pub record_view_key: String,
+struct Event {
+    id: u64,
+    index: u64,
+    _record_view_key: String,
 }
 
 impl From<Event> for OperationIdentifier {
@@ -27,14 +27,14 @@ impl From<Event> for OperationIdentifier {
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
-pub struct Transitions {
-    pub ciphertexts: Vec<String>,
-    pub commitments: Vec<String>,
-    pub events: Vec<Event>,
-    pub proof: String,
-    pub serial_numbers: Vec<String>,
-    pub transition_id: String,
-    pub value_balance: i32,
+struct Transitions {
+    _ciphertexts: Vec<String>,
+    _commitments: Vec<String>,
+    events: Vec<Event>,
+    _proof: String,
+    _serial_numbers: Vec<String>,
+    _transition_id: String,
+    value_balance: i32,
 }
 
 impl From<Transitions> for Operation {
@@ -66,11 +66,11 @@ impl From<Transitions> for Operation {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct GetBlockTransaction {
-    pub inner_circuit_id: String,
-    pub ledger_root: String,
-    pub transaction_id: String,
-    pub transitions: Vec<Transitions>,
+struct GetBlockTransaction {
+    _inner_circuit_id: String,
+    _ledger_root: String,
+    transaction_id: String,
+    transitions: Vec<Transitions>,
 }
 
 impl From<GetBlockTransaction> for Transaction {
@@ -93,7 +93,7 @@ impl From<GetBlockTransaction> for Transaction {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct Transactions {
+struct Transactions {
     transactions: Vec<GetBlockTransaction>,
 }
 
@@ -105,11 +105,11 @@ impl Into<Vec<Transaction>> for Transactions {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct Metadata {
-    pub cumulative_weight: u64,
-    pub difficulty_target: u64,
-    pub height: u64,
-    pub timestamp: u64,
+struct Metadata {
+    cumulative_weight: u64,
+    difficulty_target: u64,
+    height: u64,
+    timestamp: u64,
 }
 
 impl From<Metadata> for IndexMap<String, Value> {
@@ -131,35 +131,35 @@ impl From<Metadata> for IndexMap<String, Value> {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct Proof {
-    pub hiding: String,
+struct Proof {
+    _hiding: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct Header {
-    pub metadata: Metadata,
-    pub nonce: String,
-    pub previous_ledger_root: String,
-    pub proof: Proof,
-    pub transactions_root: String,
+struct Header {
+    metadata: Metadata,
+    _nonce: String,
+    _previous_ledger_root: String,
+    _proof: Proof,
+    _transactions_root: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct BlockResult {
-    pub block_hash: String,
-    pub header: Header,
-    pub previous_block_hash: String,
-    pub transactions: Transactions,
+struct BlockResult {
+    block_hash: String,
+    header: Header,
+    previous_block_hash: String,
+    transactions: Transactions,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct GetBlockResponse {
-    pub jsonrpc: String,
-    pub result: BlockResult,
-    pub id: String,
+    _jsonrpc: String,
+    result: BlockResult,
+    _id: String,
 }
 
 impl From<GetBlockResponse> for MentatResponse<BlockResponse> {

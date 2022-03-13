@@ -34,4 +34,14 @@ impl DataApi for SnarkosDataApi {
             Err(MentatError::from("wtf"))
         }
     }
+
+    async fn mempool(
+        &self,
+        _caller: Caller,
+        _data: NetworkRequest,
+        client: Client,
+    ) -> MentatResponse<MempoolResponse> {
+        let data: Vec<u8> = Vec::new();
+        jsonrpc_call!("getmemorypool", data, client, GetMemoryPoolResponse)
+    }
 }

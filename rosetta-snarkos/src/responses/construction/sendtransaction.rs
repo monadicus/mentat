@@ -8,9 +8,9 @@ use super::*;
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
 pub struct SendTransactionResponse {
-    pub jsonrpc: String,
-    pub result: String,
-    pub id: String,
+    _jsonrpc: String,
+    result: String,
+    _id: String,
 }
 
 impl From<SendTransactionResponse> for MentatResponse<TransactionIdentifierResponse> {
