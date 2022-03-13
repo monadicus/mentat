@@ -31,8 +31,8 @@ pub struct SnarkOSTransitions {
     pub commitments: Vec<String>,
     pub events: Vec<SnarkOSEvent>,
     pub proof: String,
-    pub serial_number: Vec<String>,
-    pub transaction_id: String,
+    pub serial_numbers: Vec<String>,
+    pub transition_id: String,
     pub value_balance: i32,
 }
 
@@ -130,11 +130,17 @@ impl From<SnarkOSMetadata> for IndexMap<String, Value> {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
+pub struct SnarkOSProof {
+    pub hiding: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(crate = "mentat::serde")]
 pub struct SnarkOSHeader {
     pub metadata: SnarkOSMetadata,
     pub nonce: String,
     pub previous_ledger_root: String,
-    pub proof: String,
+    pub proof: SnarkOSProof,
     pub transactions_root: String,
 }
 
