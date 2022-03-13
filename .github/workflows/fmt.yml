@@ -17,11 +17,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 2
-      - name: Install Rust Stable
+      - name: Install Rust Nightly
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly
           override: true
       - name: Format Check
         uses: actions-rs/cargo@v1

@@ -5,5 +5,5 @@ use super::*;
 pub struct BlockIdentifier {
     /// This is also known as the block height.
     pub index: u64,
-    pub hash: String,
+    pub hash:  String,
 }

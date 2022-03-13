@@ -2,15 +2,12 @@ use core::fmt;
 use std::fmt::Pointer;
 
 use anyhow::anyhow;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
-use crate::errors::*;
-use crate::requests::*;
-use crate::responses::*;
+use crate::{errors::*, requests::*, responses::*};
 
 pub struct Client {
-    inner: reqwest::Client,
+    inner:  reqwest::Client,
     origin: String,
 }
 

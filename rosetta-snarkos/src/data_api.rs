@@ -3,7 +3,10 @@ use mentat::{
     async_trait,
     requests::*,
     responses::*,
-    serde_json, tracing, Client, Json,
+    serde_json,
+    tracing,
+    Client,
+    Json,
 };
 
 #[derive(Default)]
@@ -37,7 +40,7 @@ impl DataApi for SnarkosDataApi {
         tracing::debug!("output /block {text}");
 
         Ok(Json(BlockResponse {
-            block: None,
+            block:              None,
             other_transactions: None,
         }))
     }

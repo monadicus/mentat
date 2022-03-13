@@ -1,9 +1,9 @@
+use std::{env, net::Ipv4Addr, sync::Arc};
+
 use mentat::{
     server::{DummyNode, Server},
     tokio,
 };
-
-use std::{env, net::Ipv4Addr, sync::Arc};
 
 mod call_api;
 mod construction_api;
