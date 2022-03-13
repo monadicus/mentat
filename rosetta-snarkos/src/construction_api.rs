@@ -28,6 +28,7 @@ impl ConstructionApi for SnarkosConstructionApi {
         client: Client,
     ) -> MentatResponse<TransactionIdentifierResponse> {
         jsonrpc_call!(
+            @ret
             "sendtransaction",
             vec![data.signed_transaction],
             client,

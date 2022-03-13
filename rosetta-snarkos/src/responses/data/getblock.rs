@@ -1,105 +1,21 @@
+use crate::responses::common::{SnarkosEvent, SnarkosTransactions};
+
 use super::*;
 use mentat::{
     api::MentatResponse,
-    identifiers::{BlockIdentifier, OperationIdentifier, TransactionIdentifier},
-    models::{Amount, Block, Currency, Operation, Transaction},
+    identifiers::{BlockIdentifier, OperationIdentifier},
+    models::Block,
     responses::BlockResponse,
     serde_json::Value,
     IndexMap, Json,
 };
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(crate = "mentat::serde")]
-struct Event {
-    id: u64,
-    index: u64,
-    _record_view_key: String,
-}
-
-impl From<Event> for OperationIdentifier {
-    fn from(event: Event) -> Self {
+impl From<SnarkosEvent> for OperationIdentifier {
+    fn from(event: SnarkosEvent) -> Self {
         Self {
             index: event.index,
             network_index: Some(event.id),
         }
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
-#[serde(crate = "mentat::serde")]
-struct Transitions {
-    _ciphertexts: Vec<String>,
-    _commitments: Vec<String>,
-    events: Vec<Event>,
-    _proof: String,
-    _serial_numbers: Vec<String>,
-    _transition_id: String,
-    value_balance: i32,
-}
-
-impl From<Transitions> for Operation {
-    fn from(transition: Transitions) -> Self {
-        Self {
-            // TODO: HOW AM I SUPPOSED TA!!!!?????
-            operation_identifier: OperationIdentifier {
-                index: todo!(),
-                network_index: todo!(),
-            },
-            related_operations: Some(transition.events.into_iter().map(|e| e.into()).collect()),
-            type_: todo!(),
-            status: None,
-            account: None,
-            amount: Some(Amount {
-                value: transition.value_balance.to_string(),
-                currency: Currency {
-                    symbol: "ALEO".to_string(),
-                    decimals: 18,
-                    metadata: IndexMap::new(),
-                },
-                metadata: IndexMap::new(),
-            }),
-            coin_change: None,
-            metadata: IndexMap::new(),
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(crate = "mentat::serde")]
-struct GetBlockTransaction {
-    _inner_circuit_id: String,
-    _ledger_root: String,
-    transaction_id: String,
-    transitions: Vec<Transitions>,
-}
-
-impl From<GetBlockTransaction> for Transaction {
-    fn from(transaction: GetBlockTransaction) -> Self {
-        Transaction {
-            transaction_identifier: TransactionIdentifier {
-                hash: transaction.transaction_id,
-            },
-            operations: transaction
-                .transitions
-                .into_iter()
-                .map(|t| t.into())
-                .collect(),
-            related_transactions: None,
-            // TODO: Size and locktime????
-            metadata: IndexMap::new(),
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(crate = "mentat::serde")]
-struct Transactions {
-    transactions: Vec<GetBlockTransaction>,
-}
-
-impl Into<Vec<Transaction>> for Transactions {
-    fn into(self) -> Vec<Transaction> {
-        self.transactions.into_iter().map(|t| t.into()).collect()
     }
 }
 
@@ -151,7 +67,7 @@ struct BlockResult {
     block_hash: String,
     header: Header,
     previous_block_hash: String,
-    transactions: Transactions,
+    transactions: SnarkosTransactions,
 }
 
 #[derive(Debug, Deserialize)]

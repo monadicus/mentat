@@ -29,10 +29,21 @@ impl DataApi for SnarkosDataApi {
         client: Client,
     ) -> MentatResponse<BlockResponse> {
         if let Some(block_id) = data.block_identifier.index {
-            jsonrpc_call!("getblock", vec![block_id], client, GetBlockResponse)
+            jsonrpc_call!(@ret "getblock", vec![block_id], client, GetBlockResponse)
         } else {
             Err(MentatError::from("wtf"))
         }
+    }
+
+    async fn block_transaction(
+        &self,
+        _caller: Caller,
+        data: BlockTransactionRequest,
+        client: Client,
+    ) -> MentatResponse<BlockTransactionResponse> {
+        let first = jsonrpc_call!(@res "gettransaction", vec![data.block_identifier.hash], client, GetTransactionResponse);
+        let second = jsonrpc_call!(@res "getblocktransactions", vec![data.block_identifier.index], client, GetBlockTransactionsResponse);
+        first + second
     }
 
     async fn mempool(
@@ -42,6 +53,6 @@ impl DataApi for SnarkosDataApi {
         client: Client,
     ) -> MentatResponse<MempoolResponse> {
         let data: Vec<u8> = Vec::new();
-        jsonrpc_call!("getmemorypool", data, client, GetMemoryPoolResponse)
+        jsonrpc_call!(@ret "getmemorypool", data, client, GetMemoryPoolResponse)
     }
 }
