@@ -1,5 +1,5 @@
 use mentat::{
-    api::{Caller, CallerIndexerApi, IndexerApi, MentantResponse},
+    api::{Caller, CallerIndexerApi, IndexerApi, MentatResponse},
     async_trait,
     errors::*,
     requests::*,
@@ -29,7 +29,7 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: EventsBlocksRequest,
         client: Client,
-    ) -> MentantResponse<EventsBlocksResponse> {
+    ) -> MentatResponse<EventsBlocksResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/events/blocks"))
             .json(&data)
@@ -57,7 +57,7 @@ impl IndexerApi for BitcoinIndexerApi {
         _caller: Caller,
         data: SearchTransactionsRequest,
         client: Client,
-    ) -> MentantResponse<SearchTransactionsResponse> {
+    ) -> MentatResponse<SearchTransactionsResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/submit"))
             .json(&data)

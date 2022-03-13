@@ -8,7 +8,7 @@ pub trait IndexerApi: Send + Sync {
         _caller: Caller,
         _data: EventsBlocksRequest,
         _client: Client,
-    ) -> MentantResponse<EventsBlocksResponse> {
+    ) -> MentatResponse<EventsBlocksResponse> {
         ApiError::not_implemented()
     }
 
@@ -18,7 +18,7 @@ pub trait IndexerApi: Send + Sync {
         _caller: Caller,
         _data: SearchTransactionsRequest,
         _client: Client,
-    ) -> MentantResponse<SearchTransactionsResponse> {
+    ) -> MentatResponse<SearchTransactionsResponse> {
         ApiError::not_implemented()
     }
 }
@@ -31,7 +31,7 @@ pub trait CallerIndexerApi: IndexerApi + Send + Sync {
         data: EventsBlocksRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<EventsBlocksResponse> {
+    ) -> MentatResponse<EventsBlocksResponse> {
         self.events_blocks(caller, data, client).await
     }
 
@@ -41,7 +41,7 @@ pub trait CallerIndexerApi: IndexerApi + Send + Sync {
         data: SearchTransactionsRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<SearchTransactionsResponse> {
+    ) -> MentatResponse<SearchTransactionsResponse> {
         self.search_transactions(caller, data, client).await
     }
 }

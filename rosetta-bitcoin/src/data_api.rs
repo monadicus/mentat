@@ -1,5 +1,5 @@
 use mentat::{
-    api::{Caller, CallerDataApi, DataApi, MentantResponse},
+    api::{Caller, CallerDataApi, DataApi, MentatResponse},
     async_trait,
     errors::*,
     requests::*,
@@ -29,7 +29,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MetadataRequest,
         client: Client,
-    ) -> MentantResponse<NetworkListResponse> {
+    ) -> MentatResponse<NetworkListResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/network/list"))
             .json(&data)
@@ -57,7 +57,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
         client: Client,
-    ) -> MentantResponse<NetworkOptionsResponse> {
+    ) -> MentatResponse<NetworkOptionsResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/network/options"))
             .json(&data)
@@ -85,7 +85,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
         client: Client,
-    ) -> MentantResponse<NetworkStatusResponse> {
+    ) -> MentatResponse<NetworkStatusResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/network/status"))
             .json(&data)
@@ -113,7 +113,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountBalanceRequest,
         client: Client,
-    ) -> MentantResponse<AccountBalanceResponse> {
+    ) -> MentatResponse<AccountBalanceResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/account/balance"))
             .json(&data)
@@ -141,7 +141,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: AccountCoinsRequest,
         client: Client,
-    ) -> MentantResponse<AccountCoinsResponse> {
+    ) -> MentatResponse<AccountCoinsResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/account/coins"))
             .json(&data)
@@ -169,7 +169,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: BlockRequest,
         client: Client,
-    ) -> MentantResponse<BlockResponse> {
+    ) -> MentatResponse<BlockResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/block"))
             .json(&data)
@@ -197,7 +197,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: BlockTransactionRequest,
         client: Client,
-    ) -> MentantResponse<BlockTransactionResponse> {
+    ) -> MentatResponse<BlockTransactionResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/block/transaction"))
             .json(&data)
@@ -225,7 +225,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: NetworkRequest,
         client: Client,
-    ) -> MentantResponse<MempoolResponse> {
+    ) -> MentatResponse<MempoolResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/mempool"))
             .json(&data)
@@ -253,7 +253,7 @@ impl DataApi for BitcoinDataApi {
         _caller: Caller,
         data: MempoolTransactionRequest,
         client: Client,
-    ) -> MentantResponse<MempoolTransactionResponse> {
+    ) -> MentatResponse<MempoolTransactionResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/mempool/transaction"))
             .json(&data)

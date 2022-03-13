@@ -1,14 +1,17 @@
-use crate::responses::SnarkOSBlockResponse;
+use crate::{
+    jsonrpc_call,
+    responses::{data::*, Response},
+};
 
-use super::SnarkOsJrpc;
+use super::SnarkosJrpc;
 
 use mentat::{
-    api::{Caller, CallerDataApi, DataApi, MentantResponse},
+    api::{Caller, CallerDataApi, DataApi, MentatResponse},
     async_trait,
     errors::MentatError,
     requests::*,
     responses::*,
-    Client, Json,
+    Client,
 };
 
 #[derive(Default)]
@@ -24,18 +27,9 @@ impl DataApi for SnarkosDataApi {
         _caller: Caller,
         data: BlockRequest,
         client: Client,
-    ) -> MentantResponse<BlockResponse> {
+    ) -> MentatResponse<BlockResponse> {
         if let Some(block_id) = data.block_identifier.index {
-            let req = SnarkOsJrpc::new("getblock", vec![block_id]);
-
-            let response = client
-                .post("http://127.0.0.1:3032")
-                .json(&req)
-                .send()
-                .await?;
-
-            let result: SnarkOSBlockResponse = response.json().await?;
-            Ok(Json(result.into()))
+            jsonrpc_call!("getblock", vec![block_id], client, GetBlockResponse)
         } else {
             Err(MentatError::from("wtf"))
         }

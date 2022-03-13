@@ -27,4 +27,4 @@ pub struct Caller {
     pub ip: SocketAddr,
 }
 
-pub type MentantResponse<T> = Result<Json<T>>;
+pub type MentatResponse<T> = Result<Json<T>>;

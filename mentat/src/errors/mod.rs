@@ -9,20 +9,20 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::api::MentantResponse;
+use crate::api::MentatResponse;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ApiError {
-    code: u16,
-    message: String,
-    description: Option<String>,
-    retriable: bool,
+    pub code: u16,
+    pub message: String,
+    pub description: Option<String>,
+    pub retriable: bool,
     #[serde(default)]
-    details: IndexMap<String, Value>,
+    pub details: IndexMap<String, Value>,
 }
 
 impl ApiError {
-    pub fn not_implemented<R>() -> MentantResponse<R> {
+    pub fn not_implemented<R>() -> MentatResponse<R> {
         Err(MentatError::NotImplemented(ApiError {
             code: 501,
             message: "Not Implemented".to_string(),
@@ -32,7 +32,7 @@ impl ApiError {
         }))
     }
 
-    pub fn wrong_network<P: Debug, R>(payload: P) -> MentantResponse<R> {
+    pub fn wrong_network<P: Debug, R>(payload: P) -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError {
             code: 500,
             message: format!("requestNetwork not supported {payload:?}"),
@@ -42,7 +42,7 @@ impl ApiError {
         }))
     }
 
-    pub fn invalid_account_format<R>() -> MentantResponse<R> {
+    pub fn invalid_account_format<R>() -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError{
             code: 12,
             message: "Invalid account format".to_string(),

@@ -1,5 +1,5 @@
 use mentat::{
-    api::{Caller, CallerConstructionApi, ConstructionApi, MentantResponse},
+    api::{Caller, CallerConstructionApi, ConstructionApi, MentatResponse},
     async_trait,
     errors::*,
     requests::*,
@@ -29,7 +29,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionCombineRequest,
         client: Client,
-    ) -> MentantResponse<ConstructionCombineResponse> {
+    ) -> MentatResponse<ConstructionCombineResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/combine"))
             .json(&data)
@@ -57,7 +57,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionDeriveRequest,
         client: Client,
-    ) -> MentantResponse<ConstructionDeriveResponse> {
+    ) -> MentatResponse<ConstructionDeriveResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/derive"))
             .json(&data)
@@ -85,7 +85,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionHashRequest,
         client: Client,
-    ) -> MentantResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/hash"))
             .json(&data)
@@ -113,7 +113,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionMetadataRequest,
         client: Client,
-    ) -> MentantResponse<ConstructionMetadataResponse> {
+    ) -> MentatResponse<ConstructionMetadataResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/metadata"))
             .json(&data)
@@ -141,7 +141,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionParseRequest,
         client: Client,
-    ) -> MentantResponse<ConstructionParseResponse> {
+    ) -> MentatResponse<ConstructionParseResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/parse"))
             .json(&data)
@@ -169,7 +169,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPayloadsRequest,
         client: Client,
-    ) -> MentantResponse<ConstructionPayloadsResponse> {
+    ) -> MentatResponse<ConstructionPayloadsResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/payloads"))
             .json(&data)
@@ -197,7 +197,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionPreprocessRequest,
         client: Client,
-    ) -> MentantResponse<ConstructionPreprocessResponse> {
+    ) -> MentatResponse<ConstructionPreprocessResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/preprocess"))
             .json(&data)
@@ -225,7 +225,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         _caller: Caller,
         data: ConstructionSubmitRequest,
         client: Client,
-    ) -> MentantResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/construction/submit"))
             .json(&data)

@@ -41,7 +41,7 @@ macro_rules! api_routes {
                     extract::Json(req_data): axum::Json<$req>,
                     Extension(mode): ModeState,
                     Extension(client): Extension<Client>,
-                ) -> MentantResponse<$resp> {
+                ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
                     let resp = server.$api.$method(c, req_data, &mode, client).await;
                     #[cfg(debug_assertions)]

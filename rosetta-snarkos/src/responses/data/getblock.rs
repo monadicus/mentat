@@ -1,22 +1,23 @@
 use super::*;
 use mentat::{
+    api::MentatResponse,
     identifiers::{BlockIdentifier, OperationIdentifier, TransactionIdentifier},
     models::{Amount, Block, Currency, Operation, Transaction},
     responses::BlockResponse,
     serde_json::Value,
-    IndexMap,
+    IndexMap, Json,
 };
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSEvent {
+pub struct Event {
     pub id: u64,
     pub index: u64,
     pub record_view_key: String,
 }
 
-impl From<SnarkOSEvent> for OperationIdentifier {
-    fn from(event: SnarkOSEvent) -> Self {
+impl From<Event> for OperationIdentifier {
+    fn from(event: Event) -> Self {
         Self {
             index: event.index,
             network_index: Some(event.id),
@@ -26,18 +27,18 @@ impl From<SnarkOSEvent> for OperationIdentifier {
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSTransitions {
+pub struct Transitions {
     pub ciphertexts: Vec<String>,
     pub commitments: Vec<String>,
-    pub events: Vec<SnarkOSEvent>,
+    pub events: Vec<Event>,
     pub proof: String,
     pub serial_numbers: Vec<String>,
     pub transition_id: String,
     pub value_balance: i32,
 }
 
-impl From<SnarkOSTransitions> for Operation {
-    fn from(transition: SnarkOSTransitions) -> Self {
+impl From<Transitions> for Operation {
+    fn from(transition: Transitions) -> Self {
         Self {
             // TODO: HOW AM I SUPPOSED TA!!!!?????
             operation_identifier: OperationIdentifier {
@@ -65,15 +66,15 @@ impl From<SnarkOSTransitions> for Operation {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSTransaction {
+pub struct GetBlockTransaction {
     pub inner_circuit_id: String,
     pub ledger_root: String,
     pub transaction_id: String,
-    pub transitions: Vec<SnarkOSTransitions>,
+    pub transitions: Vec<Transitions>,
 }
 
-impl From<SnarkOSTransaction> for Transaction {
-    fn from(transaction: SnarkOSTransaction) -> Self {
+impl From<GetBlockTransaction> for Transaction {
+    fn from(transaction: GetBlockTransaction) -> Self {
         Transaction {
             transaction_identifier: TransactionIdentifier {
                 hash: transaction.transaction_id,
@@ -92,11 +93,11 @@ impl From<SnarkOSTransaction> for Transaction {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSTransactions {
-    transactions: Vec<SnarkOSTransaction>,
+pub struct Transactions {
+    transactions: Vec<GetBlockTransaction>,
 }
 
-impl Into<Vec<Transaction>> for SnarkOSTransactions {
+impl Into<Vec<Transaction>> for Transactions {
     fn into(self) -> Vec<Transaction> {
         self.transactions.into_iter().map(|t| t.into()).collect()
     }
@@ -104,15 +105,15 @@ impl Into<Vec<Transaction>> for SnarkOSTransactions {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSMetadata {
+pub struct Metadata {
     pub cumulative_weight: u64,
     pub difficulty_target: u64,
     pub height: u64,
     pub timestamp: u64,
 }
 
-impl From<SnarkOSMetadata> for IndexMap<String, Value> {
-    fn from(metadata: SnarkOSMetadata) -> Self {
+impl From<Metadata> for IndexMap<String, Value> {
+    fn from(metadata: Metadata) -> Self {
         let mut map = IndexMap::new();
         map.insert(
             "cumulative_weight".to_string(),
@@ -130,40 +131,40 @@ impl From<SnarkOSMetadata> for IndexMap<String, Value> {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSProof {
+pub struct Proof {
     pub hiding: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSHeader {
-    pub metadata: SnarkOSMetadata,
+pub struct Header {
+    pub metadata: Metadata,
     pub nonce: String,
     pub previous_ledger_root: String,
-    pub proof: SnarkOSProof,
+    pub proof: Proof,
     pub transactions_root: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSBlockResult {
+pub struct BlockResult {
     pub block_hash: String,
-    pub header: SnarkOSHeader,
+    pub header: Header,
     pub previous_block_hash: String,
-    pub transactions: SnarkOSTransactions,
+    pub transactions: Transactions,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct SnarkOSBlockResponse {
+pub struct GetBlockResponse {
     pub jsonrpc: String,
-    pub result: SnarkOSBlockResult,
+    pub result: BlockResult,
     pub id: String,
 }
 
-impl From<SnarkOSBlockResponse> for BlockResponse {
-    fn from(response: SnarkOSBlockResponse) -> Self {
-        BlockResponse {
+impl From<GetBlockResponse> for MentatResponse<BlockResponse> {
+    fn from(response: GetBlockResponse) -> Self {
+        Ok(Json(BlockResponse {
             block: Some(Block {
                 block_identifier: BlockIdentifier {
                     // TODO: is this correct?
@@ -179,8 +180,8 @@ impl From<SnarkOSBlockResponse> for BlockResponse {
                 transactions: response.result.transactions.into(),
                 metadata: response.result.header.metadata.into(),
             }),
-            // TODO: snarkos doesn't give anything?
+            // TODO:  doesn't give anything?
             other_transactions: None,
-        }
+        }))
     }
 }

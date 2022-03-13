@@ -8,7 +8,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: MetadataRequest,
         _client: Client,
-    ) -> MentantResponse<NetworkListResponse> {
+    ) -> MentatResponse<NetworkListResponse> {
         ApiError::not_implemented()
     }
 
@@ -18,7 +18,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: NetworkRequest,
         _client: Client,
-    ) -> MentantResponse<NetworkOptionsResponse> {
+    ) -> MentatResponse<NetworkOptionsResponse> {
         ApiError::not_implemented()
     }
 
@@ -28,7 +28,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: NetworkRequest,
         _client: Client,
-    ) -> MentantResponse<NetworkStatusResponse> {
+    ) -> MentatResponse<NetworkStatusResponse> {
         ApiError::not_implemented()
     }
 
@@ -38,7 +38,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: AccountBalanceRequest,
         _client: Client,
-    ) -> MentantResponse<AccountBalanceResponse> {
+    ) -> MentatResponse<AccountBalanceResponse> {
         ApiError::not_implemented()
     }
 
@@ -48,7 +48,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: AccountCoinsRequest,
         _client: Client,
-    ) -> MentantResponse<AccountCoinsResponse> {
+    ) -> MentatResponse<AccountCoinsResponse> {
         ApiError::not_implemented()
     }
 
@@ -58,7 +58,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: BlockRequest,
         _client: Client,
-    ) -> MentantResponse<BlockResponse> {
+    ) -> MentatResponse<BlockResponse> {
         ApiError::not_implemented()
     }
 
@@ -68,7 +68,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: BlockTransactionRequest,
         _client: Client,
-    ) -> MentantResponse<BlockTransactionResponse> {
+    ) -> MentatResponse<BlockTransactionResponse> {
         ApiError::not_implemented()
     }
 
@@ -78,7 +78,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: NetworkRequest,
         _client: Client,
-    ) -> MentantResponse<MempoolResponse> {
+    ) -> MentatResponse<MempoolResponse> {
         ApiError::not_implemented()
     }
 
@@ -88,7 +88,7 @@ pub trait DataApi: Send + Sync {
         _caller: Caller,
         _data: MempoolTransactionRequest,
         _client: Client,
-    ) -> MentantResponse<MempoolTransactionResponse> {
+    ) -> MentatResponse<MempoolTransactionResponse> {
         ApiError::not_implemented()
     }
 }
@@ -101,7 +101,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: MetadataRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<NetworkListResponse> {
+    ) -> MentatResponse<NetworkListResponse> {
         self.network_list(caller, data, client).await
     }
 
@@ -111,7 +111,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: NetworkRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<NetworkOptionsResponse> {
+    ) -> MentatResponse<NetworkOptionsResponse> {
         self.network_options(caller, data, client).await
     }
 
@@ -121,7 +121,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: NetworkRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<NetworkStatusResponse> {
+    ) -> MentatResponse<NetworkStatusResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
@@ -135,7 +135,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: AccountBalanceRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<AccountBalanceResponse> {
+    ) -> MentatResponse<AccountBalanceResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
@@ -149,7 +149,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: AccountCoinsRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<AccountCoinsResponse> {
+    ) -> MentatResponse<AccountCoinsResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
@@ -163,7 +163,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: BlockRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<BlockResponse> {
+    ) -> MentatResponse<BlockResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
@@ -177,7 +177,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: BlockTransactionRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<BlockTransactionResponse> {
+    ) -> MentatResponse<BlockTransactionResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
@@ -191,7 +191,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: NetworkRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<MempoolResponse> {
+    ) -> MentatResponse<MempoolResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
@@ -205,7 +205,7 @@ pub trait CallerDataApi: DataApi + Send + Sync {
         data: MempoolTransactionRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<MempoolTransactionResponse> {
+    ) -> MentatResponse<MempoolTransactionResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
