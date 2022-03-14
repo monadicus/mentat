@@ -4,6 +4,18 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.59.0"
 
+[profile.release]
+codegen-units = 1
+panic = "abort"
+lto = "fat"
+strip = true
+
+[profile.release-docker]
+codegen-units = 1
+opt-level = "z"
+panic = "abort"
+lto = true
+strip = true
 [dependencies]
 mentat = { path = "../mentat", features = ["server"] }
 reqwest = { version = "0.11", default-features = false, features = ["json"] }
