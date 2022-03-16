@@ -4,24 +4,24 @@ mod dummy_data;
 mod dummy_indexer;
 mod logging;
 mod node;
-pub use node::*;
-
 use std::{
     env,
     net::{Ipv4Addr, SocketAddr},
     sync::Arc,
 };
 
-use crate::{api::*, requests::*, responses::*};
-
-use self::{
-    dummy_call::DummyCallApi, dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
-    dummy_indexer::DummyIndexerApi,
-};
-
 use axum::extract::{self, ConnectInfo, Extension};
+pub use node::*;
 use reqwest::Client;
 use tracing::info;
+
+use self::{
+    dummy_call::DummyCallApi,
+    dummy_construction::DummyConstructionApi,
+    dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi,
+};
+use crate::{api::*, requests::*, responses::*};
 
 #[derive(Clone)]
 pub enum Network {

@@ -4,7 +4,9 @@ use mentat::{
     errors::*,
     requests::*,
     responses::*,
-    serde_json, Client, Json,
+    serde_json,
+    Client,
+    Json,
 };
 
 pub struct BitcoinIndexerApi {
@@ -41,7 +43,7 @@ impl IndexerApi for BitcoinIndexerApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -69,7 +71,7 @@ impl IndexerApi for BitcoinIndexerApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 

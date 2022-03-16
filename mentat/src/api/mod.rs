@@ -1,7 +1,6 @@
 use std::net::SocketAddr;
 
 use axum::Json;
-
 use reqwest::Client;
 
 mod construction;
@@ -19,9 +18,11 @@ pub use indexer::*;
 mod mode;
 pub use mode::*;
 
-use crate::errors::{ApiError, Result};
-use crate::requests::*;
-use crate::responses::*;
+use crate::{
+    errors::{ApiError, Result},
+    requests::*,
+    responses::*,
+};
 
 pub struct Caller {
     pub ip: SocketAddr,

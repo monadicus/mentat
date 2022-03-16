@@ -1,0 +1,13 @@
+condense_wildcard_suffixes = true
+edition = "2021"
+error_on_unformatted = true
+format_macro_matchers = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+imports_layout = "HorizontalVertical"
+merge_derives = true
+newline_style = "Unix"
+reorder_impl_items = true
+use_field_init_shorthand = true
+version = "Two"
+wrap_comments = true

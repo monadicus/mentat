@@ -3,7 +3,10 @@ use mentat::{
     async_trait,
     requests::*,
     responses::*,
-    serde_json, tracing, Client, Json,
+    serde_json,
+    tracing,
+    Client,
+    Json,
 };
 
 #[derive(Default)]

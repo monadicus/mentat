@@ -4,7 +4,8 @@ use mentat::{
     errors::*,
     requests::*,
     responses::*,
-    serde_json, Json,
+    serde_json,
+    Json,
 };
 use reqwest::Client;
 
@@ -42,7 +43,7 @@ impl CallApi for BitcoinCallApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 

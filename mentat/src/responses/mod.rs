@@ -1,8 +1,7 @@
-use crate::identifiers::*;
-use crate::models::*;
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+use crate::{identifiers::*, models::*};
 
 mod account_balance;
 pub use account_balance::*;
