@@ -20,18 +20,18 @@ pub struct NetworkStatusResponse {
     /// The timestamp of the block in milliseconds since the Unix Epoch. The
     /// timestamp is stored in milliseconds because some blockchains produce
     /// blocks more often than once a second.
-    pub current_block_timestamp:  u64,
+    pub current_block_timestamp: u64,
     /// The block_identifier uniquely identifies a block in a particular
     /// network.
     pub genesis_block_identifier: BlockIdentifier,
     /// The block_identifier uniquely identifies a block in a particular
     /// network.
-    pub oldest_block_identifier:  Option<BlockIdentifier>,
+    pub oldest_block_identifier: Option<BlockIdentifier>,
     /// SyncStatus is used to provide additional context about an
     /// implementation's sync status. This object is often used by
     /// implementations to indicate healthiness when block data cannot be
     /// queried until some sync phase completes or cannot be determined by
     /// comparing the timestamp of the most recent block with the current time.
-    pub sync_status:              Option<SyncStatus>,
-    pub peers:                    Vec<Peer>,
+    pub sync_status: Option<SyncStatus>,
+    pub peers: Vec<Peer>,
 }

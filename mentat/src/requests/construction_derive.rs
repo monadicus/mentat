@@ -15,7 +15,7 @@ pub struct ConstructionDeriveRequest {
     /// PublicKey contains a public key byte array for a particular CurveType
     /// encoded in hex. Note that there is no PrivateKey struct as this is NEVER
     /// the concern of an implementation.
-    pub public_key:         PublicKey,
+    pub public_key: PublicKey,
     #[serde(default)]
-    pub metadata:           IndexMap<String, Value>,
+    pub metadata: IndexMap<String, Value>,
 }

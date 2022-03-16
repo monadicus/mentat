@@ -7,5 +7,5 @@ use super::*;
 pub struct PartialBlockIdentifier {
     /// This is also known as the block height.
     pub index: Option<u64>,
-    pub hash:  Option<String>,
+    pub hash: Option<String>,
 }

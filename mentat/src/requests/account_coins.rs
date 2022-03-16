@@ -14,10 +14,10 @@ pub struct AccountCoinsRequest {
     /// Include state from the mempool when looking up an account's unspent
     /// coins. Note, using this functionality breaks any guarantee of
     /// idempotency.
-    pub include_mempool:    bool,
+    pub include_mempool: bool,
     /// In some cases, the caller may not want to retrieve all available
     /// balances for an AccountIdentifier. If the currencies field is populated,
     /// only balances for the specified currencies will be returned. If not
     /// populated, all available balances will be returned.
-    pub currencies:         Option<Vec<Currency>>,
+    pub currencies: Option<Vec<Currency>>,
 }

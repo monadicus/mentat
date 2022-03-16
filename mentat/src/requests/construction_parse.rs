@@ -8,9 +8,9 @@ pub struct ConstructionParseRequest {
     /// associated with.
     pub network_identifier: NetworkIdentifier,
     /// Signed is a boolean indicating whether the transaction is signed.
-    pub signed:             bool,
+    pub signed: bool,
     /// This must be either the unsigned transaction blob returned by
     /// /construction/payloads or the signed transaction blob returned by
     /// /construction/combine.
-    pub transaction:        String,
+    pub transaction: String,
 }

@@ -7,12 +7,12 @@ use super::*;
 pub struct BlockEvent {
     /// sequence is the unique identifier of a BlockEvent within the context of
     /// a NetworkIdentifier.
-    pub sequence:         u64,
+    pub sequence: u64,
     /// The block_identifier uniquely identifies a block in a particular
     /// network.
     pub block_identifier: BlockIdentifier,
     /// BlockEventType determines if a BlockEvent represents the addition or
     /// removal of a block.
     #[serde(rename = "type")]
-    pub type_:            BlockEventType,
+    pub type_: BlockEventType,
 }

@@ -7,5 +7,5 @@ use super::*;
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionPayloadsResponse {
     pub unsigned_transaction: String,
-    pub payloads:             Vec<SigningPayload>,
+    pub payloads: Vec<SigningPayload>,
 }

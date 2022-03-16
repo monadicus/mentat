@@ -5,10 +5,10 @@ use super::*;
 pub struct BlockTransactionRequest {
     /// The network_identifier specifies which network a particular object is
     /// associated with.
-    pub network_identifier:     NetworkIdentifier,
+    pub network_identifier: NetworkIdentifier,
     /// The block_identifier uniquely identifies a block in a particular
     /// network.
-    pub block_identifier:       BlockIdentifier,
+    pub block_identifier: BlockIdentifier,
     /// The transaction_identifier uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
     pub transaction_identifier: TransactionIdentifier,

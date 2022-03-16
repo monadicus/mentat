@@ -14,9 +14,9 @@ pub struct SearchTransactionsResponse {
     /// total_count is the number of results for a given search. Callers
     /// typically use this value to concurrently fetch results by offset or to
     /// display a virtual page number associated with results.
-    pub total_count:  u64,
+    pub total_count: u64,
     /// next_offset is the next offset to use when paginating through
     /// transaction results. If this field is not populated, there are no more
     /// transactions to query.
-    pub next_offset:  Option<u64>,
+    pub next_offset: Option<u64>,
 }

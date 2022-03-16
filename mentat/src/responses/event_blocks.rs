@@ -10,5 +10,5 @@ pub struct EventsBlocksResponse {
     /// blocks to maintain a canonical view of blockchain state. Lightweight
     /// clients can use this event stream to update state without implementing
     /// their own block syncing logic.
-    pub events:       Vec<BlockEvent>,
+    pub events: Vec<BlockEvent>,
 }

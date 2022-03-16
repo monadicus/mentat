@@ -15,6 +15,6 @@ pub struct ConstructionPreprocessResponse {
     /// The options that will be sent directly to /construction/metadata by the
     /// caller.
     #[serde(default)]
-    pub options:              IndexMap<String, Value>,
+    pub options: IndexMap<String, Value>,
     pub required_public_keys: Option<Vec<AccountIdentifier>>,
 }

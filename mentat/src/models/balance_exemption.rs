@@ -21,7 +21,7 @@ pub struct BalanceExemption {
     /// Currency is composed of a canonical Symbol and Decimals. This Decimals
     /// value is used to convert an Amount.Value from atomic units (Satoshis) to
     /// standard units (Bitcoins).
-    pub currency:            Option<Currency>,
+    pub currency: Option<Currency>,
     /// ExemptionType is used to indicate if the live balance for an account
     /// subject to a BalanceExemption could increase above, decrease below, or
     /// equal the computed balance. * greater_or_equal: The live balance may
@@ -32,5 +32,5 @@ pub struct BalanceExemption {
     /// dynamic: The live balance may increase above, decrease below, or equal
     /// the computed balance. This typically occurs with tokens that have a
     /// dynamic supply.
-    pub exemption_type:      Option<ExemptionType>,
+    pub exemption_type: Option<ExemptionType>,
 }

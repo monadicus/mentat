@@ -9,7 +9,7 @@ pub struct OperationIdentifier {
     /// transaction and NOT GLOBAL. The operations in each transaction should
     /// start from index 0. To clarify, there may not be any notion of an
     /// operation index in the blockchain being described.
-    pub index:         u64,
+    pub index: u64,
     /// Some blockchains specify an operation index that is essential for client
     /// use. For example, Bitcoin uses a network_index to identify which UTXO
     /// was used in a transaction. network_index should not be populated if

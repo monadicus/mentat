@@ -23,10 +23,10 @@ use super::*;
 pub struct ConstructionPreprocessRequest {
     /// The network_identifier specifies which network a particular object is
     /// associated with.
-    pub network_identifier:       NetworkIdentifier,
-    pub operations:               Vec<Operation>,
+    pub network_identifier: NetworkIdentifier,
+    pub operations: Vec<Operation>,
     #[serde(default)]
-    pub metadata:                 IndexMap<String, Value>,
-    pub max_fee:                  Option<Vec<Amount>>,
+    pub metadata: IndexMap<String, Value>,
+    pub max_fee: Option<Vec<Amount>>,
     pub suggested_fee_multiplier: Option<f64>,
 }

@@ -8,7 +8,7 @@ use super::*;
 pub struct ConstructionCombineRequest {
     /// The network_identifier specifies which network a particular object is
     /// associated with.
-    pub network_identifier:   NetworkIdentifier,
+    pub network_identifier: NetworkIdentifier,
     pub unsigned_transaction: String,
-    pub signatures:           Vec<Signature>,
+    pub signatures: Vec<Signature>,
 }

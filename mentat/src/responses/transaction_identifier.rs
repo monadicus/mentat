@@ -11,5 +11,5 @@ pub struct TransactionIdentifierResponse {
     /// particular network and block or in the mempool.
     pub transaction_identifier: TransactionIdentifier,
     #[serde(default)]
-    pub metadata:               IndexMap<String, Value>,
+    pub metadata: IndexMap<String, Value>,
 }

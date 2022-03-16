@@ -13,8 +13,8 @@ pub struct CallRequest {
     /// smart contract, or some hybrid of the two. The implementation must
     /// define all available methods in the Allow object. However, it is up to
     /// the caller to determine which parameters to provide when invoking /call.
-    pub method:             String,
+    pub method: String,
     /// Parameters is some network-specific argument for a method. It is up to
     /// the caller to determine which parameters to provide when invoking /call.
-    pub parameters:         IndexMap<String, Value>,
+    pub parameters: IndexMap<String, Value>,
 }

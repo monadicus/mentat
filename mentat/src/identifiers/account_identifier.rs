@@ -9,7 +9,7 @@ use super::*;
 pub struct AccountIdentifier {
     /// The address may be a cryptographic public key (or some encoding of it)
     /// or a provided username.
-    pub address:  String,
+    pub address: String,
     /// An account may have state specific to a contract address (ERC-20 token)
     /// and/or a stake (delegated balance). The sub_account_identifier should
     /// specify which state (if applicable) an account instantiation refers to.

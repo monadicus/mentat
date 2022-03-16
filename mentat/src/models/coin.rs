@@ -7,5 +7,5 @@ pub struct Coin {
     pub coin_identifier: CoinIdentifier,
     /// Amount is some Value of a Currency. It is considered invalid to specify
     /// a Value without a Currency.
-    pub amount:          Amount,
+    pub amount: Amount,
 }

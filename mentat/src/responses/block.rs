@@ -17,7 +17,7 @@ pub struct BlockResponse {
     /// requested and received a block identified by a specific
     /// BlockIndentifier, all future calls for that same BlockIdentifier must
     /// return the same block contents.
-    pub block:              Option<Block>,
+    pub block: Option<Block>,
     /// Some blockchains may require additional transactions to be fetched that
     /// weren't returned in the block response (ex: block only returns
     /// transaction hashes). For blockchains with a lot of transactions in each

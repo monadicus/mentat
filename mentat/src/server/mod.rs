@@ -58,10 +58,10 @@ macro_rules! api_routes {
 #[derive(Clone)]
 pub struct Server {
     construction_api: Arc<dyn CallerConstructionApi>,
-    data_api:         Arc<dyn CallerDataApi>,
-    indexer_api:      Arc<dyn CallerIndexerApi>,
-    call_api:         Arc<dyn CallerCallApi>,
-    network:          Network,
+    data_api: Arc<dyn CallerDataApi>,
+    indexer_api: Arc<dyn CallerIndexerApi>,
+    call_api: Arc<dyn CallerCallApi>,
+    network: Network,
 }
 
 impl Default for Server {

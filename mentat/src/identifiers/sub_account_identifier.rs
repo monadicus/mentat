@@ -9,7 +9,7 @@ use super::*;
 pub struct SubAccountIdentifier {
     /// The SubAccount address may be a cryptographic value or some other
     /// identifier (ex: bonded) that uniquely specifies a SubAccount.
-    pub address:  String,
+    pub address: String,
     /// If the SubAccount address is not sufficient to uniquely specify a
     /// SubAccount, any other identifying information can be stored here. It is
     /// important to note that two SubAccounts with identical addresses but

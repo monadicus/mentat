@@ -17,9 +17,9 @@ pub struct SyncStatus {
     pub current_index: Option<u64>,
     /// TargetIndex is the index of the block that the implementation is
     /// attempting to sync to in the current stage.
-    pub target_index:  Option<u64>,
+    pub target_index: Option<u64>,
     /// Stage is the phase of the sync process.
-    pub stage:         Option<String>,
+    pub stage: Option<String>,
     /// sycned is a boolean that indicates if an implementation has synced up to
     /// the most recent block. If this field is not populated, the caller should
     /// rely on a traditional tip timestamp comparison to determine if an
@@ -28,5 +28,5 @@ pub struct SyncStatus {
     /// transactions). In these blockchains, the most recent block could have a
     /// timestamp far behind the current time but the node could be healthy and
     /// at tip.
-    pub synced:        Option<bool>,
+    pub synced: Option<bool>,
 }

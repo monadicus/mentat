@@ -40,7 +40,7 @@ impl DataApi for SnarkosDataApi {
         tracing::debug!("output /block {text}");
 
         Ok(Json(BlockResponse {
-            block:              None,
+            block: None,
             other_transactions: None,
         }))
     }

@@ -14,8 +14,8 @@ pub struct Signature {
     /// PublicKey contains a public key byte array for a particular CurveType
     /// encoded in hex. Note that there is no PrivateKey struct as this is NEVER
     /// the concern of an implementation.
-    pub public_key:      PublicKey,
+    pub public_key: PublicKey,
     /// SignatureType is the type of a cryptographic signature.
-    pub signature_type:  SignatureType,
-    pub hex_bytes:       String,
+    pub signature_type: SignatureType,
+    pub hex_bytes: String,
 }

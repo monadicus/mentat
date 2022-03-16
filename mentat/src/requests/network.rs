@@ -10,5 +10,5 @@ pub struct NetworkRequest {
     /// associated with.
     pub network_identifier: NetworkIdentifier,
     #[serde(default)]
-    pub metadata:           IndexMap<String, Value>,
+    pub metadata: IndexMap<String, Value>,
 }

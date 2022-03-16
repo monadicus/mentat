@@ -18,6 +18,6 @@ pub struct ConstructionMetadataRequest {
     /// construction (which may require multiple node fetches), the client can
     /// populate an options object to limit the metadata returned to only the
     /// subset required.
-    pub options:            Option<Value>,
-    pub public_keys:        Option<Vec<PublicKey>>,
+    pub options: Option<Value>,
+    pub public_keys: Option<Vec<PublicKey>>,
 }

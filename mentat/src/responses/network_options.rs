@@ -13,5 +13,5 @@ pub struct NetworkOptionsResponse {
     /// validate the correctness of a Rosetta Server implementation. It is
     /// expected that these clients will error if they receive some response
     /// that contains any of the above information that is not specified here.
-    pub allow:   Allow,
+    pub allow: Allow,
 }

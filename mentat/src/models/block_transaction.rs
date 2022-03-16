@@ -9,5 +9,5 @@ pub struct BlockTransaction {
     pub block_identifier: BlockIdentifier,
     /// Transactions contain an array of Operations that are attributable to the
     /// same TransactionIdentifier.
-    pub transaction:      Transaction,
+    pub transaction: Transaction,
 }

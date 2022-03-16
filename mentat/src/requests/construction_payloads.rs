@@ -12,8 +12,8 @@ pub struct ConstructionPayloadsRequest {
     /// The network_identifier specifies which network a particular object is
     /// associated with.
     pub network_identifier: NetworkIdentifier,
-    pub operations:         Vec<Operation>,
+    pub operations: Vec<Operation>,
     #[serde(default)]
-    pub metadata:           IndexMap<String, Value>,
-    pub public_keys:        Option<Vec<PublicKey>>,
+    pub metadata: IndexMap<String, Value>,
+    pub public_keys: Option<Vec<PublicKey>>,
 }

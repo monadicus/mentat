@@ -11,5 +11,5 @@ pub struct MempoolTransactionResponse {
     /// same TransactionIdentifier.
     pub transaction: Transaction,
     #[serde(default)]
-    pub metadata:    IndexMap<String, Value>,
+    pub metadata: IndexMap<String, Value>,
 }

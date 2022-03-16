@@ -11,6 +11,6 @@ use super::*;
 /// currencies.
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionMetadataResponse {
-    pub metadata:      IndexMap<String, Value>,
+    pub metadata: IndexMap<String, Value>,
     pub suggested_fee: Option<Vec<Amount>>,
 }

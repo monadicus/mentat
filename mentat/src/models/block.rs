@@ -12,15 +12,15 @@ use super::*;
 pub struct Block {
     /// The block_identifier uniquely identifies a block in a particular
     /// network.
-    pub block_identifier:        BlockIdentifier,
+    pub block_identifier: BlockIdentifier,
     /// The block_identifier uniquely identifies a block in a particular
     /// network.
     pub parent_block_identifier: BlockIdentifier,
     /// The timestamp of the block in milliseconds since the Unix Epoch. The
     /// timestamp is stored in milliseconds because some blockchains produce
     /// blocks more often than once a second.
-    pub timestamp:               u64,
-    pub transactions:            Vec<Transaction>,
+    pub timestamp: u64,
+    pub transactions: Vec<Transaction>,
     #[serde(default)]
-    pub metadata:                IndexMap<String, Value>,
+    pub metadata: IndexMap<String, Value>,
 }

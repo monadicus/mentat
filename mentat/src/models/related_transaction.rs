@@ -7,7 +7,7 @@ use super::*;
 pub struct RelatedTransaction {
     /// The network_identifier specifies which network a particular object is
     /// associated with.
-    pub network_identifier:     Option<NetworkIdentifier>,
+    pub network_identifier: Option<NetworkIdentifier>,
     /// The transaction_identifier uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
     pub transaction_identifier: TransactionIdentifier,
@@ -16,5 +16,5 @@ pub struct RelatedTransaction {
     /// earlier transaction and async execution may reference forward). Can be
     /// used to indicate if a transaction relation is from child to parent or
     /// the reverse.
-    pub direction:              Direction,
+    pub direction: Direction,
 }

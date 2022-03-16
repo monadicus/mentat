@@ -7,7 +7,7 @@ use super::*;
 /// non-sharded blockchains.
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct SubNetworkIdentifier {
-    pub network:  String,
+    pub network: String,
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

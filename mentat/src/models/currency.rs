@@ -8,7 +8,7 @@ use super::*;
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Currency {
     /// Canonical symbol associated with a currency.
-    pub symbol:   String,
+    pub symbol: String,
     /// Number of decimal places in the standard unit representation of the
     /// amount. For example, BTC has 8 decimals. Note that it is not possible to
     /// represent the value of some currency in atomic units that is not base
