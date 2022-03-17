@@ -1,6 +1,6 @@
 use mentat::{
-    identifiers::OperationIdentifier,
-    models::{Amount, Currency, Operation},
+    identifiers::{CoinIdentifier, OperationIdentifier},
+    models::{Amount, CoinAction, CoinChange, Currency, Operation},
     IndexMap,
 };
 
@@ -21,13 +21,13 @@ pub struct SnarkosTransition {
 impl From<SnarkosTransition> for Operation {
     fn from(transition: SnarkosTransition) -> Self {
         Self {
-            // TODO: HOW AM I SUPPOSED TA!!!!?????
             operation_identifier: OperationIdentifier {
-                index: todo!(),
-                network_index: todo!(),
+                index: 0,
+                network_index: None,
             },
             related_operations: Some(transition.events.into_iter().map(|e| e.into()).collect()),
-            type_: todo!(),
+            // TODO: I see no information on this.
+            type_: "N/A".to_string(),
             status: None,
             account: None,
             amount: Some(Amount {
@@ -39,7 +39,13 @@ impl From<SnarkosTransition> for Operation {
                 },
                 metadata: IndexMap::new(),
             }),
-            coin_change: None,
+            coin_change: Some(CoinChange {
+                coin_identifier: CoinIdentifier {
+                    identifier: transition.transition_id,
+                },
+                // TODO: I see no information on this.
+                coin_action: CoinAction::CoinCreated,
+            }),
             metadata: IndexMap::new(),
         }
     }
