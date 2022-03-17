@@ -11,7 +11,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionCombineRequest,
         _client: Client,
-    ) -> MentantResponse<ConstructionCombineResponse> {
+    ) -> MentatResponse<ConstructionCombineResponse> {
         ApiError::not_implemented()
     }
 
@@ -23,7 +23,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionDeriveRequest,
         _client: Client,
-    ) -> MentantResponse<ConstructionDeriveResponse> {
+    ) -> MentatResponse<ConstructionDeriveResponse> {
         ApiError::not_implemented()
     }
 
@@ -34,7 +34,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionHashRequest,
         _client: Client,
-    ) -> MentantResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         ApiError::not_implemented()
     }
 
@@ -55,7 +55,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionMetadataRequest,
         _client: Client,
-    ) -> MentantResponse<ConstructionMetadataResponse> {
+    ) -> MentatResponse<ConstructionMetadataResponse> {
         ApiError::not_implemented()
     }
 
@@ -68,7 +68,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionParseRequest,
         _client: Client,
-    ) -> MentantResponse<ConstructionParseResponse> {
+    ) -> MentatResponse<ConstructionParseResponse> {
         ApiError::not_implemented()
     }
 
@@ -88,7 +88,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionPayloadsRequest,
         _client: Client,
-    ) -> MentantResponse<ConstructionPayloadsResponse> {
+    ) -> MentatResponse<ConstructionPayloadsResponse> {
         ApiError::not_implemented()
     }
 
@@ -105,7 +105,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionPreprocessRequest,
         _client: Client,
-    ) -> MentantResponse<ConstructionPreprocessResponse> {
+    ) -> MentatResponse<ConstructionPreprocessResponse> {
         ApiError::not_implemented()
     }
 
@@ -120,7 +120,7 @@ pub trait ConstructionApi: Send + Sync {
         _caller: Caller,
         _data: ConstructionSubmitRequest,
         _client: Client,
-    ) -> MentantResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         ApiError::not_implemented()
     }
 }
@@ -133,7 +133,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionCombineRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<ConstructionCombineResponse> {
+    ) -> MentatResponse<ConstructionCombineResponse> {
         self.combine(caller, data, client).await
     }
 
@@ -143,7 +143,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionDeriveRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<ConstructionDeriveResponse> {
+    ) -> MentatResponse<ConstructionDeriveResponse> {
         self.derive(caller, data, client).await
     }
 
@@ -153,7 +153,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionHashRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         self.hash(caller, data, client).await
     }
 
@@ -163,7 +163,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionMetadataRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<ConstructionMetadataResponse> {
+    ) -> MentatResponse<ConstructionMetadataResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {
@@ -177,7 +177,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionParseRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<ConstructionParseResponse> {
+    ) -> MentatResponse<ConstructionParseResponse> {
         self.parse(caller, data, client).await
     }
 
@@ -187,7 +187,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionPayloadsRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<ConstructionPayloadsResponse> {
+    ) -> MentatResponse<ConstructionPayloadsResponse> {
         self.payloads(caller, data, client).await
     }
 
@@ -197,7 +197,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionPreprocessRequest,
         _mode: &Mode,
         client: Client,
-    ) -> MentantResponse<ConstructionPreprocessResponse> {
+    ) -> MentatResponse<ConstructionPreprocessResponse> {
         self.preprocess(caller, data, client).await
     }
 
@@ -207,7 +207,7 @@ pub trait CallerConstructionApi: ConstructionApi + Send + Sync {
         data: ConstructionSubmitRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {

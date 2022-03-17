@@ -14,7 +14,11 @@ pub mod server;
 #[cfg(feature = "server")]
 pub use axum::{self, async_trait, Json};
 #[cfg(feature = "server")]
+pub use indexmap::IndexMap;
+#[cfg(feature = "server")]
 pub use reqwest::Client;
+#[cfg(feature = "server")]
+pub use serde;
 #[cfg(feature = "server")]
 pub use serde_json;
 #[cfg(feature = "server")]

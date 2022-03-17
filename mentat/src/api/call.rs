@@ -8,7 +8,7 @@ pub trait CallApi: Send + Sync {
         _caller: Caller,
         _data: CallRequest,
         _client: Client,
-    ) -> MentantResponse<CallResponse> {
+    ) -> MentatResponse<CallResponse> {
         ApiError::not_implemented()
     }
 }
@@ -22,7 +22,7 @@ pub trait CallerCallApi: CallApi + Send + Sync {
         data: CallRequest,
         mode: &Mode,
         client: Client,
-    ) -> MentantResponse<CallResponse> {
+    ) -> MentatResponse<CallResponse> {
         if mode.is_offline() {
             ApiError::wrong_network(&data)
         } else {

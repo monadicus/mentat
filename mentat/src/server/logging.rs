@@ -15,6 +15,7 @@ pub(crate) fn setup() -> Result<(), Box<dyn std::error::Error>> {
                 .with_targets(true)
                 .with_bracketed_fields(true),
         )
+        .with(tracing_error::ErrorLayer::default())
         .with(telemetry)
         .init();
 

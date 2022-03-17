@@ -1,5 +1,5 @@
 use mentat::{
-    api::{CallApi, Caller, CallerCallApi, MentantResponse},
+    api::{CallApi, Caller, CallerCallApi, MentatResponse},
     async_trait,
     errors::*,
     requests::*,
@@ -31,7 +31,7 @@ impl CallApi for BitcoinCallApi {
         _caller: Caller,
         data: CallRequest,
         client: Client,
-    ) -> MentantResponse<CallResponse> {
+    ) -> MentatResponse<CallResponse> {
         let resp = match client
             .post(&format!("{}{}", self.url, "/call"))
             .json(&data)

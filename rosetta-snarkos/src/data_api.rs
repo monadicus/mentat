@@ -1,12 +1,16 @@
 use mentat::{
-    api::{Caller, CallerDataApi, DataApi, MentantResponse},
+    api::{Caller, CallerDataApi, DataApi, MentatResponse},
     async_trait,
+    errors::MentatError,
     requests::*,
     responses::*,
-    serde_json,
-    tracing,
     Client,
-    Json,
+};
+
+use super::SnarkosJrpc;
+use crate::{
+    jsonrpc_call,
+    responses::{data::*, Response},
 };
 
 #[derive(Default)]
@@ -20,28 +24,34 @@ impl DataApi for SnarkosDataApi {
     async fn block(
         &self,
         _caller: Caller,
-        _data: BlockRequest,
+        data: BlockRequest,
         client: Client,
-    ) -> MentantResponse<BlockResponse> {
-        let data = serde_json::json!(
-        {
-        "jsonrpc": "2.0",
-        "id": "1",
-        "method": "getblock",
-        "params": [0]
-        });
+    ) -> MentatResponse<BlockResponse> {
+        if let Some(block_id) = data.block_identifier.index {
+            jsonrpc_call!(@ret "getblock", vec![block_id], client, GetBlockResponse)
+        } else {
+            Err(MentatError::from("wtf"))
+        }
+    }
 
-        let response = client
-            .post("http://127.0.0.1:3032")
-            .json(&data)
-            .send()
-            .await?;
-        let text = response.text().await?;
-        tracing::debug!("output /block {text}");
+    async fn block_transaction(
+        &self,
+        _caller: Caller,
+        data: BlockTransactionRequest,
+        client: Client,
+    ) -> MentatResponse<BlockTransactionResponse> {
+        let first = jsonrpc_call!(@res "gettransaction", vec![data.block_identifier.hash], client, GetTransactionResponse);
+        let second = jsonrpc_call!(@res "getblocktransactions", vec![data.block_identifier.index], client, GetBlockTransactionsResponse);
+        first + second
+    }
 
-        Ok(Json(BlockResponse {
-            block: None,
-            other_transactions: None,
-        }))
+    async fn mempool(
+        &self,
+        _caller: Caller,
+        _data: NetworkRequest,
+        client: Client,
+    ) -> MentatResponse<MempoolResponse> {
+        let data: Vec<u8> = Vec::new();
+        jsonrpc_call!(@ret "getmemorypool", data, client, GetMemoryPoolResponse)
     }
 }
