@@ -1,6 +1,9 @@
 use mentat::{
-    api::MentatResponse, identifiers::TransactionIdentifier,
-    responses::TransactionIdentifierResponse, IndexMap, Json,
+    api::MentatResponse,
+    identifiers::TransactionIdentifier,
+    responses::TransactionIdentifierResponse,
+    IndexMap,
+    Json,
 };
 
 use super::*;

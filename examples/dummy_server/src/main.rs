@@ -1,8 +1,9 @@
+use std::net::Ipv4Addr;
+
 use mentat::{
     server::{DummyNode, Server},
     tokio,
 };
-use std::net::Ipv4Addr;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

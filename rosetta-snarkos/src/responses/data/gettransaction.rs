@@ -2,9 +2,8 @@ use std::ops::Add;
 
 use mentat::{api::MentatResponse, responses::BlockTransactionResponse, Json};
 
-use crate::responses::common::SnarkosTransaction;
-
 use super::*;
+use crate::responses::common::SnarkosTransaction;
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]

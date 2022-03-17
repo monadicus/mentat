@@ -1,10 +1,15 @@
-use crate::responses::common::SnarkosTransactions;
+use mentat::{
+    api::MentatResponse,
+    identifiers::BlockIdentifier,
+    models::Block,
+    responses::BlockResponse,
+    serde_json::Value,
+    IndexMap,
+    Json,
+};
 
 use super::*;
-use mentat::{
-    api::MentatResponse, identifiers::BlockIdentifier, models::Block, responses::BlockResponse,
-    serde_json::Value, IndexMap, Json,
-};
+use crate::responses::common::SnarkosTransactions;
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]

@@ -1,10 +1,3 @@
-use crate::{
-    jsonrpc_call,
-    responses::{data::*, Response},
-};
-
-use super::SnarkosJrpc;
-
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentatResponse},
     async_trait,
@@ -12,6 +5,12 @@ use mentat::{
     requests::*,
     responses::*,
     Client,
+};
+
+use super::SnarkosJrpc;
+use crate::{
+    jsonrpc_call,
+    responses::{data::*, Response},
 };
 
 #[derive(Default)]
