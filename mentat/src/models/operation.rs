@@ -8,7 +8,7 @@ use super::*;
 /// represent on-chain data (Data API) and to construct new transactions
 /// (Construction API), creating a standard interface for reading and writing to
 /// blockchains.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Operation {
     /// The operation_identifier uniquely identifies an operation within a
     /// transaction.

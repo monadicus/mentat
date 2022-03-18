@@ -21,7 +21,7 @@ use self::{
     dummy_data::DummyDataApi,
     dummy_indexer::DummyIndexerApi,
 };
-use crate::{api::*, requests::*, responses::*};
+use crate::{api::*, cache::Cached, requests::*, responses::*};
 
 #[derive(Clone)]
 pub enum Network {
@@ -30,7 +30,7 @@ pub enum Network {
 }
 
 macro_rules! api_routes {
-    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
+    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr, } )* } ) * } ) * )  => {
         $(
             $(
             $(
@@ -43,10 +43,16 @@ macro_rules! api_routes {
                     Extension(client): Extension<Client>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
-                    let resp = server.$api.$method(c, req_data, &mode, client).await;
-                    #[cfg(debug_assertions)]
-                    tracing::debug!("response {}{} {resp:?}", $route_base, $path);
-                    resp
+                    $cache.get_cached(move || {
+                        Box::pin(async move {
+                            let resp = server.$api.$method(c, req_data, &mode, client).await;
+                            #[cfg(debug_assertions)]
+                            tracing::debug!("response {}{} {resp:?}", $route_base, $path);
+                            resp
+                        })
+
+                    })
+                    .await
                 }
                 $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
             )*
@@ -164,6 +170,7 @@ impl Server {
                         method: call_call,
                         req_data: CallRequest,
                         resp_data: CallResponse,
+                        cache: Cached::<CallResponse>::new(None),
                     }
                 }
             }
@@ -179,6 +186,7 @@ impl Server {
                         method: call_combine,
                         req_data: ConstructionCombineRequest,
                         resp_data: ConstructionCombineResponse,
+                        cache: Cached::<ConstructionCombineResponse>::new(None),
                     }
 
                     route {
@@ -186,6 +194,7 @@ impl Server {
                         method: call_derive,
                         req_data: ConstructionDeriveRequest,
                         resp_data: ConstructionDeriveResponse,
+                        cache: Cached::<ConstructionDeriveResponse>::new(None),
                     }
 
                     route {
@@ -193,6 +202,7 @@ impl Server {
                         method: call_hash,
                         req_data: ConstructionHashRequest,
                         resp_data: TransactionIdentifierResponse,
+                        cache: Cached::<TransactionIdentifierResponse>::new(None),
                     }
 
                     route {
@@ -200,6 +210,7 @@ impl Server {
                         method: call_metadata,
                         req_data: ConstructionMetadataRequest,
                         resp_data: ConstructionMetadataResponse,
+                        cache: Cached::<ConstructionMetadataResponse>::new(None),
                     }
 
                     route {
@@ -207,6 +218,7 @@ impl Server {
                         method: call_parse,
                         req_data: ConstructionParseRequest,
                         resp_data: ConstructionParseResponse,
+                        cache: Cached::<ConstructionParseResponse>::new(None),
                     }
 
                     route {
@@ -214,6 +226,7 @@ impl Server {
                         method: call_payloads,
                         req_data: ConstructionPayloadsRequest,
                         resp_data: ConstructionPayloadsResponse,
+                        cache: Cached::<ConstructionPayloadsResponse>::new(None),
                     }
 
                     route {
@@ -221,6 +234,7 @@ impl Server {
                         method: call_preprocess,
                         req_data: ConstructionPreprocessRequest,
                         resp_data: ConstructionPreprocessResponse,
+                        cache: Cached::<ConstructionPreprocessResponse>::new(None),
                     }
 
                     route {
@@ -228,6 +242,7 @@ impl Server {
                         method: call_submit,
                         req_data: ConstructionSubmitRequest,
                         resp_data: TransactionIdentifierResponse,
+                        cache: Cached::<TransactionIdentifierResponse>::new(None),
                     }
                 }
             }
@@ -243,6 +258,7 @@ impl Server {
                         method: call_network_list,
                         req_data: MetadataRequest,
                         resp_data: NetworkListResponse,
+                        cache: Cached::<NetworkListResponse>::new(None),
                     }
 
                     route {
@@ -250,6 +266,7 @@ impl Server {
                         method: call_network_options,
                         req_data: NetworkRequest,
                         resp_data: NetworkOptionsResponse,
+                        cache: Cached::<NetworkOptionsResponse>::new(None),
                     }
 
                     route {
@@ -257,6 +274,7 @@ impl Server {
                         method: call_network_status,
                         req_data: NetworkRequest,
                         resp_data: NetworkStatusResponse,
+                        cache: Cached::<NetworkStatusResponse>::new(None),
                     }
                 }
 
@@ -268,6 +286,7 @@ impl Server {
                         method: call_account_balance,
                         req_data: AccountBalanceRequest,
                         resp_data: AccountBalanceResponse,
+                        cache: Cached::<AccountBalanceResponse>::new(None),
                     }
 
                     route {
@@ -275,6 +294,7 @@ impl Server {
                         method: call_account_coins,
                         req_data: AccountCoinsRequest,
                         resp_data: AccountCoinsResponse,
+                        cache: Cached::<AccountCoinsResponse>::new(None),
                     }
                 }
 
@@ -286,6 +306,7 @@ impl Server {
                         method: call_block,
                         req_data: BlockRequest,
                         resp_data: BlockResponse,
+                        cache: Cached::<BlockResponse>::new(None),
                     }
 
                     route {
@@ -293,6 +314,7 @@ impl Server {
                         method: call_block_transaction,
                         req_data: BlockTransactionRequest,
                         resp_data: BlockTransactionResponse,
+                        cache: Cached::<BlockTransactionResponse>::new(None),
                     }
                 }
 
@@ -304,6 +326,7 @@ impl Server {
                         method: call_mempool,
                         req_data: NetworkRequest,
                         resp_data: MempoolResponse,
+                        cache: Cached::<MempoolResponse>::new(None),
                     }
 
                     route {
@@ -311,6 +334,7 @@ impl Server {
                         method: call_mempool_transaction,
                         req_data: MempoolTransactionRequest,
                         resp_data: MempoolTransactionResponse,
+                        cache: Cached::<MempoolTransactionResponse>::new(None),
                     }
                 }
             }
@@ -326,6 +350,7 @@ impl Server {
                         method: call_events_blocks,
                         req_data: EventsBlocksRequest,
                         resp_data: EventsBlocksResponse,
+                        cache: Cached::<EventsBlocksResponse>::new(None),
                     }
                 }
 
@@ -336,6 +361,7 @@ impl Server {
                      method: call_search_transactions,
                      req_data: SearchTransactionsRequest,
                      resp_data: SearchTransactionsResponse,
+                     cache: Cached::<SearchTransactionsResponse>::new(None),
                      }
                 }
 

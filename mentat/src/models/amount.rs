@@ -4,7 +4,7 @@ use super::*;
 
 /// Amount is some Value of a Currency. It is considered invalid to specify a
 /// Value without a Currency.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Amount {
     /// Value of the transaction in atomic units represented as an
     /// arbitrary-sized signed integer. For example, 1 BTC would be represented

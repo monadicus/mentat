@@ -4,7 +4,7 @@ use super::*;
 
 /// Transactions contain an array of Operations that are attributable to the
 /// same TransactionIdentifier.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Transaction {
     /// The transaction_identifier uniquely identifies a transaction in a
     /// particular network and block or in the mempool.

@@ -507,6 +507,7 @@ dependencies = [
  "indexmap",
  "opentelemetry",
  "opentelemetry-jaeger",
+ "parking_lot",
  "reqwest",
  "serde",
  "serde_json",

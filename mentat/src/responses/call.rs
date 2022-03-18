@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use super::*;
 
 /// CallResponse contains the result of a /call invocation.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct CallResponse {
     /// Result contains the result of the /call invocation. This result will not
     /// be inspected or interpreted by Rosetta tooling and is left to the caller

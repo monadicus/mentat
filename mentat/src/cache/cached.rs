@@ -5,17 +5,18 @@ use std::{
     time::{Duration, Instant},
 };
 
+use axum::Json;
 use parking_lot::Mutex;
 use tokio::sync::broadcast;
 
-use crate::errors::{MentatError, Result};
+use crate::{api::MentatResponse, errors::MentatError};
 
 pub struct CacheInner<T>
 where
     T: Clone + Send + Sync + 'static,
 {
-    last_fetched: Option<(Instant, T)>,
-    inflight: Option<Weak<broadcast::Sender<Result<T>>>>,
+    last_fetched: Option<(Instant, Json<T>)>,
+    inflight: Option<Weak<broadcast::Sender<MentatResponse<T>>>>,
 }
 
 impl<T> Default for CacheInner<T>
@@ -52,9 +53,9 @@ where
         }
     }
 
-    pub async fn get_cached<F>(&self, f: F) -> Result<Option<T>>
+    pub async fn get_cached<F>(&self, f: F) -> MentatResponse<T>
     where
-        F: FnOnce() -> BoxFut<'static, Result<T>> + Send + 'static,
+        F: FnOnce() -> BoxFut<'static, MentatResponse<T>> + Send + 'static,
     {
         let mut rx = {
             let mut inner = self.inner.lock();
@@ -62,9 +63,9 @@ where
             // Check if request exists
             if let Some((fetched_at, value)) = inner.last_fetched.as_ref() {
                 match self.refresh_interval {
-                    None => return Ok(None),
+                    None => return Ok(value.clone()),
                     Some(refresh_interval) if fetched_at.elapsed() < refresh_interval => {
-                        return Ok(Some(value.clone()));
+                        return Ok(value.clone());
                     }
                     _ => {}
                 }
@@ -75,7 +76,7 @@ where
                 inflight.subscribe()
             } else {
                 // Request is not already happening lets do the request.
-                let (tx, rx) = broadcast::channel::<Result<T>>(1);
+                let (tx, rx) = broadcast::channel::<MentatResponse<T>>(1);
                 // refrence-count a sender
                 let tx = Arc::new(tx);
                 // store weak refrence in state
@@ -110,6 +111,6 @@ where
         };
 
         // waiting for in progress request
-        Ok(Some(rx.recv().await.map_err(|e| MentatError::from(e))??))
+        Ok(rx.recv().await.map_err(MentatError::from)??)
     }
 }

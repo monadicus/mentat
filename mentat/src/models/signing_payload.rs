@@ -4,7 +4,7 @@ use super::*;
 /// AccountIdentifier using the specified SignatureType. SignatureType can be
 /// optionally populated if there is a restriction on the signature scheme that
 /// can be used to sign the payload.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct SigningPayload {
     /// [DEPRECATED by account_identifier in v1.4.4] The network-specific
     /// address of the account that should sign the payload.

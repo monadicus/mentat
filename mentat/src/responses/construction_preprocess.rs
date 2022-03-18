@@ -10,7 +10,7 @@ use super::*;
 /// the AccountIdentifiers associated with the desired PublicKeys. If it is not
 /// necessary to retrieve any PublicKeys for construction, required_public_keys
 /// should be omitted.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionPreprocessResponse {
     /// The options that will be sent directly to /construction/metadata by the
     /// caller.
