@@ -13,6 +13,7 @@ server = [
     "color-backtrace",
     "opentelemetry",
     "opentelemetry-jaeger",
+    "parking_lot",
     "tokio",
     "tower",
     "tracing",
@@ -28,6 +29,7 @@ color-backtrace = { version = "0.5.1", optional = true }
 indexmap = { version = "1.7", optional = true, default-features = false, features = ["serde"] }
 opentelemetry = { version = "0.17.0", optional = true, features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.16.0", optional = true, features = ["rt-tokio"] }
+parking_lot = { version = "0.12.0", default-features = false, optional = true }
 serde = { version = "1.0", optional = true, default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", optional = true }
 reqwest = { version = "0.11", optional = true, default-features = false, features = ["json"] }

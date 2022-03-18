@@ -9,6 +9,9 @@ pub mod responses;
 pub mod api;
 
 #[cfg(feature = "server")]
+pub mod cache;
+
+#[cfg(feature = "server")]
 pub mod server;
 
 #[cfg(feature = "server")]

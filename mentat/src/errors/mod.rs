@@ -11,7 +11,7 @@ use serde_json::Value;
 
 use crate::api::MentatResponse;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ApiError {
     pub code: u16,
     pub message: String,
@@ -53,7 +53,7 @@ impl ApiError {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum MentatError {
     Internal(ApiError),
     NotImplemented(ApiError),
