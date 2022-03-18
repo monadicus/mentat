@@ -1,14 +1,15 @@
-use mentat::{
-    server::{DummyNode, Server},
-    tokio,
-};
-
-use std::{env, net::Ipv4Addr, sync::Arc};
-
 mod call_api;
 mod construction_api;
 mod data_api;
 mod indexer_api;
+mod macros;
+mod node;
+mod request;
+mod responses;
+
+use mentat::{server::Server, tokio};
+
+use std::{env, net::Ipv4Addr, sync::Arc};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or(8080);
 
     server
-        .serve(address, port, Box::new(DummyNode::default()))
+        .serve(address, port, Box::new(node::BitcoinNode::default()))
         .await?;
 
     Ok(())
