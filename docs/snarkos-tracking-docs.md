@@ -23,7 +23,7 @@ Endpoints denoted with [I] are optional Rosetta Indexer endpoints, and are not m
 |   /construction/submit   |          Yes           |           sendtransaction            |
 |    /events/blocks [I]    |           No           |                 N/A                  |
 |         /mempool         |          Yes           |            getmemorypool             |
-|   /mempool/transaction   |           No           |                 N/A                  |
+|   /mempool/transaction   |           No           |    getmemorypool, gettransaction     |
 |      /network/list       |           No           |                 N/A                  |
 |     /network/options     |           No           |                 N/A                  |
 |     /network/status      |           No           |                 N/A                  |
