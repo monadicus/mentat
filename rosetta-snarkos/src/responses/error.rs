@@ -1,4 +1,5 @@
-// {"jsonrpc":"2.0","error":{"code":-32000,"message":"Odd number of digits"},"id":"1"}
+// {"jsonrpc":"2.0","error":{"code":-32000,"message":"Odd number of
+// digits"},"id":"1"}
 
 use mentat::{
     api::MentatResponse,

@@ -6,12 +6,11 @@ use mentat::{
     Client,
 };
 
+use super::SnarkosJrpc;
 use crate::{
     jsonrpc_call,
     responses::{construction::*, Response},
 };
-
-use super::SnarkosJrpc;
 
 #[derive(Default)]
 pub struct SnarkosConstructionApi;

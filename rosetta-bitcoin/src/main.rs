@@ -1,3 +1,10 @@
+use std::{env, net::Ipv4Addr, sync::Arc};
+
+use mentat::{
+    server::{DummyNode, Server},
+    tokio,
+};
+
 mod call_api;
 mod construction_api;
 mod data_api;
@@ -6,10 +13,6 @@ mod macros;
 mod node;
 mod request;
 mod responses;
-
-use mentat::{server::Server, tokio};
-
-use std::{env, net::Ipv4Addr, sync::Arc};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

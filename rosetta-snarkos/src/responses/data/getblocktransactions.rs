@@ -1,6 +1,5 @@
-use crate::responses::common::SnarkosTransactions;
-
 use super::*;
+use crate::responses::common::SnarkosTransactions;
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]

@@ -23,7 +23,6 @@ impl From<SnarkosTransaction> for Transaction {
                 .map(|t| t.into())
                 .collect(),
             related_transactions: None,
-            // TODO: Size and locktime????
             metadata: IndexMap::new(),
         }
     }

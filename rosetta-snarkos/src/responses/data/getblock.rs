@@ -1,23 +1,15 @@
-use crate::responses::common::{SnarkosEvent, SnarkosTransactions};
-
-use super::*;
 use mentat::{
     api::MentatResponse,
-    identifiers::{BlockIdentifier, OperationIdentifier},
+    identifiers::BlockIdentifier,
     models::Block,
     responses::BlockResponse,
     serde_json::Value,
-    IndexMap, Json,
+    IndexMap,
+    Json,
 };
 
-impl From<SnarkosEvent> for OperationIdentifier {
-    fn from(event: SnarkosEvent) -> Self {
-        Self {
-            index: event.index,
-            network_index: Some(event.id),
-        }
-    }
-}
+use super::*;
+use crate::responses::common::SnarkosTransactions;
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
@@ -83,12 +75,10 @@ impl From<GetBlockResponse> for MentatResponse<BlockResponse> {
         Ok(Json(BlockResponse {
             block: Some(Block {
                 block_identifier: BlockIdentifier {
-                    // TODO: is this correct?
                     index: response.result.header.metadata.height,
                     hash: response.result.block_hash,
                 },
                 parent_block_identifier: BlockIdentifier {
-                    // TODO: is this correct?
                     index: response.result.header.metadata.height.saturating_sub(1),
                     hash: response.result.previous_block_hash,
                 },
@@ -96,7 +86,6 @@ impl From<GetBlockResponse> for MentatResponse<BlockResponse> {
                 transactions: response.result.transactions.into(),
                 metadata: response.result.header.metadata.into(),
             }),
-            // TODO:  doesn't give anything?
             other_transactions: None,
         }))
     }

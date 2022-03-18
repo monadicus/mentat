@@ -11,7 +11,8 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json::{self, json},
-    Client, Json,
+    Client,
+    Json,
 };
 
 pub struct BitcoinDataApi {
@@ -48,7 +49,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -76,7 +77,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -104,7 +105,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -132,7 +133,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -160,7 +161,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -211,7 +212,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -239,7 +240,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
@@ -267,7 +268,7 @@ impl DataApi for BitcoinDataApi {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
                     Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                })
+                });
             }
         };
 
