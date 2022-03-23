@@ -4,6 +4,8 @@ use snarkvm_utilities::{FromBytes, ToBytes};
 
 use super::{Keys, KeysError};
 
+// TODO: this needs to coincide with the Aleo parameters for each network type.
+// I'm assuming these are constant but this needs to be confirmed.
 const SRS: &str = "aleo_signature";
 
 pub struct AleoKeys<N: Network> {
