@@ -15,12 +15,15 @@ It is written in Rust for high performance, and genercism such that it could be 
 
 # Features
 
-- Server
+- Server.
   - Default Not Implemented Routes
   - Logging.
   - Default support for Offline and Online mode.
   - Easily run your Blockchain node with proper logging.
 - Client.
+
+- Keys(Different signature schemes are supported).
+  - Aleo/Snarkos
 - Easy To Containerize.
 
 # System Requirements
