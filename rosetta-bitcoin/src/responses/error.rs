@@ -1,7 +1,6 @@
 // {"jsonrpc":"2.0","error":{"code":-32000,"message":"Odd number of digits"},"id":"1"}
 
 use mentat::{
-    api::MentatResponse,
     errors::{ApiError, MentatError},
     serde::Deserialize,
     IndexMap,
@@ -14,7 +13,7 @@ pub struct ErrorResponse {
     pub message: String,
 }
 
-impl<R> From<ErrorResponse> for MentatResponse<R> {
+impl<R> From<ErrorResponse> for Result<R, MentatError> {
     fn from(response: ErrorResponse) -> Self {
         Err(MentatError::Internal(ApiError {
             code: 500,

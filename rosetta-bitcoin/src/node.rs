@@ -12,19 +12,21 @@ pub struct BitcoinNode;
 #[async_trait]
 impl NodeRunner for BitcoinNode {
     async fn start_node(&self, address: String) -> Result<(), Box<dyn std::error::Error>> {
-        // TODO: make it so bitcoin checks for updates and rebuilds automatically.
+        // TODO 0rphon un-hack this
         // let bitcoin = std::env::var("NODE").unwrap_or_else(|_| "/app/node-runner".to_string());
         let bitcoin = "D:\\Program Files\\Bitcoin\\daemon\\bitcoind.exe";
 
         let mut child = Command::new(bitcoin)
             .args(&[
+                // TODO cant bind to address without setting a whitelist
                 // &format!("--bind={address}:4132"),
                 // &format!("--rpcbind={address}:3032"),
                 &format!("-port=4132"),
                 &format!("-rpcport=3032"),
                 &format!("-rpcuser=USER"),
                 &format!("-rpcpassword=PASS"),
-                &format!("--datadir=D:\\Program Files\\Bitcoin\\data"),
+                &format!("-txindex=1"),
+                &format!("--datadir=D:\\Work\\Monadic\\btc"),
             ])
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())

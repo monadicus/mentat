@@ -18,6 +18,7 @@ pub struct Operation {
     /// DAG-structure of relations. Since operations are one-sided, one could
     /// imagine relating operations in a single transfer or linking operations
     /// in a call tree.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub related_operations: Option<Vec<OperationIdentifier>>,
     /// Type is the network-specific type of the operation. Ensure that any type
     /// that can be returned here is also specified in the
@@ -37,13 +38,16 @@ pub struct Operation {
     /// "intent" in the documentation) MUST NOT have a populated status field
     /// (operations yet to be included on-chain have not yet succeeded or
     /// failed).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
     /// The account_identifier uniquely identifies an account within a network.
     /// All fields in the account_identifier are utilized to determine this
     /// uniqueness (including the metadata field, if populated).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account: Option<AccountIdentifier>,
     /// Amount is some Value of a Currency. It is considered invalid to specify
     /// a Value without a Currency.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub amount: Option<Amount>,
     /// CoinChange is used to represent a change in state of a some coin
     /// identified by a coin_identifier. This object is part of the Operation
@@ -51,10 +55,12 @@ pub struct Operation {
     /// this abstraction of UTXOs allows for supporting both account-based
     /// transfers and UTXO-based transfers on the same blockchain (when a
     /// transfer is account-based, don't populate this model).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub coin_change: Option<CoinChange>,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

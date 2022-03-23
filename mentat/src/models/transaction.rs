@@ -10,6 +10,7 @@ pub struct Transaction {
     /// particular network and block or in the mempool.
     pub transaction_identifier: TransactionIdentifier,
     pub operations: Vec<Operation>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub related_transactions: Option<Vec<RelatedTransaction>>,
     /// Transactions that are related to other transactions (like a cross-shard
     /// transaction) should include the tranaction_identifier of these
