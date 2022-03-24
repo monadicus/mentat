@@ -8,12 +8,15 @@ use errors::KeysError;
 
 /// Defines generic operations performed with sets of keys.
 pub trait Keys: Sized {
+    type M;
+    type S;
+
     /// Import a private key from raw bytes.
     fn import_private_key(bytes: &[u8]) -> Result<Self, KeysError>;
 
     /// Sign a message.
-    fn sign(&self, message: &[u8]) -> Result<Vec<u8>, KeysError>;
+    fn sign(&self, message: &Self::M) -> Result<Self::S, KeysError>;
 
     /// Verify a signature.
-    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<bool, KeysError>;
+    fn verify(&self, message: &Self::M, signature: &Self::S) -> Result<bool, KeysError>;
 }

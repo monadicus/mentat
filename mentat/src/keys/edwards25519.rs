@@ -1,4 +1,4 @@
-use ed25519_dalek::{Keypair, Signature, Signer, Verifier, SECRET_KEY_LENGTH, SIGNATURE_LENGTH};
+use ed25519_dalek::{Keypair, Signature, Signer, SECRET_KEY_LENGTH};
 
 use super::{Keys, KeysError};
 
@@ -7,6 +7,9 @@ pub struct Ed25519Keys {
 }
 
 impl Keys for Ed25519Keys {
+    type M = Vec<u8>;
+    type S = Signature;
+
     fn import_private_key(bytes: &[u8]) -> Result<Self, KeysError> {
         if bytes.len() != SECRET_KEY_LENGTH {
             return Err(KeysError::InvalidPrivateKeyBytes);
@@ -16,17 +19,11 @@ impl Keys for Ed25519Keys {
         Ok(Self { keypair })
     }
 
-    fn sign(&self, message: &[u8]) -> Result<Vec<u8>, KeysError> {
-        Ok(self.keypair.sign(message).to_bytes().to_vec())
+    fn sign(&self, message: &Self::M) -> Result<Self::S, KeysError> {
+        Ok(self.keypair.sign(message))
     }
 
-    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<bool, KeysError> {
-        if signature.len() != SIGNATURE_LENGTH {
-            return Err(KeysError::InvalidSignatureBytes);
-        }
-
-        let sig = Signature::from_bytes(signature).map_err(|_| KeysError::InvalidSignatureBytes)?;
-
-        Ok(self.keypair.verify(message, &sig).is_ok())
+    fn verify(&self, message: &Self::M, signature: &Self::S) -> Result<bool, KeysError> {
+        Ok(self.keypair.verify(message, signature).is_ok())
     }
 }
