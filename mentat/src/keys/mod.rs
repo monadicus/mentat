@@ -1,5 +1,9 @@
 pub mod aleo;
+pub mod edwards25519;
 mod errors;
+pub mod pallas;
+pub mod secp256k1;
+pub mod secp256r1;
 use errors::KeysError;
 
 /// Defines generic operations performed with sets of keys.
