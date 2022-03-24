@@ -1,5 +1,7 @@
 use ed25519_dalek::{Keypair, Signature, Signer, Verifier, SECRET_KEY_LENGTH, SIGNATURE_LENGTH};
 
+use super::{Keys, KeysError};
+
 pub struct Ed25519Keys {
     keypair: Keypair,
 }
@@ -15,9 +17,7 @@ impl Keys for Ed25519Keys {
     }
 
     fn sign(&self, message: &[u8]) -> Result<Vec<u8>, KeysError> {
-        self.keypair
-            .sign(message)
-            .map_err(|e| KeysError::SignatureFailed(format!("{:?}", e)))
+        Ok(self.keypair.sign(message).to_bytes().to_vec())
     }
 
     fn verify(&self, message: &[u8], signature: &[u8]) -> Result<bool, KeysError> {
@@ -27,8 +27,6 @@ impl Keys for Ed25519Keys {
 
         let sig = Signature::from_bytes(signature).map_err(|_| KeysError::InvalidSignatureBytes)?;
 
-        self.keypair
-            .verify(message, sig)
-            .map_err(|_| KeysError::InvalidSignature)
+        Ok(self.keypair.verify(message, &sig).is_ok())
     }
 }
