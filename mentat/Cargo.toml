@@ -22,7 +22,7 @@ server = [
     "tracing-tree"
 ]
 sdk = ["keys"]
-keys = ["ed25519-dalek", "mina-hasher", "mina-signer", "p256", "p256/ecdsa", "rand", "secp256k1", "snarkvm-dpc", "snarkvm-algorithms", "snarkvm-utilities"]
+keys = ["ed25519-dalek", "mina-hasher", "mina-signer", "p256", "p256/ecdsa", "rand", "secp256k1", "secp256k1/bitcoin_hashes", "secp256k1/recovery", "secp256k1/rand-std", "snarkvm-dpc", "snarkvm-algorithms", "snarkvm-utilities"]
 
 [dependencies]
 axum = { version = "0.4.8", optional = true, default-features = false, features = ["http1", "json"] }
