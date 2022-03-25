@@ -5,6 +5,9 @@ pub mod models;
 pub mod requests;
 pub mod responses;
 
+#[cfg(feature = "sdk")]
+pub mod keys;
+
 #[cfg(feature = "server")]
 pub mod api;
 
