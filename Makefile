@@ -11,7 +11,7 @@ build:
 	docker build -t mentat-$(SERVICE):latest https://github.com/monadicus/mentat.git --build-arg SERVICE=$(SERVICE)
 
 build-local:
-	docker build -t mentat-$(SERVICE):latest . --build-arg SERVICE=$(SERVICE) --build-arg BRANCH=$(BRANCH)
+	docker build --no-cache -t mentat-$(SERVICE):latest . --build-arg SERVICE=$(SERVICE) --build-arg BRANCH=$(BRANCH)
 
 build-release:
 	# make sure to always set version with vX.X.X
