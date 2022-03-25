@@ -1,7 +1,7 @@
 # Build Service Node
 FROM debian:buster-slim as mentat-node-builder
 ARG SERVICE="rosetta-snarkos"
-ARG BRANCH="containerized-deployment"
+ARG BRANCH="main"
 
 RUN mkdir -p /app \
     && chown -R nobody:nogroup /app
@@ -15,7 +15,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/monad
 # Build Rosetta Mentat
 FROM debian:buster-slim as rosetta-mentat-builder
 ARG SERVICE="rosetta-snarkos"
-ARG BRANCH="containerized-deployment"
+ARG BRANCH="main"
 
 RUN mkdir -p /app \
     && chown -R nobody:nogroup /app
@@ -29,7 +29,7 @@ ENV PATH=/root/.cargo/bin:$PATH
 
 RUN git clone -b $BRANCH https://github.com/monadicus/mentat.git \
     && cd mentat \
-    && cargo build --release --bin "$SERVICE" --features "$SERVICE" \
+    && cargo build --release --bin "$SERVICE" \
     && mv ./target/release/"$SERVICE" /app
 
 ## Build Final Image

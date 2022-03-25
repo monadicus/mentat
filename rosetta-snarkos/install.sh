@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 apt-get install -y build-essential curl clang gcc git libssl-dev llvm make pkg-config xz-utils
 
