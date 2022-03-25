@@ -29,7 +29,7 @@ It is written in Rust for high performance, and genercism such that it could be 
 # System Requirements
 
 `Mentat` itself is lightweight and easy to integrate anywhere.
-However, please refer to each Blockchain implementation using `Mentant` to see more requirements.
+However, please refer to each Blockchain implementation using `Mentat` to see more requirements.
 
 # Usage
 
