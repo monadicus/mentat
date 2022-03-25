@@ -10,7 +10,7 @@
 
 # Overview
 
-`Mentant` is a zero dependency framework that makes implementing and calling the Rosetta API for a myriad of Blockchains easier.
+`Mentat` is a zero dependency framework that makes implementing and calling the Rosetta API for a myriad of Blockchains easier.
 It is written in Rust for high performance, and genercism such that it could be used for any Blockchain.
 
 # Features
