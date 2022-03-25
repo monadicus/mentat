@@ -6,6 +6,7 @@ rust-version = "1.59.0"
 
 [features]
 _network = ["axum", "indexmap", "serde", "serde_json", "reqwest"]
+cache = ["parking_lot", "tokio"]
 client = ["_network"]
 default = ["server"]
 server = [
@@ -13,7 +14,6 @@ server = [
     "color-backtrace",
     "opentelemetry",
     "opentelemetry-jaeger",
-    "parking_lot",
     "tokio",
     "tower",
     "tracing",

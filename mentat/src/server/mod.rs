@@ -21,7 +21,9 @@ use self::{
     dummy_data::DummyDataApi,
     dummy_indexer::DummyIndexerApi,
 };
-use crate::{api::*, cache::Cached, requests::*, responses::*};
+#[cfg(feature = "cache")]
+use crate::cache::Cached;
+use crate::{api::*, requests::*, responses::*};
 
 #[derive(Clone)]
 pub enum Network {
