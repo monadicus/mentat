@@ -1,6 +1,6 @@
 use snarkvm_algorithms::SignatureScheme;
 use snarkvm_dpc::Network;
-use snarkvm_utilities::{FromBytes, ToBytes};
+use snarkvm_utilities::FromBytes;
 
 use super::{Keys, KeysError};
 
@@ -15,6 +15,9 @@ pub struct AleoKeys<N: Network> {
 }
 
 impl<N: Network> Keys for AleoKeys<N> {
+    type M = Vec<u8>;
+    type S = <<N as Network>::AccountSignatureScheme as SignatureScheme>::Signature;
+
     fn import_private_key(bytes: &[u8]) -> Result<Self, KeysError> {
         let scheme = <N as Network>::AccountSignatureScheme::setup(SRS);
         let priv_key =
@@ -31,23 +34,16 @@ impl<N: Network> Keys for AleoKeys<N> {
         })
     }
 
-    fn sign(&self, message: &[u8]) -> Result<Vec<u8>, KeysError> {
+    fn sign(&self, message: &Self::M) -> Result<Self::S, KeysError> {
         let mut rng = rand::thread_rng();
         self.scheme
-            .sign(&self.priv_key, &message, &mut rng)
-            .map_err(|e| KeysError::SignatureFailed(format!("{:?}", e)))?
-            .to_bytes_le()
-            .map_err(|_| KeysError::InvalidSignatureBytes)
+            .sign(&self.priv_key, message, &mut rng)
+            .map_err(|e| KeysError::SignatureFailed(format!("{:?}", e)))
     }
 
-    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<bool, KeysError> {
-        let sig =
-            <<N as Network>::AccountSignatureScheme as SignatureScheme>::Signature::from_bytes_le(
-                signature,
-            )
-            .map_err(|_| KeysError::InvalidSignatureBytes)?;
+    fn verify(&self, message: &Self::M, signature: &Self::S) -> Result<bool, KeysError> {
         self.scheme
-            .verify(&self.pub_key, message, &sig)
+            .verify(&self.pub_key, message, signature)
             .map_err(|_| KeysError::InvalidSignature)
     }
 }
