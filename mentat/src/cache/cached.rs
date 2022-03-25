@@ -1,55 +1,40 @@
 use std::{
     future::Future,
+    marker::PhantomData,
     pin::Pin,
-    sync::{Arc, Weak},
+    sync::Arc,
     time::{Duration, Instant},
 };
 
-use axum::Json;
 use parking_lot::Mutex;
 use tokio::sync::broadcast;
 
+use super::CacheInner;
 use crate::{api::MentatResponse, errors::MentatError};
 
-pub struct CacheInner<T>
-where
-    T: Clone + Send + Sync + 'static,
-{
-    last_fetched: Option<(Instant, Json<T>)>,
-    inflight: Option<Weak<broadcast::Sender<MentatResponse<T>>>>,
-}
-
-impl<T> Default for CacheInner<T>
-where
-    T: Clone + Send + Sync + 'static,
-{
-    fn default() -> Self {
-        Self {
-            last_fetched: None,
-            inflight: None,
-        }
-    }
-}
-
 #[derive(Clone)]
-pub struct Cached<T>
+pub struct Cached<C, T>
 where
+    C: CacheInner<T>,
     T: Clone + Send + Sync + 'static,
 {
-    inner: Arc<Mutex<CacheInner<T>>>,
+    inner: Arc<Mutex<C>>,
     refresh_interval: Option<Duration>,
+    _data: PhantomData<T>,
 }
 
 pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
 
-impl<T> Cached<T>
+impl<C, T> Cached<C, T>
 where
+    C: CacheInner<T>,
     T: Clone + Send + Sync + 'static,
 {
-    pub fn new(refresh_interval: Option<Duration>) -> Self {
+    pub fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
         Self {
-            inner: Default::default(),
+            inner: Arc::new(Mutex::new(cache)),
             refresh_interval,
+            _data: PhantomData,
         }
     }
 
@@ -61,7 +46,7 @@ where
             let mut inner = self.inner.lock();
 
             // Check if request exists
-            if let Some((fetched_at, value)) = inner.last_fetched.as_ref() {
+            if let Some((fetched_at, value)) = inner.last_fetched() {
                 match self.refresh_interval {
                     None => return Ok(value.clone()),
                     Some(refresh_interval) if fetched_at.elapsed() < refresh_interval => {
@@ -72,7 +57,7 @@ where
             }
 
             // Check if similar request already in progress
-            if let Some(inflight) = inner.inflight.as_ref().and_then(Weak::upgrade) {
+            if let Some(inflight) = inner.inflight() {
                 inflight.subscribe()
             } else {
                 // Request is not already happening lets do the request.
@@ -81,7 +66,7 @@ where
                 let tx = Arc::new(tx);
                 // store weak refrence in state
                 // this prevents all requests getting stuck if there be a panic
-                inner.inflight = Some(Arc::downgrade(&tx));
+                inner.set_inflight(Some(Arc::downgrade(&tx)));
                 let inner = self.inner.clone();
 
                 // call the closure first, so we don't send _it_ across threads,
@@ -93,11 +78,11 @@ where
 
                     {
                         let mut inner = inner.lock();
-                        inner.inflight = None;
+                        inner.set_inflight(None);
 
                         match res {
                             Ok(value) => {
-                                inner.last_fetched.replace((Instant::now(), value.clone()));
+                                inner.set_last_fetched((Instant::now(), value.clone()));
                                 let _ = tx.send(Ok(value));
                             }
                             Err(e) => {

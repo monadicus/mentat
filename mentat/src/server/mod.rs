@@ -158,7 +158,7 @@ impl Server {
 
         let mut app = axum::Router::new();
 
-        api_routes! {
+        /* api_routes! {
             axum: app,
 
             api_group {
@@ -368,7 +368,7 @@ impl Server {
                 }
 
             }
-        }
+        } */
 
         let mode = Mode::default();
         if !mode.is_offline() {
