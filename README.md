@@ -48,11 +48,13 @@ Change `rosetta-snarkos` with any other Mentat supported Blockchain.
 
 ### From GitHub
 
-To download the pre-built Docker image from the latest release, run:
+To build the Docker image from the latest release, run:
 
 ```text
-curl -sSfL https://raw.githubusercontent.com/monadicus/mentat/main/rosetta-snarkos/install.sh | sh -s
+docker build -t mentat-rosetta-snarkos:latest https://github.com/monadicus/mentat.git --build-arg SERVICE=rosetta-snarkos
 ```
+
+Replace `rosetta-snarkos` with whatever service we offer.
 
 ### From Source
 
@@ -135,7 +137,9 @@ Interested in helping fix issues in this repository? You can find to-dos in the 
 
 # Development
 
-TODO after swapping to `bazel` from `make`.
+- `cargo +nightly fmt --check --all` To check the formatting of the source code and all rosetta implementations.
+- `cargo clippy --all` To lint  the formatting of the source code and all rosetta implementations.
+- `make build-local SERVICE=rosetta-snarkos BRANCH=main` To build the local docker image. The arguments are optional and default to shown values.
 
 # License
 

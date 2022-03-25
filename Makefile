@@ -1,17 +1,17 @@
-.PHONY: deps build run lint mocks run-mainnet-online run-mainnet-offline run-testnet-online \
-	run-testnet-offline check-comments add-license check-license shorten-lines test \
-	coverage spellcheck salus build-local coverage-local format check-format
+.PHONY: build buld-local build-release run-mainnet-online run-mainnet-offline run-testnet-online \
+	run-testnet-offline tracing format check-format test clean
 
 PWD=$(shell pwd)
 NOFILE=100000
 
 SERVICE=rosetta-snarkos
+BRANCH=main
 
 build:
 	docker build -t mentat-$(SERVICE):latest https://github.com/monadicus/mentat.git --build-arg SERVICE=$(SERVICE)
 
 build-local:
-	docker build --no-cache -t mentat-$(SERVICE):latest . --build-arg SERVICE=$(SERVICE)
+	docker build -t mentat-$(SERVICE):latest . --build-arg SERVICE=$(SERVICE) --build-arg BRANCH=$(BRANCH)
 
 build-release:
 	# make sure to always set version with vX.X.X
