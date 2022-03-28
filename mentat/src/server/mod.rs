@@ -6,16 +6,9 @@ mod logging;
 mod middleware_checks;
 mod node;
 
-use self::{
-    dummy_call::DummyCallApi, dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
-    dummy_indexer::DummyIndexerApi, middleware_checks::middleware_check,
-};
-pub use node::*;
-
-use crate::{api::*, requests::*, responses::*};
-
 use std::{
-    env, fmt,
+    env,
+    fmt,
     net::{Ipv4Addr, SocketAddr},
     str::FromStr,
     sync::Arc,
@@ -25,8 +18,18 @@ use axum::{
     extract::{self, ConnectInfo, Extension},
     middleware,
 };
+pub use node::*;
 use reqwest::Client;
 use tracing::info;
+
+use self::{
+    dummy_call::DummyCallApi,
+    dummy_construction::DummyConstructionApi,
+    dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi,
+    middleware_checks::middleware_check,
+};
+use crate::{api::*, requests::*, responses::*};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Network {

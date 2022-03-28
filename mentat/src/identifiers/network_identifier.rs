@@ -2,12 +2,11 @@ use std::str::FromStr;
 
 use axum::http::Extensions;
 
+use super::*;
 use crate::{
     errors::MentatError,
     server::{Network, Server},
 };
-
-use super::*;
 
 /// The network_identifier specifies which network a particular object is
 /// associated with.
