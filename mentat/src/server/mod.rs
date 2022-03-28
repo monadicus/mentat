@@ -45,39 +45,27 @@ macro_rules! api_routes {
                     Extension(client): Extension<Client>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
-                    $cache.get_cached(move || {
-                        Box::pin(async move {
-                            let resp = server.$api.$method(c, req_data, &mode, client).await;
-                            #[cfg(debug_assertions)]
-                            tracing::debug!("response {}{} {resp:?}", $route_base, $path);
-                            resp
-                        })
+                    #[cfg(feature = "cache")]
+                    {
+                        return $cache.get_cached(move || {
+                            Box::pin(async move {
+                                let resp = server.$api.$method(c, req_data, &mode, client).await;
+                                #[cfg(debug_assertions)]
+                                tracing::debug!("response {}{} {resp:?}", $route_base, $path);
+                                resp
+                            })
 
-                    })
-                    .await
-                }
-                $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
-            )*
-            )*
-        )*
-    };
-    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
-	$(
-            $(
-            $(
-                #[tracing::instrument(skip(server))]
-                async fn $method(
-                    Extension(server): Extension<Server>,
-                    ConnectInfo(ip): ConnectInfo<SocketAddr>,
-                    extract::Json(req_data): axum::Json<$req>,
-                    Extension(mode): ModeState,
-                    Extension(client): Extension<Client>,
-                ) -> MentatResponse<$resp> {
-                    let c = Caller { ip };
-                    let resp = server.$api.$method(c, req_data, &mode, client).await;
-                    #[cfg(debug_assertions)]
-                    tracing::debug!("response {}{} {resp:?}", $route_base, $path);
-                    resp
+                        })
+                        .await;
+                    }
+                    #[cfg(not(feature = "cache"))]
+                    {
+                        let resp = server.$api.$method(c, req_data, &mode, client).await;
+                        #[cfg(debug_assertions)]
+                        tracing::debug!("response {}{} {resp:?}", $route_base, $path);
+                        return resp;
+                    }
+
                 }
                 $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
             )*
