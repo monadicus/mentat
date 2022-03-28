@@ -13,7 +13,7 @@ mod responses;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut server = Server::new();
+    let mut server = Server::new(String::from("BITCOIN"));
     server.with_dyn_call_api(Arc::new(call_api::BitcoinCallApi::default()));
     server.with_dyn_construction_api(Arc::new(construction_api::BitcoinConstructionApi::default()));
     server.with_dyn_data_api(Arc::new(data_api::BitcoinDataApi::default()));
