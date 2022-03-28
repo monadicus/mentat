@@ -1,3 +1,12 @@
+use std::str::FromStr;
+
+use axum::http::Extensions;
+
+use crate::{
+    errors::MentatError,
+    server::{Network, Server},
+};
+
 use super::*;
 
 /// The network_identifier specifies which network a particular object is
@@ -13,4 +22,27 @@ pub struct NetworkIdentifier {
     /// to query some object on a specific shard. This identifier is optional
     /// for all non-sharded blockchains.
     pub sub_network_identifier: Option<SubNetworkIdentifier>,
+}
+
+impl NetworkIdentifier {
+    pub async fn check(extensions: &Extensions, json: &Value) -> Result<(), MentatError> {
+        let server = extensions.get::<Server>().unwrap();
+        if let Some(net_id) = json.get("network_identifier") {
+            let network_identifier = serde_json::from_value::<Self>(net_id.clone())?;
+            if network_identifier.blockchain.to_uppercase() != server.blockchain.to_uppercase() {
+                return Err(MentatError::from(format!(
+                    "invalid blockchain ID: found `{}`, expected `{}`",
+                    network_identifier.blockchain.to_uppercase(),
+                    server.blockchain.to_uppercase()
+                )));
+            } else if Network::from_str(&network_identifier.network)? != server.network {
+                return Err(MentatError::from(format!(
+                    "invalid network ID: found `{}`, expected `{}`",
+                    network_identifier.network.to_uppercase(),
+                    server.network
+                )));
+            }
+        }
+        Ok(())
+    }
 }

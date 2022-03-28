@@ -15,7 +15,7 @@ use request::SnarkosJrpc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut server = Server::new();
+    let mut server = Server::new(String::from("SNARKOS"));
     server.with_dyn_call_api(Arc::new(call_api::SnarkosCallApi::default()));
     server.with_dyn_construction_api(Arc::new(construction_api::SnarkosConstructionApi::default()));
     server.with_dyn_data_api(Arc::new(data_api::SnarkosDataApi::default()));
