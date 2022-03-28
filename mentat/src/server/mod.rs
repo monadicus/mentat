@@ -22,7 +22,7 @@ use self::{
     dummy_indexer::DummyIndexerApi,
 };
 #[cfg(feature = "cache")]
-use crate::cache::{CacheInner, DefaultCache};
+use crate::cache::{Cache, DefaultCacheInner};
 use crate::{api::*, requests::*, responses::*};
 
 #[derive(Clone)]
@@ -32,7 +32,7 @@ pub enum Network {
 }
 
 macro_rules! api_routes {
-    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, #[$cfg:meta] cache: $cache:expr, } )* } ) * } ) * )  => {
+    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr, } )* } ) * } ) * )  => {
         $(
             $(
             $(
@@ -195,8 +195,7 @@ impl Server {
                             method: call_call,
                             req_data: CallRequest,
                             resp_data: CallResponse,
-                #[cfg_attr(feature = "cache")]
-                            cache: DefaultCache::<CacheInner<CallResponse>, CallResponse>::new(None),
+                            cache: Cache::<DefaultCacheInner<CallResponse>>::new(DefaultCacheInner::default(), None),
                         }
                     }
                 }

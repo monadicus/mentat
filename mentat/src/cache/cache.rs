@@ -1,42 +1,40 @@
 use std::{
-    marker::PhantomData,
+    future::Future,
+    pin::Pin,
     sync::Arc,
     time::{Duration, Instant},
 };
 
-use axum::async_trait;
 use parking_lot::Mutex;
 use tokio::sync::broadcast;
 
-use super::{BoxFut, Cache, CacheInner};
+use super::CacheInner;
 use crate::{api::MentatResponse, errors::MentatError};
 
 #[derive(Clone)]
-pub struct DefaultCache<C, T>
+pub struct Cache<C>
 where
-    C: CacheInner<T>,
-    T: Clone + Send + Sync + 'static,
+    C: CacheInner,
 {
     inner: Arc<Mutex<C>>,
     refresh_interval: Option<Duration>,
-    _data: PhantomData<T>,
 }
 
-#[async_trait]
-impl<C, T> Cache<C, T> for DefaultCache<C, T>
+pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
+
+impl<C, T> Cache<C>
 where
-    C: CacheInner<T>,
+    C: CacheInner<T = T>,
     T: Clone + Send + Sync + 'static,
 {
-    fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
+    pub fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
         Self {
             inner: Arc::new(Mutex::new(cache)),
             refresh_interval,
-            _data: PhantomData,
         }
     }
 
-    async fn get_cached<F>(&self, f: F) -> MentatResponse<T>
+    pub async fn get_cached<F>(&self, f: F) -> MentatResponse<T>
     where
         F: FnOnce() -> BoxFut<'static, MentatResponse<T>> + Send + 'static,
     {
