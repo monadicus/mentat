@@ -1261,6 +1261,7 @@ dependencies = [
  "axum",
  "color-backtrace",
  "ed25519-dalek",
+ "hyper",
  "indexmap",
  "mina-hasher",
  "mina-signer",
