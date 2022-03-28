@@ -24,7 +24,7 @@ use self::{
 use crate::{api::*, requests::*, responses::*};
 
 #[cfg(feature = "cache")]
-use crate::cache::Cached;
+use crate::cache::DefaultCache;
 
 #[derive(Clone)]
 pub enum Network {

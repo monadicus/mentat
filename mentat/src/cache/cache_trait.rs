@@ -1,66 +1,22 @@
 use std::{
-    sync::{Arc, Weak},
-    time::Instant,
+    future::Future,
+    pin::Pin,
+    time::Duration,
 };
 
-use axum::Json;
-use tokio::sync::broadcast;
+use axum::async_trait;
 
-use crate::{api::MentatResponse, errors::MentatError};
+use crate::api::MentatResponse;
+use super::CacheInner;
 
-pub type Fetched<T> = Option<(Instant, Json<T>)>;
-pub type Inflight<T> = Option<Weak<broadcast::Sender<MentatResponse<T>>>>;
-pub type WeakInflight<T> =
-    Option<Arc<tokio::sync::broadcast::Sender<Result<Json<T>, MentatError>>>>;
+pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
 
-pub trait CacheInner<T>: Clone + Send + Sync + 'static {
-    fn last_fetched(&self) -> Option<&(Instant, Json<T>)>;
+#[async_trait]
+pub trait Cache<C, T> where
+    C: CacheInner<T>,
+    T: Clone + Send + Sync + 'static {
+    fn new(cache: C, refresh_interval: Option<Duration>) -> Self;
 
-    fn set_last_fetched(&mut self, fetched: (Instant, Json<T>));
-
-    fn inflight(&self) -> WeakInflight<T>;
-
-    fn set_inflight(&mut self, inflight: Inflight<T>);
-}
-
-#[derive(Clone)]
-pub struct DefaultCacheInner<T>
-where
-    T: Clone + Send + Sync + 'static,
-{
-    last_fetched: Fetched<T>,
-    inflight: Inflight<T>,
-}
-
-impl<T> CacheInner<T> for DefaultCacheInner<T>
-where
-    T: Clone + Send + Sync + 'static,
-{
-    fn last_fetched(&self) -> Option<&(Instant, Json<T>)> {
-        self.last_fetched.as_ref()
-    }
-
-    fn set_last_fetched(&mut self, fetched: (Instant, Json<T>)) {
-        self.last_fetched.replace(fetched);
-    }
-
-    fn inflight(&self) -> WeakInflight<T> {
-        self.inflight.as_ref().and_then(Weak::upgrade)
-    }
-
-    fn set_inflight(&mut self, inflight: Inflight<T>) {
-        self.inflight = inflight;
-    }
-}
-
-impl<T> Default for DefaultCacheInner<T>
-where
-    T: Clone + Send + Sync + 'static,
-{
-    fn default() -> Self {
-        Self {
-            last_fetched: None,
-            inflight: None,
-        }
-    }
+    async fn get_cached<F>(&self, f: F) -> MentatResponse<T> where
+	F: FnOnce() -> BoxFut<'static, MentatResponse<T>> + Send + 'static;
 }

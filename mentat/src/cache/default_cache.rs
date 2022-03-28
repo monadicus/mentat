@@ -1,19 +1,19 @@
 use std::{
-    future::Future,
     marker::PhantomData,
-    pin::Pin,
     sync::Arc,
     time::{Duration, Instant},
 };
 
+
+use axum::async_trait;
 use parking_lot::Mutex;
 use tokio::sync::broadcast;
 
-use super::CacheInner;
 use crate::{api::MentatResponse, errors::MentatError};
+use super::{BoxFut, Cache, CacheInner};
 
 #[derive(Clone)]
-pub struct Cached<C, T>
+pub struct DefaultCache<C, T>
 where
     C: CacheInner<T>,
     T: Clone + Send + Sync + 'static,
@@ -23,14 +23,13 @@ where
     _data: PhantomData<T>,
 }
 
-pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
-
-impl<C, T> Cached<C, T>
+#[async_trait]
+impl<C, T> Cache<C, T> for DefaultCache<C, T>
 where
     C: CacheInner<T>,
     T: Clone + Send + Sync + 'static,
 {
-    pub fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
+    fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
         Self {
             inner: Arc::new(Mutex::new(cache)),
             refresh_interval,
@@ -38,7 +37,7 @@ where
         }
     }
 
-    pub async fn get_cached<F>(&self, f: F) -> MentatResponse<T>
+    async fn get_cached<F>(&self, f: F) -> MentatResponse<T>
     where
         F: FnOnce() -> BoxFut<'static, MentatResponse<T>> + Send + 'static,
     {
@@ -99,3 +98,4 @@ where
         Ok(rx.recv().await.map_err(MentatError::from)??)
     }
 }
+
