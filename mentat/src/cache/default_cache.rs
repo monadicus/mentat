@@ -4,13 +4,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-
 use axum::async_trait;
 use parking_lot::Mutex;
 use tokio::sync::broadcast;
 
-use crate::{api::MentatResponse, errors::MentatError};
 use super::{BoxFut, Cache, CacheInner};
+use crate::{api::MentatResponse, errors::MentatError};
 
 #[derive(Clone)]
 pub struct DefaultCache<C, T>
@@ -98,4 +97,3 @@ where
         Ok(rx.recv().await.map_err(MentatError::from)??)
     }
 }
-

@@ -21,10 +21,9 @@ use self::{
     dummy_data::DummyDataApi,
     dummy_indexer::DummyIndexerApi,
 };
-use crate::{api::*, requests::*, responses::*};
-
 #[cfg(feature = "cache")]
-use crate::cache::DefaultCache;
+use crate::cache::{CacheInner, DefaultCache};
+use crate::{api::*, requests::*, responses::*};
 
 #[derive(Clone)]
 pub enum Network {
@@ -33,7 +32,7 @@ pub enum Network {
 }
 
 macro_rules! api_routes {
-    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr, } )* } ) * } ) * )  => {
+    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, #[$cfg:meta] cache: $cache:expr, } )* } ) * } ) * )  => {
         $(
             $(
             $(
@@ -56,6 +55,29 @@ macro_rules! api_routes {
 
                     })
                     .await
+                }
+                $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
+            )*
+            )*
+        )*
+    };
+    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
+	$(
+            $(
+            $(
+                #[tracing::instrument(skip(server))]
+                async fn $method(
+                    Extension(server): Extension<Server>,
+                    ConnectInfo(ip): ConnectInfo<SocketAddr>,
+                    extract::Json(req_data): axum::Json<$req>,
+                    Extension(mode): ModeState,
+                    Extension(client): Extension<Client>,
+                ) -> MentatResponse<$resp> {
+                    let c = Caller { ip };
+                    let resp = server.$api.$method(c, req_data, &mode, client).await;
+                    #[cfg(debug_assertions)]
+                    tracing::debug!("response {}{} {resp:?}", $route_base, $path);
+                    resp
                 }
                 $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
             )*
@@ -159,26 +181,28 @@ impl Server {
 
         let mut app = axum::Router::new();
 
-        /* api_routes! {
-            axum: app,
+        api_routes! {
+                axum: app,
 
-            api_group {
-                api: call_api,
+                api_group {
+                    api: call_api,
 
-                route_group {
-                    route_base: "/",
+                    route_group {
+                        route_base: "/",
 
-                    route {
-                        path: "/call",
-                        method: call_call,
-                        req_data: CallRequest,
-                        resp_data: CallResponse,
-                        cache: Cached::<CallResponse>::new(None),
+                        route {
+                            path: "/call",
+                            method: call_call,
+                            req_data: CallRequest,
+                            resp_data: CallResponse,
+                #[cfg_attr(feature = "cache")]
+                            cache: DefaultCache::<CacheInner<CallResponse>, CallResponse>::new(None),
+                        }
                     }
                 }
-            }
+        }
 
-            api_group {
+        /* api_group {
                 api: construction_api,
 
                 route_group {

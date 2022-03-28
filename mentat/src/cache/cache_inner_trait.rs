@@ -23,4 +23,3 @@ pub trait CacheInner<T>: Clone + Send + Sync + 'static {
 
     fn set_inflight(&mut self, inflight: Inflight<T>);
 }
-
