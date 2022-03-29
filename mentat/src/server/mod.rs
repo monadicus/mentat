@@ -8,14 +8,18 @@ mod dummy_construction;
 mod dummy_data;
 mod dummy_indexer;
 pub mod logging;
+mod middleware_checks;
 mod node;
+
 use std::{
     env,
+    fmt,
     net::{Ipv4Addr, SocketAddr},
+    str::FromStr,
     sync::Arc,
 };
 
-use axum::extract::Extension;
+use axum::{extract::Extension, middleware};
 pub use node::*;
 use tracing::info;
 
@@ -24,22 +28,45 @@ use self::{
     dummy_construction::DummyConstructionApi,
     dummy_data::DummyDataApi,
     dummy_indexer::DummyIndexerApi,
+    middleware_checks::middleware_check,
 };
 use crate::api::*;
 
-#[derive(Clone)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Network {
     Mainnet,
     Testnet,
 }
 
+impl FromStr for Network {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_uppercase().as_ref() {
+            "MAINNET" => Ok(Self::Mainnet),
+            "TESTNET" => Ok(Self::Testnet),
+            s => Err(format!("Invalid network id {s}")),
+        }
+    }
+}
+
+impl fmt::Display for Network {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Mainnet => write!(f, "MAINNET"),
+            Self::Testnet => write!(f, "TESTNET"),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Server {
-    pub construction_api: Arc<dyn CallerConstructionApi>,
-    pub data_api: Arc<dyn CallerDataApi>,
-    pub indexer_api: Arc<dyn CallerIndexerApi>,
-    pub call_api: Arc<dyn CallerCallApi>,
+    construction_api: Arc<dyn CallerConstructionApi>,
+    data_api: Arc<dyn CallerDataApi>,
+    indexer_api: Arc<dyn CallerIndexerApi>,
+    call_api: Arc<dyn CallerCallApi>,
     pub network: Network,
+    pub blockchain: String,
 }
 
 impl Default for Server {
@@ -55,13 +82,16 @@ impl Default for Server {
             indexer_api: Arc::new(DummyIndexerApi),
             call_api: Arc::new(DummyCallApi),
             network,
+            blockchain: String::from("UNKNOWN"),
         }
     }
 }
 
 impl Server {
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new(blockchain: String) -> Self {
+        let mut new = Self::default();
+        new.blockchain = blockchain;
+        new
     }
 
     pub fn with_data_api<T: CallerDataApi + 'static>(
@@ -134,12 +164,14 @@ impl Server {
 
         let client = reqwest::Client::new();
 
-        app = app.layer(
-            tower::ServiceBuilder::new()
-                .layer(Extension(self))
-                .layer(Extension(mode))
-                .layer(Extension(client)),
-        );
+        app = app
+            .route_layer(middleware::from_fn(middleware_check))
+            .layer(
+                tower::ServiceBuilder::new()
+                    .layer(Extension(self))
+                    .layer(Extension(mode))
+                    .layer(Extension(client)),
+            );
 
         let addr = SocketAddr::from((address, port));
         info!("Listening on http://{}", addr);
