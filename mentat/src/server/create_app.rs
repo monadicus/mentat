@@ -49,7 +49,6 @@ macro_rules! api_routes {
                     Extension(client): Extension<Client>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
-                    tracing::debug!("wtf wtf wtf");
                     $cache.get_cached(move || {
                         Box::pin(async move {
                             let resp = server.$api.$method(c, req_data, &mode, client).await;
@@ -84,7 +83,6 @@ macro_rules! api_routes {
                     Extension(client): Extension<Client>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
-                    tracing::debug!("not Cache bb");
                     let resp = server.$api.$method(c, req_data, &mode, client).await;
                     #[cfg(debug_assertions)]
                     tracing::debug!("response {}{} {resp:?}", $route_base, $path);
