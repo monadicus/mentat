@@ -140,12 +140,12 @@ impl Server {
         self.call_api = call_api;
     }
 
-    pub async fn serve(
+    pub async fn serve<T: NodeRunner>(
         self,
         mut app: Router,
         address: Ipv4Addr,
         port: u16,
-        node: Box<dyn NodeRunner>,
+        node: &T,
     ) -> Result<(), Box<dyn std::error::Error>> {
         color_backtrace::install();
         logging::setup()?;
