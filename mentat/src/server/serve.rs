@@ -10,7 +10,7 @@ pub mod serve_exports {
     pub use reqwest::Client;
     pub use tracing;
 
-    pub use crate::{api::*, cache::Cache, requests::*, responses::*, serve};
+    pub use crate::{api::*, cache::Cache, conf::*, requests::*, responses::*, serve};
 }
 
 #[macro_export]

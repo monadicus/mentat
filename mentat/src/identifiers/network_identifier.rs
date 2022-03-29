@@ -1,12 +1,7 @@
-use std::str::FromStr;
-
 use axum::http::Extensions;
 
 use super::*;
-use crate::{
-    errors::MentatError,
-    server::{Network, Server},
-};
+use crate::{conf::Network, errors::MentatError, server::Server};
 
 /// The network_identifier specifies which network a particular object is
 /// associated with.
@@ -34,7 +29,7 @@ impl NetworkIdentifier {
                     network_identifier.blockchain.to_uppercase(),
                     server.blockchain.to_uppercase()
                 )));
-            } else if Network::from_str(&network_identifier.network)? != server.network {
+            } else if Network::from(network_identifier.network.to_uppercase()) != server.network {
                 return Err(MentatError::from(format!(
                     "invalid network ID: found `{}`, expected `{}`",
                     network_identifier.network.to_uppercase(),

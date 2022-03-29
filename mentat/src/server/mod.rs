@@ -10,9 +10,7 @@ mod node;
 
 use std::{
     env,
-    fmt,
     net::{Ipv4Addr, SocketAddr},
-    str::FromStr,
     sync::Arc,
 };
 
@@ -27,34 +25,7 @@ use self::{
     dummy_indexer::DummyIndexerApi,
     middleware_checks::middleware_check,
 };
-use crate::api::*;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Network {
-    Mainnet,
-    Testnet,
-}
-
-impl FromStr for Network {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_uppercase().as_ref() {
-            "MAINNET" => Ok(Self::Mainnet),
-            "TESTNET" => Ok(Self::Testnet),
-            s => Err(format!("Invalid network id {s}")),
-        }
-    }
-}
-
-impl fmt::Display for Network {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Mainnet => write!(f, "MAINNET"),
-            Self::Testnet => write!(f, "TESTNET"),
-        }
-    }
-}
+use crate::{api::*, conf::*};
 
 #[derive(Clone)]
 pub struct Server {
@@ -100,6 +71,7 @@ impl Server {
         match self.network {
             Network::Mainnet => self.with_dyn_data_api(Arc::new(mainnet_data_api)),
             Network::Testnet => self.with_dyn_data_api(Arc::new(testnet_data_api)),
+            Network::Other(_) => todo!(),
         }
     }
 
@@ -115,6 +87,7 @@ impl Server {
         match self.network {
             Network::Mainnet => self.with_dyn_construction_api(Arc::new(mainnet_construction_api)),
             Network::Testnet => self.with_dyn_construction_api(Arc::new(testnet_construction_api)),
+            Network::Other(_) => todo!(),
         }
     }
 
@@ -130,6 +103,7 @@ impl Server {
         match self.network {
             Network::Mainnet => self.with_dyn_indexer_api(Arc::new(mainnet_indexer_api)),
             Network::Testnet => self.with_dyn_indexer_api(Arc::new(testnet_indexer_api)),
+            Network::Other(_) => todo!(),
         }
     }
 

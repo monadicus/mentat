@@ -15,10 +15,8 @@ pub use data::*;
 mod indexer;
 pub use indexer::*;
 
-mod mode;
-pub use mode::*;
-
 use crate::{
+    conf::Mode,
     errors::{ApiError, Result},
     requests::*,
     responses::*,
