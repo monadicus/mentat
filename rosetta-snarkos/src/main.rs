@@ -1,6 +1,6 @@
 use std::{env, net::Ipv4Addr, sync::Arc};
 
-use mentat::{cache::DefaultCacheInner, create_app, server::Server, tokio};
+use mentat::{cache::DefaultCacheInner, serve, server::Server, tokio};
 
 mod call_api;
 mod construction_api;
@@ -30,11 +30,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .parse()
         .unwrap_or(8080);
 
-    let app = create_app!(DefaultCacheInner);
-
-    server
-        .serve(app, address, port, Box::new(node::SnarkOSNode::default()))
-        .await?;
-
-    Ok(())
+    serve!(
+        server,
+        address,
+        port,
+        Box::new(node::SnarkOSNode::default()),
+        DefaultCacheInner
+    )
 }

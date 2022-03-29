@@ -1,8 +1,5 @@
-mod create_app;
-#[cfg(feature = "cache")]
-pub use create_app::*;
-#[cfg(not(feature = "cache"))]
-use create_app::*;
+mod serve;
+pub use serve::*;
 mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
@@ -145,14 +142,11 @@ impl Server {
 
     pub async fn serve(
         self,
-        #[cfg(feature = "cache")] mut app: Router,
+        mut app: Router,
         address: Ipv4Addr,
         port: u16,
         node: Box<dyn NodeRunner>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        #[cfg(not(feature = "cache"))]
-        let mut app = crate::create_app!(DefaultCacheInner);
-
         color_backtrace::install();
         logging::setup()?;
 
