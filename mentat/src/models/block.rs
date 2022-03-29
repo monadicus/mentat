@@ -8,7 +8,7 @@ use super::*;
 /// requested and received a block identified by a specific BlockIndentifier,
 /// all future calls for that same BlockIdentifier must return the same block
 /// contents.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Block {
     /// The block_identifier uniquely identifies a block in a particular
     /// network.

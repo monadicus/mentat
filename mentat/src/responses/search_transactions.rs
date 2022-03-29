@@ -3,7 +3,7 @@ use super::*;
 /// SearchTransactionsResponse contains an ordered collection of
 /// BlockTransactions that match the query in SearchTransactionsRequest. These
 /// BlockTransactions are sorted from most recent block to oldest block.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct SearchTransactionsResponse {
     /// transactions is an array of BlockTransactions sorted by most recent
     /// BlockIdentifier (meaning that transactions in recent blocks appear

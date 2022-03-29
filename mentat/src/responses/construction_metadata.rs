@@ -9,7 +9,7 @@ use super::*;
 /// transaction with a different account that can pay the suggested fee.
 /// Suggested fee is an array in case fee payment must occur in multiple
 /// currencies.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionMetadataResponse {
     pub metadata: IndexMap<String, Value>,
     pub suggested_fee: Option<Vec<Amount>>,

@@ -1,6 +1,6 @@
 use std::{env, net::Ipv4Addr, sync::Arc};
 
-use mentat::{server::Server, tokio};
+use mentat::{serve, server::Server, tokio};
 
 mod call_api;
 mod construction_api;
@@ -28,9 +28,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .parse()
         .unwrap_or(8080);
 
-    server
-        .serve(address, port, Box::new(node::BitcoinNode::default()))
-        .await?;
-
-    Ok(())
+    serve!(server, address, port, node::BitcoinNode::default(),)
 }

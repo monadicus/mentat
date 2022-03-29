@@ -11,6 +11,7 @@ default = ["server"]
 server = [
     "_network",
     "color-backtrace",
+    "hyper",
     "opentelemetry",
     "opentelemetry-jaeger",
     "tokio",
@@ -42,11 +43,11 @@ snarkvm-dpc = { version="0.8", optional = true }
 snarkvm-utilities = { version="0.8", optional = true }
 rand = { version = "0.8", optional = true }
 reqwest = { version = "0.11", optional = true, default-features = false, features = ["json"] }
-tokio = { version = "1.17.0", optional = true, features = ["full"] }
+tokio = { version = "1.17.0", optional = true, features = ["full", "parking_lot"] }
 tower = { version = "0.4.12", optional = true, default-features = false }
 tracing = { version = "0.1.32", optional = true }
 tracing-error = { version = "0.2.0", optional = true }
 tracing-opentelemetry = { version = "0.17.2", optional = true }
 tracing-subscriber = { version = "0.3.9", optional = true, features = ["env-filter"] }
 tracing-tree = { version = "0.2.0", optional = true }
-hyper = { version = "0.14" }
+hyper = { version = "0.14", optional = true }

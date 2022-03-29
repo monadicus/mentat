@@ -12,7 +12,7 @@ use super::*;
 /// implementation relies on any BalanceExemptions, you MUST implement
 /// historical balance lookup (the ability to query an account balance at any
 /// BlockIdentifier).
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct BalanceExemption {
     /// SubAccountAddress is the SubAccountIdentifier.Address that the
     /// BalanceExemption applies to (regardless of the value of

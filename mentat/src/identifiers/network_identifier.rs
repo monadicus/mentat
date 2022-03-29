@@ -10,7 +10,7 @@ use crate::{
 
 /// The network_identifier specifies which network a particular object is
 /// associated with.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct NetworkIdentifier {
     pub blockchain: String,
     /// If a blockchain has a specific chain-id or network identifier, it should
