@@ -2,7 +2,7 @@ mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
 mod dummy_indexer;
-mod logging;
+pub mod logging;
 mod node;
 use std::{
     env,
@@ -10,7 +10,10 @@ use std::{
     sync::Arc,
 };
 
-use axum::extract::{self, ConnectInfo, Extension};
+use axum::{
+    extract::{self, ConnectInfo, Extension},
+    Router,
+};
 pub use node::*;
 use reqwest::Client;
 use tracing::info;
@@ -31,8 +34,39 @@ pub enum Network {
     Testnet,
 }
 
-macro_rules! api_routes {
-    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr, } )* } ) * } ) * )  => {
+pub mod create_app_exports {
+    pub use std::{
+        env,
+        net::{Ipv4Addr, SocketAddr},
+        sync::Arc,
+    };
+
+    pub use axum::{
+        extract::{self, ConnectInfo, Extension},
+        routing,
+        Json,
+        Router,
+    };
+    pub use color_backtrace;
+    pub use reqwest::Client;
+    pub use tracing;
+
+    pub use super::{
+        dummy_call::DummyCallApi,
+        dummy_construction::DummyConstructionApi,
+        dummy_data::DummyDataApi,
+        dummy_indexer::DummyIndexerApi,
+        logging,
+        node::*,
+    };
+    #[cfg(feature = "cache")]
+    pub use crate::cache::{Cache, CacheInner, DefaultCacheInner};
+    pub use crate::{api::*, requests::*, responses::*};
+}
+
+#[macro_export]
+macro_rules! create_app {
+    (@api_routes axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr, } )* } ) * } ) * )  => {
         $(
             $(
             $(
@@ -40,7 +74,7 @@ macro_rules! api_routes {
                 async fn $method(
                     Extension(server): Extension<Server>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
-                    extract::Json(req_data): axum::Json<$req>,
+                    extract::Json(req_data): Json<$req>,
                     Extension(mode): ModeState,
                     Extension(client): Extension<Client>,
                 ) -> MentatResponse<$resp> {
@@ -67,20 +101,71 @@ macro_rules! api_routes {
                     }
 
                 }
-                $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
+                $app = $app.route(&format!("{}{}", $route_base, $path), routing::post($method));
             )*
             )*
         )*
+    };
+    () => {
+        create_app!(DefaultCacheInner)
+    };
+    ($cache_inner:ident) => {
+        {
+            use $crate::server::create_app_exports::*;
+            color_backtrace::install();
+            logging::setup()?;
+
+            let mut app = Router::new();
+
+            create_app! {
+                @api_routes
+                axum: app,
+
+                api_group {
+                    api: call_api,
+
+                    route_group {
+                        route_base: "/",
+
+                        route {
+                            path: "/call",
+                            method: call_call,
+                            req_data: CallRequest,
+                            resp_data: CallResponse,
+                            cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        }
+                    }
+                }
+
+                api_group {
+                    api: construction_api,
+
+                    route_group {
+                        route_base: "/construction",
+
+                        route {
+                            path: "/combine",
+                            method: call_combine,
+                            req_data: ConstructionCombineRequest,
+                            resp_data: ConstructionCombineResponse,
+                            cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        }
+                    }
+                }
+            }
+
+            app
+        }
     };
 }
 
 #[derive(Clone)]
 pub struct Server {
-    construction_api: Arc<dyn CallerConstructionApi>,
-    data_api: Arc<dyn CallerDataApi>,
-    indexer_api: Arc<dyn CallerIndexerApi>,
-    call_api: Arc<dyn CallerCallApi>,
-    network: Network,
+    pub construction_api: Arc<dyn CallerConstructionApi>,
+    pub data_api: Arc<dyn CallerDataApi>,
+    pub indexer_api: Arc<dyn CallerIndexerApi>,
+    pub call_api: Arc<dyn CallerCallApi>,
+    pub network: Network,
 }
 
 impl Default for Server {
@@ -159,52 +244,47 @@ impl Server {
     }
 
     pub async fn serve(
-        //<#[cfg(feature = "cache")] C: CacheInner> (
         self,
+        mut app: Router,
         address: Ipv4Addr,
         port: u16,
         node: Box<dyn NodeRunner>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        color_backtrace::install();
-        logging::setup()?;
+        // api_routes! {
+        //         axum: app,
 
-        let mut app = axum::Router::new();
+        //         api_group {
+        //             api: call_api,
 
-        api_routes! {
-                axum: app,
+        //             route_group {
+        //                 route_base: "/",
 
-                api_group {
-                    api: call_api,
+        //                 route {
+        //                     path: "/call",
+        //                     method: call_call,
+        //                     req_data: CallRequest,
+        //                     resp_data: CallResponse,
+        //                     cache: Cache::<DefaultCacheInner<_>,
+        // _>::new(Default::default(), None),                 }
+        //             }
+        //         }
 
-                    route_group {
-                        route_base: "/",
+        // api_group {
+        //         api: construction_api,
 
-                        route {
-                            path: "/call",
-                            method: call_call,
-                            req_data: CallRequest,
-                            resp_data: CallResponse,
-                            cache: Cache::<DefaultCacheInner<CallResponse>>::new(Default::default(), None),
-                        }
-                    }
-                }
+        //         route_group {
+        //             route_base: "/construction",
 
-        api_group {
-                api: construction_api,
-
-                route_group {
-                    route_base: "/construction",
-
-                    route {
-                        path: "/combine",
-                        method: call_combine,
-                        req_data: ConstructionCombineRequest,
-                        resp_data: ConstructionCombineResponse,
-                        cache: Cache::<DefaultCacheInner<ConstructionCombineResponse>>::new(Default::default(), None),
-                    }
-                }
-            }
-        }
+        //             route {
+        //                 path: "/combine",
+        //                 method: call_combine,
+        //                 req_data: ConstructionCombineRequest,
+        //                 resp_data: ConstructionCombineResponse,
+        //                 cache: Cache::<DefaultCacheInner<_>,
+        // _>::new(Default::default(), None),             }
+        //         }
+        //     }
+        // }
 
         /*
                     route {

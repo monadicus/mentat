@@ -1,5 +1,6 @@
 use std::{
     future::Future,
+    marker::PhantomData,
     pin::Pin,
     sync::Arc,
     time::{Duration, Instant},
@@ -12,25 +13,28 @@ use super::CacheInner;
 use crate::{api::MentatResponse, errors::MentatError};
 
 #[derive(Clone)]
-pub struct Cache<C>
+pub struct Cache<C, T>
 where
-    C: CacheInner,
+    C: CacheInner<T>,
+    T: Clone + Send + Sync + 'static,
 {
     inner: Arc<Mutex<C>>,
     refresh_interval: Option<Duration>,
+    _data: PhantomData<T>,
 }
 
 pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
 
-impl<C, T> Cache<C>
+impl<C, T> Cache<C, T>
 where
-    C: CacheInner<T = T>,
+    C: CacheInner<T>,
     T: Clone + Send + Sync + 'static,
 {
     pub fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
         Self {
             inner: Arc::new(Mutex::new(cache)),
             refresh_interval,
+            _data: PhantomData,
         }
     }
 

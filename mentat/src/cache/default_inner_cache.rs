@@ -11,12 +11,10 @@ where
     inflight: Inflight<T>,
 }
 
-impl<T> CacheInner for DefaultCacheInner<T>
+impl<T> CacheInner<T> for DefaultCacheInner<T>
 where
     T: Clone + Send + Sync + 'static,
 {
-    type T = T;
-
     fn last_fetched(&self) -> Option<&Entry<T>> {
         self.last_fetched.as_ref()
     }

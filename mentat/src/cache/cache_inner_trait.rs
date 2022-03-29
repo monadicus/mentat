@@ -14,14 +14,12 @@ pub type Inflight<T> = Option<Weak<broadcast::Sender<MentatResponse<T>>>>;
 pub type WeakInflight<T> =
     Option<Arc<tokio::sync::broadcast::Sender<Result<Json<T>, MentatError>>>>;
 
-pub trait CacheInner: Default + Send + Sync + 'static {
-    type T;
+pub trait CacheInner<T>: Clone + Send + Sync + 'static {
+    fn last_fetched(&self) -> Option<&Entry<T>>;
 
-    fn last_fetched(&self) -> Option<&Entry<Self::T>>;
+    fn set_last_fetched(&mut self, fetched: Entry<T>);
 
-    fn set_last_fetched(&mut self, fetched: Entry<Self::T>);
+    fn inflight(&self) -> WeakInflight<T>;
 
-    fn inflight(&self) -> WeakInflight<Self::T>;
-
-    fn set_inflight(&mut self, inflight: Inflight<Self::T>);
+    fn set_inflight(&mut self, inflight: Inflight<T>);
 }
