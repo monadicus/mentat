@@ -86,9 +86,10 @@ impl Default for Server {
 
 impl Server {
     pub fn new(blockchain: String) -> Self {
-        let mut new = Self::default();
-        new.blockchain = blockchain;
-        new
+        Self {
+            blockchain,
+            ..Default::default()
+        }
     }
 
     pub fn with_data_api<T: CallerDataApi + 'static>(

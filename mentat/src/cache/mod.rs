@@ -1,5 +1,5 @@
-mod cache;
-pub use cache::*;
+mod cache_struct;
+pub use cache_struct::*;
 
 mod cache_inner_trait;
 pub use cache_inner_trait::*;
