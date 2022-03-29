@@ -12,7 +12,7 @@ use crate::misc::{Peer, SyncStatus};
 /// populated so that clients can still monitor healthiness. Without this field,
 /// it may appear that the implementation is stuck syncing and needs to be
 /// terminated.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct NetworkStatusResponse {
     /// The block_identifier uniquely identifies a block in a particular
     /// network.

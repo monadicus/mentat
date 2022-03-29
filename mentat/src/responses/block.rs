@@ -9,7 +9,7 @@ use super::*;
 /// chain of blocks where each block has a unique index. In other words, the
 /// PartialBlockIdentifier of a block after an omitted block should reference
 /// the last non-omitted block.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct BlockResponse {
     /// Blocks contain an array of Transactions that occurred at a particular
     /// BlockIdentifier. A hard requirement for blocks returned by Rosetta

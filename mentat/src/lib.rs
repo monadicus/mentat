@@ -12,22 +12,22 @@ pub mod keys;
 pub mod api;
 
 #[cfg(feature = "server")]
-pub mod server;
+#[path = ""]
+mod server_rexport {
+    pub mod cache;
+    pub mod server;
+
+    pub use axum::{self, async_trait, Json};
+    pub use indexmap::IndexMap;
+    pub use reqwest::Client;
+    pub use serde;
+    pub use serde_json;
+    pub use tokio;
+    pub use tracing;
+}
 
 #[cfg(feature = "server")]
-pub use axum::{self, async_trait, Json};
-#[cfg(feature = "server")]
-pub use indexmap::IndexMap;
-#[cfg(feature = "server")]
-pub use reqwest::Client;
-#[cfg(feature = "server")]
-pub use serde;
-#[cfg(feature = "server")]
-pub use serde_json;
-#[cfg(feature = "server")]
-pub use tokio;
-#[cfg(feature = "server")]
-pub use tracing;
+pub use server_rexport::*;
 
 #[cfg(feature = "client")]
 pub mod client;

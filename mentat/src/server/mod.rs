@@ -1,8 +1,10 @@
+mod serve;
+pub use serve::*;
 mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
 mod dummy_indexer;
-mod logging;
+pub mod logging;
 mod middleware_checks;
 mod node;
 
@@ -14,12 +16,8 @@ use std::{
     sync::Arc,
 };
 
-use axum::{
-    extract::{self, ConnectInfo, Extension},
-    middleware,
-};
+use axum::{extract::Extension, middleware, Router};
 pub use node::*;
-use reqwest::Client;
 use tracing::info;
 
 use self::{
@@ -29,7 +27,7 @@ use self::{
     dummy_indexer::DummyIndexerApi,
     middleware_checks::middleware_check,
 };
-use crate::{api::*, requests::*, responses::*};
+use crate::api::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Network {
@@ -58,38 +56,12 @@ impl fmt::Display for Network {
     }
 }
 
-macro_rules! api_routes {
-    (axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
-        $(
-            $(
-            $(
-                #[tracing::instrument(skip(server))]
-                async fn $method(
-                    Extension(server): Extension<Server>,
-                    ConnectInfo(ip): ConnectInfo<SocketAddr>,
-                    extract::Json(req_data): axum::Json<$req>,
-                    Extension(mode): ModeState,
-                    Extension(client): Extension<Client>,
-                ) -> MentatResponse<$resp> {
-                    let c = Caller { ip };
-                    let resp = server.$api.$method(c, req_data, &mode, client).await;
-                    #[cfg(debug_assertions)]
-                    tracing::debug!("response {}{} {resp:?}", $route_base, $path);
-                    resp
-                }
-                $app = $app.route(&format!("{}{}", $route_base, $path), axum::routing::post($method));
-            )*
-            )*
-        )*
-    };
-}
-
 #[derive(Clone)]
 pub struct Server {
-    construction_api: Arc<dyn CallerConstructionApi>,
-    data_api: Arc<dyn CallerDataApi>,
-    indexer_api: Arc<dyn CallerIndexerApi>,
-    call_api: Arc<dyn CallerCallApi>,
+    pub construction_api: Arc<dyn CallerConstructionApi>,
+    pub data_api: Arc<dyn CallerDataApi>,
+    pub indexer_api: Arc<dyn CallerIndexerApi>,
+    pub call_api: Arc<dyn CallerCallApi>,
     pub network: Network,
     pub blockchain: String,
 }
@@ -114,9 +86,10 @@ impl Default for Server {
 
 impl Server {
     pub fn new(blockchain: String) -> Self {
-        let mut new = Self::default();
-        new.blockchain = blockchain;
-        new
+        Self {
+            blockchain,
+            ..Default::default()
+        }
     }
 
     pub fn with_data_api<T: CallerDataApi + 'static>(
@@ -172,208 +145,15 @@ impl Server {
         self.call_api = call_api;
     }
 
-    pub async fn serve(
+    pub async fn serve<T: NodeRunner>(
         self,
+        mut app: Router,
         address: Ipv4Addr,
         port: u16,
-        node: Box<dyn NodeRunner>,
+        node: &T,
     ) -> Result<(), Box<dyn std::error::Error>> {
         color_backtrace::install();
         logging::setup()?;
-
-        let mut app = axum::Router::new();
-
-        api_routes! {
-            axum: app,
-
-            api_group {
-                api: call_api,
-
-                route_group {
-                    route_base: "/",
-
-                    route {
-                        path: "/call",
-                        method: call_call,
-                        req_data: CallRequest,
-                        resp_data: CallResponse,
-                    }
-                }
-            }
-
-            api_group {
-                api: construction_api,
-
-                route_group {
-                    route_base: "/construction",
-
-                    route {
-                        path: "/combine",
-                        method: call_combine,
-                        req_data: ConstructionCombineRequest,
-                        resp_data: ConstructionCombineResponse,
-                    }
-
-                    route {
-                        path: "/derive",
-                        method: call_derive,
-                        req_data: ConstructionDeriveRequest,
-                        resp_data: ConstructionDeriveResponse,
-                    }
-
-                    route {
-                        path: "/hash",
-                        method: call_hash,
-                        req_data: ConstructionHashRequest,
-                        resp_data: TransactionIdentifierResponse,
-                    }
-
-                    route {
-                        path: "/metadata",
-                        method: call_metadata,
-                        req_data: ConstructionMetadataRequest,
-                        resp_data: ConstructionMetadataResponse,
-                    }
-
-                    route {
-                        path: "/parse",
-                        method: call_parse,
-                        req_data: ConstructionParseRequest,
-                        resp_data: ConstructionParseResponse,
-                    }
-
-                    route {
-                        path: "/payloads",
-                        method: call_payloads,
-                        req_data: ConstructionPayloadsRequest,
-                        resp_data: ConstructionPayloadsResponse,
-                    }
-
-                    route {
-                        path: "/preprocess",
-                        method: call_preprocess,
-                        req_data: ConstructionPreprocessRequest,
-                        resp_data: ConstructionPreprocessResponse,
-                    }
-
-                    route {
-                        path: "/submit",
-                        method: call_submit,
-                        req_data: ConstructionSubmitRequest,
-                        resp_data: TransactionIdentifierResponse,
-                    }
-                }
-            }
-
-            api_group {
-                api: data_api,
-
-                route_group {
-                    route_base: "/network",
-
-                    route {
-                        path: "/list",
-                        method: call_network_list,
-                        req_data: MetadataRequest,
-                        resp_data: NetworkListResponse,
-                    }
-
-                    route {
-                        path: "/options",
-                        method: call_network_options,
-                        req_data: NetworkRequest,
-                        resp_data: NetworkOptionsResponse,
-                    }
-
-                    route {
-                        path: "/status",
-                        method: call_network_status,
-                        req_data: NetworkRequest,
-                        resp_data: NetworkStatusResponse,
-                    }
-                }
-
-                route_group {
-                    route_base: "/account",
-
-                    route {
-                        path: "/balance",
-                        method: call_account_balance,
-                        req_data: AccountBalanceRequest,
-                        resp_data: AccountBalanceResponse,
-                    }
-
-                    route {
-                        path: "/coins",
-                        method: call_account_coins,
-                        req_data: AccountCoinsRequest,
-                        resp_data: AccountCoinsResponse,
-                    }
-                }
-
-                route_group {
-                    route_base: "/block",
-
-                    route {
-                        path: "/",
-                        method: call_block,
-                        req_data: BlockRequest,
-                        resp_data: BlockResponse,
-                    }
-
-                    route {
-                        path: "/transaction",
-                        method: call_block_transaction,
-                        req_data: BlockTransactionRequest,
-                        resp_data: BlockTransactionResponse,
-                    }
-                }
-
-                route_group {
-                    route_base: "/mempool",
-
-                    route {
-                        path: "/",
-                        method: call_mempool,
-                        req_data: NetworkRequest,
-                        resp_data: MempoolResponse,
-                    }
-
-                    route {
-                        path: "/transaction",
-                        method: call_mempool_transaction,
-                        req_data: MempoolTransactionRequest,
-                        resp_data: MempoolTransactionResponse,
-                    }
-                }
-            }
-
-            api_group {
-                api: indexer_api,
-
-                route_group {
-                    route_base: "/events",
-
-                        route {
-                        path: "/blocks",
-                        method: call_events_blocks,
-                        req_data: EventsBlocksRequest,
-                        resp_data: EventsBlocksResponse,
-                    }
-                }
-
-                route_group {
-                    route_base: "/search",
-                     route {
-                     path: "/transactions",
-                     method: call_search_transactions,
-                     req_data: SearchTransactionsRequest,
-                     resp_data: SearchTransactionsResponse,
-                     }
-                }
-
-            }
-        }
 
         let mode = Mode::default();
         if !mode.is_offline() {

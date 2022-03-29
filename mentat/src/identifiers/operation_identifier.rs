@@ -2,7 +2,7 @@ use super::*;
 
 /// The operation_identifier uniquely identifies an operation within a
 /// transaction.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct OperationIdentifier {
     /// The operation index is used to ensure each operation has a unique
     /// identifier within a transaction. This index is only relative to the

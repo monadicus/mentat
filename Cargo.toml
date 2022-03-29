@@ -6,3 +6,17 @@ members = [
         "rosetta-bitcoin",
         "rosetta-snarkos",
 ]
+
+[profile.release]
+codegen-units = 1
+panic = "abort"
+lto = "fat"
+strip = true
+
+[profile.release-docker]
+inherits = "release"
+codegen-units = 1
+opt-level = "z"
+panic = "abort"
+lto = true
+strip = true
