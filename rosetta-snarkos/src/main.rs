@@ -1,6 +1,6 @@
 use std::{env, net::Ipv4Addr, sync::Arc};
 
-use mentat::{create_app, server::Server, tokio};
+use mentat::{cache::DefaultCacheInner, create_app, server::Server, tokio};
 
 mod call_api;
 mod construction_api;

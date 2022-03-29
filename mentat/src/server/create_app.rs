@@ -15,7 +15,7 @@ pub mod create_app_exports {
     pub use tracing;
 
     #[cfg(feature = "cache")]
-    pub use crate::cache::{Cache, CacheInner, DefaultCacheInner};
+    pub use crate::cache::{Cache, CacheInner};
     pub use crate::{
         api::*,
         api_routes,
@@ -46,6 +46,7 @@ macro_rules! api_routes {
                     let c = Caller { ip };
                     $cache.get_cached(move || {
                         Box::pin(async move {
+                            dbg!("YESSSSSSSSSSSSSSSSSSSSSSS");
                             let resp = server.$api.$method(c, req_data, &mode, client).await;
                             #[cfg(debug_assertions)]
                             tracing::debug!("response {}{} {resp:?}", $route_base, $path);
@@ -77,6 +78,7 @@ macro_rules! api_routes {
                     Extension(mode): ModeState,
                     Extension(client): Extension<Client>,
                 ) -> MentatResponse<$resp> {
+                    dbg!("NOOOOOOOOOOOOOOOOOOOOOOOOOO");
                     let c = Caller { ip };
                     let resp = server.$api.$method(c, req_data, &mode, client).await;
                     #[cfg(debug_assertions)]
@@ -94,7 +96,7 @@ macro_rules! api_routes {
 macro_rules! create_app {
     ($cache_inner:ident) => {{
         use $crate::server::create_app_exports::*;
-        
+
         let mut app = Router::new();
 
         api_routes! {
@@ -111,7 +113,7 @@ macro_rules! create_app {
                         method: call_call,
                         req_data: CallRequest,
                         resp_data: CallResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                 }
             }
@@ -127,7 +129,7 @@ macro_rules! create_app {
                         method: call_combine,
                         req_data: ConstructionCombineRequest,
                         resp_data: ConstructionCombineResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -135,7 +137,7 @@ macro_rules! create_app {
                         method: call_derive,
                         req_data: ConstructionDeriveRequest,
                         resp_data: ConstructionDeriveResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -143,7 +145,7 @@ macro_rules! create_app {
                         method: call_hash,
                         req_data: ConstructionHashRequest,
                         resp_data: TransactionIdentifierResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -151,7 +153,7 @@ macro_rules! create_app {
                         method: call_metadata,
                         req_data: ConstructionMetadataRequest,
                         resp_data: ConstructionMetadataResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -159,7 +161,7 @@ macro_rules! create_app {
                         method: call_parse,
                         req_data: ConstructionParseRequest,
                         resp_data: ConstructionParseResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -167,7 +169,7 @@ macro_rules! create_app {
                         method: call_payloads,
                         req_data: ConstructionPayloadsRequest,
                         resp_data: ConstructionPayloadsResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -175,7 +177,7 @@ macro_rules! create_app {
                         method: call_preprocess,
                         req_data: ConstructionPreprocessRequest,
                         resp_data: ConstructionPreprocessResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -183,7 +185,7 @@ macro_rules! create_app {
                         method: call_submit,
                         req_data: ConstructionSubmitRequest,
                         resp_data: TransactionIdentifierResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                    }
             }
@@ -199,7 +201,7 @@ macro_rules! create_app {
                         method: call_network_list,
                         req_data: MetadataRequest,
                         resp_data: NetworkListResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -207,7 +209,7 @@ macro_rules! create_app {
                         method: call_network_options,
                         req_data: NetworkRequest,
                         resp_data: NetworkOptionsResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -215,7 +217,7 @@ macro_rules! create_app {
                         method: call_network_status,
                         req_data: NetworkRequest,
                         resp_data: NetworkStatusResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                 }
 
@@ -227,7 +229,7 @@ macro_rules! create_app {
                         method: call_account_balance,
                         req_data: AccountBalanceRequest,
                         resp_data: AccountBalanceResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -235,7 +237,7 @@ macro_rules! create_app {
                         method: call_account_coins,
                         req_data: AccountCoinsRequest,
                         resp_data: AccountCoinsResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                 }
 
@@ -247,7 +249,7 @@ macro_rules! create_app {
                         method: call_block,
                         req_data: BlockRequest,
                         resp_data: BlockResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -255,7 +257,7 @@ macro_rules! create_app {
                         method: call_block_transaction,
                         req_data: BlockTransactionRequest,
                         resp_data: BlockTransactionResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                 }
 
@@ -267,7 +269,7 @@ macro_rules! create_app {
                         method: call_mempool,
                         req_data: NetworkRequest,
                         resp_data: MempoolResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
 
                     route {
@@ -275,7 +277,7 @@ macro_rules! create_app {
                         method: call_mempool_transaction,
                         req_data: MempoolTransactionRequest,
                         resp_data: MempoolTransactionResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                 }
             }
@@ -291,7 +293,7 @@ macro_rules! create_app {
                         method: call_events_blocks,
                         req_data: EventsBlocksRequest,
                         resp_data: EventsBlocksResponse,
-                        cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                        cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                 }
 
@@ -302,7 +304,7 @@ macro_rules! create_app {
                     method: call_search_transactions,
                     req_data: SearchTransactionsRequest,
                     resp_data: SearchTransactionsResponse,
-                    cache: Cache::<$cache_inner<_>, _>::new(Default::default(), None),
+                    cache: Cache::<$cache_inner<_>>::new(Default::default(), None),
                     }
                 }
 
