@@ -14,9 +14,7 @@ pub mod api;
 #[cfg(feature = "server")]
 #[path = ""]
 mod server_rexport {
-    #[cfg(feature = "cache")]
     pub mod cache;
-
     pub mod server;
 
     pub use axum::{self, async_trait, Json};

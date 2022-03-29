@@ -6,12 +6,12 @@ rust-version = "1.59.0"
 
 [features]
 _network = ["axum", "indexmap", "serde", "serde_json", "reqwest"]
-cache = ["parking_lot", "tokio"]
 client = ["_network"]
 default = ["server"]
 server = [
     "_network",
     "color-backtrace",
+    "hyper",
     "opentelemetry",
     "opentelemetry-jaeger",
     "tokio",
@@ -34,7 +34,6 @@ mina-hasher = { git = "https://github.com/o1-labs/proof-systems", optional = tru
 mina-signer = { git = "https://github.com/o1-labs/proof-systems", optional = true }
 opentelemetry = { version = "0.17.0", optional = true, features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.16.0", optional = true, features = ["rt-tokio"] }
-parking_lot = { version = "0.12.0", default-features = false, optional = true }
 p256 = { version = "0.10", optional = true }
 secp256k1 = { version = "0.22", optional = true }
 serde = { version = "1.0", optional = true, default-features = false, features = ["derive"] }
@@ -44,11 +43,11 @@ snarkvm-dpc = { version="0.8", optional = true }
 snarkvm-utilities = { version="0.8", optional = true }
 rand = { version = "0.8", optional = true }
 reqwest = { version = "0.11", optional = true, default-features = false, features = ["json"] }
-tokio = { version = "1.17.0", optional = true, features = ["full"] }
+tokio = { version = "1.17.0", optional = true, features = ["full", "parking_lot"] }
 tower = { version = "0.4.12", optional = true, default-features = false }
 tracing = { version = "0.1.32", optional = true }
 tracing-error = { version = "0.2.0", optional = true }
 tracing-opentelemetry = { version = "0.17.2", optional = true }
 tracing-subscriber = { version = "0.3.9", optional = true, features = ["env-filter"] }
 tracing-tree = { version = "0.2.0", optional = true }
-hyper = { version = "0.14" }
+hyper = { version = "0.14", optional = true }

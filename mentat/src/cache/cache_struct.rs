@@ -5,8 +5,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use parking_lot::Mutex;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, Mutex};
 
 use super::CacheInner;
 use crate::{api::MentatResponse, errors::MentatError};
@@ -36,7 +35,7 @@ where
         F: FnOnce() -> BoxFut<'static, MentatResponse<C::T>> + Send + 'static,
     {
         let mut rx = {
-            let mut inner = self.inner.lock();
+            let mut inner = self.inner.lock().await;
 
             // Check if request exists
             if let Some((fetched_at, value)) = inner.last_fetched() {
@@ -70,7 +69,7 @@ where
                     let res = fut.await;
 
                     {
-                        let mut inner = inner.lock();
+                        let mut inner = inner.lock().await;
                         inner.set_inflight(None);
 
                         match res {
