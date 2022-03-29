@@ -4,10 +4,7 @@ use serde_json::Value;
 
 use crate::{errors::Result, identifiers::NetworkIdentifier};
 
-pub async fn middleware_check(
-    req: Request<Body>,
-    next: Next<Body>,
-) -> Result<impl IntoResponse> {
+pub async fn middleware_check(req: Request<Body>, next: Next<Body>) -> Result<impl IntoResponse> {
     let (parts, body) = req.into_parts();
     let extensions = &parts.extensions;
     let bytes = hyper::body::to_bytes(body).await?;

@@ -9,7 +9,8 @@ mod middleware_checks;
 mod node;
 
 use std::{
-    env, fmt,
+    env,
+    fmt,
     net::{Ipv4Addr, SocketAddr},
     str::FromStr,
     sync::Arc,
@@ -20,8 +21,11 @@ pub use node::*;
 use tracing::info;
 
 use self::{
-    dummy_call::DummyCallApi, dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
-    dummy_indexer::DummyIndexerApi, middleware_checks::middleware_check,
+    dummy_call::DummyCallApi,
+    dummy_construction::DummyConstructionApi,
+    dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi,
+    middleware_checks::middleware_check,
 };
 use crate::api::*;
 

@@ -1,17 +1,18 @@
 pub mod serve_exports {
-    #[cfg(feature = "cache")]
-    pub use crate::cache::Cache;
-    pub use crate::{api::*, requests::*, responses::*, serve};
-
     pub use std::{borrow::Borrow, net::SocketAddr, sync::Arc};
 
-    pub use axum::Router;
     pub use axum::{
         extract::{self, ConnectInfo, Extension},
-        routing, Json,
+        routing,
+        Json,
+        Router,
     };
     pub use reqwest::Client;
     pub use tracing;
+
+    #[cfg(feature = "cache")]
+    pub use crate::cache::Cache;
+    pub use crate::{api::*, requests::*, responses::*, serve};
 }
 
 #[macro_export]
