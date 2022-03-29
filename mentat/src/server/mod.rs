@@ -22,7 +22,7 @@ use self::{
     dummy_indexer::DummyIndexerApi,
 };
 #[cfg(feature = "cache")]
-use crate::cache::{Cache, DefaultCacheInner};
+use crate::cache::{Cache, CacheInner, DefaultCacheInner};
 use crate::{api::*, requests::*, responses::*};
 
 #[derive(Clone)]
@@ -47,7 +47,7 @@ macro_rules! api_routes {
                     let c = Caller { ip };
                     #[cfg(feature = "cache")]
                     {
-                        return $cache.get_cached(move || {
+                        $cache.get_cached(move || {
                             Box::pin(async move {
                                 let resp = server.$api.$method(c, req_data, &mode, client).await;
                                 #[cfg(debug_assertions)]
@@ -56,14 +56,14 @@ macro_rules! api_routes {
                             })
 
                         })
-                        .await;
+                        .await
                     }
                     #[cfg(not(feature = "cache"))]
                     {
                         let resp = server.$api.$method(c, req_data, &mode, client).await;
                         #[cfg(debug_assertions)]
                         tracing::debug!("response {}{} {resp:?}", $route_base, $path);
-                        return resp;
+                        resp
                     }
 
                 }
@@ -159,6 +159,7 @@ impl Server {
     }
 
     pub async fn serve(
+        //<#[cfg(feature = "cache")] C: CacheInner> (
         self,
         address: Ipv4Addr,
         port: u16,
@@ -183,13 +184,12 @@ impl Server {
                             method: call_call,
                             req_data: CallRequest,
                             resp_data: CallResponse,
-                            cache: Cache::<DefaultCacheInner<CallResponse>>::new(DefaultCacheInner::default(), None),
+                            cache: Cache::<DefaultCacheInner<CallResponse>>::new(Default::default(), None),
                         }
                     }
                 }
-        }
 
-        /* api_group {
+        api_group {
                 api: construction_api,
 
                 route_group {
@@ -200,9 +200,13 @@ impl Server {
                         method: call_combine,
                         req_data: ConstructionCombineRequest,
                         resp_data: ConstructionCombineResponse,
-                        cache: Cached::<ConstructionCombineResponse>::new(None),
+                        cache: Cache::<DefaultCacheInner<ConstructionCombineResponse>>::new(Default::default(), None),
                     }
+                }
+            }
+        }
 
+        /*
                     route {
                         path: "/derive",
                         method: call_derive,
