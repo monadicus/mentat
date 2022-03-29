@@ -3,7 +3,7 @@ pub mod serve_exports {
     pub use crate::cache::Cache;
     pub use crate::{api::*, requests::*, responses::*, serve};
 
-    pub use std::{net::SocketAddr, sync::Arc};
+    pub use std::{borrow::Borrow, net::SocketAddr, sync::Arc};
 
     pub use axum::Router;
     pub use axum::{
@@ -19,7 +19,7 @@ macro_rules! serve {
     ($server:expr, $address:expr, $port:expr, $node:expr, $( $cache_inner:ident )?) => {{
         use $crate::server::serve_exports::*;
         let app = serve!(@build $($cache_inner)?);
-        $server.serve(app, $address, $port, &$node).await
+        $server.serve(app, $address, $port, $node.borrow()).await
     }};
 
     (@routes axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
