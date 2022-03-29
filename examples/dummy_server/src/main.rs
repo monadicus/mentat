@@ -13,6 +13,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         server,
         Ipv4Addr::new(127, 0, 0, 1),
         3030,
-        Box::new(DummyNode::default()),
+        DummyNode::default(),
     )
 }

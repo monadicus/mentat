@@ -34,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         server,
         address,
         port,
-        Box::new(node::SnarkOSNode::default()),
+        node::SnarkOSNode::default(),
         DefaultCacheInner
     )
 }

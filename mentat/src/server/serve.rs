@@ -19,7 +19,7 @@ macro_rules! serve {
     ($server:expr, $address:expr, $port:expr, $node:expr, $( $cache_inner:ident )?) => {{
         use $crate::server::serve_exports::*;
         let app = serve!(@build $($cache_inner)?);
-        $server.serve(app, $address, $port, $node).await
+        $server.serve(app, $address, $port, Box::new($node)).await
     }};
 
     (@routes axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {

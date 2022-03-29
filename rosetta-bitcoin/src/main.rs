@@ -28,5 +28,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .parse()
         .unwrap_or(8080);
 
-    serve!(server, address, port, Box::new(DummyNode::default()),)
+    serve!(server, address, port, DummyNode::default(),)
 }
