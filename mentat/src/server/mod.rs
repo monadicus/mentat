@@ -1,5 +1,8 @@
 mod create_app;
+#[cfg(feature = "cache")]
 pub use create_app::*;
+#[cfg(not(feature = "cache"))]
+use create_app::*;
 mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
@@ -12,7 +15,7 @@ use std::{
     sync::Arc,
 };
 
-use axum::{extract::Extension, Router};
+use axum::extract::Extension;
 pub use node::*;
 use tracing::info;
 
@@ -116,11 +119,14 @@ impl Server {
 
     pub async fn serve(
         self,
-        mut app: Router,
+        #[cfg(feature = "cache")] mut app: Router,
         address: Ipv4Addr,
         port: u16,
         node: Box<dyn NodeRunner>,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        #[cfg(not(feature = "cache"))]
+        let mut app = crate::create_app!(DefaultCacheInner);
+
         let mode = Mode::default();
         if !mode.is_offline() {
             node.start_node(address.to_string()).await?;

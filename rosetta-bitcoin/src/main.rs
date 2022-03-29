@@ -1,7 +1,6 @@
 use std::{env, net::Ipv4Addr, sync::Arc};
 
 use mentat::{
-    create_app,
     server::{DummyNode, Server},
     tokio,
 };
@@ -28,9 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .parse()
         .unwrap_or(8080);
 
-    let app = create_app!(DefaultCacheInner);
     server
-        .serve(app, address, port, Box::new(DummyNode::default()))
+        .serve(address, port, Box::new(DummyNode::default()))
         .await?;
 
     Ok(())

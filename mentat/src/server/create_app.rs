@@ -97,9 +97,6 @@ macro_rules! api_routes {
 
 #[macro_export]
 macro_rules! create_app {
-    () => {
-        create_app!(DefaultCacheInner)
-    };
     ($cache_inner:ident) => {{
         use $crate::server::create_app_exports::*;
         color_backtrace::install();
