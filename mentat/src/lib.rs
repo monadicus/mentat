@@ -9,12 +9,14 @@ pub mod responses;
 pub mod keys;
 
 #[cfg(feature = "server")]
-pub mod api;
+
 
 #[cfg(feature = "server")]
 #[path = ""]
 mod server_rexport {
+    pub mod api;
     pub mod cache;
+    pub mod conf;
     pub mod server;
 
     pub use axum::{self, async_trait, Json};
