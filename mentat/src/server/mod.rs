@@ -12,23 +12,19 @@ mod middleware_checks;
 mod node;
 
 use std::{
-    env,
-    fmt,
+    env, fmt,
     net::{Ipv4Addr, SocketAddr},
     str::FromStr,
     sync::Arc,
 };
 
-use axum::{extract::Extension, middleware};
+use axum::{extract::Extension, middleware, Router};
 pub use node::*;
 use tracing::info;
 
 use self::{
-    dummy_call::DummyCallApi,
-    dummy_construction::DummyConstructionApi,
-    dummy_data::DummyDataApi,
-    dummy_indexer::DummyIndexerApi,
-    middleware_checks::middleware_check,
+    dummy_call::DummyCallApi, dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi, middleware_checks::middleware_check,
 };
 use crate::api::*;
 
@@ -61,10 +57,10 @@ impl fmt::Display for Network {
 
 #[derive(Clone)]
 pub struct Server {
-    construction_api: Arc<dyn CallerConstructionApi>,
-    data_api: Arc<dyn CallerDataApi>,
-    indexer_api: Arc<dyn CallerIndexerApi>,
-    call_api: Arc<dyn CallerCallApi>,
+    pub construction_api: Arc<dyn CallerConstructionApi>,
+    pub data_api: Arc<dyn CallerDataApi>,
+    pub indexer_api: Arc<dyn CallerIndexerApi>,
+    pub call_api: Arc<dyn CallerCallApi>,
     pub network: Network,
     pub blockchain: String,
 }
@@ -156,6 +152,9 @@ impl Server {
     ) -> Result<(), Box<dyn std::error::Error>> {
         #[cfg(not(feature = "cache"))]
         let mut app = crate::create_app!(DefaultCacheInner);
+
+        color_backtrace::install();
+        logging::setup()?;
 
         let mode = Mode::default();
         if !mode.is_offline() {

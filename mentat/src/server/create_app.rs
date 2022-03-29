@@ -5,13 +5,12 @@ pub mod create_app_exports {
         sync::Arc,
     };
 
+    #[cfg(feature = "cache")]
+    pub use axum::Router;
     pub use axum::{
         extract::{self, ConnectInfo, Extension},
-        routing,
-        Json,
-        Router,
+        routing, Json,
     };
-    pub use color_backtrace;
     pub use reqwest::Client;
     pub use tracing;
 
@@ -23,12 +22,8 @@ pub mod create_app_exports {
         requests::*,
         responses::*,
         server::{
-            dummy_call::DummyCallApi,
-            dummy_construction::DummyConstructionApi,
-            dummy_data::DummyDataApi,
-            dummy_indexer::DummyIndexerApi,
-            logging,
-            node::*,
+            dummy_call::DummyCallApi, dummy_construction::DummyConstructionApi,
+            dummy_data::DummyDataApi, dummy_indexer::DummyIndexerApi, node::*,
         },
     };
 }
@@ -99,9 +94,7 @@ macro_rules! api_routes {
 macro_rules! create_app {
     ($cache_inner:ident) => {{
         use $crate::server::create_app_exports::*;
-        color_backtrace::install();
-        logging::setup()?;
-
+        
         let mut app = Router::new();
 
         api_routes! {
