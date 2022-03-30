@@ -1,9 +1,3 @@
-use crate::{
-    jsonrpc_call,
-    request::{trim_hash, BitcoinJrpc},
-    responses::{common::BitcoinTransaction, data::*, Response},
-};
-
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentatResponse},
     async_trait,
@@ -12,7 +6,15 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json::{self, json},
-    Client, IndexMap, Json,
+    Client,
+    IndexMap,
+    Json,
+};
+
+use crate::{
+    jsonrpc_call,
+    request::{trim_hash, BitcoinJrpc},
+    responses::{common::BitcoinTransaction, data::*, Response},
 };
 
 #[derive(Default)]

@@ -1,11 +1,17 @@
+use futures::future::join_all;
+use mentat::{
+    api::MentatResponse,
+    errors::*,
+    identifiers::BlockIdentifier,
+    models::Block,
+    responses::BlockResponse,
+    Client,
+    IndexMap,
+    Json,
+};
+
 use super::*;
 use crate::responses::common::BitcoinTransaction;
-use futures::future::join_all;
-use mentat::errors::*;
-use mentat::{
-    api::MentatResponse, identifiers::BlockIdentifier, models::Block, responses::BlockResponse,
-    Client, IndexMap, Json,
-};
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize)]

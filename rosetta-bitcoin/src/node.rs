@@ -13,7 +13,8 @@ pub struct BitcoinNode;
 impl NodeRunner for BitcoinNode {
     async fn start_node(&self, address: String) -> Result<(), Box<dyn std::error::Error>> {
         // TODO 0rphon un-hack this
-        // let bitcoin = std::env::var("NODE").unwrap_or_else(|_| "/app/node-runner".to_string());
+        // let bitcoin = std::env::var("NODE").unwrap_or_else(|_|
+        // "/app/node-runner".to_string());
         let bitcoin = "D:\\Program Files\\Bitcoin\\daemon\\bitcoind.exe";
 
         let mut child = Command::new(bitcoin)
@@ -55,4 +56,3 @@ impl NodeRunner for BitcoinNode {
         Ok(())
     }
 }
-

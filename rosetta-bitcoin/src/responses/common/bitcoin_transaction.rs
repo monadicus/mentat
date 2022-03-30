@@ -5,14 +5,16 @@ use mentat::{
     models::{Amount, CoinAction, CoinChange, Currency, Operation, Transaction},
     serde::Serialize,
     serde_json::{self, json},
-    Client, IndexMap,
+    Client,
+    IndexMap,
 };
 
-use crate::{jsonrpc_call, request::trim_hash};
-
 use super::*;
-
-use crate::{request::BitcoinJrpc, responses::Response};
+use crate::{
+    jsonrpc_call,
+    request::{trim_hash, BitcoinJrpc},
+    responses::Response,
+};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(crate = "mentat::serde")]
