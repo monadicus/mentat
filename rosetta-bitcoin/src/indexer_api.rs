@@ -5,19 +5,15 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json,
-    Client,
+    server::RpcCaller,
     Json,
 };
 
-pub struct BitcoinIndexerApi {
-    url: String,
-}
+pub struct BitcoinIndexerApi;
 
 impl Default for BitcoinIndexerApi {
     fn default() -> Self {
-        Self {
-            url: "http://127.0.0.1:8080".to_string(),
-        }
+        Self {}
     }
 }
 
@@ -30,10 +26,11 @@ impl IndexerApi for BitcoinIndexerApi {
         &self,
         _caller: Caller,
         data: EventsBlocksRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<EventsBlocksResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/events/blocks"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -58,10 +55,11 @@ impl IndexerApi for BitcoinIndexerApi {
         &self,
         _caller: Caller,
         data: SearchTransactionsRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<SearchTransactionsResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/submit"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await

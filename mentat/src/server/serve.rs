@@ -10,7 +10,7 @@ pub mod serve_exports {
     pub use reqwest::Client;
     pub use tracing;
 
-    pub use crate::{api::*, cache::Cache, conf::*, requests::*, responses::*, serve};
+    pub use crate::{api::*, cache::Cache, conf::*, requests::*, responses::*, server::RpcCaller};
 }
 
 #[macro_export]
@@ -30,10 +30,10 @@ macro_rules! serve {
                     Extension(server): Extension<Server>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
-                    Extension(client): Extension<Client>,
+                    Extension(rpc_caller): Extension<RpcCaller>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
-                    let resp = server.$api.$method(c, req_data, &server.configuration.mode, client).await;
+                    let resp = server.$api.$method(c, req_data, &server.configuration.mode, rpc_caller).await;
                     #[cfg(debug_assertions)]
                     tracing::debug!("response {}{} {resp:?}", $route_base, $path);
                     resp
@@ -53,12 +53,12 @@ macro_rules! serve {
                     Extension(server): Extension<Server>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
-                    Extension(client): Extension<Client>,
+                    Extension(rpc_caller): Extension<RpcCaller>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
                     $cache.get_cached(move || {
                         Box::pin(async move {
-                            let resp = server.$api.$method(c, req_data, &server.configuration.mode, client).await;
+                            let resp = server.$api.$method(c, req_data, &server.configuration.mode, rpc_caller).await;
                             #[cfg(debug_assertions)]
                             tracing::debug!("response {}{} {resp:?}", $route_base, $path);
                             resp

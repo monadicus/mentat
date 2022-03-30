@@ -5,19 +5,15 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json,
+    server::RpcCaller,
     Json,
 };
-use reqwest::Client;
 
-pub struct BitcoinCallApi {
-    url: String,
-}
+pub struct BitcoinCallApi;
 
 impl Default for BitcoinCallApi {
     fn default() -> Self {
-        Self {
-            url: "http://127.0.0.1:8080".to_string(),
-        }
+        Self {}
     }
 }
 
@@ -30,10 +26,11 @@ impl CallApi for BitcoinCallApi {
         &self,
         _caller: Caller,
         data: CallRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<CallResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/call"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await

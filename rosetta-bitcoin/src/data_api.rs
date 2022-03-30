@@ -5,19 +5,15 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json,
-    Client,
+    server::RpcCaller,
     Json,
 };
 
-pub struct BitcoinDataApi {
-    url: String,
-}
+pub struct BitcoinDataApi;
 
 impl Default for BitcoinDataApi {
     fn default() -> Self {
-        Self {
-            url: "http://127.0.0.1:8080".to_string(),
-        }
+        Self {}
     }
 }
 
@@ -30,10 +26,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: MetadataRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkListResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/network/list"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -58,10 +55,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: NetworkRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkOptionsResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/network/options"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -86,10 +84,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: NetworkRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkStatusResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/network/status"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -114,10 +113,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: AccountBalanceRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountBalanceResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/account/balance"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -142,10 +142,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: AccountCoinsRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountCoinsResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/account/coins"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -170,10 +171,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: BlockRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/block"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -198,10 +200,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: BlockTransactionRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockTransactionResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/block/transaction"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -226,10 +229,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: NetworkRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/mempool"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -254,10 +258,11 @@ impl DataApi for BitcoinDataApi {
         &self,
         _caller: Caller,
         data: MempoolTransactionRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolTransactionResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/mempool/transaction"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await

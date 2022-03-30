@@ -2029,7 +2029,6 @@ name = "rosetta-bitcoin"
 version = "0.1.0"
 dependencies = [
  "mentat",
- "reqwest",
 ]
 
 [[package]]
@@ -2037,7 +2036,6 @@ name = "rosetta-snarkos"
 version = "0.1.0"
 dependencies = [
  "mentat",
- "reqwest",
 ]
 
 [[package]]

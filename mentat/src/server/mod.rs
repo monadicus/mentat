@@ -7,11 +7,13 @@ mod dummy_indexer;
 pub mod logging;
 mod middleware_checks;
 mod node;
+mod rpc_caller;
 
 use std::{net::SocketAddr, path::Path, sync::Arc};
 
 use axum::{extract::Extension, middleware, Router};
 pub use node::*;
+pub use rpc_caller::RpcCaller;
 use tracing::info;
 
 use self::{
@@ -67,6 +69,9 @@ impl Server {
         }
     }
 
+    /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
+    /// instead
+    #[doc(hidden)]
     pub async fn serve<T: NodeRunner>(
         self,
         mut app: Router,
@@ -80,7 +85,7 @@ impl Server {
                 .await?;
         }
 
-        let client = reqwest::Client::new();
+        let rpc_caller = RpcCaller::new(&self.configuration);
         let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
 
         app = app
@@ -88,7 +93,7 @@ impl Server {
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(Extension(self))
-                    .layer(Extension(client)),
+                    .layer(Extension(rpc_caller)),
             );
 
         info!("Listening on http://{}", addr);

@@ -1,7 +1,8 @@
 use std::net::SocketAddr;
 
 use axum::Json;
-use reqwest::Client;
+
+use crate::server::RpcCaller;
 
 mod construction;
 pub use construction::*;

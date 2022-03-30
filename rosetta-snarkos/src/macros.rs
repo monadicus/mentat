@@ -1,10 +1,11 @@
 #[macro_export]
 macro_rules! jsonrpc_call {
-    (@ret $method:expr, $params:expr, $client:expr, $resp:ty) => {{
+    (@ret $method:expr, $params:expr, $rpc_caller:expr, $resp:ty) => {{
         let req = SnarkosJrpc::new($method, $params);
 
-        let response = $client
-            .post("http://127.0.0.1:3032")
+        let response = $rpc_caller
+            .client
+            .post(&$rpc_caller.node_rpc_url)
             .json(&req)
             .send()
             .await?;
@@ -16,11 +17,12 @@ macro_rules! jsonrpc_call {
             Response::Err(err) => err.into(),
         }
     }};
-    (@res $method:expr, $params:expr, $client:expr, $resp:ty) => {{
+    (@res $method:expr, $params:expr, $rpc_caller:expr, $resp:ty) => {{
         let req = SnarkosJrpc::new($method, $params);
 
-        let response = $client
-            .post("http://127.0.0.1:3032")
+        let response = $rpc_caller
+            .client
+            .post(&$rpc_caller.node_rpc_url)
             .json(&req)
             .send()
             .await?;

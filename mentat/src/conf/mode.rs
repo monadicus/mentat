@@ -1,4 +1,4 @@
-use std::{env, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 
 use super::{Deserialize, Serialize};
 
@@ -16,10 +16,7 @@ impl Mode {
 
 impl Default for Mode {
     fn default() -> Self {
-        match env::var("MODE").as_deref() {
-            Ok("OFFLINE") => Mode::Offline,
-            _ => Mode::Online,
-        }
+        Mode::Online
     }
 }
 
