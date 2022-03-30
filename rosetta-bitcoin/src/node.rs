@@ -27,6 +27,7 @@ pub struct BitcoinNode;
 #[async_trait]
 impl NodeRunner for BitcoinNode {
     type Custom = CustomConfig;
+
     async fn start_node(
         &self,
         config: &Configuration<Self::Custom>,

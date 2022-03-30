@@ -5,7 +5,8 @@ use mentat::{
     responses::*,
     serde_json::{self, Value},
     server::RpcCaller,
-    Json, IndexMap,
+    IndexMap,
+    Json,
 };
 
 use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};

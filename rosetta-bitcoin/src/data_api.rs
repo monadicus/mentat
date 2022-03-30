@@ -6,8 +6,9 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json::{self, json},
+    server::RpcCaller,
     IndexMap,
-    Json, server::RpcCaller,
+    Json,
 };
 
 use crate::{

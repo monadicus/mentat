@@ -18,8 +18,11 @@ pub use rpc_caller::RpcCaller;
 use tracing::info;
 
 use self::{
-    dummy_call::DummyCallApi, dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
-    dummy_indexer::DummyIndexerApi, middleware_checks::middleware_checks,
+    dummy_call::DummyCallApi,
+    dummy_construction::DummyConstructionApi,
+    dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi,
+    middleware_checks::middleware_checks,
 };
 use crate::{api::*, conf::*};
 
