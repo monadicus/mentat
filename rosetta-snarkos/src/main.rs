@@ -15,10 +15,13 @@ use request::SnarkosJrpc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path.push("conf.toml");
+
     let server = Server::new(
         call_api::SnarkosCallApi::default(),
         construction_api::SnarkosConstructionApi::default(),
-        &PathBuf::from("./conf.toml"),
+        &path,
         data_api::SnarkosDataApi::default(),
         indexer_api::SnarkosIndexerApi::default(),
     );

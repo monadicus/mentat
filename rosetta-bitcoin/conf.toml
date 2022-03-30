@@ -1,0 +1,8 @@
+address = "0.0.0.0"
+blockchain = "Bitcoin"
+mode = "Online"
+network = "Testnet"
+secure_http = false
+node_address = "127.0.0.1"
+node_port = 3032
+port = 8080

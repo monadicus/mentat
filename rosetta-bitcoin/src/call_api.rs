@@ -9,13 +9,8 @@ use mentat::{
     Json,
 };
 
+#[derive(Default)]
 pub struct BitcoinCallApi;
-
-impl Default for BitcoinCallApi {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 #[async_trait]
 impl CallerCallApi for BitcoinCallApi {}
