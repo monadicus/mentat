@@ -22,14 +22,22 @@ impl CallerDataApi for BitcoinDataApi {}
 
 #[async_trait]
 impl DataApi for BitcoinDataApi {
-    // async fn network_list(
-    //     &self,
-    //     _caller: Caller,
-    //     data: MetadataRequest,
-    //     client: Client,
-    // ) -> MentatResponse<NetworkListResponse> {
-    //     todo!()
-    // }
+    async fn network_list(
+        &self,
+        _caller: Caller,
+        _data: MetadataRequest,
+        client: Client,
+    ) -> MentatResponse<NetworkListResponse> {
+        Ok(Json(
+            jsonrpc_call!(
+                "getblockchaininfo",
+                vec![] as Vec<u8>,
+                client,
+                GetBlockchainInfoResponse
+            )
+            .into(),
+        ))
+    }
 
     // async fn network_options(
     //     &self,
@@ -99,7 +107,7 @@ impl DataApi for BitcoinDataApi {
     ) -> MentatResponse<BlockTransactionResponse> {
         let block_hash = trim_hash(&data.block_identifier.hash);
         let tx_hash = trim_hash(&data.transaction_identifier.hash);
-        
+
         let block = jsonrpc_call!(
             "getblock",
             vec![json!(block_hash), json!(2u32)],

@@ -39,9 +39,9 @@ impl FromStr for Network {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_uppercase().as_ref() {
-            "MAINNET" => Ok(Self::Mainnet),
-            "TESTNET" => Ok(Self::Testnet),
+        match s.to_lowercase().as_ref() {
+            "mainnet" => Ok(Self::Mainnet),
+            "testnet" => Ok(Self::Testnet),
             s => Err(format!("Invalid network id {s}")),
         }
     }
@@ -50,8 +50,8 @@ impl FromStr for Network {
 impl fmt::Display for Network {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Mainnet => write!(f, "MAINNET"),
-            Self::Testnet => write!(f, "TESTNET"),
+            Self::Mainnet => write!(f, "mainnet"),
+            Self::Testnet => write!(f, "testnet"),
         }
     }
 }
