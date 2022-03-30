@@ -8,7 +8,7 @@ pub mod logging;
 mod middleware_checks;
 mod node;
 
-use std::{net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, path::Path, sync::Arc};
 
 use axum::{extract::Extension, middleware, Router};
 pub use node::*;
@@ -48,6 +48,7 @@ impl Server {
     pub fn new<Call, Construction, Data, Indexer>(
         call: Call,
         construct: Construction,
+        config: &Path,
         data: Data,
         indexer: Indexer,
     ) -> Self
@@ -59,67 +60,11 @@ impl Server {
     {
         Self {
             call_api: Arc::new(call),
+            configuration: Configuration::load(config),
             construction_api: Arc::new(construct),
             indexer_api: Arc::new(indexer),
             data_api: Arc::new(data),
-            configuration: Default::default(),
         }
-    }
-
-    pub fn with_data_api<T: CallerDataApi + 'static>(
-        &mut self,
-        mainnet_data_api: T,
-        testnet_data_api: T,
-    ) {
-        match self.configuration.network {
-            Network::Mainnet => self.with_dyn_data_api(Arc::new(mainnet_data_api)),
-            Network::Testnet => self.with_dyn_data_api(Arc::new(testnet_data_api)),
-            Network::Other(_) => todo!(),
-        }
-    }
-
-    pub fn with_dyn_data_api(&mut self, data_api: Arc<dyn CallerDataApi>) {
-        self.data_api = data_api;
-    }
-
-    pub fn with_construction_api<T: CallerConstructionApi + 'static>(
-        &mut self,
-        mainnet_construction_api: T,
-        testnet_construction_api: T,
-    ) {
-        match self.configuration.network {
-            Network::Mainnet => self.with_dyn_construction_api(Arc::new(mainnet_construction_api)),
-            Network::Testnet => self.with_dyn_construction_api(Arc::new(testnet_construction_api)),
-            Network::Other(_) => todo!(),
-        }
-    }
-
-    pub fn with_dyn_construction_api(&mut self, construction_api: Arc<dyn CallerConstructionApi>) {
-        self.construction_api = construction_api;
-    }
-
-    pub fn with_indexer_api<T: CallerIndexerApi + 'static>(
-        &mut self,
-        mainnet_indexer_api: T,
-        testnet_indexer_api: T,
-    ) {
-        match self.configuration.network {
-            Network::Mainnet => self.with_dyn_indexer_api(Arc::new(mainnet_indexer_api)),
-            Network::Testnet => self.with_dyn_indexer_api(Arc::new(testnet_indexer_api)),
-            Network::Other(_) => todo!(),
-        }
-    }
-
-    pub fn with_dyn_indexer_api(&mut self, indexer_api: Arc<dyn CallerIndexerApi>) {
-        self.indexer_api = indexer_api;
-    }
-
-    pub fn with_call_api<T: CallerCallApi + 'static>(&mut self, call_api: T) {
-        self.with_dyn_call_api(Arc::new(call_api));
-    }
-
-    pub fn with_dyn_call_api(&mut self, call_api: Arc<dyn CallerCallApi>) {
-        self.call_api = call_api;
     }
 
     pub async fn serve<T: NodeRunner>(

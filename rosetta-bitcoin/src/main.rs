@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use mentat::{
     serve,
     server::{DummyNode, Server},
@@ -14,6 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let server = Server::new(
         call_api::BitcoinCallApi::default(),
         construction_api::BitcoinConstructionApi::default(),
+        &PathBuf::from("./conf.toml"),
         data_api::BitcoinDataApi::default(),
         indexer_api::BitcoinIndexerApi::default(),
     );

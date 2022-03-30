@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use mentat::{cache::DefaultCacheInner, serve, server::Server, tokio};
 
 mod call_api;
@@ -16,6 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let server = Server::new(
         call_api::SnarkosCallApi::default(),
         construction_api::SnarkosConstructionApi::default(),
+        &PathBuf::from("./conf.toml"),
         data_api::SnarkosDataApi::default(),
         indexer_api::SnarkosIndexerApi::default(),
     );

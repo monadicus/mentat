@@ -14,17 +14,42 @@ pub struct Configuration {
 
 impl Configuration {
     pub fn load(path: &Path) -> Self {
-        let content = fs::read_to_string(path).unwrap();
-        toml::from_str(&content).unwrap()
+        let content = fs::read_to_string(path).unwrap_or_else(|e| {
+            panic!(
+                "failed to read config file at path `{}`: {}",
+                path.display(),
+                e
+            )
+        });
+        toml::from_str(&content).unwrap_or_else(|e| {
+            panic!(
+                "failed to parse config file at path `{}`: {}",
+                path.display(),
+                e
+            )
+        })
     }
 
     pub fn create_template(path: &Path) {
-        fs::create_dir_all(path).unwrap();
+        fs::create_dir_all(path)
+            .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", path.display(), e));
 
-        let template = path.join("_template.toml");
-        let content = toml::to_string_pretty(&Self::default()).unwrap();
+        let default_config = path.join("default.config.toml");
+        let content = toml::to_string_pretty(&Self::default()).unwrap_or_else(|e| {
+            panic!(
+                "Failed to create default toml configuration at `{}`: {}",
+                path.display(),
+                e
+            )
+        });
 
-        fs::write(&template, content).unwrap();
+        fs::write(&default_config, content).unwrap_or_else(|e| {
+            panic!(
+                "failed to write to default config `{}`: {}",
+                path.display(),
+                e
+            )
+        });
     }
 }
 
