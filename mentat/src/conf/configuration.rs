@@ -34,6 +34,7 @@ pub struct Configuration<Custom: NodeConf> {
     pub node_path: PathBuf,
     pub node_rpc_port: u16,
     pub port: u16,
+    #[serde(default)]
     pub custom: Custom,
 }
 
@@ -41,13 +42,6 @@ impl<Custom> Configuration<Custom>
 where
     Custom: NodeConf + DeserializeOwned + Serialize,
 {
-    pub fn new(custom: Custom) -> Self {
-        Self {
-            custom,
-            ..Default::default()
-        }
-    }
-
     pub fn load(path: &Path) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| {
             panic!(

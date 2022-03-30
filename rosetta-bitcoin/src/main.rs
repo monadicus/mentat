@@ -30,7 +30,7 @@ impl ServerTypes for BitcoinTypes {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let server = Server::<BitcoinTypes>::builder()
         .call_api(call_api::BitcoinCallApi::default())
-        .custom_configuration(NodeConfig::default())
+        .custom_configuration_from_arg()
         .construction_api(construction_api::BitcoinConstructionApi::default())
         .data_api(data_api::BitcoinDataApi::default())
         .indexer_api(indexer_api::BitcoinIndexerApi::default())

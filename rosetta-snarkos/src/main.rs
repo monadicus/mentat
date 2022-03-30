@@ -32,7 +32,7 @@ impl ServerTypes for SnarkosTypes {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let server = Server::<SnarkosTypes>::builder()
         .call_api(call_api::SnarkosCallApi::default())
-        .custom_configuration(NodeConfig)
+        .custom_configuration_from_arg()
         .construction_api(construction_api::SnarkosConstructionApi::default())
         .data_api(data_api::SnarkosDataApi::default())
         .indexer_api(indexer_api::SnarkosIndexerApi::default())

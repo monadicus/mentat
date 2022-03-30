@@ -112,8 +112,19 @@ impl<Types: ServerTypes> ServerBuilder<Types> {
         self
     }
 
-    pub fn custom_configuration(mut self, config: Types::CustomConfig) -> Self {
-        self.configuration = Some(Configuration::new(config));
+    pub fn custom_configuration_from_arg(self) -> Self {
+        let args: Vec<String> = std::env::args().collect();
+        if args.len() != 2 {
+            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
+            std::process::exit(1);
+        }
+
+        let path = std::path::PathBuf::from(&args[1]);
+        self.custom_configuration(&path)
+    }
+
+    pub fn custom_configuration(mut self, path: &std::path::Path) -> Self {
+        self.configuration = Some(Configuration::load(path));
         self
     }
 
