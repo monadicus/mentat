@@ -1,4 +1,5 @@
 mod serve;
+use serde::{de::DeserializeOwned, Serialize};
 pub use serve::*;
 mod dummy_call;
 mod dummy_construction;
@@ -23,15 +24,21 @@ use self::{
 use crate::{api::*, conf::*};
 
 #[derive(Clone)]
-pub struct Server {
+pub struct Server<CustomConf>
+where
+    CustomConf: Default,
+{
     pub call_api: Arc<dyn CallerCallApi>,
-    pub configuration: Configuration,
+    pub configuration: Configuration<CustomConf>,
     pub construction_api: Arc<dyn CallerConstructionApi>,
     pub data_api: Arc<dyn CallerDataApi>,
     pub indexer_api: Arc<dyn CallerIndexerApi>,
 }
 
-impl Default for Server {
+impl<CustomConf> Default for Server<CustomConf>
+where
+    CustomConf: Default,
+{
     fn default() -> Self {
         Self {
             call_api: Arc::new(DummyCallApi),
@@ -43,7 +50,10 @@ impl Default for Server {
     }
 }
 
-impl Server {
+impl<CustomConf> Server<CustomConf>
+where
+    CustomConf: Clone + Default + DeserializeOwned + Send + Serialize + Sync + 'static,
+{
     pub fn new<Call, Construction, Data, Indexer>(
         call: Call,
         construct: Construction,
@@ -69,7 +79,7 @@ impl Server {
     /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
     /// instead
     #[doc(hidden)]
-    pub async fn serve<T: NodeRunner>(
+    pub async fn serve<T: NodeRunner<Custom = CustomConf>>(
         self,
         mut app: Router,
         node: &T,
@@ -85,7 +95,7 @@ impl Server {
         let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
 
         app = app
-            .route_layer(middleware::from_fn(middleware_checks))
+            .route_layer(middleware::from_fn(middleware_checks::<CustomConf>))
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(Extension(self))

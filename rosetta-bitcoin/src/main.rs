@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use mentat::{serve, server::Server, tokio};
 
-use crate::node::BitcoinNode;
+use crate::node::{BitcoinNode, CustomConfig};
 
 mod call_api;
 mod construction_api;
@@ -18,7 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("conf.toml");
 
-    let server = Server::new(
+    let server = Server::<CustomConfig>::new(
         call_api::BitcoinCallApi::default(),
         construction_api::BitcoinConstructionApi::default(),
         &path,
@@ -26,5 +26,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         indexer_api::BitcoinIndexerApi::default(),
     );
 
-    serve!(server, BitcoinNode::default(),)
+    serve!(server, BitcoinNode::default(), CustomConfig,)
 }

@@ -1,17 +1,36 @@
 use std::{
     io::{BufRead, BufReader, Read},
+    path::PathBuf,
     process::{Command, Stdio},
     thread,
 };
 
-use mentat::{async_trait, conf::Configuration, server::NodeRunner, tracing};
+use mentat::{
+    async_trait,
+    conf::Configuration,
+    serde::{Deserialize, Serialize},
+    server::NodeRunner,
+    tracing,
+};
+
+#[derive(Clone, Default, Serialize, Deserialize)]
+#[serde(crate = "mentat::serde")]
+pub struct CustomConfig {
+    data_dir: PathBuf,
+    user: String,
+    pass: String,
+}
 
 #[derive(Default)]
 pub struct BitcoinNode;
 
 #[async_trait]
 impl NodeRunner for BitcoinNode {
-    async fn start_node(&self, config: &Configuration) -> Result<(), Box<dyn std::error::Error>> {
+    type Custom = CustomConfig;
+    async fn start_node(
+        &self,
+        config: &Configuration<Self::Custom>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut child = Command::new(&config.node_path)
             .args(&[
                 // TODO cant bind to address without setting a whitelist
@@ -19,10 +38,10 @@ impl NodeRunner for BitcoinNode {
                 // &format!("--rpcbind={address}:3032"),
                 "-port=4132",
                 &format!("-rpcport={}", config.node_rpc_port),
-                "-rpcuser=USER",
-                "-rpcpassword=PASS",
+                &format!("-rpcuser={}", config.custom.user),
+                &format!("-rpcpassword={}", config.custom.pass),
                 "-txindex=1",
-                &format!("--datadir={}", config.data_dir.display()),
+                &format!("--datadir={}", config.custom.data_dir.display()),
             ])
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())

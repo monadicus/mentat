@@ -10,7 +10,12 @@ pub struct SnarkOSNode;
 
 #[async_trait]
 impl NodeRunner for SnarkOSNode {
-    async fn start_node(&self, config: &Configuration) -> Result<(), Box<dyn std::error::Error>> {
+    type Custom = ();
+
+    async fn start_node(
+        &self,
+        config: &Configuration<Self::Custom>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // TODO: make it so snarkos checks for updates and rebuilds automatically.
         let mut child = std::process::Command::new(&config.node_path)
             .args(&[
