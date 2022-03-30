@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("conf.toml");
 
-    let server = Server::new(
+    let server = Server::<()>::new(
         call_api::BitcoinCallApi::default(),
         construction_api::BitcoinConstructionApi::default(),
         &path,
@@ -24,5 +24,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         indexer_api::BitcoinIndexerApi::default(),
     );
 
-    serve!(server, DummyNode::default(),)
+    serve!(server, DummyNode::default(), (),)
 }
