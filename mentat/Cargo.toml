@@ -5,11 +5,12 @@ edition = "2021"
 rust-version = "1.59.0"
 
 [features]
-_network = ["axum", "indexmap", "serde", "serde_json", "reqwest"]
+_network = ["indexmap", "serde", "serde_json", "reqwest"]
 client = ["_network"]
 default = ["server"]
 server = [
     "_network",
+    "axum",
     "color-backtrace",
     "hyper",
     "opentelemetry",
