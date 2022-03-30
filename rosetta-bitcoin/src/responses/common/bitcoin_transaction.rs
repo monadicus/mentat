@@ -8,7 +8,7 @@ use mentat::{
     Client, IndexMap,
 };
 
-use crate::jsonrpc_call;
+use crate::{jsonrpc_call, request::trim_hash};
 
 use super::*;
 
@@ -44,7 +44,7 @@ impl BitcoinVin {
             (Some(id), Some(vout_idx)) => {
                 let transaction = jsonrpc_call!(
                     "getrawtransaction",
-                    vec![json!(id), json!(2)],
+                    vec![json!(trim_hash(id)), json!(true)],
                     client,
                     BitcoinTransaction
                 );

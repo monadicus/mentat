@@ -1,17 +1,18 @@
 use crate::{
     jsonrpc_call,
     request::{trim_hash, BitcoinJrpc},
-    responses::{data::*, Response},
+    responses::{common::BitcoinTransaction, data::*, Response},
 };
 
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentatResponse},
     async_trait,
     errors::*,
+    identifiers::TransactionIdentifier,
     requests::*,
     responses::*,
     serde_json::{self, json},
-    Client, Json,
+    Client, IndexMap, Json,
 };
 
 #[derive(Default)]
@@ -114,13 +115,13 @@ impl DataApi for BitcoinDataApi {
             client,
             GetBlockResponse
         );
-        if let Some((i, tx)) = block.tx.iter().enumerate().find_map(|(i, tx)| {
-            if tx.hash == tx_hash {
-                Some((i, tx))
-            } else {
-                None
-            }
-        }) {
+
+        if let Some((i, tx)) = block
+            .tx
+            .into_iter()
+            .enumerate()
+            .find(|(_, tx)| tx.hash == tx_hash)
+        {
             Ok(Json(BlockTransactionResponse {
                 transaction: tx.into_transaction(i, &client).await?,
             }))
@@ -131,21 +132,52 @@ impl DataApi for BitcoinDataApi {
         }
     }
 
-    // async fn mempool(
-    //     &self,
-    //     _caller: Caller,
-    //     data: NetworkRequest,
-    //     client: Client,
-    // ) -> MentatResponse<MempoolResponse> {
-    //     todo!()
-    // }
+    async fn mempool(
+        &self,
+        _caller: Caller,
+        _data: NetworkRequest,
+        client: Client,
+    ) -> MentatResponse<MempoolResponse> {
+        let transaction_identifiers =
+            jsonrpc_call!("getrawmempool", vec![] as Vec<u8>, client, Vec<String>)
+                .into_iter()
+                .map(|hash| TransactionIdentifier { hash })
+                .collect();
+        Ok(Json(MempoolResponse {
+            transaction_identifiers,
+        }))
+    }
 
-    // async fn mempool_transaction(
-    //     &self,
-    //     _caller: Caller,
-    //     data: MempoolTransactionRequest,
-    //     client: Client,
-    // ) -> MentatResponse<MempoolTransactionResponse> {
-    //     todo!()
-    // }
+    async fn mempool_transaction(
+        &self,
+        _caller: Caller,
+        data: MempoolTransactionRequest,
+        client: Client,
+    ) -> MentatResponse<MempoolTransactionResponse> {
+        let tx_hash = trim_hash(&data.transaction_identifier.hash);
+        let mempool = jsonrpc_call!("getrawmempool", vec![] as Vec<u8>, client, Vec<String>);
+
+        if let Some((i, _)) = mempool
+            .into_iter()
+            .enumerate()
+            .find(|(_, id)| id.as_str() == tx_hash)
+        {
+            let transaction = jsonrpc_call!(
+                "getrawtransaction",
+                vec![json!(tx_hash), json!(true)],
+                client,
+                BitcoinTransaction
+            )
+            .into_transaction(i, &client)
+            .await?;
+            Ok(Json(MempoolTransactionResponse {
+                transaction,
+                metadata: IndexMap::new(),
+            }))
+        } else {
+            MentatResponse::from(ApiError::unable_to_find_transaction(
+                &data.transaction_identifier.hash,
+            ))
+        }
+    }
 }
