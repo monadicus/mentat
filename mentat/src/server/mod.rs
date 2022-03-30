@@ -81,8 +81,11 @@ impl Server {
         logging::setup()?;
 
         if !self.configuration.mode.is_offline() {
-            node.start_node(self.configuration.address.to_string())
-                .await?;
+            node.start_node(
+                self.configuration.address.to_string(),
+                &self.configuration.node_path,
+            )
+            .await?;
         }
 
         let rpc_caller = RpcCaller::new(&self.configuration);

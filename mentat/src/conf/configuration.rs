@@ -1,4 +1,8 @@
-use std::{fs, net::Ipv4Addr, path::Path};
+use std::{
+    fs,
+    net::Ipv4Addr,
+    path::{Path, PathBuf},
+};
 
 use super::*;
 
@@ -10,7 +14,8 @@ pub struct Configuration {
     pub network: Network,
     pub secure_http: bool,
     pub node_address: String,
-    pub node_port: u16,
+    pub node_path: PathBuf,
+    pub node_rpc_port: u16,
     pub port: u16,
 }
 
@@ -18,18 +23,24 @@ impl Configuration {
     pub fn load(path: &Path) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| {
             panic!(
-                "failed to read config file at path `{}`: {}",
+                "Failed to read config file at path `{}`: {}",
                 path.display(),
                 e
             )
         });
-        toml::from_str(&content).unwrap_or_else(|e| {
+        let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
             panic!(
-                "failed to parse config file at path `{}`: {}",
+                "Failed to parse config file at path `{}`: {}",
                 path.display(),
                 e
             )
-        })
+        });
+
+        if !config.node_path.exists() {
+            panic!("Failed to find node at `{}`", config.node_path.display())
+        }
+
+        config
     }
 
     pub fn create_template(path: &Path) {
@@ -63,7 +74,8 @@ impl Default for Configuration {
             mode: Default::default(),
             network: Network::Testnet,
             node_address: "127.0.0.1".to_string(),
-            node_port: 4032,
+            node_path: PathBuf::from("/app/rosetta-mentat-service"),
+            node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
         }

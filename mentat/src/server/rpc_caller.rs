@@ -14,7 +14,7 @@ impl RpcCaller {
                 "{}://{}:{}",
                 if conf.secure_http { "https" } else { "http" },
                 conf.node_address,
-                conf.node_port
+                conf.node_rpc_port
             ),
         }
     }
