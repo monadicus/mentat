@@ -13,10 +13,12 @@ pub struct AccountIdentifier {
     /// An account may have state specific to a contract address (ERC-20 token)
     /// and/or a stake (delegated balance). The sub_account_identifier should
     /// specify which state (if applicable) an account instantiation refers to.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub decimals: Option<SubAccountIdentifier>,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

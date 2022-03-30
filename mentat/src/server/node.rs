@@ -1,18 +1,11 @@
-use std::path::Path;
+use super::serve_exports::Configuration;
 
 #[axum::async_trait]
 pub trait NodeRunner: Send + Sync + 'static {
+    type Custom: Default + Send + Sync + 'static;
+
     async fn start_node(
         &self,
-        _address: String,
-        _node_path: &Path,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        Ok(())
-    }
+        _config: &Configuration<Self::Custom>,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }
-
-#[derive(Default)]
-pub struct DummyNode;
-
-#[axum::async_trait]
-impl NodeRunner for DummyNode {}

@@ -17,6 +17,7 @@ pub struct Currency {
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

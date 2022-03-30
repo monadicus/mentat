@@ -1,13 +1,15 @@
 use mentat::{
     api::{CallApi, Caller, CallerCallApi, MentatResponse},
     async_trait,
-    errors::*,
     requests::*,
     responses::*,
-    serde_json,
+    serde_json::{self, Value},
     server::RpcCaller,
+    IndexMap,
     Json,
 };
+
+use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};
 
 #[derive(Default)]
 pub struct BitcoinCallApi;
@@ -23,26 +25,21 @@ impl CallApi for BitcoinCallApi {
         data: CallRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<CallResponse> {
-        let resp = match rpc_caller
-            .client
-            .post(&rpc_caller.node_rpc_url)
-            .json(&data)
-            .send()
-            .await
-        {
-            Ok(resp) => resp,
-            Err(e) => {
-                return Err(match serde_json::from_str(&e.to_string()) {
-                    Ok(s) => MentatError::Internal(s),
-                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                });
-            }
-        };
-
-        let out = resp.text().await?;
-        match serde_json::from_str(&out) {
-            Ok(o) => Ok(Json(o)),
-            Err(_) => Err(MentatError::Internal(serde_json::from_str(&out)?)),
-        }
+        let result = jsonrpc_call!(
+            &data.method,
+            data.parameters.into_iter().map(|(_, p)| p).collect(),
+            rpc_caller,
+            IndexMap<String, Value>
+        );
+        Ok(Json(CallResponse {
+            result,
+            // TODO: figure out when to set this as true
+            //     Idempotent indicates that if /call is invoked with the same CallRequest again, at
+            // any point in time, it will return the same CallResponse. Integrators may cache the
+            // CallResponse if this is set to true to avoid making unnecessary calls to the Rosetta
+            // implementation. For this reason, implementers should be very conservative about
+            // returning true here or they could cause issues for the caller.
+            idempotent: false,
+        }))
     }
 }

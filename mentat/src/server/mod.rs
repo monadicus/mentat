@@ -82,7 +82,7 @@ where
     /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
     /// instead
     #[doc(hidden)]
-    pub async fn serve<T: NodeRunner>(
+    pub async fn serve<T: NodeRunner<Custom = CustomConf>>(
         self,
         mut app: Router,
         node: &T,
@@ -91,11 +91,7 @@ where
         logging::setup()?;
 
         if !self.configuration.mode.is_offline() {
-            node.start_node(
-                self.configuration.address.to_string(),
-                &self.configuration.node_path,
-            )
-            .await?;
+            node.start_node(&self.configuration).await?;
         }
 
         let rpc_caller = RpcCaller::new(&self.configuration);
