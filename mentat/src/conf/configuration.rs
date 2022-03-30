@@ -4,6 +4,7 @@ use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Configuration {
+    pub blockchain: String,
     pub mode: Mode,
     pub network: Network,
     pub port: u16,
@@ -28,6 +29,7 @@ impl Configuration {
 impl Default for Configuration {
     fn default() -> Self {
         Self {
+            blockchain: "UNKNOWN".to_string(),
             mode: Default::default(),
             network: Network::Testnet,
             port: 8080,

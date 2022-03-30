@@ -9,7 +9,6 @@ mod middleware_checks;
 mod node;
 
 use std::{
-    env,
     net::{Ipv4Addr, SocketAddr},
     sync::Arc,
 };
@@ -23,7 +22,7 @@ use self::{
     dummy_construction::DummyConstructionApi,
     dummy_data::DummyDataApi,
     dummy_indexer::DummyIndexerApi,
-    middleware_checks::middleware_check,
+    middleware_checks::middleware_checks,
 };
 use crate::{api::*, conf::*};
 
@@ -33,34 +32,26 @@ pub struct Server {
     pub data_api: Arc<dyn CallerDataApi>,
     pub indexer_api: Arc<dyn CallerIndexerApi>,
     pub call_api: Arc<dyn CallerCallApi>,
-    pub network: Network,
-    pub blockchain: String,
+    pub configuration: Configuration,
 }
 
 impl Default for Server {
     fn default() -> Self {
-        let network = match env::var("NETWORK").as_deref() {
-            Ok("TESTNET") => Network::Testnet,
-            _ => Network::Mainnet,
-        };
-
         Self {
             construction_api: Arc::new(DummyConstructionApi),
             data_api: Arc::new(DummyDataApi),
             indexer_api: Arc::new(DummyIndexerApi),
             call_api: Arc::new(DummyCallApi),
-            network,
-            blockchain: String::from("UNKNOWN"),
+            configuration: Default::default(),
+            /* network,
+            blockchain: String::from("UNKNOWN"), */
         }
     }
 }
 
 impl Server {
-    pub fn new(blockchain: String) -> Self {
-        Self {
-            blockchain,
-            ..Default::default()
-        }
+    pub fn new(_blockchain: String) -> Self {
+        Default::default()
     }
 
     pub fn with_data_api<T: CallerDataApi + 'static>(
@@ -68,7 +59,7 @@ impl Server {
         mainnet_data_api: T,
         testnet_data_api: T,
     ) {
-        match self.network {
+        match self.configuration.network {
             Network::Mainnet => self.with_dyn_data_api(Arc::new(mainnet_data_api)),
             Network::Testnet => self.with_dyn_data_api(Arc::new(testnet_data_api)),
             Network::Other(_) => todo!(),
@@ -84,7 +75,7 @@ impl Server {
         mainnet_construction_api: T,
         testnet_construction_api: T,
     ) {
-        match self.network {
+        match self.configuration.network {
             Network::Mainnet => self.with_dyn_construction_api(Arc::new(mainnet_construction_api)),
             Network::Testnet => self.with_dyn_construction_api(Arc::new(testnet_construction_api)),
             Network::Other(_) => todo!(),
@@ -100,7 +91,7 @@ impl Server {
         mainnet_indexer_api: T,
         testnet_indexer_api: T,
     ) {
-        match self.network {
+        match self.configuration.network {
             Network::Mainnet => self.with_dyn_indexer_api(Arc::new(mainnet_indexer_api)),
             Network::Testnet => self.with_dyn_indexer_api(Arc::new(testnet_indexer_api)),
             Network::Other(_) => todo!(),
@@ -137,7 +128,7 @@ impl Server {
         let client = reqwest::Client::new();
 
         app = app
-            .route_layer(middleware::from_fn(middleware_check))
+            .route_layer(middleware::from_fn(middleware_checks))
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(Extension(self))

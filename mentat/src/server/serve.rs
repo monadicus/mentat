@@ -25,7 +25,7 @@ macro_rules! serve {
         $(
             $(
             $(
-                #[tracing::instrument(skip(server))]
+                #[tracing::instrument(skip(client, server))]
                 async fn $method(
                     Extension(server): Extension<Server>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
@@ -49,7 +49,7 @@ macro_rules! serve {
         $(
             $(
             $(
-                #[tracing::instrument(skip(server))]
+                #[tracing::instrument(skip(client, server))]
                 async fn $method(
                     Extension(server): Extension<Server>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
