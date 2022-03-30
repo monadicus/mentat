@@ -1,4 +1,6 @@
-use super::serve_exports::Configuration;
+use serde::{de::DeserializeOwned, Serialize};
+
+use super::serve_exports::{Configuration, NodeConf};
 
 #[derive(Clone, Debug)]
 pub struct RpcCaller {
@@ -7,18 +9,12 @@ pub struct RpcCaller {
 }
 
 impl RpcCaller {
-    pub fn new<CustomConf>(conf: &Configuration<CustomConf>) -> Self
-    where
-        CustomConf: Default,
-    {
+    pub fn new<CustomConf: NodeConf + DeserializeOwned + Serialize>(
+        conf: &Configuration<CustomConf>,
+    ) -> Self {
         Self {
             client: reqwest::Client::new(),
-            node_rpc_url: format!(
-                "{}://{}:{}",
-                if conf.secure_http { "https" } else { "http" },
-                conf.node_address,
-                conf.node_rpc_port
-            ),
+            node_rpc_url: conf.build_url(),
         }
     }
 }

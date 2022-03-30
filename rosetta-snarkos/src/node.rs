@@ -3,19 +3,20 @@ use std::{
     thread,
 };
 
-use mentat::{async_trait, conf::Configuration, server::NodeRunner, tracing};
+use mentat::{
+    async_trait,
+    conf::{Configuration, NodeConf},
+    serde::{Deserialize, Serialize},
+    tracing,
+};
 
-#[derive(Default)]
-pub struct SnarkOSNode;
+#[derive(Clone, Default, Serialize, Deserialize)]
+#[serde(crate = "mentat::serde")]
+pub struct NodeConfig;
 
 #[async_trait]
-impl NodeRunner for SnarkOSNode {
-    type Custom = ();
-
-    async fn start_node(
-        &self,
-        config: &Configuration<Self::Custom>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+impl NodeConf for NodeConfig {
+    async fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
         // TODO: make it so snarkos checks for updates and rebuilds automatically.
         let mut child = std::process::Command::new(&config.node_path)
             .args(&[

@@ -2,6 +2,7 @@ use axum::{middleware::Next, response::IntoResponse};
 use hyper::{Body, Request};
 use serde_json::Value;
 
+use super::serve_exports::NodeConf;
 use crate::{
     errors::{MentatError, Result},
     identifiers::NetworkIdentifier,
@@ -12,7 +13,7 @@ pub async fn middleware_checks<CustomConf>(
     next: Next<Body>,
 ) -> Result<impl IntoResponse>
 where
-    CustomConf: Clone + Default + Send + Sync + 'static,
+    CustomConf: NodeConf + Clone + Send + Sync + 'static,
 {
     let (parts, body) = req.into_parts();
     let extensions = &parts.extensions;

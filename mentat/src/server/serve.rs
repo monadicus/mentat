@@ -15,10 +15,10 @@ pub mod serve_exports {
 
 #[macro_export]
 macro_rules! serve {
-    ($server:expr, $node:expr, $conf:ty, $( $cache_inner:ident )?) => {{
+    ($server:expr, $conf:ty, $( $cache_inner:ident )?) => {{
         use $crate::server::serve_exports::*;
         let app = serve!(@build $conf, $($cache_inner)?);
-        $server.serve(app, $node.borrow()).await
+        $server.serve(app).await
     }};
 
     (@routes axum: $app:expr, config: $conf:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {

@@ -7,31 +7,33 @@ use std::{
 
 use mentat::{
     async_trait,
-    conf::Configuration,
+    conf::{Configuration, NodeConf},
     serde::{Deserialize, Serialize},
-    server::NodeRunner,
     tracing,
 };
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct CustomConfig {
+pub struct NodeConfig {
     data_dir: PathBuf,
     user: String,
     pass: String,
 }
 
-#[derive(Default)]
-pub struct BitcoinNode;
-
 #[async_trait]
-impl NodeRunner for BitcoinNode {
-    type Custom = CustomConfig;
+impl NodeConf for NodeConfig {
+    fn build_url(conf: &Configuration<Self>) -> String {
+        format!(
+            "{}://{}:{}@{}:{}",
+            if conf.secure_http { "https" } else { "http" },
+            conf.custom.user,
+            conf.custom.pass,
+            conf.node_address,
+            conf.node_rpc_port
+        )
+    }
 
-    async fn start_node(
-        &self,
-        config: &Configuration<Self::Custom>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
         let mut child = Command::new(&config.node_path)
             .args(&[
                 // TODO cant bind to address without setting a whitelist

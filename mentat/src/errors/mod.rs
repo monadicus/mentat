@@ -52,7 +52,7 @@ impl ApiError {
         }))
     }
 
-    pub fn unable_to_find_transaction<R>(hash: &String) -> MentatResponse<R> {
+    pub fn unable_to_find_transaction<R>(hash: &str) -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError {
             code: 16,
             message: "Invalid account format".to_string(),

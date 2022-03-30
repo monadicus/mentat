@@ -1,7 +1,11 @@
 use axum::http::Extensions;
 
 use super::*;
-use crate::{conf::Network, errors::MentatError, server::Server};
+use crate::{
+    conf::Network,
+    errors::MentatError,
+    server::{serve_exports::NodeConf, Server},
+};
 
 /// The network_identifier specifies which network a particular object is
 /// associated with.
@@ -21,7 +25,7 @@ pub struct NetworkIdentifier {
 impl NetworkIdentifier {
     pub async fn check<CustomConf>(extensions: &Extensions, json: &Value) -> Result<(), MentatError>
     where
-        CustomConf: Clone + Default + Send + Sync + 'static,
+        CustomConf: NodeConf + Clone + Send + Sync + 'static,
     {
         let server = extensions.get::<Server<CustomConf>>().unwrap();
         if let Some(net_id) = json.get("network_identifier") {

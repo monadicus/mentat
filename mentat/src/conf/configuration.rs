@@ -4,15 +4,27 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use axum::async_trait;
 use serde::de::DeserializeOwned;
 
 use super::*;
 
+#[async_trait]
+pub trait NodeConf: Default {
+    async fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>>;
+
+    fn build_url(conf: &Configuration<Self>) -> String {
+        format!(
+            "{}://{}:{}",
+            if conf.secure_http { "https" } else { "http" },
+            conf.node_address,
+            conf.node_rpc_port
+        )
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Configuration<Custom>
-where
-    Custom: Default,
-{
+pub struct Configuration<Custom: NodeConf> {
     pub address: Ipv4Addr,
     pub blockchain: String,
     pub mode: Mode,
@@ -27,7 +39,7 @@ where
 
 impl<Custom> Configuration<Custom>
 where
-    Custom: Default + DeserializeOwned + Serialize,
+    Custom: NodeConf + DeserializeOwned + Serialize,
 {
     pub fn load(path: &Path) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| {
@@ -73,12 +85,17 @@ where
             )
         });
     }
+
+    pub fn build_url(&self) -> String {
+        NodeConf::build_url(self)
+    }
+
+    pub async fn start_node(&self) -> Result<(), Box<dyn std::error::Error>> {
+        NodeConf::start_node(self).await
+    }
 }
 
-impl<Custom: Default> Default for Configuration<Custom>
-where
-    Custom: Default,
-{
+impl<Custom: NodeConf> Default for Configuration<Custom> {
     fn default() -> Self {
         Self {
             address: Ipv4Addr::new(0, 0, 0, 0),
