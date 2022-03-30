@@ -10,7 +10,12 @@ impl RpcCaller {
     pub fn new(conf: &Configuration) -> Self {
         Self {
             client: reqwest::Client::new(),
-            node_rpc_url: format!("http://{}:{}", conf.node_address, conf.node_port),
+            node_rpc_url: format!(
+                "{}://{}:{}",
+                if conf.secure_http { "https" } else { "http" },
+                conf.node_address,
+                conf.node_port
+            ),
         }
     }
 }

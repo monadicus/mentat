@@ -8,8 +8,9 @@ pub struct Configuration {
     pub blockchain: String,
     pub mode: Mode,
     pub network: Network,
+    pub secure_http: bool,
     pub node_address: String,
-    pub node_port: String,
+    pub node_port: u16,
     pub port: u16,
 }
 
@@ -62,8 +63,9 @@ impl Default for Configuration {
             mode: Default::default(),
             network: Network::Testnet,
             node_address: "127.0.0.1".to_string(),
-            node_port: "4032".to_string(),
+            node_port: 4032,
             port: 8080,
+            secure_http: true,
         }
     }
 }
