@@ -17,6 +17,7 @@ pub struct Configuration {
     pub node_path: PathBuf,
     pub node_rpc_port: u16,
     pub port: u16,
+    pub data_dir: PathBuf,
 }
 
 impl Configuration {
@@ -78,6 +79,7 @@ impl Default for Configuration {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
+            data_dir: PathBuf::from("data"),
         }
     }
 }

@@ -1,38 +1,28 @@
 use std::{
     io::{BufRead, BufReader, Read},
-    path::Path,
     process::{Command, Stdio},
     thread,
 };
 
-use mentat::{async_trait, server::NodeRunner, tracing};
+use mentat::{async_trait, conf::Configuration, server::NodeRunner, tracing};
 
 #[derive(Default)]
 pub struct BitcoinNode;
 
 #[async_trait]
 impl NodeRunner for BitcoinNode {
-    async fn start_node(
-        &self,
-        address: String,
-        _node_path: &Path,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        // TODO 0rphon un-hack this
-        // let bitcoin = std::env::var("NODE").unwrap_or_else(|_|
-        // "/app/node-runner".to_string());
-        let bitcoin = "D:\\Program Files\\Bitcoin\\daemon\\bitcoind.exe";
-
-        let mut child = Command::new(bitcoin)
+    async fn start_node(&self, config: &Configuration) -> Result<(), Box<dyn std::error::Error>> {
+        let mut child = Command::new(&config.node_path)
             .args(&[
                 // TODO cant bind to address without setting a whitelist
                 // &format!("--bind={address}:4132"),
                 // &format!("--rpcbind={address}:3032"),
-                &format!("-port=4132"),
-                &format!("-rpcport=3032"),
-                &format!("-rpcuser=USER"),
-                &format!("-rpcpassword=PASS"),
-                &format!("-txindex=1"),
-                &format!("--datadir=D:\\files\\btc"),
+                "-port=4132",
+                &format!("-rpcport={}", config.node_rpc_port),
+                "-rpcuser=USER",
+                "-rpcpassword=PASS",
+                "-txindex=1",
+                &format!("--datadir={}", config.data_dir.display()),
             ])
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())

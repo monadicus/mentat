@@ -1,9 +1,10 @@
 address = "0.0.0.0"
 blockchain = "Bitcoin"
 mode = "Online"
-network = "Testnet"
+network = "Mainnet"
 secure_http = false
-node_address = "127.0.0.1"
-node_path = "/app/rosetta-mentat-service"
+node_address = "USER:PASS@127.0.0.1"
+node_path = "D:\\Program Files\\Bitcoin\\daemon\\bitcoind.exe"
 node_rpc_port = 3032
 port = 8080
+data_dir = "D:\\files\\btc"

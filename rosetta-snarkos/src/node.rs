@@ -1,28 +1,23 @@
 use std::{
     io::{BufRead, BufReader, Read},
-    path::Path,
     thread,
 };
 
-use mentat::{async_trait, server::NodeRunner, tracing};
+use mentat::{async_trait, conf::Configuration, server::NodeRunner, tracing};
 
 #[derive(Default)]
 pub struct SnarkOSNode;
 
 #[async_trait]
 impl NodeRunner for SnarkOSNode {
-    async fn start_node(
-        &self,
-        address: String,
-        node_path: &Path,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn start_node(&self, config: &Configuration) -> Result<(), Box<dyn std::error::Error>> {
         // TODO: make it so snarkos checks for updates and rebuilds automatically.
-        let mut child = std::process::Command::new(node_path)
+        let mut child = std::process::Command::new(&config.node_path)
             .args(&[
                 "--node",
-                &format!("{address}:4132"),
+                &format!("{}:4132", config.address),
                 "--rpc",
-                &format!("{address}:3032"),
+                &format!("{}:{}", config.address, config.node_rpc_port),
                 "--trial",
                 "--verbosity",
                 "2",

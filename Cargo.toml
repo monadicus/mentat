@@ -1,7 +1,6 @@
 [workspace]
 
 members = [
-        "examples/dummy_server",
         "mentat",
         "rosetta-bitcoin",
         "rosetta-snarkos",

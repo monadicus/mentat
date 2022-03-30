@@ -17,11 +17,8 @@ pub use rpc_caller::RpcCaller;
 use tracing::info;
 
 use self::{
-    dummy_call::DummyCallApi,
-    dummy_construction::DummyConstructionApi,
-    dummy_data::DummyDataApi,
-    dummy_indexer::DummyIndexerApi,
-    middleware_checks::middleware_checks,
+    dummy_call::DummyCallApi, dummy_construction::DummyConstructionApi, dummy_data::DummyDataApi,
+    dummy_indexer::DummyIndexerApi, middleware_checks::middleware_checks,
 };
 use crate::{api::*, conf::*};
 
@@ -81,11 +78,7 @@ impl Server {
         logging::setup()?;
 
         if !self.configuration.mode.is_offline() {
-            node.start_node(
-                self.configuration.address.to_string(),
-                &self.configuration.node_path,
-            )
-            .await?;
+            node.start_node(&self.configuration).await?;
         }
 
         let rpc_caller = RpcCaller::new(&self.configuration);
