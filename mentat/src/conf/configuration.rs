@@ -1,12 +1,14 @@
-use std::{fs, path::Path};
+use std::{fs, net::Ipv4Addr, path::Path};
 
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Configuration {
+    pub address: Ipv4Addr,
     pub blockchain: String,
     pub mode: Mode,
     pub network: Network,
+    pub node_port: String,
     pub port: u16,
 }
 
@@ -29,9 +31,11 @@ impl Configuration {
 impl Default for Configuration {
     fn default() -> Self {
         Self {
+            address: Ipv4Addr::new(0, 0, 0, 0),
             blockchain: "UNKNOWN".to_string(),
             mode: Default::default(),
             network: Network::Testnet,
+            node_port: "4032".to_string(),
             port: 8080,
         }
     }

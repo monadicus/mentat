@@ -8,10 +8,7 @@ pub mod logging;
 mod middleware_checks;
 mod node;
 
-use std::{
-    net::{Ipv4Addr, SocketAddr},
-    sync::Arc,
-};
+use std::{net::SocketAddr, sync::Arc};
 
 use axum::{extract::Extension, middleware, Router};
 pub use node::*;
@@ -28,30 +25,45 @@ use crate::{api::*, conf::*};
 
 #[derive(Clone)]
 pub struct Server {
+    pub call_api: Arc<dyn CallerCallApi>,
+    pub configuration: Configuration,
     pub construction_api: Arc<dyn CallerConstructionApi>,
     pub data_api: Arc<dyn CallerDataApi>,
     pub indexer_api: Arc<dyn CallerIndexerApi>,
-    pub call_api: Arc<dyn CallerCallApi>,
-    pub configuration: Configuration,
 }
 
 impl Default for Server {
     fn default() -> Self {
         Self {
+            call_api: Arc::new(DummyCallApi),
+            configuration: Default::default(),
             construction_api: Arc::new(DummyConstructionApi),
             data_api: Arc::new(DummyDataApi),
             indexer_api: Arc::new(DummyIndexerApi),
-            call_api: Arc::new(DummyCallApi),
-            configuration: Default::default(),
-            /* network,
-            blockchain: String::from("UNKNOWN"), */
         }
     }
 }
 
 impl Server {
-    pub fn new(_blockchain: String) -> Self {
-        Default::default()
+    pub fn new<Call, Construction, Data, Indexer>(
+        call: Call,
+        construct: Construction,
+        data: Data,
+        indexer: Indexer,
+    ) -> Self
+    where
+        Call: CallerCallApi + 'static,
+        Construction: CallerConstructionApi + 'static,
+        Data: CallerDataApi + 'static,
+        Indexer: CallerIndexerApi + 'static,
+    {
+        Self {
+            call_api: Arc::new(call),
+            construction_api: Arc::new(construct),
+            indexer_api: Arc::new(indexer),
+            data_api: Arc::new(data),
+            configuration: Default::default(),
+        }
     }
 
     pub fn with_data_api<T: CallerDataApi + 'static>(
@@ -113,30 +125,27 @@ impl Server {
     pub async fn serve<T: NodeRunner>(
         self,
         mut app: Router,
-        address: Ipv4Addr,
-        port: u16,
         node: &T,
     ) -> Result<(), Box<dyn std::error::Error>> {
         color_backtrace::install();
         logging::setup()?;
 
-        let mode = Mode::default();
-        if !mode.is_offline() {
-            node.start_node(address.to_string()).await?;
+        if !self.configuration.mode.is_offline() {
+            node.start_node(self.configuration.address.to_string())
+                .await?;
         }
 
         let client = reqwest::Client::new();
+        let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
 
         app = app
             .route_layer(middleware::from_fn(middleware_checks))
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(Extension(self))
-                    .layer(Extension(mode))
                     .layer(Extension(client)),
             );
 
-        let addr = SocketAddr::from((address, port));
         info!("Listening on http://{}", addr);
         axum::Server::bind(&addr)
             .serve(app.into_make_service_with_connect_info::<SocketAddr, _>())

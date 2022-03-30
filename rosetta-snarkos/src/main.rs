@@ -1,5 +1,3 @@
-use std::{env, net::Ipv4Addr, sync::Arc};
-
 use mentat::{cache::DefaultCacheInner, serve, server::Server, tokio};
 
 mod call_api;
@@ -15,26 +13,12 @@ use request::SnarkosJrpc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut server = Server::new(String::from("SNARKOS"));
-    server.with_dyn_call_api(Arc::new(call_api::SnarkosCallApi::default()));
-    server.with_dyn_construction_api(Arc::new(construction_api::SnarkosConstructionApi::default()));
-    server.with_dyn_data_api(Arc::new(data_api::SnarkosDataApi::default()));
-    server.with_dyn_indexer_api(Arc::new(indexer_api::SnarkosIndexerApi::default()));
+    let server = Server::new(
+        call_api::SnarkosCallApi::default(),
+        construction_api::SnarkosConstructionApi::default(),
+        data_api::SnarkosDataApi::default(),
+        indexer_api::SnarkosIndexerApi::default(),
+    );
 
-    let address = env::var("ADDRESS")
-        .unwrap_or_else(|_| "0.0.0.0".to_string())
-        .parse()
-        .unwrap_or(Ipv4Addr::new(0, 0, 0, 0));
-    let port = env::var("PORT")
-        .unwrap_or_else(|_| "8080".to_string())
-        .parse()
-        .unwrap_or(8080);
-
-    serve!(
-        server,
-        address,
-        port,
-        node::SnarkOSNode::default(),
-        DefaultCacheInner
-    )
+    serve!(server, node::SnarkOSNode::default(), DefaultCacheInner)
 }

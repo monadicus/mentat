@@ -8,8 +8,6 @@ pub enum Mode {
     Offline,
 }
 
-pub type ModeState = axum::extract::Extension<Mode>;
-
 impl Mode {
     pub fn is_offline(&self) -> bool {
         matches!(&self, &Mode::Offline)
