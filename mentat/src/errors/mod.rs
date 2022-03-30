@@ -51,6 +51,23 @@ impl ApiError {
             details: Default::default(),
         }))
     }
+
+    pub fn unable_to_find_transaction<R>(hash: &String) -> MentatResponse<R> {
+        Err(MentatError::Internal(ApiError {
+            code: 16,
+            message: "Invalid account format".to_string(),
+            description: Some(String::from("Transaction not found")),
+            retriable: true,
+            details: {
+                let mut map = IndexMap::new();
+                map.insert(
+                    String::from("context"),
+                    format!("unable to find transaction {hash}").into(),
+                );
+                map
+            },
+        }))
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

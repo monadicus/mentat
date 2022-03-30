@@ -26,7 +26,7 @@ impl NodeRunner for BitcoinNode {
                 &format!("-rpcuser=USER"),
                 &format!("-rpcpassword=PASS"),
                 &format!("-txindex=1"),
-                &format!("--datadir=D:\\Work\\Monadic\\btc"),
+                &format!("--datadir=D:\\files\\btc"),
             ])
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())
@@ -55,3 +55,4 @@ impl NodeRunner for BitcoinNode {
         Ok(())
     }
 }
+

@@ -11,25 +11,25 @@ use mentat::{
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct GetBlockResponse {
-    hash: String,
+    pub hash: String,
     // confirmations: usize,
-    height: u64,
-    version: usize,
+    pub height: u64,
+    pub version: usize,
     // versionHex: String,
-    merkleroot: String,
-    time: u64,
-    mediantime: u64,
-    nonce: usize,
-    bits: String,
-    difficulty: usize,
+    pub merkleroot: String,
+    pub time: u64,
+    pub mediantime: u64,
+    pub nonce: usize,
+    pub bits: String,
+    pub difficulty: f64,
     // chainwork: String,
     // nTx: usize,
-    previousblockhash: String,
+    pub previousblockhash: String,
     // nextblockhash: String,
     // strippedsize: usize,
-    size: usize,
-    weight: usize,
-    tx: Vec<BitcoinTransaction>,
+    pub size: usize,
+    pub weight: usize,
+    pub tx: Vec<BitcoinTransaction>,
 }
 
 impl GetBlockResponse {

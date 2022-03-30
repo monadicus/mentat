@@ -1,5 +1,13 @@
 use mentat::serde::Serialize;
 
+pub fn trim_hash(hash: &str) -> &str {
+    if hash.starts_with("0x") {
+        &hash[2..]
+    } else {
+        hash
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(crate = "mentat::serde")]
 pub struct BitcoinJrpc<P: Serialize> {

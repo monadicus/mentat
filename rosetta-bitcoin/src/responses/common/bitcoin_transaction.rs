@@ -25,12 +25,12 @@ pub struct BitcoinScriptSig {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct BitcoinVin {
-    txid: Option<String>,
-    vout: Option<u64>,
-    scriptSig: Option<BitcoinScriptSig>,
-    sequence: usize,
+    pub txid: Option<String>,
+    pub vout: Option<u64>,
+    pub scriptSig: Option<BitcoinScriptSig>,
+    pub sequence: usize,
     // txinwitness: Option<Vec<String>>,
-    coinbase: Option<String>,
+    pub coinbase: Option<String>,
 }
 
 impl BitcoinVin {
@@ -116,19 +116,19 @@ impl BitcoinVin {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(crate = "mentat::serde")]
 pub struct BitcoinScriptPubKey {
-    asm: String,
-    hex: String,
+    pub asm: String,
+    pub hex: String,
     #[serde(rename = "type")]
-    _type: String,
+    pub _type: String,
 }
 
 #[allow(non_snake_case)]
 #[derive(Clone, Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct BitcoinVout {
-    value: f64,
-    n: u64,
-    scriptPubKey: BitcoinScriptPubKey,
+    pub value: f64,
+    pub n: u64,
+    pub scriptPubKey: BitcoinScriptPubKey,
 }
 
 impl BitcoinVout {
@@ -177,14 +177,14 @@ impl BitcoinVout {
 #[serde(crate = "mentat::serde")]
 pub struct BitcoinTransaction {
     // txid: String,
-    hash: String,
-    version: usize,
-    size: usize,
-    vsize: usize,
-    weight: usize,
+    pub hash: String,
+    pub version: usize,
+    pub size: usize,
+    pub vsize: usize,
+    pub weight: usize,
     // locktime: usize,
-    vin: Vec<BitcoinVin>,
-    vout: Vec<BitcoinVout>,
+    pub vin: Vec<BitcoinVin>,
+    pub vout: Vec<BitcoinVout>,
     // hex: String,
 }
 
