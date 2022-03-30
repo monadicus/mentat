@@ -9,17 +9,16 @@ pub mod responses;
 pub mod keys;
 
 #[cfg(feature = "server")]
-pub mod api;
-
 #[cfg(feature = "server")]
 #[path = ""]
 mod server_rexport {
+    pub mod api;
     pub mod cache;
+    pub mod conf;
     pub mod server;
 
     pub use axum::{self, async_trait, Json};
     pub use indexmap::IndexMap;
-    pub use reqwest::Client;
     pub use serde;
     pub use serde_json;
     pub use tokio;

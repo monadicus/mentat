@@ -5,21 +5,12 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json,
-    Client,
+    server::RpcCaller,
     Json,
 };
 
-pub struct BitcoinConstructionApi {
-    url: String,
-}
-
-impl Default for BitcoinConstructionApi {
-    fn default() -> Self {
-        Self {
-            url: "http://127.0.0.1:8080".to_string(),
-        }
-    }
-}
+#[derive(Default)]
+pub struct BitcoinConstructionApi;
 
 #[async_trait]
 impl CallerConstructionApi for BitcoinConstructionApi {}
@@ -30,10 +21,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionCombineRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionCombineResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/combine"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -58,10 +50,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionDeriveRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionDeriveResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/derive"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -86,10 +79,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionHashRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/hash"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -114,10 +108,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionMetadataRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/metadata"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -142,10 +137,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionParseRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionParseResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/parse"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -170,10 +166,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionPayloadsRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionPayloadsResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/payloads"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -198,10 +195,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionPreprocessRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionPreprocessResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/preprocess"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -226,10 +224,11 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionSubmitRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        let resp = match client
-            .post(&format!("{}{}", self.url, "/construction/submit"))
+        let resp = match rpc_caller
+            .client
+            .post(&rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await

@@ -1,5 +1,6 @@
 use std::{
     io::{BufRead, BufReader, Read},
+    path::Path,
     thread,
 };
 
@@ -10,11 +11,13 @@ pub struct SnarkOSNode;
 
 #[async_trait]
 impl NodeRunner for SnarkOSNode {
-    async fn start_node(&self, address: String) -> Result<(), Box<dyn std::error::Error>> {
+    async fn start_node(
+        &self,
+        address: String,
+        node_path: &Path,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // TODO: make it so snarkos checks for updates and rebuilds automatically.
-        let snarkos = std::env::var("NODE").unwrap_or_else(|_| "/app/node-runner".to_string());
-
-        let mut child = std::process::Command::new(snarkos)
+        let mut child = std::process::Command::new(node_path)
             .args(&[
                 "--node",
                 &format!("{address}:4132"),

@@ -1273,6 +1273,7 @@ dependencies = [
  "snarkvm-dpc",
  "snarkvm-utilities",
  "tokio",
+ "toml",
  "tower",
  "tracing",
  "tracing-error",
@@ -2028,7 +2029,6 @@ name = "rosetta-bitcoin"
 version = "0.1.0"
 dependencies = [
  "mentat",
- "reqwest",
 ]
 
 [[package]]
@@ -2036,7 +2036,6 @@ name = "rosetta-snarkos"
 version = "0.1.0"
 dependencies = [
  "mentat",
- "reqwest",
 ]
 
 [[package]]

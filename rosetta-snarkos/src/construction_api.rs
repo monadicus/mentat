@@ -3,7 +3,7 @@ use mentat::{
     async_trait,
     requests::ConstructionSubmitRequest,
     responses::TransactionIdentifierResponse,
-    Client,
+    server::RpcCaller,
 };
 
 use super::SnarkosJrpc;
@@ -24,13 +24,13 @@ impl ConstructionApi for SnarkosConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionSubmitRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
         jsonrpc_call!(
             @ret
             "sendtransaction",
             vec![data.signed_transaction],
-            client,
+            rpc_caller,
             SendTransactionResponse
         )
     }
