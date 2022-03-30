@@ -4,9 +4,9 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json::{self, Value},
-    IndexMap, Json,
+    server::RpcCaller,
+    Json, IndexMap,
 };
-use reqwest::Client;
 
 use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};
 
@@ -22,12 +22,12 @@ impl CallApi for BitcoinCallApi {
         &self,
         _caller: Caller,
         data: CallRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<CallResponse> {
         let result = jsonrpc_call!(
             &data.method,
             data.parameters.into_iter().map(|(_, p)| p).collect(),
-            client,
+            rpc_caller,
             IndexMap<String, Value>
         );
         Ok(Json(CallResponse {

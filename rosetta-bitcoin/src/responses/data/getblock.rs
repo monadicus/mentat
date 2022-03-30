@@ -1,13 +1,7 @@
 use futures::future::join_all;
 use mentat::{
-    api::MentatResponse,
-    errors::*,
-    identifiers::BlockIdentifier,
-    models::Block,
-    responses::BlockResponse,
-    Client,
-    IndexMap,
-    Json,
+    api::MentatResponse, errors::*, identifiers::BlockIdentifier, models::Block,
+    responses::BlockResponse, server::RpcCaller, IndexMap, Json,
 };
 
 use super::*;
@@ -39,14 +33,17 @@ pub struct GetBlockResponse {
 }
 
 impl GetBlockResponse {
-    pub async fn into_block_response(self, client: &Client) -> MentatResponse<BlockResponse> {
+    pub async fn into_block_response(
+        self,
+        rpc_caller: &RpcCaller,
+    ) -> MentatResponse<BlockResponse> {
         Ok(Json(BlockResponse {
             block: Some(Block {
                 transactions: join_all(
                     self.tx
                         .iter()
                         .enumerate()
-                        .map(|(i, tx)| tx.into_transaction(i, client)),
+                        .map(|(i, tx)| tx.into_transaction(i, rpc_caller)),
                 )
                 .await
                 .into_iter()

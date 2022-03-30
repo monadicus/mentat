@@ -1310,6 +1310,7 @@ dependencies = [
  "snarkvm-dpc",
  "snarkvm-utilities",
  "tokio",
+ "toml",
  "tower",
  "tracing",
  "tracing-error",
@@ -2066,7 +2067,6 @@ version = "0.1.0"
 dependencies = [
  "futures",
  "mentat",
- "reqwest",
 ]
 
 [[package]]
@@ -2074,7 +2074,6 @@ name = "rosetta-snarkos"
 version = "0.1.0"
 dependencies = [
  "mentat",
- "reqwest",
 ]
 
 [[package]]

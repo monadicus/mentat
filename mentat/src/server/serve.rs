@@ -10,15 +10,15 @@ pub mod serve_exports {
     pub use reqwest::Client;
     pub use tracing;
 
-    pub use crate::{api::*, cache::Cache, requests::*, responses::*, serve};
+    pub use crate::{api::*, cache::Cache, conf::*, requests::*, responses::*, server::RpcCaller};
 }
 
 #[macro_export]
 macro_rules! serve {
-    ($server:expr, $address:expr, $port:expr, $node:expr, $( $cache_inner:ident )?) => {{
+    ($server:expr, $node:expr, $( $cache_inner:ident )?) => {{
         use $crate::server::serve_exports::*;
         let app = serve!(@build $($cache_inner)?);
-        $server.serve(app, $address, $port, $node.borrow()).await
+        $server.serve(app, $node.borrow()).await
     }};
 
     (@routes axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
@@ -30,11 +30,10 @@ macro_rules! serve {
                     Extension(server): Extension<Server>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
-                    Extension(mode): ModeState,
-                    Extension(client): Extension<Client>,
+                    Extension(rpc_caller): Extension<RpcCaller>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
-                    let resp = server.$api.$method(c, req_data, &mode, client).await;
+                    let resp = server.$api.$method(c, req_data, &server.configuration.mode, rpc_caller).await;
                     #[cfg(debug_assertions)]
                     tracing::debug!("response {}{} {resp:?}", $route_base, $path);
                     resp
@@ -54,13 +53,12 @@ macro_rules! serve {
                     Extension(server): Extension<Server>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
-                    Extension(mode): ModeState,
-                    Extension(client): Extension<Client>,
+                    Extension(rpc_caller): Extension<RpcCaller>,
                 ) -> MentatResponse<$resp> {
                     let c = Caller { ip };
                     $cache.get_cached(move || {
                         Box::pin(async move {
-                            let resp = server.$api.$method(c, req_data, &mode, client).await;
+                            let resp = server.$api.$method(c, req_data, &server.configuration.mode, rpc_caller).await;
                             #[cfg(debug_assertions)]
                             tracing::debug!("response {}{} {resp:?}", $route_base, $path);
                             resp

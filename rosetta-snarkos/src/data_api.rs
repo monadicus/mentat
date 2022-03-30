@@ -4,7 +4,7 @@ use mentat::{
     errors::MentatError,
     requests::*,
     responses::*,
-    Client,
+    server::RpcCaller,
 };
 
 use super::SnarkosJrpc;
@@ -25,10 +25,10 @@ impl DataApi for SnarkosDataApi {
         &self,
         _caller: Caller,
         data: BlockRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockResponse> {
         if let Some(block_id) = data.block_identifier.index {
-            jsonrpc_call!(@ret "getblock", vec![block_id], client, GetBlockResponse)
+            jsonrpc_call!(@ret "getblock", vec![block_id], rpc_caller, GetBlockResponse)
         } else {
             Err(MentatError::from("wtf"))
         }
@@ -38,10 +38,10 @@ impl DataApi for SnarkosDataApi {
         &self,
         _caller: Caller,
         data: BlockTransactionRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockTransactionResponse> {
-        let first = jsonrpc_call!(@res "gettransaction", vec![data.block_identifier.hash], client, GetTransactionResponse);
-        let second = jsonrpc_call!(@res "getblocktransactions", vec![data.block_identifier.index], client, GetBlockTransactionsResponse);
+        let first = jsonrpc_call!(@res "gettransaction", vec![data.block_identifier.hash], rpc_caller, GetTransactionResponse);
+        let second = jsonrpc_call!(@res "getblocktransactions", vec![data.block_identifier.index], rpc_caller, GetBlockTransactionsResponse);
         first + second
     }
 
@@ -49,9 +49,9 @@ impl DataApi for SnarkosDataApi {
         &self,
         _caller: Caller,
         _data: NetworkRequest,
-        client: Client,
+        rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
         let data: Vec<u8> = Vec::new();
-        jsonrpc_call!(@ret "getmemorypool", data, client, GetMemoryPoolResponse)
+        jsonrpc_call!(@ret "getmemorypool", data, rpc_caller, GetMemoryPoolResponse)
     }
 }

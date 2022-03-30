@@ -5,21 +5,12 @@ use mentat::{
     requests::*,
     responses::*,
     serde_json,
-    Client,
+    server::RpcCaller,
     Json,
 };
 
-pub struct BitcoinConstructionApi {
-    url: String,
-}
-
-impl Default for BitcoinConstructionApi {
-    fn default() -> Self {
-        Self {
-            url: "http://127.0.0.1:8080".to_string(),
-        }
-    }
-}
+#[derive(Default)]
+pub struct BitcoinConstructionApi;
 
 #[async_trait]
 impl CallerConstructionApi for BitcoinConstructionApi {}

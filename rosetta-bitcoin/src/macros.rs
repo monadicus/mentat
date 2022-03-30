@@ -4,7 +4,8 @@ macro_rules! jsonrpc_call {
         let req = BitcoinJrpc::new($method, $params);
 
         let response = $client
-            .post("http://USER:PASS@127.0.0.1:3032")
+            .client
+            .post(&$client.node_rpc_url)
             .json(&req)
             .send()
             .await?;

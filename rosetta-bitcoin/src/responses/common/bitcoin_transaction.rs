@@ -5,7 +5,7 @@ use mentat::{
     models::{Amount, CoinAction, CoinChange, Currency, Operation, Transaction},
     serde::Serialize,
     serde_json::{self, json},
-    Client,
+    server::RpcCaller,
     IndexMap,
 };
 
@@ -40,14 +40,14 @@ impl BitcoinVin {
         &self,
         trans_idx: usize,
         vin_index: u64,
-        client: &Client,
+        rpc_caller: &RpcCaller,
     ) -> Result<Operation, MentatError> {
         let (account, amount) = match (&self.txid, self.vout) {
             (Some(id), Some(vout_idx)) => {
                 let transaction = jsonrpc_call!(
                     "getrawtransaction",
                     vec![json!(trim_hash(id)), json!(true)],
-                    client,
+                    rpc_caller,
                     BitcoinTransaction
                 );
                 let vout = &transaction.vout[vout_idx as usize];
@@ -194,7 +194,7 @@ impl BitcoinTransaction {
     pub async fn into_transaction(
         &self,
         index: usize,
-        client: &Client,
+        rpc_caller: &RpcCaller,
     ) -> Result<Transaction, MentatError> {
         Ok(Transaction {
             transaction_identifier: TransactionIdentifier {
@@ -205,7 +205,7 @@ impl BitcoinTransaction {
                     self.vin
                         .iter()
                         .enumerate()
-                        .map(|(i, vin)| vin.into_operation(index, i as u64, client)),
+                        .map(|(i, vin)| vin.into_operation(index, i as u64, rpc_caller)),
                 )
                 .await
                 .into_iter()

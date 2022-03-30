@@ -1,12 +1,7 @@
-use std::str::FromStr;
-
 use axum::http::Extensions;
 
 use super::*;
-use crate::{
-    errors::MentatError,
-    server::{Network, Server},
-};
+use crate::{conf::Network, errors::MentatError, server::Server};
 
 /// The network_identifier specifies which network a particular object is
 /// associated with.
@@ -28,17 +23,21 @@ impl NetworkIdentifier {
         let server = extensions.get::<Server>().unwrap();
         if let Some(net_id) = json.get("network_identifier") {
             let network_identifier = serde_json::from_value::<Self>(net_id.clone())?;
-            if network_identifier.blockchain.to_uppercase() != server.blockchain.to_uppercase() {
+            if network_identifier.blockchain.to_uppercase()
+                != server.configuration.blockchain.to_uppercase()
+            {
                 return Err(MentatError::from(format!(
                     "invalid blockchain ID: found `{}`, expected `{}`",
                     network_identifier.blockchain.to_uppercase(),
-                    server.blockchain.to_uppercase()
+                    server.configuration.blockchain.to_uppercase()
                 )));
-            } else if Network::from_str(&network_identifier.network)? != server.network {
+            } else if Network::from(network_identifier.network.to_uppercase())
+                != server.configuration.network
+            {
                 return Err(MentatError::from(format!(
                     "invalid network ID: found `{}`, expected `{}`",
                     network_identifier.network.to_uppercase(),
-                    server.network
+                    server.configuration.network
                 )));
             }
         }
