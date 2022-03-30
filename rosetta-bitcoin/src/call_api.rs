@@ -11,7 +11,7 @@ use mentat::{
 
 use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct BitcoinCallApi;
 
 #[async_trait]

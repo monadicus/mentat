@@ -12,7 +12,7 @@ use crate::{
     responses::{construction::*, Response},
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct SnarkosConstructionApi;
 
 #[async_trait]
