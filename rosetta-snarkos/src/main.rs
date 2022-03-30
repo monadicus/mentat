@@ -18,7 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("conf.toml");
 
-    let server = Server::new(
+    let server = Server::<()>::new(
         call_api::SnarkosCallApi::default(),
         construction_api::SnarkosConstructionApi::default(),
         &path,
@@ -26,5 +26,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         indexer_api::SnarkosIndexerApi::default(),
     );
 
-    serve!(server, node::SnarkOSNode::default(), DefaultCacheInner)
+    serve!(server, node::SnarkOSNode::default(), (), DefaultCacheInner)
 }

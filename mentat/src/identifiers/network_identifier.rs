@@ -19,8 +19,11 @@ pub struct NetworkIdentifier {
 }
 
 impl NetworkIdentifier {
-    pub async fn check(extensions: &Extensions, json: &Value) -> Result<(), MentatError> {
-        let server = extensions.get::<Server>().unwrap();
+    pub async fn check<CustomConf>(extensions: &Extensions, json: &Value) -> Result<(), MentatError>
+    where
+        CustomConf: Clone + Default + Send + Sync + 'static,
+    {
+        let server = extensions.get::<Server<CustomConf>>().unwrap();
         if let Some(net_id) = json.get("network_identifier") {
             let network_identifier = serde_json::from_value::<Self>(net_id.clone())?;
             if network_identifier.blockchain.to_uppercase()

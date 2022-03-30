@@ -15,19 +15,19 @@ pub mod serve_exports {
 
 #[macro_export]
 macro_rules! serve {
-    ($server:expr, $node:expr, $( $cache_inner:ident )?) => {{
+    ($server:expr, $node:expr, $conf:ty, $( $cache_inner:ident )?) => {{
         use $crate::server::serve_exports::*;
-        let app = serve!(@build $($cache_inner)?);
+        let app = serve!(@build $conf, $($cache_inner)?);
         $server.serve(app, $node.borrow()).await
     }};
 
-    (@routes axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, config: $conf:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
         $(
             $(
             $(
                 #[tracing::instrument(skip(server))]
                 async fn $method(
-                    Extension(server): Extension<Server>,
+                    Extension(server): Extension<Server<$conf>>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
                     Extension(rpc_caller): Extension<RpcCaller>,
@@ -44,13 +44,13 @@ macro_rules! serve {
         )*
     };
 
-    (@routes axum: $app:expr, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, config: $conf:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
         $(
             $(
             $(
                 #[tracing::instrument(skip(server))]
                 async fn $method(
-                    Extension(server): Extension<Server>,
+                    Extension(server): Extension<Server<$conf>>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
                     Extension(rpc_caller): Extension<RpcCaller>,
@@ -73,11 +73,12 @@ macro_rules! serve {
         )*
     };
 
-    (@build $( $cache_inner:ident )?) => {{
+    (@build $conf:ty, $( $cache_inner:ident )?) => {{
         let mut app = Router::new();
 
         serve! {@routes
             axum: app,
+            config: $conf,
 
             api_group {
                 api: call_api,

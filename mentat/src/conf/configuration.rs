@@ -4,10 +4,15 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use serde::de::DeserializeOwned;
+
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Configuration {
+pub struct Configuration<Custom>
+where
+    Custom: Default,
+{
     pub address: Ipv4Addr,
     pub blockchain: String,
     pub mode: Mode,
@@ -17,9 +22,13 @@ pub struct Configuration {
     pub node_path: PathBuf,
     pub node_rpc_port: u16,
     pub port: u16,
+    pub custom: Custom,
 }
 
-impl Configuration {
+impl<Custom> Configuration<Custom>
+where
+    Custom: Default + DeserializeOwned + Serialize,
+{
     pub fn load(path: &Path) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| {
             panic!(
@@ -66,7 +75,10 @@ impl Configuration {
     }
 }
 
-impl Default for Configuration {
+impl<Custom: Default> Default for Configuration<Custom>
+where
+    Custom: Default,
+{
     fn default() -> Self {
         Self {
             address: Ipv4Addr::new(0, 0, 0, 0),
@@ -78,6 +90,7 @@ impl Default for Configuration {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
+            custom: Default::default(),
         }
     }
 }
