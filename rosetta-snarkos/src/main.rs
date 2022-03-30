@@ -13,12 +13,14 @@ mod responses;
 
 use request::SnarkosJrpc;
 
+use crate::node::NodeConfig;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("conf.toml");
 
-    let server = Server::<()>::new(
+    let server = Server::<NodeConfig>::new(
         call_api::SnarkosCallApi::default(),
         construction_api::SnarkosConstructionApi::default(),
         &path,
@@ -26,5 +28,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         indexer_api::SnarkosIndexerApi::default(),
     );
 
-    serve!(server, node::SnarkOSNode::default(), (), DefaultCacheInner)
+    serve!(server, NodeConfig, DefaultCacheInner)
 }

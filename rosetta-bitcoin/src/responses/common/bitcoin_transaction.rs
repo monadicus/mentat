@@ -37,7 +37,7 @@ pub struct BitcoinVin {
 
 impl BitcoinVin {
     async fn into_operation(
-        &self,
+        self,
         trans_idx: usize,
         vin_index: u64,
         rpc_caller: &RpcCaller,
@@ -134,7 +134,7 @@ pub struct BitcoinVout {
 }
 
 impl BitcoinVout {
-    fn into_operation(&self, index: u64, hash: String) -> Operation {
+    fn into_operation(self, index: u64, hash: String) -> Operation {
         Operation {
             operation_identifier: OperationIdentifier {
                 index,
@@ -192,7 +192,7 @@ pub struct BitcoinTransaction {
 
 impl BitcoinTransaction {
     pub async fn into_transaction(
-        &self,
+        self,
         index: usize,
         rpc_caller: &RpcCaller,
     ) -> Result<Transaction, MentatError> {
@@ -201,9 +201,10 @@ impl BitcoinTransaction {
                 hash: self.hash.clone(),
             },
             operations: {
+                let vin_len = self.vin.len();
                 let mut out: Vec<Operation> = join_all(
                     self.vin
-                        .iter()
+                        .into_iter()
                         .enumerate()
                         .map(|(i, vin)| vin.into_operation(index, i as u64, rpc_caller)),
                 )
@@ -212,10 +213,10 @@ impl BitcoinTransaction {
                 .collect::<Result<_, _>>()?;
                 out.extend(
                     self.vout
-                        .iter()
+                        .into_iter()
                         .enumerate()
                         .map(|(i, vout)| {
-                            vout.into_operation((i + self.vin.len()) as u64, self.hash.clone())
+                            vout.into_operation((i + vin_len) as u64, self.hash.clone())
                         })
                         .collect::<Vec<_>>(),
                 );

@@ -7,13 +7,11 @@ mod dummy_data;
 mod dummy_indexer;
 pub mod logging;
 mod middleware_checks;
-mod node;
 mod rpc_caller;
 
 use std::{net::SocketAddr, path::Path, sync::Arc};
 
 use axum::{extract::Extension, middleware, Router};
-pub use node::*;
 pub use rpc_caller::RpcCaller;
 use tracing::info;
 
@@ -29,7 +27,7 @@ use crate::{api::*, conf::*};
 #[derive(Clone)]
 pub struct Server<CustomConf>
 where
-    CustomConf: Default,
+    CustomConf: NodeConf,
 {
     pub call_api: Arc<dyn CallerCallApi>,
     pub configuration: Configuration<CustomConf>,
@@ -38,10 +36,7 @@ where
     pub indexer_api: Arc<dyn CallerIndexerApi>,
 }
 
-impl<CustomConf> Default for Server<CustomConf>
-where
-    CustomConf: Default,
-{
+impl<CustomConf: NodeConf> Default for Server<CustomConf> {
     fn default() -> Self {
         Self {
             call_api: Arc::new(DummyCallApi),
@@ -55,7 +50,7 @@ where
 
 impl<CustomConf> Server<CustomConf>
 where
-    CustomConf: Clone + Default + DeserializeOwned + Send + Serialize + Sync + 'static,
+    CustomConf: NodeConf + Clone + DeserializeOwned + Send + Serialize + Sync + 'static,
 {
     pub fn new<Call, Construction, Data, Indexer>(
         call: Call,
@@ -82,16 +77,12 @@ where
     /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
     /// instead
     #[doc(hidden)]
-    pub async fn serve<T: NodeRunner<Custom = CustomConf>>(
-        self,
-        mut app: Router,
-        node: &T,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn serve(self, mut app: Router) -> Result<(), Box<dyn std::error::Error>> {
         color_backtrace::install();
         logging::setup()?;
 
         if !self.configuration.mode.is_offline() {
-            node.start_node(&self.configuration).await?;
+            self.configuration.start_node().await?;
         }
 
         let rpc_caller = RpcCaller::new(&self.configuration);

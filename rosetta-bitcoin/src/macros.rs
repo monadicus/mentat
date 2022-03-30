@@ -22,11 +22,14 @@ macro_rules! jsonrpc_call {
             }) => {
                 return err.into();
             }
-            Err(e) => Err(format!("error decoding: {}: {}", e, bitcoin_text))?,
-            _ => Err(format!(
-                "error decoding: expected either result or error: {}",
-                bitcoin_text
-            ))?,
+            Err(e) => return Err(format!("error decoding: {}: {}", e, bitcoin_text).into()),
+            _ => {
+                return Err(format!(
+                    "error decoding: expected either result or error: {}",
+                    bitcoin_text
+                )
+                .into());
+            }
         }
     }};
 }

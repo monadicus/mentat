@@ -47,7 +47,7 @@ impl GetBlockResponse {
             block: Some(Block {
                 transactions: join_all(
                     self.tx
-                        .iter()
+                        .into_iter()
                         .enumerate()
                         .map(|(i, tx)| tx.into_transaction(i, rpc_caller)),
                 )
