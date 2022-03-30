@@ -128,9 +128,7 @@ impl DataApi for BitcoinDataApi {
                 transaction: tx.into_transaction(i, &rpc_caller).await?,
             }))
         } else {
-            ApiError::unable_to_find_transaction(
-                &data.transaction_identifier.hash,
-            )
+            ApiError::unable_to_find_transaction(&data.transaction_identifier.hash)
         }
     }
 
@@ -177,9 +175,7 @@ impl DataApi for BitcoinDataApi {
                 metadata: IndexMap::new(),
             }))
         } else {
-            ApiError::unable_to_find_transaction(
-                &data.transaction_identifier.hash,
-            )
+            ApiError::unable_to_find_transaction(&data.transaction_identifier.hash)
         }
     }
 }

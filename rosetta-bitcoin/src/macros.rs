@@ -28,7 +28,7 @@ macro_rules! jsonrpc_call {
                     "error decoding: expected either result or error: {}",
                     bitcoin_text
                 )
-                .into())
+                .into());
             }
         }
     }};
