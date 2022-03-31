@@ -9,7 +9,6 @@ pub mod responses;
 pub mod keys;
 
 #[cfg(feature = "server")]
-#[cfg(feature = "server")]
 #[path = ""]
 mod server_rexport {
     pub mod api;
@@ -19,6 +18,7 @@ mod server_rexport {
 
     pub use axum::{self, async_trait, Json};
     pub use indexmap::IndexMap;
+    pub use mentat_macro::mentat;
     pub use serde;
     pub use serde_json;
     pub use tokio;

@@ -2,6 +2,7 @@
 
 members = [
         "mentat",
+        "mentat-macro",
         "rosetta-bitcoin",
         "rosetta-snarkos",
 ]
