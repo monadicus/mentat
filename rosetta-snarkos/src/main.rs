@@ -1,7 +1,7 @@
 use mentat::{
     cache::DefaultCacheInner,
     serve,
-    server::{Server, ServerBuilder},
+    server::{Server, ServerType},
     tokio,
 };
 
@@ -21,7 +21,7 @@ use crate::node::NodeConfig;
 #[derive(Clone)]
 struct MentatSnarkos;
 
-impl ServerBuilder for MentatSnarkos {
+impl ServerType for MentatSnarkos {
     type CallApi = call_api::SnarkosCallApi;
     type ConstructionApi = construction_api::SnarkosConstructionApi;
     type CustomConfig = NodeConfig;

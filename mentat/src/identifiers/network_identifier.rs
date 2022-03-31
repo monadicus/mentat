@@ -4,7 +4,7 @@ use super::*;
 use crate::{
     conf::Network,
     errors::MentatError,
-    server::{Server, ServerBuilder},
+    server::{Server, ServerType},
 };
 
 /// The network_identifier specifies which network a particular object is
@@ -23,7 +23,7 @@ pub struct NetworkIdentifier {
 }
 
 impl NetworkIdentifier {
-    pub async fn check<Types: ServerBuilder>(
+    pub async fn check<Types: ServerType>(
         extensions: &Extensions,
         json: &Value,
     ) -> Result<(), MentatError> {

@@ -18,7 +18,7 @@ use tracing::info;
 use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
-pub trait ServerBuilder: Clone + Send + Sync + 'static {
+pub trait ServerType: Clone + Send + Sync + 'static {
     type CallApi: Clone + CallerCallApi + Send + Sync + 'static;
     type CustomConfig: Clone + DeserializeOwned + NodeConf + Send + Serialize + Sync + 'static;
     type ConstructionApi: Clone + CallerConstructionApi + Send + Sync + 'static;
@@ -36,11 +36,85 @@ pub trait ServerBuilder: Clone + Send + Sync + 'static {
         Configuration::load(&path)
     }
 
-    fn modify_server(_server: &mut Server<Self>) {}
+    fn build_server() -> Server<Self> {
+        Server::default()
+    }
+}
+
+pub struct ServerBuilder<Types: ServerType> {
+    call_api: Option<Types::CallApi>,
+    configuration: Option<Configuration<Types::CustomConfig>>,
+    construction_api: Option<Types::ConstructionApi>,
+    data_api: Option<Types::DataApi>,
+    indexer_api: Option<Types::IndexerApi>,
+}
+
+impl<Types: ServerType> Default for ServerBuilder<Types> {
+    fn default() -> Self {
+        Self {
+            call_api: None,
+            configuration: None,
+            construction_api: None,
+            data_api: None,
+            indexer_api: None,
+        }
+    }
+}
+
+impl<Types: ServerType> ServerBuilder<Types> {
+    pub fn build(self) -> Server<Types> {
+        Server {
+            call_api: self.call_api.expect("You did not set the call api."),
+            configuration: self
+                .configuration
+                .expect("You did not set the custom configuration."),
+            construction_api: self
+                .construction_api
+                .expect("You did not set the construction api."),
+            data_api: self.data_api.expect("You did not set the data api."),
+            indexer_api: self.indexer_api.expect("You did not set the indxer api."),
+        }
+    }
+
+    pub fn call_api(mut self, a: Types::CallApi) -> Self {
+        self.call_api = Some(a);
+        self
+    }
+
+    pub fn custom_configuration_from_arg(self) -> Self {
+        let args: Vec<String> = std::env::args().collect();
+        if args.len() != 2 {
+            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
+            std::process::exit(1);
+        }
+
+        let path = std::path::PathBuf::from(&args[1]);
+        self.custom_configuration(&path)
+    }
+
+    pub fn custom_configuration(mut self, path: &std::path::Path) -> Self {
+        self.configuration = Some(Configuration::load(path));
+        self
+    }
+
+    pub fn construction_api(mut self, a: Types::ConstructionApi) -> Self {
+        self.construction_api = Some(a);
+        self
+    }
+
+    pub fn data_api(mut self, a: Types::DataApi) -> Self {
+        self.data_api = Some(a);
+        self
+    }
+
+    pub fn indexer_api(mut self, a: Types::IndexerApi) -> Self {
+        self.indexer_api = Some(a);
+        self
+    }
 }
 
 #[derive(Clone)]
-pub struct Server<Types: ServerBuilder> {
+pub struct Server<Types: ServerType> {
     pub call_api: Types::CallApi,
     pub configuration: Configuration<Types::CustomConfig>,
     pub construction_api: Types::ConstructionApi,
@@ -48,7 +122,7 @@ pub struct Server<Types: ServerBuilder> {
     pub indexer_api: Types::IndexerApi,
 }
 
-impl<Types: ServerBuilder> Default for Server<Types> {
+impl<Types: ServerType> Default for Server<Types> {
     fn default() -> Self {
         Self {
             call_api: Default::default(),
@@ -60,7 +134,7 @@ impl<Types: ServerBuilder> Default for Server<Types> {
     }
 }
 
-impl<Types: ServerBuilder> Server<Types> {
+impl<Types: ServerType> Server<Types> {
     /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
     /// instead
     #[doc(hidden)]

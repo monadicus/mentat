@@ -2,13 +2,13 @@ use axum::{middleware::Next, response::IntoResponse};
 use hyper::{Body, Request};
 use serde_json::Value;
 
-use super::ServerBuilder;
+use super::ServerType;
 use crate::{
     errors::{MentatError, Result},
     identifiers::NetworkIdentifier,
 };
 
-pub async fn middleware_checks<Types: ServerBuilder>(
+pub async fn middleware_checks<Types: ServerType>(
     req: Request<Body>,
     next: Next<Body>,
 ) -> Result<impl IntoResponse> {
