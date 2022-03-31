@@ -18,12 +18,12 @@ use tracing::info;
 use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
-pub trait ServerTypes: Clone + Send + Sync + 'static {
-    type CallApi: Clone + CallerCallApi + Send + Sync + 'static;
+pub trait ServerTypes: 'static {
+    type CallApi: Clone + CallerCallApi;
     type CustomConfig: Clone + DeserializeOwned + NodeConf + Send + Serialize + Sync + 'static;
-    type ConstructionApi: Clone + CallerConstructionApi + Send + Sync + 'static;
-    type DataApi: Clone + CallerDataApi + Send + Sync + 'static;
-    type IndexerApi: Clone + CallerIndexerApi + Send + Sync + 'static;
+    type ConstructionApi: Clone + CallerConstructionApi;
+    type DataApi: Clone + CallerDataApi;
+    type IndexerApi: Clone + CallerIndexerApi;
 }
 
 #[derive(Clone)]
