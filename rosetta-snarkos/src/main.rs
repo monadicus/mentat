@@ -1,6 +1,7 @@
 use mentat::{
+    cache::DefaultCacheInner,
     serve,
-    server::{Server, ServerTypes},
+    server::{Server, ServerBuilder},
     tokio,
 };
 
@@ -20,7 +21,7 @@ use crate::node::NodeConfig;
 #[derive(Clone)]
 struct MentatSnarkos;
 
-impl ServerTypes for MentatSnarkos {
+impl ServerBuilder for MentatSnarkos {
     type CallApi = call_api::SnarkosCallApi;
     type ConstructionApi = construction_api::SnarkosConstructionApi;
     type CustomConfig = NodeConfig;
@@ -28,7 +29,7 @@ impl ServerTypes for MentatSnarkos {
     type IndexerApi = indexer_api::SnarkosIndexerApi;
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    serve!(MentatSnarkos)
+#[mentat::main(MentatSnarkos, DefaultCacheInner)]
+async fn main() {
+    println!("hello rosetta!");
 }
