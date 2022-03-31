@@ -1,10 +1,3 @@
-use mentat::{
-    cache::DefaultCacheInner,
-    serve,
-    server::{Server, ServerType},
-    tokio,
-};
-
 mod call_api;
 mod construction_api;
 mod data_api;
@@ -14,9 +7,7 @@ mod node;
 mod request;
 mod responses;
 
-use request::SnarkosJrpc;
-
-use crate::node::NodeConfig;
+use mentat::{cache::DefaultCacheInner, server::ServerType};
 
 #[derive(Clone)]
 struct MentatSnarkos;
@@ -24,7 +15,7 @@ struct MentatSnarkos;
 impl ServerType for MentatSnarkos {
     type CallApi = call_api::SnarkosCallApi;
     type ConstructionApi = construction_api::SnarkosConstructionApi;
-    type CustomConfig = NodeConfig;
+    type CustomConfig = node::NodeConfig;
     type DataApi = data_api::SnarkosDataApi;
     type IndexerApi = indexer_api::SnarkosIndexerApi;
 }

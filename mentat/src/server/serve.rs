@@ -6,6 +6,7 @@ pub mod serve_exports {
         routing, Json, Router,
     };
     pub use reqwest::Client;
+    pub use tokio;
     pub use tracing;
 
     pub use crate::{
@@ -14,22 +15,13 @@ pub mod serve_exports {
         conf::*,
         requests::*,
         responses::*,
-        server::{RpcCaller, ServerType},
+        serve,
+        server::{RpcCaller, Server, ServerType},
     };
 }
 
 #[macro_export]
 macro_rules! serve {
-    ($server_types:ty) => {{
-        serve!($server_types,)
-    }};
-
-    ($server_types:ty, $( $cache_inner:ident )?) => {{
-        use $crate::server::serve_exports::*;
-        let app = serve!(@build $server_types, $($cache_inner)?);
-        <$server_types>::build_server().serve(app).await
-    }};
-
     (@routes axum: $app:expr, types: $server_types:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
         $(
             $(
@@ -81,6 +73,10 @@ macro_rules! serve {
             )*
         )*
     };
+
+    (@build $server_types:ty) => {{
+        serve!(@build $server_types,)
+    }};
 
     (@build $server_types:ty, $( $cache_inner:ident )?) => {{
         let mut app = Router::new();
