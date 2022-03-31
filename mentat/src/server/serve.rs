@@ -3,7 +3,9 @@ pub mod serve_exports {
 
     pub use axum::{
         extract::{self, ConnectInfo, Extension},
-        routing, Json, Router,
+        routing,
+        Json,
+        Router,
     };
     pub use reqwest::Client;
     pub use tokio;

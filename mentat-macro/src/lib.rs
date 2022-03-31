@@ -33,7 +33,7 @@ async fn main() -> ::std::result::Result<(), ::std::boxed::Box<dyn ::std::error:
 #[proc_macro_attribute]
 pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut function = parse_macro_input!(item as ItemFn);
-    if function.sig.ident.to_string() != "main" {
+    if function.sig.ident != "main" {
         panic!(
             "expected function name `main` found `{}`",
             function.sig.ident
