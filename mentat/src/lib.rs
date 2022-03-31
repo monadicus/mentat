@@ -18,7 +18,7 @@ mod server_rexport {
 
     pub use axum::{self, async_trait, Json};
     pub use indexmap::IndexMap;
-    pub use mentat_macro::{main, mentat};
+    pub use mentat_macros::{main, mentat};
     pub use serde;
     pub use serde_json;
     pub use tokio;

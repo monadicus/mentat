@@ -54,4 +54,4 @@ tracing-error = { version = "0.2.0", optional = true, default-features = false }
 tracing-opentelemetry = { version = "0.17.2", optional = true, default-features = false }
 tracing-subscriber = { version = "0.3.9", optional = true, features = ["env-filter"] }
 tracing-tree = { version = "0.2.0", optional = true, default-features = false }
-mentat-macro = { path = "../mentat-macro" }
+mentat-macros = { path = "../mentat-macros" }
