@@ -1,5 +1,6 @@
 pub mod serve_exports {
     pub use std::{borrow::Borrow, net::SocketAddr, sync::Arc};
+    use std::{future::Future, pin::Pin};
 
     pub use axum::{
         extract::{self, ConnectInfo, Extension},
@@ -8,7 +9,7 @@ pub mod serve_exports {
         Router,
     };
     pub use reqwest::Client;
-    pub use tracing;
+    pub use tracing::{self, Instrument};
 
     pub use crate::{
         api::*,
@@ -18,54 +19,55 @@ pub mod serve_exports {
         responses::*,
         server::{RpcCaller, ServerTypes},
     };
+
+    pub type BoxFut<'a, Req, Out> = Box<
+        dyn Fn(
+            ConnectInfo<SocketAddr>,
+            Json<Req>,
+            Extension<RpcCaller>,
+        ) -> Pin<Box<dyn Future<Output = Out> + Send + 'a>>,
+    >;
 }
 
 #[macro_export]
 macro_rules! serve {
     ($server:expr, $types:ty, $( $cache_inner:ident )?) => {{
         use $crate::server::serve_exports::*;
-        let app = serve!(@build $types, $($cache_inner)?);
+        let app = serve!(@build $server, $types, $($cache_inner)?);
         $server.serve(app).await
     }};
 
-    (@routes axum: $app:expr, types: $types:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, types: $types:ty, $(api_group { api: $api:expr, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
         $(
             $(
             $(
-                #[tracing::instrument(skip(server))]
-                async fn $method(
-                    Extension(server): Extension<Server<$types>>,
-                    ConnectInfo(ip): ConnectInfo<SocketAddr>,
-                    extract::Json(req_data): Json<$req>,
-                    Extension(rpc_caller): Extension<RpcCaller>,
-                ) -> MentatResponse<$resp> {
-                    let c = Caller { ip };
-                    let resp = server.$api.$method(c, req_data, &server.configuration.mode, rpc_caller).await;
-                    #[cfg(debug_assertions)]
-                    tracing::debug!("response {}{} {resp:?}", $route_base, $path);
-                    resp
-                }
+                let api = $api.clone();
+                let $method = move |ConnectInfo(ip): ConnectInfo<SocketAddr>, extract::Json(req_data): Json<$req>, Extension(conf): Extension<Configuration<<$types as ServerTypes>::CustomConfig>>, Extension(rpc_caller): Extension<RpcCaller>| {
+                    Box::pin(async move {
+                        let c = Caller { ip };
+                        let resp = api.$method(c, req_data, &conf.mode, rpc_caller).await;
+                        #[cfg(debug_assertions)]
+                        tracing::debug!("response {}{} {resp:?}", $route_base, $path);
+                        resp
+                    })
+                }.instrument(tracing::info_span!(stringify!($method)));
+
                 $app = $app.route(&format!("{}{}", $route_base, $path), routing::post($method));
             )*
             )*
         )*
     };
 
-    (@routes axum: $app:expr, types: $types:ty, config: $conf:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, types: $types:ty, config: $conf:ty, $(api_group { api: $api:expr, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
         $(
             $(
             $(
-                #[tracing::instrument(skip(server))]
-                async fn $method(
-                    Extension(server): Extension<Server<$types>>,
-                    ConnectInfo(ip): ConnectInfo<SocketAddr>,
-                    extract::Json(req_data): Json<$req>,
-                    Extension(rpc_caller): Extension<RpcCaller>,
-                ) -> MentatResponse<$resp> {
+                let api = $api.clone();
+                let $method = move |ConnectInfo(ip): ConnectInfo<SocketAddr>, extract::Json(req_data): Json<$req>, Extension(conf): Extension<Configuration<<$types as ServerTypes>::CustomConfig>>, Extension(rpc_caller): Extension<RpcCaller>| {
                     let c = Caller { ip };
                     $cache.get_cached(move || {
                         Box::pin(async move {
-                            let resp = server.$api.$method(c, req_data, &server.configuration.mode, rpc_caller).await;
+                            let resp = server.$api.$method(c, req_data, &conf.mode, rpc_caller).await;
                             #[cfg(debug_assertions)]
                             tracing::debug!("response {}{} {resp:?}", $route_base, $path);
                             resp
@@ -73,14 +75,15 @@ macro_rules! serve {
 
                     })
                     .await
-                }
+                }.instrument(tracing::info_span!(stringify!($method)));
+
                 $app = $app.route(&format!("{}{}", $route_base, $path), routing::post($method));
             )*
             )*
         )*
     };
 
-    (@build $types:ty, $( $cache_inner:ident )?) => {{
+    (@build $server:expr, $types:ty, $( $cache_inner:ident )?) => {{
         let mut app = Router::new();
 
         serve! {@routes
@@ -88,7 +91,7 @@ macro_rules! serve {
             types: $types,
 
             api_group {
-                api: call_api,
+                api: $server.call_api,
 
                 route_group {
                     route_base: "/",
@@ -104,7 +107,7 @@ macro_rules! serve {
             }
 
             api_group {
-                api: construction_api,
+                api: $server.construction_api,
 
                 route_group {
                     route_base: "/construction",
@@ -176,7 +179,7 @@ macro_rules! serve {
             }
 
             api_group {
-                api: data_api,
+                api: $server.data_api,
 
                 route_group {
                     route_base: "/network",
@@ -268,7 +271,7 @@ macro_rules! serve {
             }
 
             api_group {
-                api: indexer_api,
+                api: $server.indexer_api,
 
                 route_group {
                     route_base: "/events",

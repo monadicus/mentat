@@ -58,7 +58,7 @@ impl<Types: ServerTypes> Server<Types> {
             .route_layer(middleware::from_fn(middleware_checks::<Types>))
             .layer(
                 tower::ServiceBuilder::new()
-                    .layer(Extension(self))
+                    .layer(Extension(self.configuration))
                     .layer(Extension(rpc_caller)),
             );
 
