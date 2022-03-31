@@ -7,3 +7,9 @@ tools/log
 *~
 \#*\#
 .\#*
+
+# Mentat ignore local.conf.toml
+local.conf.toml
+
+# Cargo Expand File
+temp.rs
