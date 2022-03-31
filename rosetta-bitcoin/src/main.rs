@@ -1,6 +1,6 @@
 use mentat::{
     cache::DefaultCacheInner,
-    serve,
+    mentat, serve,
     server::{Server, ServerTypes},
     tokio,
 };
@@ -16,7 +16,7 @@ mod node;
 mod request;
 mod responses;
 
-#[derive(Clone)]
+#[mentat(DefaultCacheInner)]
 struct BitcoinTypes;
 
 impl ServerTypes for BitcoinTypes {
@@ -25,9 +25,4 @@ impl ServerTypes for BitcoinTypes {
     type CustomConfig = NodeConfig;
     type DataApi = data_api::BitcoinDataApi;
     type IndexerApi = indexer_api::BitcoinIndexerApi;
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    serve!(BitcoinTypes, DefaultCacheInner)
 }
