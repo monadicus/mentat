@@ -1,5 +1,5 @@
 mod serve;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
 pub use serve::*;
 mod dummy_call;
 mod dummy_construction;
@@ -20,7 +20,7 @@ use crate::{api::*, conf::*};
 
 pub trait ServerTypes: 'static {
     type CallApi: Clone + CallerCallApi;
-    type CustomConfig: Clone + DeserializeOwned + NodeConf + Send + Serialize + Sync + 'static;
+    type CustomConfig: DeserializeOwned + NodeConf;
     type ConstructionApi: Clone + CallerConstructionApi;
     type DataApi: Clone + CallerDataApi;
     type IndexerApi: Clone + CallerIndexerApi;

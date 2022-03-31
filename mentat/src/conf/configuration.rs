@@ -10,7 +10,7 @@ use serde::de::DeserializeOwned;
 use super::*;
 
 #[async_trait]
-pub trait NodeConf: Default {
+pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     async fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>>;
 
     fn build_url(conf: &Configuration<Self>) -> String {
@@ -40,7 +40,7 @@ pub struct Configuration<Custom: NodeConf> {
 
 impl<Custom> Configuration<Custom>
 where
-    Custom: NodeConf + DeserializeOwned + Serialize,
+    Custom: DeserializeOwned + NodeConf,
 {
     pub fn load(path: &Path) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| {
