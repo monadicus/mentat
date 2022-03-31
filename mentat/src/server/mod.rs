@@ -26,7 +26,6 @@ pub trait ServerTypes: 'static {
     type IndexerApi: Clone + CallerIndexerApi;
 }
 
-#[derive(Clone)]
 pub struct Server<Types: ServerTypes> {
     pub call_api: Types::CallApi,
     pub configuration: Configuration<Types::CustomConfig>,
