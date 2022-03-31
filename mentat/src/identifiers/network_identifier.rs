@@ -4,7 +4,7 @@ use super::*;
 use crate::{
     conf::Network,
     errors::MentatError,
-    server::{serve_exports::NodeConf, Server},
+    server::{Server, ServerTypes},
 };
 
 /// The network_identifier specifies which network a particular object is
@@ -23,11 +23,11 @@ pub struct NetworkIdentifier {
 }
 
 impl NetworkIdentifier {
-    pub async fn check<CustomConf>(extensions: &Extensions, json: &Value) -> Result<(), MentatError>
+    pub async fn check<Types>(extensions: &Extensions, json: &Value) -> Result<(), MentatError>
     where
-        CustomConf: NodeConf + Clone + Send + Sync + 'static,
+        Types: ServerTypes,
     {
-        let server = extensions.get::<Server<CustomConf>>().unwrap();
+        let server = extensions.get::<Server<Types>>().unwrap();
         if let Some(net_id) = json.get("network_identifier") {
             let network_identifier = serde_json::from_value::<Self>(net_id.clone())?;
             if network_identifier.blockchain.to_uppercase()

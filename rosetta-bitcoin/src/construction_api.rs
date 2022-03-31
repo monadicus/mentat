@@ -3,7 +3,7 @@ use mentat::{
     async_trait,
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct BitcoinConstructionApi;
 
 #[async_trait]

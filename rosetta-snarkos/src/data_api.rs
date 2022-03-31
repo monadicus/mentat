@@ -13,7 +13,7 @@ use crate::{
     responses::{data::*, Response},
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct SnarkosDataApi;
 
 #[async_trait]

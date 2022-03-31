@@ -1,6 +1,8 @@
-use std::path::PathBuf;
-
-use mentat::{cache::DefaultCacheInner, serve, server::Server, tokio};
+use mentat::{
+    serve,
+    server::{Server, ServerTypes},
+    tokio,
+};
 
 mod call_api;
 mod construction_api;
@@ -15,18 +17,26 @@ use request::SnarkosJrpc;
 
 use crate::node::NodeConfig;
 
+#[derive(Clone)]
+struct SnarkosTypes;
+
+impl ServerTypes for SnarkosTypes {
+    type CallApi = call_api::SnarkosCallApi;
+    type ConstructionApi = construction_api::SnarkosConstructionApi;
+    type CustomConfig = NodeConfig;
+    type DataApi = data_api::SnarkosDataApi;
+    type IndexerApi = indexer_api::SnarkosIndexerApi;
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("conf.toml");
+    let server = Server::<SnarkosTypes>::builder()
+        .call_api(call_api::SnarkosCallApi::default())
+        .custom_configuration_from_arg()
+        .construction_api(construction_api::SnarkosConstructionApi::default())
+        .data_api(data_api::SnarkosDataApi::default())
+        .indexer_api(indexer_api::SnarkosIndexerApi::default())
+        .build();
 
-    let server = Server::<NodeConfig>::new(
-        call_api::SnarkosCallApi::default(),
-        construction_api::SnarkosConstructionApi::default(),
-        &path,
-        data_api::SnarkosDataApi::default(),
-        indexer_api::SnarkosIndexerApi::default(),
-    );
-
-    serve!(server, NodeConfig, DefaultCacheInner)
+    serve!(server, SnarkosTypes,)
 }

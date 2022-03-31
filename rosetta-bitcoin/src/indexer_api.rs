@@ -9,7 +9,7 @@ use mentat::{
     Json,
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct BitcoinIndexerApi;
 
 #[async_trait]

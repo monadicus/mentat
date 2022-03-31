@@ -17,7 +17,7 @@ use crate::{
     responses::{common::BitcoinTransaction, data::*, Response},
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct BitcoinDataApi;
 
 #[async_trait]

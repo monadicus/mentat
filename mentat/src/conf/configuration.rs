@@ -34,6 +34,7 @@ pub struct Configuration<Custom: NodeConf> {
     pub node_path: PathBuf,
     pub node_rpc_port: u16,
     pub port: u16,
+    #[serde(default)]
     pub custom: Custom,
 }
 
