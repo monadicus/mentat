@@ -2,19 +2,16 @@ use axum::{middleware::Next, response::IntoResponse};
 use hyper::{Body, Request};
 use serde_json::Value;
 
-use super::ServerTypes;
+use super::ServerBuilder;
 use crate::{
     errors::{MentatError, Result},
     identifiers::NetworkIdentifier,
 };
 
-pub async fn middleware_checks<Types>(
+pub async fn middleware_checks<Types: ServerBuilder>(
     req: Request<Body>,
     next: Next<Body>,
-) -> Result<impl IntoResponse>
-where
-    Types: ServerTypes,
-{
+) -> Result<impl IntoResponse> {
     let (parts, body) = req.into_parts();
     let extensions = &parts.extensions;
     let bytes = hyper::body::to_bytes(body).await?;

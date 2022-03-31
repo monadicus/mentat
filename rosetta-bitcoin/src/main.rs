@@ -1,7 +1,7 @@
 use mentat::{
     cache::DefaultCacheInner,
     mentat, serve,
-    server::{Server, ServerTypes},
+    server::{Server, ServerBuilder},
     tokio,
 };
 
@@ -19,7 +19,7 @@ mod responses;
 #[mentat(DefaultCacheInner)]
 struct BitcoinTypes;
 
-impl ServerTypes for BitcoinTypes {
+impl ServerBuilder for BitcoinTypes {
     type CallApi = call_api::BitcoinCallApi;
     type ConstructionApi = construction_api::BitcoinConstructionApi;
     type CustomConfig = NodeConfig;

@@ -14,7 +14,7 @@ pub mod serve_exports {
         conf::*,
         requests::*,
         responses::*,
-        server::{RpcCaller, ServerTypes},
+        server::{RpcCaller, ServerBuilder},
     };
 }
 
@@ -27,7 +27,9 @@ macro_rules! serve {
     ($server_types:ty, $( $cache_inner:ident )?) => {{
         use $crate::server::serve_exports::*;
         let app = serve!(@build $server_types, $($cache_inner)?);
-        Server::<$server_types>::init().serve(app).await
+        let mut server = Server::<$server_types>::default();
+        <$server_types>::modify_server(&mut server);
+        server.serve(app).await
     }};
 
     (@routes axum: $app:expr, types: $server_types:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {

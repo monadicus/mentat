@@ -14,7 +14,7 @@ impl RpcCaller {
     ) -> Self {
         Self {
             client: reqwest::Client::new(),
-            node_rpc_url: conf.build_url(),
+            node_rpc_url: NodeConf::build_url(conf),
         }
     }
 }
