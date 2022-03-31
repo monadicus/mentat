@@ -24,6 +24,33 @@ pub trait ServerTypes: Clone + Send + Sync + 'static {
     type ConstructionApi: Clone + CallerConstructionApi + Send + Sync + 'static;
     type DataApi: Clone + CallerDataApi + Send + Sync + 'static;
     type IndexerApi: Clone + CallerIndexerApi + Send + Sync + 'static;
+
+    fn init_call_api() -> Self::CallApi {
+        Self::CallApi::default()
+    }
+
+    fn init_construction_api() -> Self::ConstructionApi {
+        Self::ConstructionApi::default()
+    }
+
+    fn init_data_api() -> Self::DataApi {
+        Self::DataApi::default()
+    }
+
+    fn init_indexer_api() -> Self::IndexerApi {
+        Self::IndexerApi::default()
+    }
+
+    fn load_config() -> Configuration<Self::CustomConfig> {
+        let args: Vec<String> = std::env::args().collect();
+        if args.len() != 2 {
+            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
+            std::process::exit(1);
+        }
+
+        let path = std::path::PathBuf::from(&args[1]);
+        Configuration::load(&path)
+    }
 }
 
 #[derive(Clone)]
@@ -36,8 +63,14 @@ pub struct Server<Types: ServerTypes> {
 }
 
 impl<Types: ServerTypes> Server<Types> {
-    pub fn builder() -> ServerBuilder<Types> {
-        Default::default()
+    pub fn init() -> Self {
+        Server {
+            call_api: Types::init_call_api(),
+            configuration: Types::load_config(),
+            construction_api: Types::init_construction_api(),
+            data_api: Types::init_data_api(),
+            indexer_api: Types::init_indexer_api(),
+        }
     }
 
     /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
@@ -69,77 +102,5 @@ impl<Types: ServerTypes> Server<Types> {
 
         logging::teardown();
         Ok(())
-    }
-}
-
-pub struct ServerBuilder<Types: ServerTypes> {
-    call_api: Option<Types::CallApi>,
-    configuration: Option<Configuration<Types::CustomConfig>>,
-    construction_api: Option<Types::ConstructionApi>,
-    data_api: Option<Types::DataApi>,
-    indexer_api: Option<Types::IndexerApi>,
-}
-
-impl<Types: ServerTypes> Default for ServerBuilder<Types> {
-    fn default() -> Self {
-        Self {
-            call_api: None,
-            configuration: None,
-            construction_api: None,
-            data_api: None,
-            indexer_api: None,
-        }
-    }
-}
-
-impl<Types: ServerTypes> ServerBuilder<Types> {
-    pub fn build(self) -> Server<Types> {
-        Server {
-            call_api: self.call_api.expect("You did not set the call api."),
-            configuration: self
-                .configuration
-                .expect("You did not set the custom configuration."),
-            construction_api: self
-                .construction_api
-                .expect("You did not set the construction api."),
-            data_api: self.data_api.expect("You did not set the data api."),
-            indexer_api: self.indexer_api.expect("You did not set the indxer api."),
-        }
-    }
-
-    pub fn call_api(mut self, a: Types::CallApi) -> Self {
-        self.call_api = Some(a);
-        self
-    }
-
-    pub fn custom_configuration_from_arg(self) -> Self {
-        let args: Vec<String> = std::env::args().collect();
-        if args.len() != 2 {
-            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
-            std::process::exit(1);
-        }
-
-        let path = std::path::PathBuf::from(&args[1]);
-        self.custom_configuration(&path)
-    }
-
-    pub fn custom_configuration(mut self, path: &std::path::Path) -> Self {
-        self.configuration = Some(Configuration::load(path));
-        self
-    }
-
-    pub fn construction_api(mut self, a: Types::ConstructionApi) -> Self {
-        self.construction_api = Some(a);
-        self
-    }
-
-    pub fn data_api(mut self, a: Types::DataApi) -> Self {
-        self.data_api = Some(a);
-        self
-    }
-
-    pub fn indexer_api(mut self, a: Types::IndexerApi) -> Self {
-        self.indexer_api = Some(a);
-        self
     }
 }

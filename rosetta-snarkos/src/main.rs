@@ -18,9 +18,9 @@ use request::SnarkosJrpc;
 use crate::node::NodeConfig;
 
 #[derive(Clone)]
-struct SnarkosTypes;
+struct MentatSnarkos;
 
-impl ServerTypes for SnarkosTypes {
+impl ServerTypes for MentatSnarkos {
     type CallApi = call_api::SnarkosCallApi;
     type ConstructionApi = construction_api::SnarkosConstructionApi;
     type CustomConfig = NodeConfig;
@@ -30,13 +30,5 @@ impl ServerTypes for SnarkosTypes {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let server = Server::<SnarkosTypes>::builder()
-        .call_api(call_api::SnarkosCallApi::default())
-        .custom_configuration_from_arg()
-        .construction_api(construction_api::SnarkosConstructionApi::default())
-        .data_api(data_api::SnarkosDataApi::default())
-        .indexer_api(indexer_api::SnarkosIndexerApi::default())
-        .build();
-
-    serve!(server, SnarkosTypes,)
+    serve!(MentatSnarkos)
 }

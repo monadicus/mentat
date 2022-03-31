@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Default)]
 pub struct DummyConstructionApi;
 
 #[axum::async_trait]

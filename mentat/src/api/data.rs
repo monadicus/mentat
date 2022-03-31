@@ -1,7 +1,7 @@
 use super::*;
 
 #[axum::async_trait]
-pub trait DataApi: Send + Sync {
+pub trait DataApi: Send + Sync + Default {
     /// This endpoint returns a list of NetworkIdentifiers that the Rosetta
     /// server supports.
     async fn network_list(

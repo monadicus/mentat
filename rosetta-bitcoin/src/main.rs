@@ -1,4 +1,5 @@
 use mentat::{
+    cache::DefaultCacheInner,
     serve,
     server::{Server, ServerTypes},
     tokio,
@@ -28,13 +29,5 @@ impl ServerTypes for BitcoinTypes {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let server = Server::<BitcoinTypes>::builder()
-        .call_api(call_api::BitcoinCallApi::default())
-        .custom_configuration_from_arg()
-        .construction_api(construction_api::BitcoinConstructionApi::default())
-        .data_api(data_api::BitcoinDataApi::default())
-        .indexer_api(indexer_api::BitcoinIndexerApi::default())
-        .build();
-
-    serve!(server, BitcoinTypes,)
+    serve!(BitcoinTypes, DefaultCacheInner)
 }
