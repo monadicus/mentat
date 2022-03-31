@@ -8,6 +8,7 @@ pub mod serve_exports {
         Router,
     };
     pub use reqwest::Client;
+    pub use tokio;
     pub use tracing;
 
     pub use crate::{
@@ -16,25 +17,20 @@ pub mod serve_exports {
         conf::*,
         requests::*,
         responses::*,
-        server::{RpcCaller, ServerTypes},
+        serve,
+        server::{RpcCaller, Server, ServerType},
     };
 }
 
 #[macro_export]
 macro_rules! serve {
-    ($server:expr, $types:ty, $( $cache_inner:ident )?) => {{
-        use $crate::server::serve_exports::*;
-        let app = serve!(@build $types, $($cache_inner)?);
-        $server.serve(app).await
-    }};
-
-    (@routes axum: $app:expr, types: $types:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, types: $server_types:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
         $(
             $(
             $(
                 #[tracing::instrument(skip(server))]
                 async fn $method(
-                    Extension(server): Extension<Server<$types>>,
+                    Extension(server): Extension<Server<$server_types>>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
                     Extension(rpc_caller): Extension<RpcCaller>,
@@ -51,13 +47,13 @@ macro_rules! serve {
         )*
     };
 
-    (@routes axum: $app:expr, types: $types:ty, config: $conf:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, types: $server_types:ty, $(api_group { api: $api:ident, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
         $(
             $(
             $(
                 #[tracing::instrument(skip(server))]
                 async fn $method(
-                    Extension(server): Extension<Server<$types>>,
+                    Extension(server): Extension<Server<$server_types>>,
                     ConnectInfo(ip): ConnectInfo<SocketAddr>,
                     extract::Json(req_data): Json<$req>,
                     Extension(rpc_caller): Extension<RpcCaller>,
@@ -80,12 +76,16 @@ macro_rules! serve {
         )*
     };
 
-    (@build $types:ty, $( $cache_inner:ident )?) => {{
+    (@build $server_types:ty) => {{
+        serve!(@build $server_types,)
+    }};
+
+    (@build $server_types:ty, $( $cache_inner:ident )?) => {{
         let mut app = Router::new();
 
         serve! {@routes
             axum: app,
-            types: $types,
+            types: $server_types,
 
             api_group {
                 api: call_api,

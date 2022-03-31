@@ -1,9 +1,3 @@
-use mentat::{
-    serve,
-    server::{Server, ServerTypes},
-    tokio,
-};
-
 mod call_api;
 mod construction_api;
 mod data_api;
@@ -13,30 +7,20 @@ mod node;
 mod request;
 mod responses;
 
-use request::SnarkosJrpc;
-
-use crate::node::NodeConfig;
+use mentat::{cache::DefaultCacheInner, server::ServerType};
 
 #[derive(Clone)]
-struct SnarkosTypes;
+struct MentatSnarkos;
 
-impl ServerTypes for SnarkosTypes {
+impl ServerType for MentatSnarkos {
     type CallApi = call_api::SnarkosCallApi;
     type ConstructionApi = construction_api::SnarkosConstructionApi;
-    type CustomConfig = NodeConfig;
+    type CustomConfig = node::NodeConfig;
     type DataApi = data_api::SnarkosDataApi;
     type IndexerApi = indexer_api::SnarkosIndexerApi;
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let server = Server::<SnarkosTypes>::builder()
-        .call_api(call_api::SnarkosCallApi::default())
-        .custom_configuration_from_arg()
-        .construction_api(construction_api::SnarkosConstructionApi::default())
-        .data_api(data_api::SnarkosDataApi::default())
-        .indexer_api(indexer_api::SnarkosIndexerApi::default())
-        .build();
-
-    serve!(server, SnarkosTypes,)
+#[mentat::main(MentatSnarkos, DefaultCacheInner)]
+async fn main() {
+    println!("hello rosetta!");
 }

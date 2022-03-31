@@ -18,61 +18,30 @@ use tracing::info;
 use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
-pub trait ServerTypes: Clone + Send + Sync + 'static {
+pub trait ServerType: Clone + Send + Sync + 'static {
     type CallApi: Clone + CallerCallApi + Send + Sync + 'static;
     type CustomConfig: Clone + DeserializeOwned + NodeConf + Send + Serialize + Sync + 'static;
     type ConstructionApi: Clone + CallerConstructionApi + Send + Sync + 'static;
     type DataApi: Clone + CallerDataApi + Send + Sync + 'static;
     type IndexerApi: Clone + CallerIndexerApi + Send + Sync + 'static;
-}
 
-#[derive(Clone)]
-pub struct Server<Types: ServerTypes> {
-    pub call_api: Types::CallApi,
-    pub configuration: Configuration<Types::CustomConfig>,
-    pub construction_api: Types::ConstructionApi,
-    pub data_api: Types::DataApi,
-    pub indexer_api: Types::IndexerApi,
-}
-
-impl<Types: ServerTypes> Server<Types> {
-    pub fn builder() -> ServerBuilder<Types> {
-        Default::default()
-    }
-
-    /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
-    /// instead
-    #[doc(hidden)]
-    pub async fn serve(self, mut app: Router) -> Result<(), Box<dyn std::error::Error>> {
-        color_backtrace::install();
-        logging::setup()?;
-
-        if !self.configuration.mode.is_offline() {
-            self.configuration.start_node().await?;
+    fn load_config() -> Configuration<Self::CustomConfig> {
+        let args: Vec<String> = std::env::args().collect();
+        if args.len() != 2 {
+            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
+            std::process::exit(1);
         }
 
-        let rpc_caller = RpcCaller::new(&self.configuration);
-        let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
+        let path = std::path::PathBuf::from(&args[1]);
+        Configuration::load(&path)
+    }
 
-        app = app
-            .route_layer(middleware::from_fn(middleware_checks::<Types>))
-            .layer(
-                tower::ServiceBuilder::new()
-                    .layer(Extension(self))
-                    .layer(Extension(rpc_caller)),
-            );
-
-        info!("Listening on http://{}", addr);
-        axum::Server::bind(&addr)
-            .serve(app.into_make_service_with_connect_info::<SocketAddr, _>())
-            .await?;
-
-        logging::teardown();
-        Ok(())
+    fn build_server() -> Server<Self> {
+        Server::default()
     }
 }
 
-pub struct ServerBuilder<Types: ServerTypes> {
+pub struct ServerBuilder<Types: ServerType> {
     call_api: Option<Types::CallApi>,
     configuration: Option<Configuration<Types::CustomConfig>>,
     construction_api: Option<Types::ConstructionApi>,
@@ -80,7 +49,7 @@ pub struct ServerBuilder<Types: ServerTypes> {
     indexer_api: Option<Types::IndexerApi>,
 }
 
-impl<Types: ServerTypes> Default for ServerBuilder<Types> {
+impl<Types: ServerType> Default for ServerBuilder<Types> {
     fn default() -> Self {
         Self {
             call_api: None,
@@ -92,7 +61,7 @@ impl<Types: ServerTypes> Default for ServerBuilder<Types> {
     }
 }
 
-impl<Types: ServerTypes> ServerBuilder<Types> {
+impl<Types: ServerType> ServerBuilder<Types> {
     pub fn build(self) -> Server<Types> {
         Server {
             call_api: self.call_api.expect("You did not set the call api."),
@@ -141,5 +110,60 @@ impl<Types: ServerTypes> ServerBuilder<Types> {
     pub fn indexer_api(mut self, a: Types::IndexerApi) -> Self {
         self.indexer_api = Some(a);
         self
+    }
+}
+
+#[derive(Clone)]
+pub struct Server<Types: ServerType> {
+    pub call_api: Types::CallApi,
+    pub configuration: Configuration<Types::CustomConfig>,
+    pub construction_api: Types::ConstructionApi,
+    pub data_api: Types::DataApi,
+    pub indexer_api: Types::IndexerApi,
+}
+
+impl<Types: ServerType> Default for Server<Types> {
+    fn default() -> Self {
+        Self {
+            call_api: Default::default(),
+            configuration: <Types>::load_config(),
+            construction_api: Default::default(),
+            data_api: Default::default(),
+            indexer_api: Default::default(),
+        }
+    }
+}
+
+impl<Types: ServerType> Server<Types> {
+    /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
+    /// instead
+    #[doc(hidden)]
+    pub async fn serve(self, mut app: Router) -> Result<(), Box<dyn std::error::Error>> {
+        color_backtrace::install();
+        logging::setup()?;
+
+        if !self.configuration.mode.is_offline() {
+            let child = Types::CustomConfig::start_node(&self.configuration).await?;
+            Types::CustomConfig::log_node(child).await;
+        }
+
+        let rpc_caller = RpcCaller::new(&self.configuration);
+        let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
+
+        app = app
+            .route_layer(middleware::from_fn(middleware_checks::<Types>))
+            .layer(
+                tower::ServiceBuilder::new()
+                    .layer(Extension(self))
+                    .layer(Extension(rpc_caller)),
+            );
+
+        info!("Listening on http://{}", addr);
+        axum::Server::bind(&addr)
+            .serve(app.into_make_service_with_connect_info::<SocketAddr, _>())
+            .await?;
+
+        logging::teardown();
+        Ok(())
     }
 }
