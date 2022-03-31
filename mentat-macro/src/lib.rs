@@ -3,30 +3,28 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::ToTokens;
-use syn::{
-    self, parse_macro_input, AttributeArgs, Ident, ItemFn, ItemStruct, Meta, NestedMeta,
-};
+use syn::{self, parse_macro_input, AttributeArgs, Ident, ItemFn, ItemStruct, Meta, NestedMeta};
 
 #[proc_macro_attribute]
 pub fn mentat(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(item as ItemStruct);
+    let struct_def = parse_macro_input!(item as ItemStruct);
 
     format!(
         "\
 use ::mentat::server::serve_exports::*;
 
-#[derive(Clone)]
+#[::std::prelude::v1::derive(::std::clone::Clone)]
 {}
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {{
+#[::mentat::tokio::main]
+async fn main() -> ::std::result::Result<(), ::std::boxed::Box<dyn ::std::error::Error>> {{
     let app = serve!(@build {}, {});
     <{}>::build_server().serve(app).await
 }}",
-        input.to_token_stream(),
-        input.ident,
+        struct_def.to_token_stream(),
+        struct_def.ident,
         attr,
-        input.ident,
+        struct_def.ident,
     )
     .parse()
     .unwrap()
@@ -34,19 +32,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {{
 
 #[proc_macro_attribute]
 pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let mut input = parse_macro_input!(item as ItemFn);
-    if input.sig.ident.to_string() != "main" {
-        panic!("expected function name `main` found `{}`", input.sig.ident);
+    let mut function = parse_macro_input!(item as ItemFn);
+    if function.sig.ident.to_string() != "main" {
+        panic!(
+            "expected function name `main` found `{}`",
+            function.sig.ident
+        );
     } else {
-        input.sig.ident = Ident::new("__mentat_main_preamble_fn", Span::call_site());
+        function.sig.ident = Ident::new("__mentat_main_preamble_fn", Span::call_site());
     }
 
-    let attr_str = attr.to_string();
     let args = parse_macro_input!(attr as AttributeArgs);
-    let server_type = if let Some(NestedMeta::Meta(Meta::Path(path))) = args.get(0) {
-        path.get_ident().expect("expected ServerType")
-    } else {
-        panic!("expected ServerType")
+    let server_type = match args.get(0) {
+        Some(NestedMeta::Meta(Meta::Path(path))) => {
+            path.get_ident().expect("expected ServerType").to_string()
+        }
+        _ => panic!("expected type `ServerType`"),
+    };
+    let cache_type = match args.get(1) {
+        Some(NestedMeta::Meta(Meta::Path(path))) => match path.get_ident() {
+            Some(id) => id.to_string(),
+            None => panic!("expected type `CacheInner`"),
+        },
+        Some(_) => panic!("expected type `CacheInner`"),
+        None => String::new(),
     };
 
     format!(
@@ -55,15 +64,16 @@ use ::mentat::server::serve_exports::*;
 
 {}
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {{
+#[::mentat::tokio::main]
+async fn main() -> ::std::result::Result<(), std::boxed::Box<dyn ::std::error::Error>> {{
     {}().await;
-    let app = serve!(@build {});
+    let app = serve!(@build {}, {});
     <{}>::build_server().serve(app).await
 }}",
-        input.to_token_stream(),
-        input.sig.ident,
-        attr_str,
+        function.to_token_stream(),
+        function.sig.ident,
+        server_type,
+        cache_type,
         server_type
     )
     .parse()
