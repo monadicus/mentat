@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    process::{Child, Command, Stdio},
-};
+use std::{path::PathBuf, process::Command};
 
 use mentat::{
     async_trait,
@@ -34,21 +31,19 @@ impl NodeConf for NodeConfig {
         )
     }
 
-    async fn start_node(config: &Configuration<Self>) -> Result<Child, Box<dyn std::error::Error>> {
-        Ok(Command::new(&config.node_path)
-            .args(&[
-                // TODO cant bind to address without setting a whitelist
-                // &format!("--bind={address}:4132"),
-                // &format!("--rpcbind={address}:3032"),
-                "-port=4132",
-                &format!("-rpcport={}", config.node_rpc_port),
-                &format!("-rpcuser={}", config.custom.user),
-                &format!("-rpcpassword={}", config.custom.pass),
-                "-txindex=1",
-                &format!("--datadir={}", config.custom.data_dir.display()),
-            ])
-            .stderr(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()?)
+    fn node_command(config: &Configuration<Self>) -> Command {
+        let mut command = Command::new(&config.node_path);
+        command.args(&[
+            // TODO cant bind to address without setting a whitelist
+            // &format!("--bind={address}:4132"),
+            // &format!("--rpcbind={address}:3032"),
+            "-port=4132",
+            &format!("-rpcport={}", config.node_rpc_port),
+            &format!("-rpcuser={}", config.custom.user),
+            &format!("-rpcpassword={}", config.custom.pass),
+            "-txindex=1",
+            &format!("--datadir={}", config.custom.data_dir.display()),
+        ]);
+        command
     }
 }
