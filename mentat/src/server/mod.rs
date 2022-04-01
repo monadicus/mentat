@@ -1,5 +1,5 @@
 mod serve;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
 pub use serve::*;
 mod dummy_call;
 mod dummy_construction;
@@ -18,12 +18,12 @@ use tracing::info;
 use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
-pub trait ServerType: Clone + Send + Sync + 'static {
-    type CallApi: Clone + CallerCallApi + Send + Sync + 'static;
-    type CustomConfig: Clone + DeserializeOwned + NodeConf + Send + Serialize + Sync + 'static;
-    type ConstructionApi: Clone + CallerConstructionApi + Send + Sync + 'static;
-    type DataApi: Clone + CallerDataApi + Send + Sync + 'static;
-    type IndexerApi: Clone + CallerIndexerApi + Send + Sync + 'static;
+pub trait ServerType: Sized + 'static {
+    type CallApi: CallerCallApi;
+    type CustomConfig: DeserializeOwned + NodeConf;
+    type ConstructionApi: CallerConstructionApi;
+    type DataApi: CallerDataApi;
+    type IndexerApi: CallerIndexerApi;
 
     fn load_config() -> Configuration<Self::CustomConfig> {
         let args: Vec<String> = std::env::args().collect();
@@ -113,7 +113,6 @@ impl<Types: ServerType> ServerBuilder<Types> {
     }
 }
 
-#[derive(Clone)]
 pub struct Server<Types: ServerType> {
     pub call_api: Types::CallApi,
     pub configuration: Configuration<Types::CustomConfig>,
@@ -154,7 +153,7 @@ impl<Types: ServerType> Server<Types> {
             .route_layer(middleware::from_fn(middleware_checks::<Types>))
             .layer(
                 tower::ServiceBuilder::new()
-                    .layer(Extension(self))
+                    .layer(Extension(self.configuration))
                     .layer(Extension(rpc_caller)),
             );
 

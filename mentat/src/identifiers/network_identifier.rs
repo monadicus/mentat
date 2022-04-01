@@ -2,9 +2,9 @@ use axum::http::Extensions;
 
 use super::*;
 use crate::{
-    conf::Network,
-    errors::MentatError,
-    server::{Server, ServerType},
+    conf::{Configuration, Network},
+    errors::{MentatError, Result},
+    server::ServerType,
 };
 
 /// The network_identifier specifies which network a particular object is
@@ -23,28 +23,23 @@ pub struct NetworkIdentifier {
 }
 
 impl NetworkIdentifier {
-    pub async fn check<Types: ServerType>(
-        extensions: &Extensions,
-        json: &Value,
-    ) -> Result<(), MentatError> {
-        let server = extensions.get::<Server<Types>>().unwrap();
+    pub async fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {
+        let config = extensions
+            .get::<Configuration<Types::CustomConfig>>()
+            .unwrap();
         if let Some(net_id) = json.get("network_identifier") {
             let network_identifier = serde_json::from_value::<Self>(net_id.clone())?;
-            if network_identifier.blockchain.to_uppercase()
-                != server.configuration.blockchain.to_uppercase()
-            {
+            if network_identifier.blockchain.to_uppercase() != config.blockchain.to_uppercase() {
                 return Err(MentatError::from(format!(
                     "invalid blockchain ID: found `{}`, expected `{}`",
                     network_identifier.blockchain.to_uppercase(),
-                    server.configuration.blockchain.to_uppercase()
+                    config.blockchain.to_uppercase()
                 )));
-            } else if Network::from(network_identifier.network.to_uppercase())
-                != server.configuration.network
-            {
+            } else if Network::from(network_identifier.network.to_uppercase()) != config.network {
                 return Err(MentatError::from(format!(
                     "invalid network ID: found `{}`, expected `{}`",
                     network_identifier.network.to_uppercase(),
-                    server.configuration.network
+                    config.network
                 )));
             }
         }

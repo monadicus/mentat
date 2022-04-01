@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct DummyDataApi;
 
 #[axum::async_trait]

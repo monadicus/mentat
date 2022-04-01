@@ -18,13 +18,14 @@ use ::mentat::server::serve_exports::*;
 
 #[::mentat::tokio::main]
 async fn main() -> ::std::result::Result<(), ::std::boxed::Box<dyn ::std::error::Error>> {{
-    let app = serve!(@build {}, {});
-    <{}>::build_server().serve(app).await
+    let server = <{}>::build_server();
+    let app = serve!(@build server, {}, {});
+    server.serve(app).await
 }}",
         struct_def.to_token_stream(),
         struct_def.ident,
-        attr,
         struct_def.ident,
+        attr,
     )
     .parse()
     .unwrap()
@@ -67,14 +68,15 @@ use ::mentat::server::serve_exports::*;
 #[::mentat::tokio::main]
 async fn main() -> ::std::result::Result<(), std::boxed::Box<dyn ::std::error::Error>> {{
     {}().await;
-    let app = serve!(@build {}, {});
-    <{}>::build_server().serve(app).await
+    let server = <{}>::build_server();
+    let app = serve!(@build server, {}, {});
+    server.serve(app).await
 }}",
         function.to_token_stream(),
         function.sig.ident,
         server_type,
+        server_type,
         cache_type,
-        server_type
     )
     .parse()
     .unwrap()
