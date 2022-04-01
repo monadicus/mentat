@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, BufReader, Read},
     net::Ipv4Addr,
     path::{Path, PathBuf},
-    process::Child,
+    process::{Command, Stdio},
     thread,
 };
 
@@ -14,11 +14,15 @@ use super::*;
 
 #[async_trait]
 pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
-    async fn start_node(config: &Configuration<Self>) -> Result<Child, Box<dyn std::error::Error>>;
-
     fn node_name() -> String;
 
-    async fn log_node(mut child: Child) {
+    fn node_command(config: &Configuration<Self>) -> Command;
+
+    fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
+        let mut child = Self::node_command(config)
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?;
         let stdout = child.stdout.take().unwrap();
         let stderr = child.stderr.take().unwrap();
 
@@ -39,6 +43,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
         let name = Self::node_name();
         spawn_reader(name.clone(), stdout, false);
         spawn_reader(name, stderr, true);
+        Ok(())
     }
 
     fn build_url(conf: &Configuration<Self>) -> String {

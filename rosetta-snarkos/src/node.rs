@@ -1,4 +1,4 @@
-use std::process::{Child, Command, Stdio};
+use std::process::Command;
 
 use mentat::{
     async_trait,
@@ -16,20 +16,18 @@ impl NodeConf for NodeConfig {
         String::from("SnarkOS")
     }
 
-    async fn start_node(config: &Configuration<Self>) -> Result<Child, Box<dyn std::error::Error>> {
+    fn node_command(config: &Configuration<Self>) -> Command {
         // TODO: make it so snarkos checks for updates and rebuilds automatically.
-        Ok(Command::new(&config.node_path)
-            .args(&[
-                "--node",
-                &format!("{}:4132", config.address),
-                "--rpc",
-                &format!("{}:{}", config.address, config.node_rpc_port),
-                "--trial",
-                "--verbosity",
-                "2",
-            ])
-            .stderr(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()?)
+        let mut command = Command::new(&config.node_path);
+        command.args(&[
+            "--node",
+            &format!("{}:4132", config.address),
+            "--rpc",
+            &format!("{}:{}", config.address, config.node_rpc_port),
+            "--trial",
+            "--verbosity",
+            "2",
+        ]);
+        command
     }
 }
