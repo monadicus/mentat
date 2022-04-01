@@ -41,6 +41,7 @@ impl NodeConf for NodeConfig {
                 // &format!("--bind={address}:4132"),
                 // &format!("--rpcbind={address}:3032"),
                 "-port=4132",
+                // TODO `Config options rpcuser and rpcpassword will soon be deprecated. Locally-run instances may remove rpcuser to use cookie-based auth, or may be replaced with rpcauth. Please see share/rpcauth for rpcauth auth generation.`
                 &format!("-rpcport={}", config.node_rpc_port),
                 &format!("-rpcuser={}", config.custom.user),
                 &format!("-rpcpassword={}", config.custom.pass),

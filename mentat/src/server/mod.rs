@@ -70,7 +70,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
                 .construction_api
                 .expect("You did not set the construction api."),
             data_api: self.data_api.expect("You did not set the data api."),
-            indexer_api: self.indexer_api.expect("You did not set the indxer api."),
+            indexer_api: self.indexer_api.expect("You did not set the indexer api."),
         }
     }
 
