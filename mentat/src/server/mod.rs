@@ -1,6 +1,4 @@
-mod serve;
 use serde::de::DeserializeOwned;
-pub use serve::*;
 mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
@@ -134,8 +132,8 @@ impl<Types: ServerType> Default for Server<Types> {
 }
 
 impl<Types: ServerType> Server<Types> {
-    /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
-    /// instead
+    /// WARNING: Do not use this method outside of Mentat! Use the `mentat` or
+    /// `main` macros instead
     #[doc(hidden)]
     pub async fn serve(self, mut app: Router) -> Result<(), Box<dyn std::error::Error>> {
         color_backtrace::install();

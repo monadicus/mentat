@@ -23,6 +23,18 @@ mod server_rexport {
     pub use serde_json;
     pub use tokio;
     pub use tracing;
+
+    pub mod macro_exports {
+        pub use axum::{
+            extract::{self, ConnectInfo, Extension, Json},
+            routing,
+            Router,
+        };
+        pub use tracing::Instrument;
+
+        pub use super::{api::*, cache::Cache, conf::Configuration, server::RpcCaller, *};
+        pub use crate::requests::*;
+    }
 }
 
 #[cfg(feature = "server")]
