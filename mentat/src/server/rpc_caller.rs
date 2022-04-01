@@ -1,6 +1,6 @@
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::serve_exports::{Configuration, NodeConf};
+use crate::conf::{Configuration, NodeConf};
 
 #[derive(Clone, Debug)]
 pub struct RpcCaller {

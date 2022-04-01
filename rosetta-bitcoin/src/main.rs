@@ -10,9 +10,9 @@ mod responses;
 use mentat::{cache::DefaultCacheInner, mentat, server::ServerType};
 
 #[mentat(DefaultCacheInner)]
-struct BitcoinTypes;
+struct MentatBitcoin;
 
-impl ServerType for BitcoinTypes {
+impl ServerType for MentatBitcoin {
     type CallApi = call_api::BitcoinCallApi;
     type ConstructionApi = construction_api::BitcoinConstructionApi;
     type CustomConfig = node::NodeConfig;

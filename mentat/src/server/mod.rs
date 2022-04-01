@@ -1,6 +1,4 @@
-mod serve;
 use serde::de::DeserializeOwned;
-pub use serve::*;
 mod dummy_call;
 mod dummy_construction;
 mod dummy_data;
@@ -72,7 +70,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
                 .construction_api
                 .expect("You did not set the construction api."),
             data_api: self.data_api.expect("You did not set the data api."),
-            indexer_api: self.indexer_api.expect("You did not set the indxer api."),
+            indexer_api: self.indexer_api.expect("You did not set the indexer api."),
         }
     }
 
@@ -134,8 +132,8 @@ impl<Types: ServerType> Default for Server<Types> {
 }
 
 impl<Types: ServerType> Server<Types> {
-    /// WARNING: Do not use this method outside of Mentat! Use the `serve` macro
-    /// instead
+    /// WARNING: Do not use this method outside of Mentat! Use the `mentat` or
+    /// `main` macros instead
     #[doc(hidden)]
     pub async fn serve(self, mut app: Router) -> Result<(), Box<dyn std::error::Error>> {
         color_backtrace::install();
