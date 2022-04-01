@@ -246,6 +246,7 @@ fn build_cached_route(
 ) -> TokenStream2 {
     quote!(
         let api = server.#api.clone();
+        let cache = Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None);
         let #method = move |
             ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
             extract::Json(req_data): Json<#req>,
@@ -254,7 +255,7 @@ fn build_cached_route(
         | {
             Box::pin(async move {
                 let c = Caller { ip };
-                Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None).get_cached(move || {
+                cache.get_cached(move || {
                     std::boxed::Box::pin(async move {
                         let resp = api.#method(c, req_data, &conf.mode, rpc_caller).await;
                         #[cfg(debug_assertions)]
