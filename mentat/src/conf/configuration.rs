@@ -18,7 +18,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
 
     fn node_command(config: &Configuration<Self>) -> Command;
 
-    async fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
+    fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
         let mut child = Self::node_command(config)
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())

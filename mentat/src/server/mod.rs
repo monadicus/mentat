@@ -142,7 +142,7 @@ impl<Types: ServerType> Server<Types> {
         logging::setup()?;
 
         if !self.configuration.mode.is_offline() {
-            Types::CustomConfig::start_node(&self.configuration).await?;
+            Types::CustomConfig::start_node(&self.configuration)?;
         }
 
         let rpc_caller = RpcCaller::new(&self.configuration);
