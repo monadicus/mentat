@@ -3,8 +3,8 @@ use axum::http::Extensions;
 use super::*;
 use crate::{
     conf::{Configuration, Network},
-    errors::MentatError,
-    server::ServerTypes,
+    errors::{MentatError, Result},
+    server::ServerType,
 };
 
 /// The network_identifier specifies which network a particular object is
@@ -23,10 +23,7 @@ pub struct NetworkIdentifier {
 }
 
 impl NetworkIdentifier {
-    pub async fn check<Types>(extensions: &Extensions, json: &Value) -> Result<(), MentatError>
-    where
-        Types: ServerTypes,
-    {
+    pub async fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {
         let config = extensions
             .get::<Configuration<Types::CustomConfig>>()
             .unwrap();

@@ -14,7 +14,7 @@ pub trait CallApi: Send + Sync {
 }
 
 #[axum::async_trait]
-pub trait CallerCallApi: CallApi + Send + Sync {
+pub trait CallerCallApi: CallApi + Clone + Send + Sync + Default {
     /// Make a Network-Specific Procedure Call
     async fn call_call(
         &self,

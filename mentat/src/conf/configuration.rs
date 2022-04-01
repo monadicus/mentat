@@ -1,7 +1,10 @@
 use std::{
     fs,
+    io::{BufRead, BufReader, Read},
     net::Ipv4Addr,
     path::{Path, PathBuf},
+    process::Child,
+    thread,
 };
 
 use axum::async_trait;
@@ -11,7 +14,32 @@ use super::*;
 
 #[async_trait]
 pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
-    async fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>>;
+    async fn start_node(config: &Configuration<Self>) -> Result<Child, Box<dyn std::error::Error>>;
+
+    fn node_name() -> String;
+
+    async fn log_node(mut child: Child) {
+        let stdout = child.stdout.take().unwrap();
+        let stderr = child.stderr.take().unwrap();
+
+        // TODO Maybe use tokio?
+        fn spawn_reader<T: 'static + Read + Send>(name: String, out: T, err: bool) {
+            let mut reader = BufReader::new(out).lines();
+            thread::spawn(move || {
+                while let Some(Ok(line)) = reader.next() {
+                    if err {
+                        tracing::error!("{name}: {line}");
+                    } else {
+                        tracing::info!("{name}: {line}");
+                    }
+                }
+            });
+        }
+
+        let name = Self::node_name();
+        spawn_reader(name.clone(), stdout, false);
+        spawn_reader(name, stderr, true);
+    }
 
     fn build_url(conf: &Configuration<Self>) -> String {
         format!(
@@ -85,14 +113,6 @@ where
                 e
             )
         });
-    }
-
-    pub fn build_url(&self) -> String {
-        NodeConf::build_url(self)
-    }
-
-    pub async fn start_node(&self) -> Result<(), Box<dyn std::error::Error>> {
-        NodeConf::start_node(self).await
     }
 }
 

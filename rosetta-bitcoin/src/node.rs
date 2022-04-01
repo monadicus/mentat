@@ -1,15 +1,12 @@
 use std::{
-    io::{BufRead, BufReader, Read},
     path::PathBuf,
-    process::{Command, Stdio},
-    thread,
+    process::{Child, Command, Stdio},
 };
 
 use mentat::{
     async_trait,
     conf::{Configuration, NodeConf},
     serde::{Deserialize, Serialize},
-    tracing,
 };
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -22,6 +19,10 @@ pub struct NodeConfig {
 
 #[async_trait]
 impl NodeConf for NodeConfig {
+    fn node_name() -> String {
+        String::from("Bitcoin")
+    }
+
     fn build_url(conf: &Configuration<Self>) -> String {
         format!(
             "{}://{}:{}@{}:{}",
@@ -33,8 +34,8 @@ impl NodeConf for NodeConfig {
         )
     }
 
-    async fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
-        let mut child = Command::new(&config.node_path)
+    async fn start_node(config: &Configuration<Self>) -> Result<Child, Box<dyn std::error::Error>> {
+        Ok(Command::new(&config.node_path)
             .args(&[
                 // TODO cant bind to address without setting a whitelist
                 // &format!("--bind={address}:4132"),
@@ -48,28 +49,6 @@ impl NodeConf for NodeConfig {
             ])
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())
-            .spawn()?;
-
-        let stdout = child.stdout.take().unwrap();
-        let stderr = child.stderr.take().unwrap();
-
-        // TODO: move this method to part of NodeRunner trait.
-        // Maybe use tokio?
-        fn spawn_reader<T: 'static + Read + Send>(out: T, err: bool) {
-            let mut reader = BufReader::new(out).lines();
-            thread::spawn(move || {
-                while let Some(Ok(line)) = reader.next() {
-                    if err {
-                        tracing::error!("Bitcoin: {line}");
-                    } else {
-                        tracing::info!("Bitcoin: {line}");
-                    }
-                }
-            });
-        }
-        spawn_reader(stdout, false);
-        spawn_reader(stderr, true);
-
-        Ok(())
+            .spawn()?)
     }
 }

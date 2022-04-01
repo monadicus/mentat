@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Clone, Default)]
 pub struct DummyIndexerApi;
 
 #[axum::async_trait]

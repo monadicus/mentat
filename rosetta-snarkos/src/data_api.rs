@@ -7,9 +7,9 @@ use mentat::{
     server::RpcCaller,
 };
 
-use super::SnarkosJrpc;
 use crate::{
     jsonrpc_call,
+    request::SnarkosJrpc,
     responses::{data::*, Response},
 };
 

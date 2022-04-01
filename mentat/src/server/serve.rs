@@ -9,6 +9,7 @@ pub mod serve_exports {
         Router,
     };
     pub use reqwest::Client;
+    pub use tokio;
     pub use tracing::{self, Instrument};
 
     pub use crate::{
@@ -17,7 +18,8 @@ pub mod serve_exports {
         conf::*,
         requests::*,
         responses::*,
-        server::{RpcCaller, ServerTypes},
+        serve,
+        server::{RpcCaller, ServerType},
     };
 
     pub type BoxFut<'a, Req, Out> = Box<
@@ -31,18 +33,12 @@ pub mod serve_exports {
 
 #[macro_export]
 macro_rules! serve {
-    ($server:expr, $types:ty, $( $cache_inner:ident )?) => {{
-        use $crate::server::serve_exports::*;
-        let app = serve!(@build $server, $types, $($cache_inner)?);
-        $server.serve(app).await
-    }};
-
-    (@routes axum: $app:expr, types: $types:ty, $(api_group { api: $api:expr, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, types: $server_types:ty, $(api_group { api: $api:expr, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, } )* } ) * } ) * )  => {
         $(
             $(
             $(
                 let api = $api.clone();
-                let $method = move |ConnectInfo(ip): ConnectInfo<SocketAddr>, extract::Json(req_data): Json<$req>, Extension(conf): Extension<Configuration<<$types as ServerTypes>::CustomConfig>>, Extension(rpc_caller): Extension<RpcCaller>| {
+                let $method = move |ConnectInfo(ip): ConnectInfo<SocketAddr>, extract::Json(req_data): Json<$req>, Extension(conf): Extension<Configuration<<$server_types as ServerType>::CustomConfig>>, Extension(rpc_caller): Extension<RpcCaller>| {
                     Box::pin(async move {
                         let c = Caller { ip };
                         let resp = api.$method(c, req_data, &conf.mode, rpc_caller).await;
@@ -58,23 +54,25 @@ macro_rules! serve {
         )*
     };
 
-    (@routes axum: $app:expr, types: $types:ty, config: $conf:ty, $(api_group { api: $api:expr, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
+    (@routes axum: $app:expr, types: $server_types:ty, $(api_group { api: $api:expr, $( route_group { route_base: $route_base:expr, $(route { path: $path:expr, method: $method:ident, req_data: $req:ty, resp_data: $resp:ty, cache: $cache:expr } )* } ) * } ) * )  => {
         $(
             $(
             $(
                 let api = $api.clone();
-                let $method = move |ConnectInfo(ip): ConnectInfo<SocketAddr>, extract::Json(req_data): Json<$req>, Extension(conf): Extension<Configuration<<$types as ServerTypes>::CustomConfig>>, Extension(rpc_caller): Extension<RpcCaller>| {
-                    let c = Caller { ip };
-                    $cache.get_cached(move || {
-                        Box::pin(async move {
-                            let resp = server.$api.$method(c, req_data, &conf.mode, rpc_caller).await;
-                            #[cfg(debug_assertions)]
-                            tracing::debug!("response {}{} {resp:?}", $route_base, $path);
-                            resp
-                        })
+                let $method = move |ConnectInfo(ip): ConnectInfo<SocketAddr>, extract::Json(req_data): Json<$req>, Extension(conf): Extension<Configuration<<$server_types as ServerType>::CustomConfig>>, Extension(rpc_caller): Extension<RpcCaller>| {
+                    Box::pin(async move {
+                        let c = Caller { ip };
+                        $cache.get_cached(move || {
+                            Box::pin(async move {
+                                let resp = api.$method(c, req_data, &conf.mode, rpc_caller).await;
+                                #[cfg(debug_assertions)]
+                                tracing::debug!("response {}{} {resp:?}", $route_base, $path);
+                                resp
+                            })
 
+                        })
+                        .await
                     })
-                    .await
                 }.instrument(tracing::info_span!(stringify!($method)));
 
                 $app = $app.route(&format!("{}{}", $route_base, $path), routing::post($method));
@@ -83,12 +81,16 @@ macro_rules! serve {
         )*
     };
 
-    (@build $server:expr, $types:ty, $( $cache_inner:ident )?) => {{
+    (@build $server:expr, $server_types:ty) => {{
+        serve!(@build $server, $server_types,)
+    }};
+
+    (@build $server:expr, $server_types:ty, $( $cache_inner:ident )?) => {{
         let mut app = Router::new();
 
         serve! {@routes
             axum: app,
-            types: $types,
+            types: $server_types,
 
             api_group {
                 api: $server.call_api,
