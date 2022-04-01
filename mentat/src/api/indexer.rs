@@ -1,7 +1,7 @@
 use super::*;
 
 #[axum::async_trait]
-pub trait IndexerApi: Send + Sync + Default {
+pub trait IndexerApi: Default {
     /// /events/blocks allows the _caller to query a sequence of BlockEvents
     /// indicating which blocks were added and removed from storage to reach the
     /// current state. Following BlockEvents allows lightweight clients to
@@ -38,7 +38,7 @@ pub trait IndexerApi: Send + Sync + Default {
 }
 
 #[axum::async_trait]
-pub trait CallerIndexerApi: Clone + IndexerApi + Send + Sync {
+pub trait CallerIndexerApi: Clone + IndexerApi {
     async fn call_events_blocks(
         &self,
         caller: Caller,

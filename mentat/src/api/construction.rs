@@ -1,7 +1,7 @@
 use super::*;
 
 #[axum::async_trait]
-pub trait ConstructionApi: Send + Sync + Default {
+pub trait ConstructionApi: Default {
     /// Combine creates a network-specific transaction from an unsigned
     /// transaction and an array of provided signatures. The signed transaction
     /// returned from this method will be sent to the /construction/submit
@@ -126,7 +126,7 @@ pub trait ConstructionApi: Send + Sync + Default {
 }
 
 #[axum::async_trait]
-pub trait CallerConstructionApi: Clone + ConstructionApi + Send + Sync {
+pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_combine(
         &self,
         caller: Caller,
