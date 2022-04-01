@@ -80,7 +80,9 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let args = parse_macro_input!(attr as AttributeArgs);
     let server_type = match args.get(0) {
-        Some(NestedMeta::Meta(Meta::Path(path))) => path.get_ident().expect("expected type `ServerType`"),
+        Some(NestedMeta::Meta(Meta::Path(path))) => {
+            path.get_ident().expect("expected type `ServerType`")
+        }
         _ => panic!("expected type `ServerType`"),
     };
     let cache_type = args.get(1).map(parse_cache_inner_type);
