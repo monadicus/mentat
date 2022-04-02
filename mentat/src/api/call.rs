@@ -1,4 +1,5 @@
 use super::*;
+use crate::errors::MentatError;
 
 #[axum::async_trait]
 pub trait CallApi {
@@ -9,7 +10,7 @@ pub trait CallApi {
         _data: CallRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<CallResponse> {
-        ApiError::not_implemented()
+        Err(MentatError::NotImplemented(ApiError::not_implemented()))
     }
 }
 
@@ -24,7 +25,7 @@ pub trait CallerCallApi: CallApi + Clone + Default {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<CallResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            Err(MentatError::Internal(ApiError::wrong_network(&data)))
         } else {
             self.call(caller, data, rpc_caller).await
         }

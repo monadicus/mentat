@@ -14,7 +14,7 @@ pub struct AccountIdentifier {
     /// and/or a stake (delegated balance). The sub_account_identifier should
     /// specify which state (if applicable) an account instantiation refers to.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub decimals: Option<SubAccountIdentifier>,
+    pub sub_account: Option<SubAccountIdentifier>,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.

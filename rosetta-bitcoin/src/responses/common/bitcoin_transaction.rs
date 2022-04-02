@@ -54,7 +54,7 @@ impl BitcoinVin {
 
                 let account = AccountIdentifier {
                     address: vout.scriptPubKey.hex.clone(),
-                    decimals: None,
+                    sub_account: None,
                     metadata: IndexMap::new(),
                 };
 
@@ -145,7 +145,7 @@ impl BitcoinVout {
             status: Some(String::from("SUCCESS")),
             account: Some(AccountIdentifier {
                 address: self.scriptPubKey.hex.clone(),
-                decimals: None,
+                sub_account: None,
                 metadata: IndexMap::new(),
             }),
             amount: Some(Amount {

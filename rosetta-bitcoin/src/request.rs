@@ -27,3 +27,10 @@ impl<P: Serialize> BitcoinJrpc<P> {
         }
     }
 }
+
+#[derive(Debug, Serialize)]
+#[serde(crate = "mentat::serde")]
+pub struct ScanObjectsDescriptor {
+    pub desc: String,
+    pub range: u64,
+}

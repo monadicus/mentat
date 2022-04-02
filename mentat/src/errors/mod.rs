@@ -9,8 +9,6 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::api::MentatResponse;
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ApiError {
     pub code: u16,
@@ -22,38 +20,38 @@ pub struct ApiError {
 }
 
 impl ApiError {
-    pub fn not_implemented<R>() -> MentatResponse<R> {
-        Err(MentatError::NotImplemented(ApiError {
+    pub fn not_implemented() -> Self {
+        ApiError {
             code: 501,
             message: "Not Implemented".to_string(),
             description: None,
             retriable: false,
             details: Default::default(),
-        }))
+        }
     }
 
-    pub fn wrong_network<P: Debug, R>(payload: P) -> MentatResponse<R> {
-        Err(MentatError::Internal(ApiError {
+    pub fn wrong_network<P: Debug>(payload: P) -> Self {
+        ApiError {
             code: 500,
             message: format!("requestNetwork not supported {payload:?}"),
             description: None,
             retriable: false,
             details: Default::default(),
-        }))
+        }
     }
 
-    pub fn invalid_account_format<R>() -> MentatResponse<R> {
-        Err(MentatError::Internal(ApiError{
+    pub fn invalid_account_format() -> Self {
+        ApiError{
             code: 12,
             message: "Invalid account format".to_string(),
             description: Some("This error is returned when the requested AccountIdentifier is improperly formatted.".to_string()),
             retriable: true,
             details: Default::default(),
-        }))
+        }
     }
 
-    pub fn unable_to_find_transaction<R>(hash: &str) -> MentatResponse<R> {
-        Err(MentatError::Internal(ApiError {
+    pub fn unable_to_find_transaction(hash: &str) -> Self {
+        ApiError {
             code: 16,
             message: "Invalid account format".to_string(),
             description: Some(String::from("Transaction not found")),
@@ -66,7 +64,21 @@ impl ApiError {
                 );
                 map
             },
-        }))
+        }
+    }
+
+    pub fn unable_to_get_balance(context: &str) -> Self {
+        ApiError {
+            code: 18,
+            message: String::from("Unable to get balance"),
+            description: None,
+            retriable: false,
+            details: {
+                let mut map = IndexMap::new();
+                map.insert(String::from("context"), context.into());
+                map
+            },
+        }
     }
 }
 
@@ -85,6 +97,12 @@ impl<T: Display> From<T> for MentatError {
             retriable: false,
             details: Default::default(),
         })
+    }
+}
+
+impl From<ApiError> for MentatError {
+    fn from(e: ApiError) -> Self {
+        MentatError::Internal(e)
     }
 }
 
