@@ -170,7 +170,7 @@ struct ApiGroup {
     route_groups: &'static [RouteGroup],
 }
 
-pub fn build_routes(server_type: &Ident, cacher: Option<&Ident>) -> TokenStream2 {
+pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStream2 {
     let mut out = TokenStream2::new();
 
     for api_group in ROUTES {
@@ -179,7 +179,7 @@ pub fn build_routes(server_type: &Ident, cacher: Option<&Ident>) -> TokenStream2
             for route in route_group.routes {
                 let method = Ident::new(route.method, Span::call_site());
                 let req_data = Ident::new(route.req_data, Span::call_site());
-                let r = match cacher {
+                let r = match cache_type {
                     Some(cacher) => build_cached_route(
                         server_type,
                         &api,
