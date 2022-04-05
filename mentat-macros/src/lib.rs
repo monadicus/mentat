@@ -6,10 +6,19 @@ use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
-    self, parse_macro_input, AttributeArgs, GenericArgument, Ident, ItemFn, ItemStruct, Meta,
+    self,
+    parse_macro_input,
+    AttributeArgs,
+    GenericArgument,
+    Ident,
+    ItemFn,
+    ItemStruct,
+    Meta,
     NestedMeta,
     PathArguments::{self},
-    PathSegment, ReturnType, Type,
+    PathSegment,
+    ReturnType,
+    Type,
 };
 
 /// parses the provided macro argument for the optional cache type
