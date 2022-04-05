@@ -5,6 +5,7 @@ members = [
         "mentat-macros",
         "rosetta-bitcoin",
         "rosetta-snarkos",
+        "examples/mentat-cli",
 ]
 
 [profile.release]
