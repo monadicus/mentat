@@ -75,10 +75,10 @@ fn get_function_return_server_type(f: &ItemFn) -> Result<&Ident, TokenStream> {
     .into())
 }
 
-/// generates code to derive Clone and Default on a user supplied `ServerType`
+/// generates code to derive Clone on a user supplied `ServerType`
 fn gen_derive(server_def: &ItemStruct) -> TokenStream2 {
     quote!(
-        #[::std::prelude::v1::derive(::std::clone::Clone, ::std::default::Default)]
+        #[::std::prelude::v1::derive(::std::clone::Clone)]
         #server_def
     )
 }
