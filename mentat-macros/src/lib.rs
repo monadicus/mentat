@@ -3,33 +3,27 @@ extern crate proc_macro;
 mod route_builder;
 
 use proc_macro::TokenStream;
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
-    self,
-    parse_macro_input,
-    AttributeArgs,
-    GenericArgument,
-    Ident,
-    ItemFn,
-    ItemStruct,
-    Meta,
+    self, parse_macro_input, AttributeArgs, GenericArgument, Ident, ItemFn, ItemStruct, Meta,
     NestedMeta,
     PathArguments::{self},
-    PathSegment,
-    ReturnType,
-    Type,
+    PathSegment, ReturnType, Type,
 };
 
 /// parses the provided macro argument for the optional cache type
-fn get_cache_inner_type(arg: &NestedMeta) -> &Ident {
-    match arg {
-        NestedMeta::Meta(Meta::Path(path)) => match path.get_ident() {
-            Some(id) => id,
-            None => panic!("expected type `CacheInner`"),
-        },
-        _ => panic!("expected type `CacheInner`"),
+fn get_cache_inner_type(arg: &NestedMeta) -> Result<&Ident, TokenStream> {
+    if let NestedMeta::Meta(Meta::Path(path)) = arg {
+        if let Some(id) = path.get_ident() {
+            return Ok(id);
+        }
     }
+    Err(
+        syn::Error::new(Span::call_site(), "expected type `CacheInner`")
+            .into_compile_error()
+            .into(),
+    )
 }
 
 /// mutates the provided main function's name to `__mentat_main_server_call` so
@@ -108,7 +102,11 @@ fn gen_main(
 #[proc_macro_attribute]
 pub fn mentat(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as AttributeArgs);
-    let cache_type = args.get(0).map(get_cache_inner_type);
+    let cache_type = match args.get(0).map(get_cache_inner_type) {
+        Some(Ok(e)) => Some(e),
+        Some(Err(e)) => return e,
+        _ => None,
+    };
 
     let server_def = parse_macro_input!(item as ItemStruct);
     let server_type = &server_def.ident;
@@ -124,7 +122,11 @@ pub fn mentat(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as AttributeArgs);
-    let cache_type = args.get(0).map(get_cache_inner_type);
+    let cache_type = match args.get(0).map(get_cache_inner_type) {
+        Some(Ok(e)) => Some(e),
+        Some(Err(e)) => return e,
+        _ => None,
+    };
 
     let mut function = parse_macro_input!(item as ItemFn);
     if let Err(e) = swap_main_name(&mut function) {
