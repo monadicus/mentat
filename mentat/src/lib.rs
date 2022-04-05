@@ -48,3 +48,16 @@ pub use server_rexport::*;
 
 #[cfg(feature = "client")]
 pub mod client;
+
+#[cfg(feature = "client")]
+#[path = ""]
+mod client_rexport {
+    pub use anyhow;
+    pub use reqwest;
+    pub use serde;
+    pub use serde_json;
+    pub use tokio;
+}
+
+#[cfg(feature = "client")]
+pub use client_rexport::*;

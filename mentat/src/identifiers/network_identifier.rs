@@ -1,6 +1,8 @@
+#[cfg(feature = "server")]
 use axum::http::Extensions;
 
 use super::*;
+#[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network},
     errors::{MentatError, Result},
@@ -22,6 +24,7 @@ pub struct NetworkIdentifier {
     pub sub_network_identifier: Option<SubNetworkIdentifier>,
 }
 
+#[cfg(feature = "server")]
 impl NetworkIdentifier {
     pub async fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {
         let config = extensions

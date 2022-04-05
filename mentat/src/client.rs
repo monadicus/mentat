@@ -1,18 +1,19 @@
 use core::fmt;
-use std::fmt::Pointer;
 
 use anyhow::anyhow;
+use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{errors::*, requests::*, responses::*};
+use crate::{errors::ApiError, requests::*, responses::*};
 
 pub struct Client {
     inner: reqwest::Client,
-    origin: String,
+    origin: Url,
 }
 
 #[derive(Debug)]
 pub enum ClientError {
+    ParseError(anyhow::Error),
     NetworkError(anyhow::Error),
     ServerError(ApiError),
 }
@@ -22,6 +23,7 @@ impl fmt::Display for ClientError {
         match self {
             ClientError::ServerError(e) => e.fmt(f),
             ClientError::NetworkError(e) => e.fmt(f),
+            ClientError::ParseError(e) => e.fmt(f),
         }
     }
 }
@@ -34,7 +36,8 @@ impl Client {
     /// `origin` should be of the form `http[s]://hostname:port/`
     pub fn new(origin: &str) -> anyhow::Result<Self> {
         Ok(Self::new_full(
-            origin,
+            // ensure origin parses into a url
+            origin.parse::<Url>()?,
             reqwest::ClientBuilder::default()
                 .build()
                 .map_err(|e| anyhow!(e))?,
@@ -42,11 +45,8 @@ impl Client {
     }
 
     /// `origin` should be of the form `http[s]://hostname:port/`.
-    pub fn new_full(origin: &str, inner: reqwest::Client) -> Self {
-        Self {
-            inner,
-            origin: origin.to_string(),
-        }
+    pub fn new_full(origin: Url, inner: reqwest::Client) -> Self {
+        Self { inner, origin }
     }
 
     async fn post<Q: Serialize, R: DeserializeOwned>(
@@ -54,7 +54,10 @@ impl Client {
         path: &str,
         request: &Q,
     ) -> Result<R> {
-        let url = format!("{}{}", self.origin, path);
+        let url = match self.origin.join(path) {
+            Ok(url) => url.to_string(),
+            Err(e) => return Err(ClientError::ParseError(anyhow!(e))),
+        };
         let out = self.inner.post(url).json(request).send().await;
         match out {
             Err(e) => Err(ClientError::NetworkError(anyhow!(e))),

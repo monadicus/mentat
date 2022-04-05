@@ -1,4 +1,5 @@
 use super::*;
+use crate::errors::MentatError;
 
 #[axum::async_trait]
 pub trait IndexerApi: Default {
@@ -16,7 +17,7 @@ pub trait IndexerApi: Default {
         _data: EventsBlocksRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<EventsBlocksResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// /events/blocks allows the _caller to query a sequence of BlockEvents
@@ -33,7 +34,7 @@ pub trait IndexerApi: Default {
         _data: SearchTransactionsRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<SearchTransactionsResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 }
 
