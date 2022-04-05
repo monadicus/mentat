@@ -32,7 +32,13 @@ mod server_rexport {
         };
         pub use tracing::Instrument;
 
-        pub use super::{api::*, cache::Cache, conf::Configuration, server::RpcCaller, *};
+        pub use super::{
+            api::*,
+            cache::Cache,
+            conf::Configuration,
+            server::{RpcCaller, Server},
+            *,
+        };
         pub use crate::requests::*;
     }
 }

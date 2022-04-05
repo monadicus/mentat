@@ -33,10 +33,6 @@ pub trait ServerType: Sized + 'static {
         let path = std::path::PathBuf::from(&args[1]);
         Configuration::load(&path)
     }
-
-    fn build_server() -> Server<Self> {
-        Server::default()
-    }
 }
 
 pub struct ServerBuilder<Types: ServerType> {
