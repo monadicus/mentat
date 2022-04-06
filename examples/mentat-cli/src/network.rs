@@ -2,7 +2,7 @@ use clap::Parser;
 use mentat::{
     anyhow::Result,
     client::Client,
-    identifiers::{NetworkIdentifier, SubNetworkIdentifier},
+    identifiers::NetworkIdentifier,
     requests::MetadataRequest,
 };
 
@@ -15,35 +15,8 @@ pub(crate) struct NetworkOpts {
 #[derive(Parser)]
 pub(crate) enum NetworkSubCommand {
     List,
-    Status(NetworkStatusOpts),
-    Options(NetworkStatusOpts),
-}
-
-#[derive(Parser)]
-pub(crate) struct NetworkStatusOpts {
-    #[clap(short, long, default_value = "")]
-    pub(crate) blockchain: String,
-    #[clap(short, long, default_value = "")]
-    pub(crate) network: String,
-    #[clap(short, long, default_value = "")]
-    pub(crate) subnetwork: String,
-}
-
-impl NetworkStatusOpts {
-    pub(crate) fn net_id(&self) -> NetworkIdentifier {
-        NetworkIdentifier {
-            blockchain: self.blockchain.clone(),
-            network: self.network.clone(),
-            sub_network_identifier: if self.subnetwork.len() > 0 {
-                Some(SubNetworkIdentifier {
-                    network: self.subnetwork.clone(),
-                    ..Default::default()
-                })
-            } else {
-                None
-            },
-        }
-    }
+    Status,
+    Options,
 }
 
 /// Get the first network from the networks list or use the given network
