@@ -22,7 +22,7 @@ impl AccountOpts {
     }
 
     pub(crate) fn get_currencies(&self) -> Option<Vec<Currency>> {
-        if self.currencies.len() == 0 {
+        if self.currencies.is_empty() {
             return None;
         }
 

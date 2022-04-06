@@ -57,7 +57,7 @@ impl Opts {
         NetworkIdentifier {
             blockchain: self.blockchain.clone(),
             network: self.network.clone(),
-            sub_network_identifier: if self.subnetwork.len() > 0 {
+            sub_network_identifier: if !self.subnetwork.is_empty() {
                 Some(SubNetworkIdentifier {
                     network: self.subnetwork.clone(),
                     ..Default::default()
@@ -74,7 +74,7 @@ impl Opts {
             (None, None) => None,
             _ => Some(PartialBlockIdentifier {
                 hash: self.hash.clone(),
-                index: self.index.clone(),
+                index: self.index,
             }),
         }
     }
@@ -84,7 +84,7 @@ impl Opts {
         match (&self.hash, &self.index) {
             (Some(hash), Some(index)) => Some(BlockIdentifier {
                 hash: hash.clone(),
-                index: index.clone(),
+                index: *index,
             }),
             _ => None,
         }

@@ -26,7 +26,7 @@ pub(crate) async fn get_network(
     net_ident: NetworkIdentifier,
 ) -> Result<Option<NetworkIdentifier>> {
     Ok(Some(
-        if net_ident.blockchain.len() == 0 && net_ident.network.len() == 0 {
+        if net_ident.blockchain.is_empty() && net_ident.network.is_empty() {
             // get the first network
             if let Some(net) = client
                 .network_list(&MetadataRequest::default())
@@ -50,7 +50,7 @@ pub(crate) async fn first_network_or_null(
     client: &Client,
     net_ident: NetworkIdentifier,
 ) -> Result<NetworkIdentifier> {
-    Ok(get_network(&client, net_ident).await?.unwrap_or_else(|| {
+    Ok(get_network(client, net_ident).await?.unwrap_or_else(|| {
         println!("null");
         std::process::exit(0)
     }))
