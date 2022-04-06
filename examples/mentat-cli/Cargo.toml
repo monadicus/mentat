@@ -10,5 +10,3 @@ mentat = { path = "../../mentat", features = [
 ], default-features = false }
 clap = { version = "3.1.8", features = ["derive"] }
 futures = "0.3.21"
-cli-table = "0.4.6"
-chrono = "0.4.19"

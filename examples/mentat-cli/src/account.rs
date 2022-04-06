@@ -23,8 +23,6 @@ pub(crate) struct AccountOpts {
 
     #[clap(subcommand)]
     pub(crate) subcmd: AccountSubCommand,
-
-    pub(crate) address: String,
 }
 
 impl AccountOpts {
@@ -45,7 +43,10 @@ impl AccountOpts {
 
     pub(crate) fn account_id(&self) -> AccountIdentifier {
         AccountIdentifier {
-            address: self.address.clone(),
+            address: match &self.subcmd {
+                AccountSubCommand::Balance(AccountBalanceOpts { address, .. }) => address.clone(),
+                AccountSubCommand::Coins(AccountCoinsOpts { address }) => address.clone(),
+            },
             ..Default::default()
         }
     }
@@ -71,15 +72,21 @@ impl AccountOpts {
 #[derive(Parser, Clone)]
 pub(crate) enum AccountSubCommand {
     Balance(AccountBalanceOpts),
-    Coins,
+    Coins(AccountCoinsOpts),
 }
 
 #[derive(Parser, Clone)]
 pub(crate) struct AccountBalanceOpts {
+    pub(crate) address: String,
     #[clap(long)]
     pub(crate) index: Option<u64>,
     #[clap(long)]
     pub(crate) hash: Option<String>,
+}
+
+#[derive(Parser, Clone)]
+pub(crate) struct AccountCoinsOpts {
+    pub(crate) address: String,
 }
 
 impl Into<PartialBlockIdentifier> for AccountBalanceOpts {

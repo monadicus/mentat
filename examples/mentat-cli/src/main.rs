@@ -46,48 +46,27 @@ async fn main() -> anyhow::Result<()> {
                 Err(e) => panic!("{}", e),
             }
         };
-        // with an arrow, all outputs are json when the -j flag is passed
-        ($input:expr, $res:ident => $body:expr) => {
-            match $input.await {
-                Ok($res) => {
-                    if main_opts.json {
-                        println!("{}", json!($res));
-                    } else {
-                        $body
-                    }
-                }
-                Err(e) => panic!("{}", e),
-            }
-        };
     }
 
     match &main_opts.subcmd {
         MainSubCommand::Network(sub_opts) => match &sub_opts.subcmd {
             NetworkSubCommand::List => {
-                display!(client.network_list(&MetadataRequest::default()), resp => {
-                    network::list_table(resp.network_identifiers);
-                })
+                display!(client.network_list(&MetadataRequest::default()))
             }
             NetworkSubCommand::Options(opts) => {
-                let network =
-                    network::first_network_or_null(&client, opts.net_id(), main_opts.json).await?;
+                let network = network::first_network_or_null(&client, opts.net_id()).await?;
 
                 display!(client.network_options(&network.into()));
             }
             NetworkSubCommand::Status(opts) => {
-                let network =
-                    network::first_network_or_null(&client, opts.net_id(), main_opts.json).await?;
+                let network = network::first_network_or_null(&client, opts.net_id()).await?;
 
-                display!(client.network_status(&network.into()), resp => {
-                    network::status_table(resp);
-                });
+                display!(client.network_status(&network.into()));
             }
         },
         MainSubCommand::Account(sub_opts) => match &sub_opts.subcmd {
             AccountSubCommand::Balance(opts) => {
-                let network =
-                    network::first_network_or_null(&client, sub_opts.net_id(), main_opts.json)
-                        .await?;
+                let network = network::first_network_or_null(&client, sub_opts.net_id()).await?;
 
                 display!(client.account_balance(&AccountBalanceRequest {
                     network_identifier: network,
@@ -100,10 +79,8 @@ async fn main() -> anyhow::Result<()> {
                     },
                 }));
             }
-            AccountSubCommand::Coins => {
-                let network =
-                    network::first_network_or_null(&client, sub_opts.net_id(), main_opts.json)
-                        .await?;
+            AccountSubCommand::Coins(_opts) => {
+                let network = network::first_network_or_null(&client, sub_opts.net_id()).await?;
 
                 display!(client.account_coins(&AccountCoinsRequest {
                     network_identifier: network,
