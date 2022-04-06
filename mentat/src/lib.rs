@@ -1,3 +1,6 @@
+#![deny(clippy::all, clippy::missing_docs_in_private_items)]
+#![doc = include_str!("../../README.md")]
+
 pub mod errors;
 pub mod identifiers;
 pub mod misc;

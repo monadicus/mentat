@@ -1,5 +1,10 @@
+//! Houses the traits for the Rosetta Construction API.
+//! These traits are easily overridable for custom
+//! implementations.
 use super::*;
 
+///
+/// Trait to define the endpoints necessary for the Rosetta Construction API.
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
     /// Combine creates a network-specific transaction from an unsigned
@@ -125,8 +130,13 @@ pub trait ConstructionApi: Default {
     }
 }
 
+///
+/// Trait to wrap the [`ConstructionApi`].
+/// This trait helps to define default behavior for running the endpoints
+/// on different modes.
 #[axum::async_trait]
 pub trait CallerConstructionApi: Clone + ConstructionApi {
+    /// This endpoint runs in both offline and online mode.
     async fn call_combine(
         &self,
         caller: Caller,
@@ -137,6 +147,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.combine(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_derive(
         &self,
         caller: Caller,
@@ -147,6 +158,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.derive(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_hash(
         &self,
         caller: Caller,
@@ -157,6 +169,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.hash(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_metadata(
         &self,
         caller: Caller,
@@ -171,6 +184,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         }
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_parse(
         &self,
         caller: Caller,
@@ -181,6 +195,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.parse(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_payloads(
         &self,
         caller: Caller,
@@ -191,6 +206,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.payloads(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_preprocess(
         &self,
         caller: Caller,
@@ -201,6 +217,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.preprocess(caller, data, rpc_caller).await
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_submit(
         &self,
         caller: Caller,

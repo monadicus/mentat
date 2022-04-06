@@ -1,3 +1,5 @@
+//! The module defines the Allow model.
+
 use super::*;
 
 /// Allow specifies supported Operation status, Operation types, and all
@@ -5,18 +7,18 @@ use super::*;
 /// the correctness of a Rosetta Server implementation. It is expected that
 /// these clients will error if they receive some response that contains any of
 /// the above information that is not specified here.
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Allow {
-    /// All Operation.Status this implementation supports. Any status that is
+    /// All [`OperationStatus`] this implementation supports. Any status that is
     /// returned during parsing that is not listed here will cause client
     /// validation to error.
     pub operation_statuses: Vec<OperationStatus>,
-    /// All Operation.Type this implementation supports. Any type that is
+    /// All Operation Type this implementation supports. Any type that is
     /// returned during parsing that is not listed here will cause client
     /// validation to error.
     pub operation_types: Vec<String>,
-    /// All Errors that this implementation could return. Any error that is
-    /// returned during parsing that is not listed here will cause client
+    /// All [`ApiError`] that this implementation could return. Any error that
+    /// is returned during parsing that is not listed here will cause client
     /// validation to error.
     pub errors: Vec<ApiError>,
     /// Any Rosetta implementation that supports querying the balance of an
@@ -34,7 +36,7 @@ pub struct Allow {
     /// the implementer (this is en lieu of defining an entire type system and
     /// requiring the implementer to define that in Allow).
     pub call_methods: Option<Vec<String>>,
-    /// BalanceExemptions is an array of BalanceExemption indicating which
+    /// BalanceExemptions is an array of [`BalanceExemption`] indicating which
     /// account balances could change without a corresponding Operation.
     /// BalanceExemptions should be used sparingly as they may introduce
     /// significant complexity for integrators that attempt to reconcile all

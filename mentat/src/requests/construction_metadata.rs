@@ -1,12 +1,14 @@
+//! The module defines the ConstructionMetadataRequest model.
+
 use super::*;
 
-/// A ConstructionMetadataRequest is utilized to get information required to
+/// A `ConstructionMetadataRequest` is utilized to get information required to
 /// construct a transaction. The Options object used to specify which metadata
 /// to return is left purposely unstructured to allow flexibility for
 /// implementers. Options is not required in the case that there is network-wide
 /// metadata of interest. Optionally, the request can also include an array of
-/// PublicKeys associated with the AccountIdentifiers returned in
-/// ConstructionPreprocessResponse.
+/// PublicKeys associated with the [`AccountIdentifier`]s returned in
+/// [`ConstructionPreprocessResponse`].
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionMetadataRequest {
     /// The network_identifier specifies which network a particular object is
@@ -19,5 +21,6 @@ pub struct ConstructionMetadataRequest {
     /// populate an options object to limit the metadata returned to only the
     /// subset required.
     pub options: Option<Value>,
+    /// Undocumented in rosetta
     pub public_keys: Option<Vec<PublicKey>>,
 }

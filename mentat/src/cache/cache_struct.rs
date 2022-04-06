@@ -1,3 +1,6 @@
+//! This module defines the cache struct which contains
+//! a [`CacheInner`] to handle the fetching and inflight producing.
+
 use std::{
     future::Future,
     pin::Pin,
@@ -10,19 +13,25 @@ use tokio::sync::{broadcast, Mutex};
 use super::CacheInner;
 use crate::{api::MentatResponse, errors::MentatError};
 
+/// A type to represent a async closure with some output.
 pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
 
+///
+/// The Cache struct which contains information on the cache.
 #[derive(Clone)]
 pub struct Cache<C> {
+    /// For holding a [`CacheInner`] generic.
     inner: Arc<Mutex<C>>,
+    /// Optional how long should we trust that cache.
     refresh_interval: Option<Duration>,
 }
 
 impl<C> Cache<C>
 where
     C: CacheInner,
-    C::T: Clone + Send + Sync + 'static,
+    C::Data: Clone + Send + Sync + 'static,
 {
+    /// Create a Cache struct with an optional refresh interval.
     pub fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
         Self {
             inner: Arc::new(Mutex::new(cache)),
@@ -30,9 +39,12 @@ where
         }
     }
 
-    pub async fn get_cached<F>(&self, f: F) -> MentatResponse<C::T>
+    /// Attempts to fetch the lastet cache object if it exists.
+    /// Also handles multiple of the same request at the same time
+    /// telling one request to finish and send its data to the rest.
+    pub async fn get_cached<F>(&self, f: F) -> MentatResponse<C::Data>
     where
-        F: FnOnce() -> BoxFut<'static, MentatResponse<C::T>> + Send + 'static,
+        F: FnOnce() -> BoxFut<'static, MentatResponse<C::Data>> + Send + 'static,
     {
         let mut rx = {
             let mut inner = self.inner.lock().await;
@@ -53,7 +65,7 @@ where
                 inflight.subscribe()
             } else {
                 // Request is not already happening lets do the request.
-                let (tx, rx) = broadcast::channel::<MentatResponse<C::T>>(1);
+                let (tx, rx) = broadcast::channel::<MentatResponse<C::Data>>(1);
                 // refrence-count a sender
                 let tx = Arc::new(tx);
                 // store weak refrence in state

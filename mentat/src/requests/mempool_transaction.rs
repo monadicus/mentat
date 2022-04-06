@@ -1,3 +1,5 @@
+//! The module defines the MempoolTransactionRequest model.
+
 use super::*;
 
 /// The transaction submission request includes a signed transaction.

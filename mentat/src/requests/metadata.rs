@@ -1,3 +1,5 @@
+//! The module defines the MetadataRequest model.
+
 use indexmap::IndexMap;
 
 use super::*;

@@ -1,3 +1,5 @@
+//! The module defines the BalanceExemption model.
+
 use super::*;
 
 /// BalanceExemption indicates that the balance for an exempt account could
@@ -12,7 +14,7 @@ use super::*;
 /// implementation relies on any BalanceExemptions, you MUST implement
 /// historical balance lookup (the ability to query an account balance at any
 /// BlockIdentifier).
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct BalanceExemption {
     /// SubAccountAddress is the SubAccountIdentifier.Address that the
     /// BalanceExemption applies to (regardless of the value of

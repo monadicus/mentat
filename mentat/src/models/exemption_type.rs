@@ -1,9 +1,11 @@
+//! The module defines the ExemptionType model.
+
 use super::*;
 
 /// ExemptionType is used to indicate if the live balance for an account subject
 /// to a BalanceExemption could increase above, decrease below, or equal the
 /// computed balance.
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum ExemptionType {
     /// The live balance may increase above or equal the computed balance. This
     /// typically occurs with staking rewards that accrue on each block.

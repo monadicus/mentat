@@ -1,8 +1,10 @@
+//! The module defines the OperationIdentifier.
+
 use super::*;
 
 /// The operation_identifier uniquely identifies an operation within a
 /// transaction.
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct OperationIdentifier {
     /// The operation index is used to ensure each operation has a unique
     /// identifier within a transaction. This index is only relative to the

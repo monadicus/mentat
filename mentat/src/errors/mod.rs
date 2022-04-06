@@ -11,17 +11,25 @@ use serde_json::Value;
 
 use crate::api::MentatResponse;
 
+///
+/// The Error type for any mentat responses.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ApiError {
+    /// The http status code.
     pub code: u16,
+    /// The message for the error.
     pub message: String,
+    /// The optional description of the error.
     pub description: Option<String>,
+    /// If the method is retriable.
     pub retriable: bool,
+    /// Any additional details for the error.
     #[serde(default)]
     pub details: IndexMap<String, Value>,
 }
 
 impl ApiError {
+    /// For when a method is not implemented.
     pub fn not_implemented<R>() -> MentatResponse<R> {
         Err(MentatError::NotImplemented(ApiError {
             code: 501,
@@ -32,6 +40,7 @@ impl ApiError {
         }))
     }
 
+    /// For when a method called but not available on the current network.
     pub fn wrong_network<P: Debug, R>(payload: P) -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError {
             code: 500,
@@ -42,6 +51,8 @@ impl ApiError {
         }))
     }
 
+    /// This error is returned when the requested AccountIdentifier is
+    /// improperly formatted.
     pub fn invalid_account_format<R>() -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError{
             code: 12,
@@ -52,6 +63,7 @@ impl ApiError {
         }))
     }
 
+    /// When a transaction could not be found.
     pub fn unable_to_find_transaction<R>(hash: &str) -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError {
             code: 16,
@@ -70,9 +82,12 @@ impl ApiError {
     }
 }
 
+/// Represents the different types of http Errors.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum MentatError {
+    /// An Internal HTTP Error.
     Internal(ApiError),
+    /// A NotImplemented HTTP Error.
     NotImplemented(ApiError),
 }
 
@@ -99,4 +114,5 @@ impl IntoResponse for MentatError {
     }
 }
 
+/// The Result type for Mentat to always return a MentatError.
 pub type Result<T, E = MentatError> = std::result::Result<T, E>;

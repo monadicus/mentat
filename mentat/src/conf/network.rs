@@ -1,23 +1,18 @@
+//! This module contains the possible networks a node can run on.
+
 use std::fmt;
 
 use super::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+///
+/// The possible modes a node network can run in.
+#[allow(clippy::missing_docs_in_private_items)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum Network {
     Mainnet,
     Testnet,
     Other(String),
-}
-
-impl<'de> Deserialize<'de> for Network {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?.to_uppercase();
-
-        Ok(Network::from(s))
-    }
 }
 
 impl fmt::Display for Network {
@@ -39,14 +34,5 @@ impl From<String> for Network {
             "TESTNET" => Testnet,
             _ => Other(item),
         }
-    }
-}
-
-impl Serialize for Network {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_str())
     }
 }

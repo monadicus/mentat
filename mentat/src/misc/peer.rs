@@ -1,11 +1,16 @@
+//! The module defines the Peer.
+
 use indexmap::IndexMap;
 
 use super::*;
 
+///
 /// A Peer is a representation of a node's peer.
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Peer {
+    /// The id of the peer.
     pub peer_id: String,
+    /// Any additional details of the Peer.
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

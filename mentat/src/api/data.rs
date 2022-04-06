@@ -1,5 +1,10 @@
+//! Houses the traits for the Rosetta Data API.
+//! These traits are easily overridable for custom
+//! implementations.
 use super::*;
 
+///
+/// Trait to define the endpoints necessary for the Rosetta Data API.
 #[axum::async_trait]
 pub trait DataApi: Default {
     /// This endpoint returns a list of NetworkIdentifiers that the Rosetta
@@ -162,8 +167,13 @@ pub trait DataApi: Default {
     }
 }
 
+///
+/// Trait to wrap the [`DataApi`].
+/// This trait helps to define default behavior for running the endpoints
+/// on different modes.
 #[axum::async_trait]
 pub trait CallerDataApi: Clone + DataApi {
+    /// This endpoint runs in both offline and online mode.
     async fn call_network_list(
         &self,
         caller: Caller,
@@ -174,6 +184,7 @@ pub trait CallerDataApi: Clone + DataApi {
         self.network_list(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_network_options(
         &self,
         caller: Caller,
@@ -184,6 +195,7 @@ pub trait CallerDataApi: Clone + DataApi {
         self.network_options(caller, data, rpc_caller).await
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_network_status(
         &self,
         caller: Caller,
@@ -198,6 +210,7 @@ pub trait CallerDataApi: Clone + DataApi {
         }
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_account_balance(
         &self,
         caller: Caller,
@@ -212,6 +225,7 @@ pub trait CallerDataApi: Clone + DataApi {
         }
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_account_coins(
         &self,
         caller: Caller,
@@ -226,6 +240,7 @@ pub trait CallerDataApi: Clone + DataApi {
         }
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_block(
         &self,
         caller: Caller,
@@ -240,6 +255,7 @@ pub trait CallerDataApi: Clone + DataApi {
         }
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_block_transaction(
         &self,
         caller: Caller,
@@ -254,6 +270,7 @@ pub trait CallerDataApi: Clone + DataApi {
         }
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_mempool(
         &self,
         caller: Caller,
@@ -268,6 +285,7 @@ pub trait CallerDataApi: Clone + DataApi {
         }
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_mempool_transaction(
         &self,
         caller: Caller,

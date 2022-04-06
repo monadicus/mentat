@@ -1,3 +1,5 @@
+//! The module defines the NetworkRequest model.
+
 use indexmap::IndexMap;
 
 use super::*;

@@ -1,7 +1,10 @@
+//! The module defines the `ConstructionParseRequest` model.
+
 use super::*;
 
-/// ConstructionParseRequest is the input to the /construction/parse endpoint.
-/// It allows the caller to parse either an unsigned or signed transaction.
+/// `ConstructionParseRequest` is the input to the `/construction/parse`
+/// endpoint. It allows the caller to parse either an unsigned or signed
+/// transaction.
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionParseRequest {
     /// The network_identifier specifies which network a particular object is

@@ -16,9 +16,7 @@ pub struct NodeConfig {
 
 #[async_trait]
 impl NodeConf for NodeConfig {
-    fn node_name() -> String {
-        String::from("Bitcoin")
-    }
+    const BLOCKCHAIN: &'static str = "Bitcoin";
 
     fn build_url(conf: &Configuration<Self>) -> String {
         format!(

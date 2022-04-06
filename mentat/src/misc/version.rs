@@ -1,10 +1,12 @@
+//! The module defines the Version.
+
 use indexmap::IndexMap;
 
 use super::*;
 
 /// The Version object is utilized to inform the client of the versions of
 /// different components of the Rosetta implementation.
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Version {
     /// The rosetta_version is the version of the Rosetta interface the
     /// implementation adheres to. This can be useful for clients looking to

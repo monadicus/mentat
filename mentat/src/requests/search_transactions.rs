@@ -1,3 +1,5 @@
+//! The module defines the SearchTransactionsRequest model.
+
 use super::*;
 
 /// SearchTransactionsRequest is used to search for transactions matching a set

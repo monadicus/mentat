@@ -1,14 +1,16 @@
+//! The module defines the `ConstructionPreprocessRequest` model.
+
 use indexmap::IndexMap;
 
 use super::*;
 
-/// ConstructionPreprocessRequest is passed to the /construction/preprocess
+/// `ConstructionPreprocessRequest` is passed to the `/construction/preprocess`
 /// endpoint so that a Rosetta implementation can determine which metadata it
 /// needs to request for construction. Metadata provided in this object should
 /// NEVER be a product of live data (i.e. the caller must follow some
 /// network-specific data fetching strategy outside of the Construction API to
 /// populate required Metadata). If live data is required for construction, it
-/// MUST be fetched in the call to /construction/metadata. The caller can
+/// MUST be fetched in the call to `/construction/metadata`. The caller can
 /// provide a max fee they are willing to pay for a transaction. This is an
 /// array in the case fees must be paid in multiple currencies. The caller can
 /// also provide a suggested fee multiplier to indicate that the suggested fee
@@ -21,12 +23,16 @@ use super::*;
 /// suggested fee (regardless of the multiplier provided).
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionPreprocessRequest {
-    /// The network_identifier specifies which network a particular object is
+    /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     pub network_identifier: NetworkIdentifier,
+    /// Undocumented in rosetta
     pub operations: Vec<Operation>,
+    /// Additional metadata related to the `/construction/preprocess` request.
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
+    /// Undocumented in rosetta
     pub max_fee: Option<Vec<Amount>>,
+    /// Undocumented in rosetta
     pub suggested_fee_multiplier: Option<f64>,
 }
