@@ -25,10 +25,10 @@ pub struct NetworkIdentifier {
     pub sub_network_identifier: Option<SubNetworkIdentifier>,
 }
 
-impl Into<NetworkRequest> for NetworkIdentifier {
-    fn into(self) -> NetworkRequest {
-        NetworkRequest {
-            network_identifier: self,
+impl From<NetworkIdentifier> for NetworkRequest {
+    fn from(net: NetworkIdentifier) -> Self {
+        Self {
+            network_identifier: net,
             ..Default::default()
         }
     }
