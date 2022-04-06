@@ -2,8 +2,10 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use clap::Parser;
 use cli_table::{format::Justify, print_stdout, Cell, CellStruct, Style, Table};
 use mentat::{
+    anyhow::Result,
+    client::Client,
     identifiers::{NetworkIdentifier, SubNetworkIdentifier},
-    requests::NetworkRequest,
+    requests::MetadataRequest,
     responses::NetworkStatusResponse,
 };
 
@@ -15,42 +17,81 @@ pub(crate) struct NetworkOpts {
 
 #[derive(Parser)]
 pub(crate) enum NetworkSubCommand {
-    List(NetworkListOpts),
+    List,
     Status(NetworkStatusOpts),
     Options(NetworkStatusOpts),
 }
 
 #[derive(Parser)]
-pub(crate) struct NetworkListOpts;
-
-#[derive(Parser)]
 pub(crate) struct NetworkStatusOpts {
+    #[clap(short, long, default_value = "")]
     pub(crate) blockchain: String,
+    #[clap(short, long, default_value = "")]
     pub(crate) network: String,
-    #[clap(default_value = "")]
+    #[clap(short, long, default_value = "")]
     pub(crate) subnetwork: String,
 }
 
-impl Into<NetworkRequest> for NetworkStatusOpts {
-    fn into(self) -> NetworkRequest {
-        NetworkRequest {
-            network_identifier: NetworkIdentifier {
-                blockchain: self.blockchain,
-                network: self.network,
-                sub_network_identifier: if self.subnetwork.len() > 0 {
-                    Some(SubNetworkIdentifier {
-                        network: self.subnetwork,
-                        ..Default::default()
-                    })
-                } else {
-                    None
-                },
+impl NetworkStatusOpts {
+    pub(crate) fn net_id(&self) -> NetworkIdentifier {
+        NetworkIdentifier {
+            blockchain: self.blockchain.clone(),
+            network: self.network.clone(),
+            sub_network_identifier: if self.subnetwork.len() > 0 {
+                Some(SubNetworkIdentifier {
+                    network: self.subnetwork.clone(),
+                    ..Default::default()
+                })
+            } else {
+                None
             },
-            ..Default::default()
         }
     }
 }
 
+/// Get the first network from the networks list or use the given network
+/// identifier
+pub(crate) async fn get_network(
+    client: &Client,
+    net_ident: NetworkIdentifier,
+) -> Result<Option<NetworkIdentifier>> {
+    Ok(Some(
+        if net_ident.blockchain.len() == 0 && net_ident.network.len() == 0 {
+            // get the first network
+            if let Some(net) = client
+                .network_list(&MetadataRequest::default())
+                .await?
+                .network_identifiers
+                .first()
+            {
+                net.clone()
+            } else {
+                return Ok(None);
+            }
+        } else {
+            net_ident
+        },
+    ))
+}
+
+/// Gets the first network in the networks list, prints "null" or "network not
+/// found" when the network doesn't exist
+pub(crate) async fn first_network_or_null(
+    client: &Client,
+    net_ident: NetworkIdentifier,
+    json: bool,
+) -> Result<NetworkIdentifier> {
+    Ok(get_network(&client, net_ident).await?.unwrap_or_else(|| {
+        if json {
+            println!("null");
+        } else {
+            println!("network not found");
+        }
+        std::process::exit(1)
+    }))
+}
+
+/// Render the network list as a table
 pub(crate) fn list_table(nets: Vec<NetworkIdentifier>) {
     let table = nets
         .into_iter()
@@ -75,6 +116,7 @@ pub(crate) fn list_table(nets: Vec<NetworkIdentifier>) {
     print_stdout(table).unwrap();
 }
 
+/// Render a network's status as a table
 pub(crate) fn status_table(status: NetworkStatusResponse) {
     let current_timestamp_naive =
         NaiveDateTime::from_timestamp(status.current_block_timestamp as i64, 0);

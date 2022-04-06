@@ -49,11 +49,7 @@ impl Client {
         Self { inner, origin }
     }
 
-    async fn post<Q: Serialize, R: DeserializeOwned>(
-        &mut self,
-        path: &str,
-        request: &Q,
-    ) -> Result<R> {
+    async fn post<Q: Serialize, R: DeserializeOwned>(&self, path: &str, request: &Q) -> Result<R> {
         let url = match self.origin.join(path) {
             Ok(url) => url.to_string(),
             Err(e) => return Err(ClientError::ParseError(anyhow!(e))),
@@ -78,125 +74,122 @@ impl Client {
         }
     }
 
-    pub async fn network_list(&mut self, request: &MetadataRequest) -> Result<NetworkListResponse> {
+    pub async fn network_list(&self, request: &MetadataRequest) -> Result<NetworkListResponse> {
         self.post("network/list", request).await
     }
 
     pub async fn network_options(
-        &mut self,
+        &self,
         request: &NetworkRequest,
     ) -> Result<NetworkOptionsResponse> {
         self.post("network/options", request).await
     }
 
-    pub async fn network_status(
-        &mut self,
-        request: &NetworkRequest,
-    ) -> Result<NetworkStatusResponse> {
+    pub async fn network_status(&self, request: &NetworkRequest) -> Result<NetworkStatusResponse> {
         self.post("network/status", request).await
     }
 
     pub async fn account_balance(
-        &mut self,
+        &self,
         request: &AccountBalanceRequest,
     ) -> Result<AccountBalanceResponse> {
         self.post("account/balance", request).await
     }
 
     pub async fn account_coins(
-        &mut self,
+        &self,
         request: &AccountCoinsRequest,
     ) -> Result<AccountCoinsResponse> {
         self.post("account/coins", request).await
     }
 
-    pub async fn block(&mut self, request: &BlockRequest) -> Result<BlockResponse> {
+    pub async fn block(&self, request: &BlockRequest) -> Result<BlockResponse> {
         self.post("block", request).await
     }
 
     pub async fn block_transaction(
-        &mut self,
+        &self,
         request: &BlockTransactionRequest,
     ) -> Result<BlockTransactionResponse> {
         self.post("block/transaction", request).await
     }
 
-    pub async fn mempool(&mut self, request: &NetworkRequest) -> Result<MempoolResponse> {
+    pub async fn mempool(&self, request: &NetworkRequest) -> Result<MempoolResponse> {
         self.post("mempool", request).await
     }
 
     pub async fn mempool_transaction(
-        &mut self,
+        &self,
         request: &MempoolTransactionRequest,
     ) -> Result<MempoolTransactionResponse> {
         self.post("mempool/transaction", request).await
     }
 
     pub async fn construction_combine(
-        &mut self,
+        &self,
         request: &ConstructionCombineRequest,
     ) -> Result<ConstructionCombineResponse> {
         self.post("construction/combine", request).await
     }
 
     pub async fn construction_derive(
-        &mut self,
+        &self,
         request: &ConstructionDeriveRequest,
     ) -> Result<ConstructionDeriveResponse> {
         self.post("construction/derive", request).await
     }
 
     pub async fn construction_hash(
-        &mut self,
+        &self,
         request: &ConstructionHashRequest,
     ) -> Result<TransactionIdentifierResponse> {
         self.post("construction/hash", request).await
     }
 
     pub async fn construction_metadata(
-        &mut self,
+        &self,
         request: &ConstructionMetadataRequest,
     ) -> Result<ConstructionMetadataResponse> {
         self.post("construction/metadata", request).await
     }
 
     pub async fn construction_parse(
-        &mut self,
+        &self,
         request: &ConstructionParseRequest,
     ) -> Result<ConstructionParseResponse> {
         self.post("construction/parse", request).await
     }
 
     pub async fn construction_payloads(
-        &mut self,
+        &self,
         request: &ConstructionPayloadsRequest,
     ) -> Result<ConstructionPayloadsResponse> {
         self.post("construction/payloads", request).await
     }
 
     pub async fn construction_preprocess(
-        &mut self,
+        &self,
         request: &ConstructionPreprocessRequest,
     ) -> Result<ConstructionPreprocessResponse> {
         self.post("construction/preprocess", request).await
     }
 
     pub async fn construction_submit(
-        &mut self,
+        &self,
         request: &ConstructionSubmitRequest,
     ) -> Result<TransactionIdentifierResponse> {
         self.post("construction/submit", request).await
     }
 
     pub async fn events_blocks(
-        &mut self,
+        &self,
         request: &EventsBlocksRequest,
     ) -> Result<EventsBlocksResponse> {
         self.post("events/blocks", request).await
     }
 
     pub async fn search_transactions(
-        &mut self,
+        &self,
         request: &SearchTransactionsRequest,
     ) -> Result<SearchTransactionsResponse> {
         self.post("search/transactions", request).await

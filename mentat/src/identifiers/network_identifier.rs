@@ -2,6 +2,7 @@
 use axum::http::Extensions;
 
 use super::*;
+use crate::requests::NetworkRequest;
 #[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network},
@@ -22,6 +23,15 @@ pub struct NetworkIdentifier {
     /// to query some object on a specific shard. This identifier is optional
     /// for all non-sharded blockchains.
     pub sub_network_identifier: Option<SubNetworkIdentifier>,
+}
+
+impl Into<NetworkRequest> for NetworkIdentifier {
+    fn into(self) -> NetworkRequest {
+        NetworkRequest {
+            network_identifier: self,
+            ..Default::default()
+        }
+    }
 }
 
 #[cfg(feature = "server")]
