@@ -14,10 +14,13 @@ pub struct ConstructionParseResponse {
     /// [DEPRECATED by `account_identifier_signers` in v1.4.4] All signers
     /// (addresses) of a particular transaction. If the transaction is unsigned,
     /// it should be empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub signers: Option<Vec<String>>,
     #[allow(clippy::missing_docs_in_private_items)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account_identifier_signers: Option<Vec<AccountIdentifier>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

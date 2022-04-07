@@ -18,11 +18,13 @@ use super::*;
 pub struct BalanceExemption {
     /// SubAccountAddress is the [`SubAccountIdentifier`]. Address that the
     /// BalanceExemption applies to (regardless of the value of
-    /// [`SubAccountIdentifier`]. Metadata).
+    /// [`SubAccountIdentifier`].Metadata).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sub_account_address: Option<String>,
     /// `Currency` is composed of a canonical Symbol and Decimals. This Decimals
     /// value is used to convert an Amount.Value from atomic units (Satoshis) to
     /// standard units (Bitcoins).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub currency: Option<Currency>,
     /// `ExemptionType` is used to indicate if the live balance for an account
     /// subject to a [`BalanceExemption`] could increase above, decrease below,
@@ -34,5 +36,6 @@ pub struct BalanceExemption {
     /// to spendable on a vesting account. * dynamic: The live balance may
     /// increase above, decrease below, or equal the computed balance. This
     /// typically occurs with tokens that have a dynamic supply.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub exemption_type: Option<ExemptionType>,
 }

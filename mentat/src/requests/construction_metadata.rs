@@ -20,7 +20,9 @@ pub struct ConstructionMetadataRequest {
     /// construction (which may require multiple node fetches), the client can
     /// populate an options object to limit the metadata returned to only the
     /// subset required.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Value>,
     #[allow(clippy::missing_docs_in_private_items)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub public_keys: Option<Vec<PublicKey>>,
 }

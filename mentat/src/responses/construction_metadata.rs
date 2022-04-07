@@ -16,5 +16,6 @@ pub struct ConstructionMetadataResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,
     /// The optional suggested fees for the response.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_fee: Option<Vec<Amount>>,
 }

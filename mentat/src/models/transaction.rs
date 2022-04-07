@@ -20,5 +20,6 @@ pub struct Transaction {
     /// cross-shard transaction) should include the tranaction_identifier of
     /// these transactions in the metadata.
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

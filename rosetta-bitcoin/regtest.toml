@@ -1,0 +1,15 @@
+address = "0.0.0.0"
+blockchain = "Bitcoin"
+mode = "Online"
+network = "regtest"
+secure_http = false
+node_address = "127.0.0.1"
+node_path = "./regtest/node.sh"
+node_rpc_port = 8332
+port = 8080
+
+# custom arguments are not passed to docker via node.sh at the moment
+[custom]
+user = "bitcoin"
+pass = "password"
+data_dir = "/bitcoin/.bitcoin"

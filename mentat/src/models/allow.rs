@@ -30,6 +30,7 @@ pub struct Allow {
     /// when the genesis block (or blocks) of a network have timestamp 0. If not
     /// populated, block timestamps are assumed to be valid for all available
     /// blocks.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamp_start_index: Option<u64>,
     /// All methods that are supported by the `/call` endpoint. Communicating
     /// which parameters should be provided to `/call` is the responsibility of

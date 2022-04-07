@@ -19,13 +19,13 @@ pub struct BlockResponse {
     /// inalterable: once a client has requested and received a block
     /// identified by a specific [`BlockIdentifier`], all future calls for
     /// that same [`BlockIdentifier`] must return the same block contents.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<Block>,
     /// Some blockchains may require additional transactions to be fetched that
     /// weren't returned in the block response (ex: block only returns
     /// transaction hashes). For blockchains with a lot of transactions in each
     /// block, this can be very useful as consumers can concurrently fetch all
     /// transactions returned.
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub other_transactions: Option<Vec<TransactionIdentifier>>,
 }

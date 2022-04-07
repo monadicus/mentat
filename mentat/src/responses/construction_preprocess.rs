@@ -17,7 +17,9 @@ pub struct ConstructionPreprocessResponse {
     /// The options that will be sent directly to `/construction/metadata` by
     /// the caller.
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub options: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required_public_keys: Option<Vec<AccountIdentifier>>,
 }
