@@ -855,6 +855,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "from_tuple"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64eb81290de0b90bea335894156a94933647ea04ecc1f5c67108132d2d7c5eb3"
+dependencies = [
+ "proc-macro2 1.0.36",
+ "quote 1.0.16",
+ "syn 1.0.89",
+]
+
+[[package]]
 name = "fuchsia-cprng"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1254,6 +1265,7 @@ dependencies = [
  "axum",
  "color-backtrace",
  "ed25519-dalek",
+ "from_tuple",
  "hyper",
  "indexmap",
  "mentat-macros",

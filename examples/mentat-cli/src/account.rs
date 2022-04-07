@@ -12,13 +12,11 @@ pub(crate) struct AccountOpts {
 
 impl AccountOpts {
     pub(crate) fn account_id(&self) -> AccountIdentifier {
-        AccountIdentifier {
-            address: match &self.subcmd {
-                AccountSubCommand::Balance(AccountSubCommandOpts { address }) => address.clone(),
-                AccountSubCommand::Coins(AccountSubCommandOpts { address }) => address.clone(),
-            },
-            ..Default::default()
+        match &self.subcmd {
+            AccountSubCommand::Balance(AccountSubCommandOpts { address }) => address.clone(),
+            AccountSubCommand::Coins(AccountSubCommandOpts { address }) => address.clone(),
         }
+        .into()
     }
 
     pub(crate) fn get_currencies(&self) -> Option<Vec<Currency>> {
@@ -26,16 +24,7 @@ impl AccountOpts {
             return None;
         }
 
-        Some(
-            self.currencies
-                .iter()
-                .cloned()
-                .map(|c| Currency {
-                    symbol: c,
-                    ..Default::default()
-                })
-                .collect(),
-        )
+        Some(self.currencies.iter().cloned().map(|c| c.into()).collect())
     }
 }
 

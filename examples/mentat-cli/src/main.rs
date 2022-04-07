@@ -2,21 +2,8 @@ use clap::Parser;
 use mentat::{
     anyhow,
     client::Client,
-    identifiers::{
-        BlockIdentifier,
-        NetworkIdentifier,
-        PartialBlockIdentifier,
-        SubNetworkIdentifier,
-        TransactionIdentifier,
-    },
-    requests::{
-        AccountBalanceRequest,
-        AccountCoinsRequest,
-        BlockRequest,
-        BlockTransactionRequest,
-        MempoolTransactionRequest,
-        MetadataRequest,
-    },
+    identifiers::{BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier},
+    requests::{AccountBalanceRequest, AccountCoinsRequest, MetadataRequest},
     serde_json::json,
     tokio,
 };
@@ -58,10 +45,7 @@ impl Opts {
             blockchain: self.blockchain.clone(),
             network: self.network.clone(),
             sub_network_identifier: if !self.subnetwork.is_empty() {
-                Some(SubNetworkIdentifier {
-                    network: self.subnetwork.clone(),
-                    ..Default::default()
-                })
+                Some(self.subnetwork.clone().into())
             } else {
                 None
             },
@@ -72,20 +56,14 @@ impl Opts {
     fn partial_block_id(&self) -> Option<PartialBlockIdentifier> {
         match (&self.hash, &self.index) {
             (None, None) => None,
-            _ => Some(PartialBlockIdentifier {
-                hash: self.hash.clone(),
-                index: self.index,
-            }),
+            _ => Some((self.hash.clone(), self.index).into()),
         }
     }
 
     /// Get a block identifier from flags
     fn block_id(&self) -> Option<BlockIdentifier> {
         match (&self.hash, &self.index) {
-            (Some(hash), Some(index)) => Some(BlockIdentifier {
-                hash: hash.clone(),
-                index: *index,
-            }),
+            (Some(hash), Some(index)) => Some((hash.clone(), *index).into()),
             _ => None,
         }
     }
@@ -162,34 +140,22 @@ async fn main() -> anyhow::Result<()> {
                 let block = main_opts
                     .block_id()
                     .expect("Expected a block identifier (--hash, --index)");
-                display!(client.block_transaction(&BlockTransactionRequest {
-                    network_identifier: network,
-                    block_identifier: block,
-                    transaction_identifier: TransactionIdentifier {
-                        hash: transaction.clone()
-                    },
-                }));
+                display!(
+                    client.block_transaction(&(network, block, transaction.clone().into()).into())
+                );
             } else {
                 // find a specific block
                 let block = main_opts
                     .partial_block_id()
                     .expect("Expected a partial block identifier (--hash, --index)");
-                display!(client.block(&BlockRequest {
-                    network_identifier: network,
-                    block_identifier: block,
-                }));
+                display!(client.block(&(network, block).into()));
             }
         }
         MainSubCommand::Mempool(opts) => {
             let network = get_first_network().await?;
             // handle --transaction flag
             if let Some(transaction) = &opts.transaction {
-                display!(client.mempool_transaction(&MempoolTransactionRequest {
-                    network_identifier: network,
-                    transaction_identifier: TransactionIdentifier {
-                        hash: transaction.clone()
-                    },
-                }));
+                display!(client.mempool_transaction(&(network, transaction.clone().into()).into()));
             } else {
                 display!(client.mempool(&network.into()));
             }

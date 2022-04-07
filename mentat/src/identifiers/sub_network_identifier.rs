@@ -9,5 +9,15 @@ use super::*;
 pub struct SubNetworkIdentifier {
     pub network: String,
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl From<String> for SubNetworkIdentifier {
+    fn from(network: String) -> Self {
+        Self {
+            network,
+            ..Default::default()
+        }
+    }
 }

@@ -22,3 +22,32 @@ pub struct AccountIdentifier {
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }
+
+impl From<String> for AccountIdentifier {
+    fn from(address: String) -> Self {
+        Self {
+            address,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<(String, String)> for AccountIdentifier {
+    fn from((address, subaccount): (String, String)) -> Self {
+        Self {
+            address,
+            decimals: Some(subaccount.into()),
+            ..Default::default()
+        }
+    }
+}
+
+impl From<(String, Option<String>)> for AccountIdentifier {
+    fn from((address, subaccount): (String, Option<String>)) -> Self {
+        Self {
+            address,
+            decimals: subaccount.map(|s| s.into()),
+            ..Default::default()
+        }
+    }
+}
