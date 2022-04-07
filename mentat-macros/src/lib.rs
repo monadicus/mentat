@@ -21,8 +21,7 @@ use syn::{
     Type,
 };
 
-///
-/// Matches the provided macro argument for the optional [`CacheInner`] type.
+/// Matches the provided macro argument for the optional `CacheInner` type.
 fn get_cache_inner_type(arg: &NestedMeta) -> Result<&Ident, TokenStream> {
     if let NestedMeta::Meta(Meta::Path(path)) = arg {
         if let Some(id) = path.get_ident() {
@@ -36,7 +35,6 @@ fn get_cache_inner_type(arg: &NestedMeta) -> Result<&Ident, TokenStream> {
     )
 }
 
-///
 /// Mutates the provided main function's name to `__mentat_main_server_call` so
 /// that it can be called from mentat's `main` function.
 fn swap_main_name(f: &mut ItemFn) -> Result<(), TokenStream> {
@@ -53,8 +51,7 @@ fn swap_main_name(f: &mut ItemFn) -> Result<(), TokenStream> {
     }
 }
 
-///
-/// Matches the provided main function for the [`Server`]'s [`ServerType`].
+/// Matches the provided main function for the `Server`'s `ServerType`.
 fn get_function_return_server_type(f: &ItemFn) -> Result<&Ident, TokenStream> {
     // TODO this is horribly nested but they don't provide any helper functions to
     // avoid this
@@ -81,8 +78,7 @@ fn get_function_return_server_type(f: &ItemFn) -> Result<&Ident, TokenStream> {
     .into())
 }
 
-///
-/// Generates code to derive Clone on a user supplied [`ServerType`].
+/// Generates code to derive Clone on a user supplied `ServerType`.
 fn gen_derive(server_def: &ItemStruct) -> TokenStream2 {
     quote!(
         #[::std::prelude::v1::derive(::std::clone::Clone)]
@@ -90,7 +86,6 @@ fn gen_derive(server_def: &ItemStruct) -> TokenStream2 {
     )
 }
 
-///
 /// Generates the main function for the given mentat implementation.
 fn gen_main(
     server_call: &TokenStream2,
@@ -112,27 +107,7 @@ fn gen_main(
     )
 }
 
-///
-/// A macro for generating mentat routes from a default [`Server`] instance.
-/// When this macro is used it will generate its own main function, so the user
-/// doesn't need to include one.\ If a [`CacheInner`] implementation is supplied
-/// then it will use it to perform request caching, otherwise no caching will be
-/// performed.\ \
-/// If you prefer to use your own `main` function, consider using the [`main`]
-/// macro instead\
-///
-/// ```no_run
-/// #[mentat(DefaultCacheInner)]
-/// struct MentatBitcoin;
-///
-/// impl ServerType for MentatBitcoin {
-///     type CallApi = call_api::BitcoinCallApi;
-///     type ConstructionApi = construction_api::BitcoinConstructionApi;
-///     type CustomConfig = node::NodeConfig;
-///     type DataApi = data_api::BitcoinDataApi;
-///     type IndexerApi = indexer_api::BitcoinIndexerApi;
-/// }
-/// ```
+/// A macro for generating mentat routes from a default `Server` instance.
 #[proc_macro_attribute]
 pub fn mentat(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as AttributeArgs);
@@ -152,33 +127,7 @@ pub fn mentat(attr: TokenStream, item: TokenStream) -> TokenStream {
     out.into()
 }
 
-///
-/// a macro for generating mentat routes from a user supplied `main` function.
-/// The function should return a [`Server`] instance with a custom
-/// [`ServerType`].\ If a [`CacheInner`] implementation is supplied then it will
-/// use it to perform request caching, otherwise no caching will be performed.\
-/// \
-/// If the `main` function is only calling `Server::default()` then consider
-/// using the [`mentat`] macro instead.
-///
-/// ``` no_run
-/// #[derive(Clone)]
-/// struct MentatSnarkos;
-///
-/// impl ServerType for MentatSnarkos {
-///     type CallApi = call_api::SnarkosCallApi;
-///     type ConstructionApi = construction_api::SnarkosConstructionApi;
-///     type CustomConfig = node::NodeConfig;
-///     type DataApi = data_api::SnarkosDataApi;
-///     type IndexerApi = indexer_api::SnarkosIndexerApi;
-/// }
-///
-/// #[mentat::main(DefaultCacheInner)]
-/// async fn main() -> Server<MentatSnarkos> {
-///     println!("hello rosetta!");
-///     Server::default()
-/// }
-/// ```
+/// A macro for generating mentat routes from a user supplied `main` function.
 #[proc_macro_attribute]
 pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as AttributeArgs);

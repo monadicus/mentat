@@ -3,9 +3,9 @@
 use super::*;
 
 /// `SearchTransactionsResponse` contains an ordered collection of
-/// [`BlockTransactions`] that match the query in [`SearchTransactionsRequest`].
-/// These [`BlockTransactions`] are sorted from most recent block to oldest
-/// block.
+/// [`BlockTransaction`]s that match the query in
+/// [`crate::requests::SearchTransactionsRequest`]. These [`BlockTransaction`]s
+/// are sorted from most recent block to oldest block.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct SearchTransactionsResponse {
     /// transactions is an array of [`BlockTransaction`]s sorted by most recent

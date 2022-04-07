@@ -15,9 +15,13 @@ use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
 /// Contains the types required to construct a mentat [`Server`].\
-/// Can be initiated with the [`main`] macro to construct a custom instance of
-/// [`Server`] using [`ServerBuilder`], or with the [`mentat`] macro if a
-/// default instance using your custom types is preferred. ```no_run
+///
+/// Can be initiated with the [`super::main`] macro to construct a custom
+/// instance of [`Server`] using [`ServerBuilder`], or with the
+/// [`super::mentat`] macro if a default instance using your custom types is
+/// preferred. \
+///
+/// ```no_run
 /// struct MentatBitcoin;
 /// impl ServerType for MentatBitcoin {
 ///     type CallApi = call_api::BitcoinCallApi;

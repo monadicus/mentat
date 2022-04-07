@@ -3,7 +3,7 @@
 use super::*;
 
 /// `SigningPayload` is signed by the client with the keypair associated with an
-/// [`AccountIdentifier1] using the specified [`SignatureType`].
+/// [`AccountIdentifier`] using the specified [`SignatureType`].
 /// [`SignatureType`] can be optionally populated if there is a restriction on
 /// the signature scheme that can be used to sign the payload.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

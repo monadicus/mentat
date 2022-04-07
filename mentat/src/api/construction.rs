@@ -19,9 +19,9 @@ pub trait ConstructionApi: Default {
         ApiError::not_implemented()
     }
 
-    /// Derive returns the [`AccountIdentifier`] associated with a public key.
-    /// Blockchains that require an on-chain action to create an account should
-    /// not implement this method.
+    /// Derive returns the [`crate::identifiers::AccountIdentifier`] associated
+    /// with a public key. Blockchains that require an on-chain action to
+    /// create an account should not implement this method.
     async fn derive(
         &self,
         _caller: Caller,
@@ -31,7 +31,7 @@ pub trait ConstructionApi: Default {
         ApiError::not_implemented()
     }
 
-    /// [`TransactionHash`] returns the network-specific transaction hash for a
+    /// Hash returns the network-specific transaction hash for a
     /// signed transaction.
     async fn hash(
         &self,
@@ -79,14 +79,14 @@ pub trait ConstructionApi: Default {
     /// Payloads is called with an array of operations and the response from
     /// /construction/meta_data. It returns an unsigned transaction blob and a
     /// collection of payloads that must be signed by particular
-    /// AccountIdentifiers using a certain [`SignatureType`]. The array of
-    /// operations provided in transaction construction often times can not
-    /// specify all "effects" of a transaction (consider invoked transactions in
-    /// Ethereum). However, they can deterministically specify the "intent" of
-    /// the transaction, which is sufficient for construction. For this reason,
-    /// parsing the corresponding transaction in the _Data API (when it lands on
-    /// chain) will contain a superset of whatever operations were provided
-    /// during construction.
+    /// AccountIdentifiers using a certain [`crate::models::SignatureType`]. The
+    /// array of operations provided in transaction construction often times
+    /// can not specify all "effects" of a transaction (consider invoked
+    /// transactions in Ethereum). However, they can deterministically
+    /// specify the "intent" of the transaction, which is sufficient for
+    /// construction. For this reason, parsing the corresponding transaction
+    /// in the _Data API (when it lands on chain) will contain a superset of
+    /// whatever operations were provided during construction.
     async fn payloads(
         &self,
         _caller: Caller,

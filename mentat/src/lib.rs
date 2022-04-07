@@ -22,7 +22,59 @@ mod server_reexport {
 
     pub use axum::{self, async_trait, Json};
     pub use indexmap::IndexMap;
-    pub use mentat_macros::{main, mentat};
+    /// A macro for generating mentat routes from a user supplied `main`
+    /// function. The function should return a [`server::Server`] instance with
+    /// a custom [`server::ServerType`].\
+    ///
+    /// If a [`cache::CacheInner`] implementation is supplied then it will use
+    /// it to perform request caching, otherwise no caching will be performed.\
+    ///
+    /// If the `main` function is only calling
+    /// `Server::default()` then consider using the [`macro@mentat`] macro
+    /// instead.\
+    ///
+    /// ``` no_run
+    /// #[derive(Clone)]
+    /// struct MentatSnarkos;
+    ///
+    /// impl ServerType for MentatSnarkos {
+    ///     type CallApi = call_api::SnarkosCallApi;
+    ///     type ConstructionApi = construction_api::SnarkosConstructionApi;
+    ///     type CustomConfig = node::NodeConfig;
+    ///     type DataApi = data_api::SnarkosDataApi;
+    ///     type IndexerApi = indexer_api::SnarkosIndexerApi;
+    /// }
+    ///
+    /// #[mentat::main(DefaultCacheInner)]
+    /// async fn main() -> Server<MentatSnarkos> {
+    ///     println!("hello rosetta!");
+    ///     Server::default()
+    /// }
+    /// ```
+    pub use mentat_macros::main;
+    /// A macro for generating mentat routes from a default [`server::Server`]
+    /// instance. When this macro is used it will generate its own main
+    /// function, so the user doesn't need to include one.\
+    ///
+    /// If a [`cache::CacheInner`] implementation is supplied then it will use
+    /// it to perform request caching, otherwise no caching will be performed.\
+    ///
+    /// If you prefer to use your own `main` function, consider using the
+    /// [`macro@main`] macro instead.\
+    ///
+    /// ```no_run
+    /// #[mentat(DefaultCacheInner)]
+    /// struct MentatBitcoin;
+    ///
+    /// impl ServerType for MentatBitcoin {
+    ///     type CallApi = call_api::BitcoinCallApi;
+    ///     type ConstructionApi = construction_api::BitcoinConstructionApi;
+    ///     type CustomConfig = node::NodeConfig;
+    ///     type DataApi = data_api::BitcoinDataApi;
+    ///     type IndexerApi = indexer_api::BitcoinIndexerApi;
+    /// }
+    /// ```
+    pub use mentat_macros::mentat;
     pub use reqwest::{IntoUrl, Url};
     pub use serde;
     pub use serde_json;

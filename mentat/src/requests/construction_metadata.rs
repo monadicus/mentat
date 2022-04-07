@@ -7,8 +7,8 @@ use super::*;
 /// to return is left purposely unstructured to allow flexibility for
 /// implementers. `Options` is not required in the case that there is
 /// network-wide metadata of interest. Optionally, the request can also include
-/// an array of [`PublicKey`]s associated with the [`AccountIdentifiers`]
-/// returned in [`ConstructionPreprocessResponse`].
+/// an array of [`PublicKey`]s associated with the [`AccountIdentifier`]s
+/// returned in [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConstructionMetadataRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is

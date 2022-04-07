@@ -15,7 +15,7 @@ pub struct ConstructionDeriveRequest {
     /// associated with.
     pub network_identifier: NetworkIdentifier,
     /// `PublicKey` contains a public key byte array for a particular
-    /// [`CurveType`] encoded in hex. Note that there is no [`PrivateKey`]
+    /// [`CurveType`] encoded in hex. Note that there is no `PrivateKey`
     /// struct as this is NEVER the concern of an implementation.
     pub public_key: PublicKey,
     #[allow(clippy::missing_docs_in_private_items)]

@@ -17,6 +17,7 @@ use serde::de::DeserializeOwned;
 use super::*;
 
 /// Custom configuration settings for running a node.\
+///
 /// Any fields specified here will be included in [`Configuration`] and listed
 /// as configurable fields in the config file that the user provides.
 #[async_trait]
@@ -25,6 +26,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     const BLOCKCHAIN: &'static str;
 
     /// The command for loading the node `Configuration`.\
+    ///
     /// WARNING: This defaults to assuming that the first argument passed to the
     /// process contains a path to the config file. Therefor this function
     /// should absolutely be overridden if you are using your own argument
@@ -67,6 +69,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     /// Makes a system call with the command returned by
     /// `NodeConf::node_command` to spawn the node. The default
     /// implementation should be fine in most cases.\
+    ///
     /// The user can change `NodeConf::log` to control how the node output is
     /// logged in the terminal.
     fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
@@ -83,6 +86,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     }
 
     /// Used to control how the node logs its output to the console.\
+    ///
     /// The default implementation uses the tracing crate to print `stdout`
     /// and `stderr` to console.
     fn log<T: 'static + Read + Send>(out: T, err: bool) {

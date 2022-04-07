@@ -24,8 +24,8 @@ pub struct Operation {
     pub related_operations: Option<Vec<OperationIdentifier>>,
     /// Type is the network-specific type of the operation. Ensure that any type
     /// that can be returned here is also specified in the
-    /// [`NetworkOptionsResponse`]. This can be very useful to downstream
-    /// consumers that parse all block data.
+    /// [`crate::responses::NetworkOptionsResponse`]. This can be very useful to
+    /// downstream consumers that parse all block data.
     #[serde(rename = "type")]
     pub type_: String,
     /// Status is the network-specific status of the operation. Status is not

@@ -9,7 +9,7 @@ use super::*;
 /// in the mempool (ex: fee paid).
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MempoolTransactionResponse {
-    /// `Transactions` contain an array of [`Operations`] that are attributable
+    /// `Transactions` contain an array of [`Operation`]s that are attributable
     /// to the same [`TransactionIdentifier`].
     pub transaction: Transaction,
     #[allow(clippy::missing_docs_in_private_items)]

@@ -11,11 +11,12 @@ use super::*;
 pub struct SyncStatus {
     /// `CurrentIndex` is the index of the last synced block in the current
     /// stage. This is a separate field from `current_block_identifier` in
-    /// [`NetworkStatusResponse`] because blocks with indices up to and
-    /// including the `current_index` may not yet be queryable by the
-    /// caller. To reiterate, all indices up to and including
-    /// `current_block_identifier` in [`NetworkStatusResponse`] must be
-    /// queryable via the `/block` endpoint (excluding indices less than
+    /// [`crate::responses::NetworkStatusResponse`] because blocks with indices
+    /// up to and including the `current_index` may not yet be queryable by
+    /// the caller. To reiterate, all indices up to and including
+    /// `current_block_identifier` in
+    /// [`crate::responses::NetworkStatusResponse`] must be queryable via
+    /// the `/block` endpoint (excluding indices less than
     /// `oldest_block_identifier`).
     pub current_index: Option<u64>,
     /// `TargetIndex` is the index of the block that the implementation is

@@ -52,8 +52,8 @@ impl ApiError {
         }))
     }
 
-    /// This error is returned when the requested [`AccountIdentifier`] is
-    /// improperly formatted.
+    /// This error is returned when the requested
+    /// [`crate::identifiers::AccountIdentifier`] is improperly formatted.
     pub fn invalid_account_format<R>() -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError{
             code: 12,

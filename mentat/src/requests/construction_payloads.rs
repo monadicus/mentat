@@ -8,7 +8,8 @@ use super::*;
 /// contains the network, a slice of operations, and arbitrary metadata that was
 /// returned by the call to `/construction/metadata`. Optionally, the request
 /// can also include an array of [`PublicKey`]s associated with the
-/// [`AccountIdentifier`]s returned in [`ConstructionPreprocessResponse`].
+/// [`AccountIdentifier`]s returned in
+/// [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConstructionPayloadsRequest {
     /// The NetworkIdentifier specifies which network a particular object is

@@ -13,7 +13,7 @@ use super::*;
 /// block should reference the last non-omitted block.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct BlockResponse {
-    /// `Block`s contain an array of [`Transactions`] that occurred at a
+    /// `Block`s contain an array of [`Transaction`]s that occurred at a
     /// particular [`BlockIdentifier`]. A hard requirement for blocks
     /// returned by Rosetta implementations is that they MUST be
     /// inalterable: once a client has requested and received a block
