@@ -1,4 +1,4 @@
-//! This module defines struct models for Rosetta API.
+//! Defines struct models for Rosetta API.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

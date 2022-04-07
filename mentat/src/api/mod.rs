@@ -1,4 +1,4 @@
-//! This module defines the different API traits needed for Rosetta.
+//! Defines the different API traits needed for Rosetta.
 
 use std::net::SocketAddr;
 

@@ -1,4 +1,4 @@
-//! This module defines an API for a user to implement a custom cache.
+//! Defines an API to implement a custom cache.
 
 mod cache_struct;
 pub use cache_struct::*;

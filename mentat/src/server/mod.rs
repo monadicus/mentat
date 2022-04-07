@@ -1,4 +1,4 @@
-//! This module contains the Server methods and launcher for Mentat.
+//! Defines the `Server` methods and launcher for Mentat.
 
 use serde::de::DeserializeOwned;
 pub mod logging;
@@ -14,12 +14,12 @@ use tracing::info;
 use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
-/// Contains the types required to construct a mentat [`Server`].\
+/// Contains the types required to construct a mentat [`Server`].
 ///
 /// Can be initiated with the [`super::main`] macro to construct a custom
 /// instance of [`Server`] using [`ServerBuilder`], or with the
 /// [`super::mentat`] macro if a default instance using your custom types is
-/// preferred. \
+/// preferred.
 ///
 /// ```no_run
 /// struct MentatBitcoin;

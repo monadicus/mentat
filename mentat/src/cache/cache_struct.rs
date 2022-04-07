@@ -1,4 +1,4 @@
-//! This module defines the cache struct which contains
+//! Defines the cache struct which contains
 //! a `CacheInner` to handle the fetching and inflight producing.
 
 use std::{

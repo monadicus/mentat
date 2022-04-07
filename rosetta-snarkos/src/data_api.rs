@@ -1,6 +1,6 @@
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentatResponse},
-    async_trait,
+    axum::async_trait,
     errors::MentatError,
     requests::*,
     responses::*,

@@ -1,4 +1,4 @@
-//! This module defines a default `CacheInner` trait implementation.
+//! Defines a default `CacheInner` trait implementation.
 
 use std::sync::Weak;
 

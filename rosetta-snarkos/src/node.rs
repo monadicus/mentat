@@ -1,7 +1,7 @@
 use std::process::Command;
 
 use mentat::{
-    async_trait,
+    axum::async_trait,
     conf::{Configuration, NodeConf},
     serde::{Deserialize, Serialize},
 };

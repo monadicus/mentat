@@ -1,4 +1,4 @@
-//! This module defines an overridable trait so that
+//! Defines an overridable trait so that
 //! users can implement how caching is handled for their server.
 
 use std::{

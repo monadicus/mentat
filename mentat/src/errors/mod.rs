@@ -1,4 +1,4 @@
-//! This module defines endpoint errors for the Rosetta API.
+//! Defines endpoint errors for the Rosetta API.
 
 use std::fmt::{Debug, Display};
 

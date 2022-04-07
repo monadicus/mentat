@@ -2,11 +2,11 @@ use futures::future::join_all;
 use mentat::{
     errors::MentatError,
     identifiers::{AccountIdentifier, CoinIdentifier, OperationIdentifier, TransactionIdentifier},
+    indexmap::IndexMap,
     models::{Amount, CoinAction, CoinChange, Currency, Operation, Transaction},
     serde::Serialize,
     serde_json::{self, json},
     server::RpcCaller,
-    IndexMap,
 };
 
 use super::*;

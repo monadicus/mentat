@@ -1,10 +1,10 @@
 use std::{path::PathBuf, process::Command, str::FromStr};
 
 use mentat::{
-    async_trait,
+    axum::async_trait,
     conf::{Configuration, NodeConf},
+    reqwest::Url,
     serde::{Deserialize, Serialize},
-    Url,
 };
 
 #[derive(Clone, Default, Serialize, Deserialize)]

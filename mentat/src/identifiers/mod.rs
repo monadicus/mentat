@@ -1,4 +1,4 @@
-//! This module defines struct identifiers for Rosetta API.
+//! Defines struct identifiers for Rosetta API.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

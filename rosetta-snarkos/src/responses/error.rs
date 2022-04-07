@@ -4,9 +4,9 @@
 use mentat::{
     api::MentatResponse,
     errors::{ApiError, MentatError},
+    indexmap::IndexMap,
     serde::Deserialize,
     serde_json::Value,
-    IndexMap,
 };
 
 #[derive(Clone, Debug, Deserialize)]
