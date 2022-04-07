@@ -11,5 +11,6 @@ pub struct MempoolTransactionResponse {
     /// same TransactionIdentifier.
     pub transaction: Transaction,
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

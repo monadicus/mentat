@@ -26,12 +26,14 @@ pub struct NetworkStatusResponse {
     pub genesis_block_identifier: BlockIdentifier,
     /// The block_identifier uniquely identifies a block in a particular
     /// network.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub oldest_block_identifier: Option<BlockIdentifier>,
     /// SyncStatus is used to provide additional context about an
     /// implementation's sync status. This object is often used by
     /// implementations to indicate healthiness when block data cannot be
     /// queried until some sync phase completes or cannot be determined by
     /// comparing the timestamp of the most recent block with the current time.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sync_status: Option<SyncStatus>,
     pub peers: Vec<Peer>,
 }

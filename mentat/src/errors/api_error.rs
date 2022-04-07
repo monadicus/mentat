@@ -8,9 +8,11 @@ use serde_json::Value;
 pub struct ApiError {
     pub code: u16,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub retriable: bool,
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub details: IndexMap<String, Value>,
 }
 

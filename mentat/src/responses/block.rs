@@ -17,6 +17,7 @@ pub struct BlockResponse {
     /// requested and received a block identified by a specific
     /// BlockIndentifier, all future calls for that same BlockIdentifier must
     /// return the same block contents.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<Block>,
     /// Some blockchains may require additional transactions to be fetched that
     /// weren't returned in the block response (ex: block only returns
