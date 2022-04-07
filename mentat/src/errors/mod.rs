@@ -1,3 +1,5 @@
+//! This module defines endpoint errors for the Rosetta API.
+
 use std::fmt::{Debug, Display};
 
 use axum::{
@@ -11,7 +13,6 @@ use serde_json::Value;
 
 use crate::api::MentatResponse;
 
-///
 /// The Error type for any mentat responses.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ApiError {
@@ -51,7 +52,7 @@ impl ApiError {
         }))
     }
 
-    /// This error is returned when the requested AccountIdentifier is
+    /// This error is returned when the requested [`AccountIdentifier`] is
     /// improperly formatted.
     pub fn invalid_account_format<R>() -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError{
@@ -114,5 +115,5 @@ impl IntoResponse for MentatError {
     }
 }
 
-/// The Result type for Mentat to always return a MentatError.
+/// The Result type for Mentat to always return a `MentatError`.
 pub type Result<T, E = MentatError> = std::result::Result<T, E>;

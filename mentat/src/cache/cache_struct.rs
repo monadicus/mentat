@@ -1,5 +1,5 @@
 //! This module defines the cache struct which contains
-//! a [`CacheInner`] to handle the fetching and inflight producing.
+//! a `CacheInner` to handle the fetching and inflight producing.
 
 use std::{
     future::Future,
@@ -16,8 +16,7 @@ use crate::{api::MentatResponse, errors::MentatError};
 /// A type to represent a async closure with some output.
 pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
 
-///
-/// The Cache struct which contains information on the cache.
+/// The `Cache` struct which contains information on the cache.
 #[derive(Clone)]
 pub struct Cache<C> {
     /// For holding a [`CacheInner`] generic.
@@ -31,7 +30,7 @@ where
     C: CacheInner,
     C::Data: Clone + Send + Sync + 'static,
 {
-    /// Create a Cache struct with an optional refresh interval.
+    /// Create a `Cache` struct with an optional refresh interval.
     pub fn new(cache: C, refresh_interval: Option<Duration>) -> Self {
         Self {
             inner: Arc::new(Mutex::new(cache)),
@@ -39,7 +38,7 @@ where
         }
     }
 
-    /// Attempts to fetch the lastet cache object if it exists.
+    /// Attempts to fetch the latest cache object if it exists.
     /// Also handles multiple of the same request at the same time
     /// telling one request to finish and send its data to the rest.
     pub async fn get_cached<F>(&self, f: F) -> MentatResponse<C::Data>

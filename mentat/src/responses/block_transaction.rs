@@ -1,8 +1,10 @@
+//! The module defines the `BlockTransactionResponse` request
+
 use super::*;
 
-/// A BlockTransactionResponse contains information about a block transaction.
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+/// A `BlockTransactionResponse` contains information about a block transaction.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct BlockTransactionResponse {
-    /// Transaction
+    /// `Transaction`
     pub transaction: Transaction,
 }

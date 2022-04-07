@@ -1,16 +1,16 @@
-//! The module defines the AccountBalanceRequest model.
+//! The module defines the `AccountBalanceRequest` request.
 
 use super::*;
 
 /// An `AccountBalanceRequest` is utilized to make a balance request on the
 /// `/account/balance` endpoint. If the `block_identifier` is populated, a
 /// historical balance query should be performed.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct AccountBalanceRequest {
-    /// The [`NetworkIdentifier`] specifies which network a particular object is
+    /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
     pub network_identifier: NetworkIdentifier,
-    /// The [`AccountIdentifier`] uniquely identifies an account within a
+    /// The `AccountIdentifier` uniquely identifies an account within a
     /// network. All fields in the `account_identifier` are utilized to
     /// determine this uniqueness (including the `metadata` field, if
     /// populated).

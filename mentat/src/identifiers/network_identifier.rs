@@ -1,4 +1,4 @@
-//! The module defines the NetworkIdentifier.
+//! The module defines the `NetworkIdentifier`.
 
 use axum::http::Extensions;
 
@@ -9,7 +9,7 @@ use crate::{
     server::ServerType,
 };
 
-/// The network_identifier specifies which network a particular object is
+/// The `network_identifier` specifies which network a particular object is
 /// associated with.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct NetworkIdentifier {
@@ -19,7 +19,7 @@ pub struct NetworkIdentifier {
     /// go in this field. It is up to the client to determine which
     /// network-specific identifier is mainnet or testnet.
     pub network: String,
-    /// In blockchains with sharded state, the [`SubNetworkIdentifier`] is
+    /// In blockchains with sharded state, the `SubNetworkIdentifier` is
     /// required to query some object on a specific shard. This identifier
     /// is optional for all non-sharded blockchains.
     pub sub_network_identifier: Option<SubNetworkIdentifier>,

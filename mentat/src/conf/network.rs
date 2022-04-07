@@ -4,7 +4,6 @@ use std::fmt;
 
 use super::{Deserialize, Serialize};
 
-///
 /// The possible modes a node network can run in.
 #[allow(clippy::missing_docs_in_private_items)]
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

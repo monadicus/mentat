@@ -1,8 +1,8 @@
-//! The module defines the OperationIdentifier.
+//! The module defines the `OperationIdentifier`.
 
 use super::*;
 
-/// The operation_identifier uniquely identifies an operation within a
+/// The `operation_identifier` uniquely identifies an operation within a
 /// transaction.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct OperationIdentifier {
@@ -13,8 +13,8 @@ pub struct OperationIdentifier {
     /// operation index in the blockchain being described.
     pub index: u64,
     /// Some blockchains specify an operation index that is essential for client
-    /// use. For example, Bitcoin uses a network_index to identify which UTXO
-    /// was used in a transaction. network_index should not be populated if
+    /// use. For example, Bitcoin uses a `network_index` to identify which UTXO
+    /// was used in a transaction. `network_index` should not be populated if
     /// there is no notion of an operation index in a blockchain (typically most
     /// account-based blockchains).
     pub network_index: Option<u64>,

@@ -1,8 +1,8 @@
-//! The module defines the CoinIdentifier.
+//! The module defines the `CoinIdentifier`.
 
 use super::*;
 
-/// CoinIdentifier uniquely identifies a Coin.
+/// `CoinIdentifier` uniquely identifies a Coin.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct CoinIdentifier {
     /// Identifier should be populated with a globally unique identifier of a

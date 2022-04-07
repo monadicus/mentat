@@ -5,7 +5,6 @@ use std::{fmt, str::FromStr};
 
 use super::{Deserialize, Serialize};
 
-///
 /// The possible modes a rosetta implementation can run in. defaults to
 /// `Online`.
 #[allow(clippy::missing_docs_in_private_items)]

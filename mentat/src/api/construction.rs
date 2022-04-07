@@ -3,7 +3,6 @@
 //! implementations.
 use super::*;
 
-///
 /// Trait to define the endpoints necessary for the Rosetta Construction API.
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
@@ -20,7 +19,7 @@ pub trait ConstructionApi: Default {
         ApiError::not_implemented()
     }
 
-    /// Derive returns the AccountIdentifier associated with a public key.
+    /// Derive returns the [`AccountIdentifier`] associated with a public key.
     /// Blockchains that require an on-chain action to create an account should
     /// not implement this method.
     async fn derive(
@@ -32,7 +31,7 @@ pub trait ConstructionApi: Default {
         ApiError::not_implemented()
     }
 
-    /// TransactionHash returns the network-specific transaction hash for a
+    /// [`TransactionHash`] returns the network-specific transaction hash for a
     /// signed transaction.
     async fn hash(
         &self,
@@ -80,7 +79,7 @@ pub trait ConstructionApi: Default {
     /// Payloads is called with an array of operations and the response from
     /// /construction/meta_data. It returns an unsigned transaction blob and a
     /// collection of payloads that must be signed by particular
-    /// AccountIdentifiers using a certain SignatureType. The array of
+    /// AccountIdentifiers using a certain [`SignatureType`]. The array of
     /// operations provided in transaction construction often times can not
     /// specify all "effects" of a transaction (consider invoked transactions in
     /// Ethereum). However, they can deterministically specify the "intent" of
@@ -130,8 +129,7 @@ pub trait ConstructionApi: Default {
     }
 }
 
-///
-/// Trait to wrap the [`ConstructionApi`].
+/// Trait to wrap the `ConstructionApi`.
 /// This trait helps to define default behavior for running the endpoints
 /// on different modes.
 #[axum::async_trait]

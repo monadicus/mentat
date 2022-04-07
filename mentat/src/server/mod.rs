@@ -1,8 +1,6 @@
+//! This module contains the Server methods and launcher for Mentat.
+
 use serde::de::DeserializeOwned;
-mod dummy_call;
-mod dummy_construction;
-mod dummy_data;
-mod dummy_indexer;
 pub mod logging;
 mod middleware_checks;
 mod rpc_caller;
@@ -16,31 +14,38 @@ use tracing::info;
 use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
+/// Contains the types required to construct a mentat [`Server`].\
+/// Can be initiated with the [`main`] macro to construct a custom instance of
+/// [`Server`] using [`ServerBuilder`], or with the [`mentat`] macro if a
+/// default instance using your custom types is preferred. ```no_run
+/// struct MentatBitcoin;
+/// impl ServerType for MentatBitcoin {
+///     type CallApi = call_api::BitcoinCallApi;
+///     type ConstructionApi = construction_api::BitcoinConstructionApi;
+///     type DataApi = data_api::BitcoinDataApi;
+///     type IndexerApi = indexer_api::BitcoinIndexerApi;
+///     type CustomConfig = node::NodeConfig;
+/// }
+/// ```
 pub trait ServerType: Sized + 'static {
+    /// The blockchain's `CallApi` Rosetta implementation.
     type CallApi: CallerCallApi;
-    type CustomConfig: DeserializeOwned + NodeConf;
+    /// The blockchain's `ConstructionApi` Rosetta implementation.
     type ConstructionApi: CallerConstructionApi;
+    /// The blockchain's `CallerDataApi` Rosetta implementation.
     type DataApi: CallerDataApi;
+    /// The blockchain's `IndexerApi` Rosetta implementation.
     type IndexerApi: CallerIndexerApi;
-
-    fn load_config() -> Configuration<Self::CustomConfig> {
-        let args: Vec<String> = std::env::args().collect();
-        if args.len() != 2 {
-            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
-            std::process::exit(1);
-        }
-
-        let path = std::path::PathBuf::from(&args[1]);
-        Configuration::load(&path)
-    }
+    /// The nodes's `NodeConf` implementation.
+    type CustomConfig: DeserializeOwned + NodeConf;
 }
 
 pub struct ServerBuilder<Types: ServerType> {
     call_api: Option<Types::CallApi>,
-    configuration: Option<Configuration<Types::CustomConfig>>,
     construction_api: Option<Types::ConstructionApi>,
     data_api: Option<Types::DataApi>,
     indexer_api: Option<Types::IndexerApi>,
+    configuration: Option<Configuration<Types::CustomConfig>>,
 }
 
 impl<Types: ServerType> Default for ServerBuilder<Types> {
@@ -119,7 +124,7 @@ impl<Types: ServerType> Default for Server<Types> {
     fn default() -> Self {
         Self {
             call_api: Default::default(),
-            configuration: <Types>::load_config(),
+            configuration: Types::CustomConfig::load_config(),
             construction_api: Default::default(),
             data_api: Default::default(),
             indexer_api: Default::default(),

@@ -3,7 +3,6 @@
 //! implementations.
 use super::*;
 
-///
 /// Trait to define the endpoints necessary for the Rosetta Call API.
 #[axum::async_trait]
 pub trait CallApi {
@@ -18,8 +17,7 @@ pub trait CallApi {
     }
 }
 
-///
-/// Trait to wrap the [`CallApi`].
+/// Trait to wrap the `CallApi`.
 /// This trait helps to define default behavior for running the endpoints
 /// on different modes.
 #[axum::async_trait]

@@ -1,13 +1,13 @@
-//! The module defines the ConstructionHashRequest model.
+//! The module defines the `ConstructionHashRequest` request.
 
 use super::*;
 
 /// `ConstructionHashRequest` is the input to the `/construction/hash` endpoint.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConstructionHashRequest {
-    /// The `network_identifier` specifies which network a particular object is
+    /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
     pub network_identifier: NetworkIdentifier,
-    /// Undocumented in rosetta
+    #[allow(clippy::missing_docs_in_private_items)]
     pub signed_transaction: String,
 }

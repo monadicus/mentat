@@ -1,3 +1,5 @@
+//! This module contains a cli client for making Rosetta calls.
+
 use core::fmt;
 use std::fmt::Pointer;
 

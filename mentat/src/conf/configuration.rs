@@ -7,6 +7,7 @@ use std::{
     net::Ipv4Addr,
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    str::FromStr,
     thread,
 };
 
@@ -15,7 +16,6 @@ use serde::de::DeserializeOwned;
 
 use super::*;
 
-///
 /// Custom configuration settings for running a node.\
 /// Any fields specified here will be included in [`Configuration`] and listed
 /// as configurable fields in the config file that the user provides.
@@ -23,6 +23,25 @@ use super::*;
 pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     /// The name of the blockchain run by the node.
     const BLOCKCHAIN: &'static str;
+
+    /// The command for loading the node `Configuration`.\
+    /// WARNING: This defaults to assuming that the first argument passed to the
+    /// process contains a path to the config file. Therefor this function
+    /// should absolutely be overridden if you are using your own argument
+    /// parsing.
+    fn load_config() -> Configuration<Self>
+    where
+        Self: DeserializeOwned,
+    {
+        let args: Vec<String> = std::env::args().collect();
+        if args.len() != 2 {
+            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
+            std::process::exit(1);
+        }
+
+        let path = std::path::PathBuf::from(&args[1]);
+        Configuration::load(&path)
+    }
 
     // TODO: replace with bitcoin example once bitcoin is containerized
     ///
@@ -45,12 +64,11 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     /// ```
     fn node_command(config: &Configuration<Self>) -> Command;
 
-    ///
     /// Makes a system call with the command returned by
-    /// [`NodeConf::node_command`] to spawn the node. The default
-    /// implementation should be fine in most cases.\ The user can change
-    /// `NodeConf::log` to control how the node output is logged in the
-    /// terminal.
+    /// `NodeConf::node_command` to spawn the node. The default
+    /// implementation should be fine in most cases.\
+    /// The user can change `NodeConf::log` to control how the node output is
+    /// logged in the terminal.
     fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
         let mut child = Self::node_command(config)
             .stderr(Stdio::piped())
@@ -64,9 +82,8 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
         Ok(())
     }
 
-    ///
     /// Used to control how the node logs its output to the console.\
-    /// The default implementation uses the [`tracing`] crate to print `stdout`
+    /// The default implementation uses the tracing crate to print `stdout`
     /// and `stderr` to console.
     fn log<T: 'static + Read + Send>(out: T, err: bool) {
         let mut reader = BufReader::new(out).lines();
@@ -81,21 +98,20 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
         });
     }
 
-    ///
     /// Builds the url used to call the node using the settings in the user
     /// config. The default implementation may need to be changed if a
     /// custom url format is needed.
-    fn build_url(conf: &Configuration<Self>) -> String {
-        format!(
+    fn build_url(conf: &Configuration<Self>) -> reqwest::Url {
+        let url = format!(
             "{}://{}:{}",
             if conf.secure_http { "https" } else { "http" },
             conf.node_address,
             conf.node_rpc_port
-        )
+        );
+        reqwest::Url::from_str(&url).expect("Invalid node url: {url}")
     }
 }
 
-///
 /// The user specified configuration settings for a node.
 /// Has an extra field called `custom` that can contain any configuration
 /// settings specific to the rosetta implementation.
@@ -105,7 +121,7 @@ pub struct Configuration<Custom: NodeConf> {
     pub address: Ipv4Addr,
     /// The port to bind rosetta to.
     pub port: u16,
-    /// The network mode to run rosetta in. Accepts `online` and `offline`.
+    /// The network mode to run rosetta in. Accepts `Online` and `Offline`.
     pub mode: Mode,
     /// The path to the node binary.
     pub node_path: PathBuf,
@@ -126,7 +142,6 @@ impl<Custom> Configuration<Custom>
 where
     Custom: DeserializeOwned + NodeConf,
 {
-    ///
     /// Loads a configuration file from the supplied path.
     pub fn load(path: &Path) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| {
@@ -151,7 +166,6 @@ where
         config
     }
 
-    ///
     /// Generates a configuration file and writes it to the supplied path.
     pub fn create_template(path: &Path) {
         fs::create_dir_all(path)

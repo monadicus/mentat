@@ -1,11 +1,10 @@
-//! This module defines a default [`CacheInner`] trait implementation.
+//! This module defines a default `CacheInner` trait implementation.
 
 use std::sync::Weak;
 
 use super::{CacheInner, Entry, Fetched, Inflight, WeakInflight};
 
-///
-/// This struct stores the latest Fetched entry and Inflight
+/// This struct stores the latest Fetched entry and [`Inflight`]
 /// if they exist in memory.
 #[derive(Clone)]
 pub struct DefaultCacheInner<T> {

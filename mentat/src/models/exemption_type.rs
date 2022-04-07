@@ -1,10 +1,10 @@
-//! The module defines the ExemptionType model.
+//! The module defines the `ExemptionType` model.
 
 use super::*;
 
-/// ExemptionType is used to indicate if the live balance for an account subject
-/// to a BalanceExemption could increase above, decrease below, or equal the
-/// computed balance.
+/// `ExemptionType` is used to indicate if the live balance for an account
+/// subject to a `BalanceExemption` could increase above, decrease below, or
+/// equal the computed balance.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum ExemptionType {
     /// The live balance may increase above or equal the computed balance. This

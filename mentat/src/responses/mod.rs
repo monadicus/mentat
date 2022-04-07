@@ -1,3 +1,5 @@
+//! This module defines struct responses for Rosetta API.
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

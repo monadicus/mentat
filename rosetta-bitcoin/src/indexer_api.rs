@@ -25,7 +25,7 @@ impl IndexerApi for BitcoinIndexerApi {
     ) -> MentatResponse<EventsBlocksResponse> {
         let resp = match rpc_caller
             .client
-            .post(&rpc_caller.node_rpc_url)
+            .post(rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
@@ -54,7 +54,7 @@ impl IndexerApi for BitcoinIndexerApi {
     ) -> MentatResponse<SearchTransactionsResponse> {
         let resp = match rpc_caller
             .client
-            .post(&rpc_caller.node_rpc_url)
+            .post(rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await

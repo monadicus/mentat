@@ -1,4 +1,4 @@
-//! The module defines the SignatureType model.
+//! The module defines the `SignatureType` model.
 
 use super::*;
 

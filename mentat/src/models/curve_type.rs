@@ -1,9 +1,9 @@
-//! The module defines the CurveType model.
+//! The module defines the `CurveType` model.
 
 use super::*;
 
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum CurveType {
     /// https://secg.org/sec1-v2.pdf#subsubsection.2.3.3
     #[serde(rename = "secp256k1")]

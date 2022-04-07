@@ -11,9 +11,10 @@ pub mod responses;
 #[cfg(feature = "sdk")]
 pub mod keys;
 
+#[allow(clippy::all, clippy::missing_docs_in_private_items)]
 #[cfg(feature = "server")]
 #[path = ""]
-mod server_rexport {
+mod server_reexport {
     pub mod api;
     pub mod cache;
     pub mod conf;
@@ -22,6 +23,7 @@ mod server_rexport {
     pub use axum::{self, async_trait, Json};
     pub use indexmap::IndexMap;
     pub use mentat_macros::{main, mentat};
+    pub use reqwest::{IntoUrl, Url};
     pub use serde;
     pub use serde_json;
     pub use tokio;
@@ -47,7 +49,7 @@ mod server_rexport {
 }
 
 #[cfg(feature = "server")]
-pub use server_rexport::*;
+pub use server_reexport::*;
 
 #[cfg(feature = "client")]
 pub mod client;

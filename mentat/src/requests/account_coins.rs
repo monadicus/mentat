@@ -1,17 +1,17 @@
-//! The module defines the AccountCoinsRequest model.
+//! The module defines the AccountCoinsRequest request.
 
 use super::*;
 
 /// `AccountCoinsRequest` is utilized to make a request on the `/account/coins`
 /// endpoint.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct AccountCoinsRequest {
-    /// The [`NetworkIdentifier`] specifies which network a particular object is
+    /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
     pub network_identifier: NetworkIdentifier,
-    /// The `account_identifier` uniquely identifies an account within a
+    /// The `AccountIdentifier` uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
-    /// determine this uniqueness (including the `metadata field`, if
+    /// determine this uniqueness (including the `metadata` field, if
     /// populated).
     pub account_identifier: AccountIdentifier,
     /// Include state from the mempool when looking up an account's unspent
