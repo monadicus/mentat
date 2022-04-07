@@ -14,6 +14,8 @@ pub struct ConstructionPayloadsRequest {
     pub network_identifier: NetworkIdentifier,
     pub operations: Vec<Operation>,
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub public_keys: Option<Vec<PublicKey>>,
 }

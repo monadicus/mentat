@@ -14,11 +14,14 @@ pub struct SyncStatus {
     /// all indices up to and including current_block_identifier in
     /// NetworkStatusResponse must be queryable via the /block endpoint
     /// (excluding indices less than oldest_block_identifier).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub current_index: Option<u64>,
     /// TargetIndex is the index of the block that the implementation is
     /// attempting to sync to in the current stage.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_index: Option<u64>,
     /// Stage is the phase of the sync process.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stage: Option<String>,
     /// sycned is a boolean that indicates if an implementation has synced up to
     /// the most recent block. If this field is not populated, the caller should
@@ -28,5 +31,6 @@ pub struct SyncStatus {
     /// transactions). In these blockchains, the most recent block could have a
     /// timestamp far behind the current time but the node could be healthy and
     /// at tip.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub synced: Option<bool>,
 }
