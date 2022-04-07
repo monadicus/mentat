@@ -8,6 +8,8 @@ use super::{Keys, KeysError};
 // I'm assuming these are constant but this needs to be confirmed.
 const SRS: &str = "aleo_signature";
 
+/// A set of keys for signing and verifying messages in the Aleo signature
+/// scheme.
 pub struct AleoKeys<N: Network> {
     priv_key: <<N as Network>::AccountSignatureScheme as SignatureScheme>::PrivateKey,
     pub_key: <<N as Network>::AccountSignatureScheme as SignatureScheme>::PublicKey,
