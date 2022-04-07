@@ -12,5 +12,6 @@ use super::*;
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct ConstructionMetadataResponse {
     pub metadata: IndexMap<String, Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_fee: Option<Vec<Amount>>,
 }

@@ -11,8 +11,11 @@ pub struct ConstructionParseResponse {
     /// [DEPRECATED by account_identifier_signers in v1.4.4] All signers
     /// (addresses) of a particular transaction. If the transaction is unsigned,
     /// it should be empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub signers: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account_identifier_signers: Option<Vec<AccountIdentifier>>,
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

@@ -26,7 +26,10 @@ pub struct ConstructionPreprocessRequest {
     pub network_identifier: NetworkIdentifier,
     pub operations: Vec<Operation>,
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_fee: Option<Vec<Amount>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_fee_multiplier: Option<f64>,
 }

@@ -7,5 +7,6 @@ use super::*;
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct MetadataRequest {
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }
