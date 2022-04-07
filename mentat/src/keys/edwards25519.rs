@@ -2,6 +2,8 @@ use ed25519_dalek::{Keypair, Signature, Signer, SECRET_KEY_LENGTH};
 
 use super::{Keys, KeysError};
 
+/// A pair of keys used for signing and verifying messages in the Ed25519
+/// signature scheme.
 pub struct Ed25519Keys {
     keypair: Keypair,
 }

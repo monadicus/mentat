@@ -21,11 +21,13 @@ pub struct ApiError {
     /// The message for the error.
     pub message: String,
     /// The optional description of the error.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// If the method is retriable.
     pub retriable: bool,
     /// Any additional details for the error.
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub details: IndexMap<String, Value>,
 }
 

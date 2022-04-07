@@ -9,6 +9,7 @@ use super::*;
 pub struct RelatedTransaction {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub network_identifier: Option<NetworkIdentifier>,
     /// The `TransactionIdentifier` uniquely identifies a transaction in a
     /// particular network and block or in the mempool.

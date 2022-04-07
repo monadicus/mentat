@@ -10,5 +10,6 @@ use super::*;
 pub struct MetadataRequest {
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

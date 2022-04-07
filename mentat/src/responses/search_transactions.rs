@@ -21,5 +21,6 @@ pub struct SearchTransactionsResponse {
     /// `next_offset` is the next offset to use when paginating through
     /// transaction results. If this field is not populated, there are no more
     /// transactions to query.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub next_offset: Option<u64>,
 }
