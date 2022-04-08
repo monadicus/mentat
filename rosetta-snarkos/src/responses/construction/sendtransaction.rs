@@ -8,18 +8,12 @@ use super::*;
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
-pub struct SendTransactionResponse {
-    _jsonrpc: String,
-    result: String,
-    _id: String,
-}
+pub struct SendTransactionResult(String);
 
-impl From<SendTransactionResponse> for TransactionIdentifierResponse {
-    fn from(response: SendTransactionResponse) -> TransactionIdentifierResponse {
+impl From<SendTransactionResult> for TransactionIdentifierResponse {
+    fn from(result: SendTransactionResult) -> TransactionIdentifierResponse {
         TransactionIdentifierResponse {
-            transaction_identifier: TransactionIdentifier {
-                hash: response.result,
-            },
+            transaction_identifier: TransactionIdentifier { hash: result.0 },
             metadata: IndexMap::new(),
         }
     }

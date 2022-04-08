@@ -13,7 +13,7 @@ macro_rules! jsonrpc_call {
         let snarkos_text = response.text().await?;
         // tracing::debug!("{snarkos_json:?}");
         match serde_json::from_str::<Response<$resp>>(&snarkos_text) {
-            Ok(Response::Ok(res)) => res,
+            Ok(Response::Ok(res)) => res.result,
             Ok(Response::Err(err)) => {
                 return err.into();
             }

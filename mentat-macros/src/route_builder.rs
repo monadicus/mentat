@@ -239,16 +239,7 @@ pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStr
                 let req_data = route.req_data.map(|d| Ident::new(d, Span::call_site()));
                 let req_method = Ident::new(route.req_method, Span::call_site());
                 let r = match cache_type {
-                    Some(_) if route.never_cache => build_route(
-                        server_type,
-                        &api,
-                        route_group.route_base,
-                        route.path,
-                        &method,
-                        req_data,
-                        &req_method,
-                    ),
-                    Some(cacher) => build_cached_route(
+                    Some(cacher) if !route.never_cache => build_cached_route(
                         server_type,
                         &api,
                         route_group.route_base,
@@ -258,7 +249,7 @@ pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStr
                         &req_method,
                         cacher,
                     ),
-                    None => build_route(
+                    _ => build_route(
                         server_type,
                         &api,
                         route_group.route_base,

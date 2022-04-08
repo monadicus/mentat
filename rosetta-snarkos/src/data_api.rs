@@ -6,12 +6,13 @@ use mentat::{
     responses::*,
     serde_json,
     server::RpcCaller,
+    tracing,
 };
 
 use crate::{
     jsonrpc_call,
     request::SnarkosJrpc,
-    responses::{data::*, Response},
+    responses::{common::SnarkosTransactions, data::*, Response},
 };
 
 #[derive(Clone, Default)]
@@ -30,7 +31,7 @@ impl DataApi for SnarkosDataApi {
     ) -> MentatResponse<BlockResponse> {
         if let Some(block_id) = data.block_identifier.index {
             Ok(Json(
-                jsonrpc_call!("getblock", vec![block_id], rpc_caller, GetBlockResponse).into(),
+                jsonrpc_call!("getblock", vec![block_id], rpc_caller, BlockResult).into(),
             ))
         } else {
             Err(MentatError::from("wtf"))
@@ -47,13 +48,14 @@ impl DataApi for SnarkosDataApi {
             "gettransaction",
             vec![data.block_identifier.hash],
             rpc_caller,
-            GetTransactionResponse
+            GetTransactionResult
         );
+        tracing::debug!("first {:#?}", first);
         let second = jsonrpc_call!(
             "getblocktransactions",
             vec![data.block_identifier.index],
             rpc_caller,
-            GetBlockTransactionsResponse
+            SnarkosTransactions
         );
         Ok(Json(first + second))
     }
@@ -69,7 +71,7 @@ impl DataApi for SnarkosDataApi {
                 "getmemorypool",
                 Vec::<()>::new(),
                 rpc_caller,
-                GetMemoryPoolResponse
+                GetMemoryPoolResult
             )
             .into(),
         ))

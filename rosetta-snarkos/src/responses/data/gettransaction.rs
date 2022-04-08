@@ -3,7 +3,7 @@ use std::ops::Add;
 use mentat::responses::BlockTransactionResponse;
 
 use super::*;
-use crate::responses::common::SnarkosTransaction;
+use crate::responses::common::{SnarkosTransaction, SnarkosTransactions};
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
@@ -28,29 +28,20 @@ struct Metadata {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-struct GetTransactionResult {
+pub struct GetTransactionResult {
     _decrypted_records: Vec<DecryptedRecords>,
     metadata: Metadata,
     _transaction: SnarkosTransaction,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(crate = "mentat::serde")]
-pub struct GetTransactionResponse {
-    _jsonrpc: String,
-    result: GetTransactionResult,
-    _id: String,
-}
-
-impl Add<GetBlockTransactionsResponse> for GetTransactionResponse {
+impl Add<SnarkosTransactions> for GetTransactionResult {
     type Output = BlockTransactionResponse;
 
-    fn add(self, other: GetBlockTransactionsResponse) -> Self::Output {
+    fn add(self, other: SnarkosTransactions) -> Self::Output {
         // TODO Handle unwrap here
         let transaction = other
-            .result
             .transactions
-            .get(self.result.metadata.transaction_index)
+            .get(self.metadata.transaction_index)
             .cloned()
             .unwrap();
         BlockTransactionResponse {

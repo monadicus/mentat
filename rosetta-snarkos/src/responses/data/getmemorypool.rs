@@ -16,33 +16,29 @@ struct Transition {
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-struct GetMemoryPoolResult {
+pub struct GetMemoryPoolResultItem {
     _inner_circuit_id: String,
     _ledger_root: String,
     transaction_id: String,
     _transitions: Vec<Transition>,
 }
 
-impl From<GetMemoryPoolResult> for TransactionIdentifier {
-    fn from(result: GetMemoryPoolResult) -> TransactionIdentifier {
+impl From<GetMemoryPoolResultItem> for TransactionIdentifier {
+    fn from(item: GetMemoryPoolResultItem) -> TransactionIdentifier {
         TransactionIdentifier {
-            hash: result.transaction_id,
+            hash: item.transaction_id,
         }
     }
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-pub struct GetMemoryPoolResponse {
-    _jsonrpc: String,
-    result: Vec<GetMemoryPoolResult>,
-    _id: String,
-}
+pub struct GetMemoryPoolResult(Vec<GetMemoryPoolResultItem>);
 
-impl From<GetMemoryPoolResponse> for MempoolResponse {
-    fn from(response: GetMemoryPoolResponse) -> MempoolResponse {
+impl From<GetMemoryPoolResult> for MempoolResponse {
+    fn from(result: GetMemoryPoolResult) -> MempoolResponse {
         MempoolResponse {
-            transaction_identifiers: response.result.into_iter().map(|r| r.into()).collect(),
+            transaction_identifiers: result.0.into_iter().map(|r| r.into()).collect(),
         }
     }
 }

@@ -32,7 +32,7 @@ impl ConstructionApi for SnarkosConstructionApi {
                 "sendtransaction",
                 vec![data.signed_transaction],
                 rpc_caller,
-                SendTransactionResponse
+                SendTransactionResult
             )
             .into(),
         ))
