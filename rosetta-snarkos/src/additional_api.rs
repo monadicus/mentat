@@ -1,17 +1,24 @@
 use mentat::{
-    api::{AdditionalApi, MentatResponse},
+    api::AdditionalApi,
     async_trait,
-    serde_json::{json, Value},
+    errors::Result,
+    serde_json::{self, Value},
     server::RpcCaller,
-    Json,
 };
+
+use crate::{jsonrpc_call, request::SnarkosJrpc, responses::Response};
 
 #[derive(Clone, Default)]
 pub struct SnarkosAdditionalApi;
 
 #[async_trait]
 impl AdditionalApi for SnarkosAdditionalApi {
-    async fn check_node_status(&self, _rpc_caller: RpcCaller) -> MentatResponse<Value> {
-        Ok(Json(json!("Unknown")))
+    async fn check_node_status(&self, rpc_caller: &RpcCaller) -> Result<Value> {
+        Ok(jsonrpc_call!(
+            "getnodestate",
+            Vec::<()>::new(),
+            rpc_caller,
+            Value
+        ))
     }
 }

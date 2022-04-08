@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use mentat::{api::MentatResponse, responses::BlockTransactionResponse, Json};
+use mentat::responses::BlockTransactionResponse;
 
 use super::*;
 use crate::responses::common::SnarkosTransaction;
@@ -43,7 +43,7 @@ pub struct GetTransactionResponse {
 }
 
 impl Add<GetBlockTransactionsResponse> for GetTransactionResponse {
-    type Output = MentatResponse<BlockTransactionResponse>;
+    type Output = BlockTransactionResponse;
 
     fn add(self, other: GetBlockTransactionsResponse) -> Self::Output {
         // TODO Handle unwrap here
@@ -53,8 +53,8 @@ impl Add<GetBlockTransactionsResponse> for GetTransactionResponse {
             .get(self.result.metadata.transaction_index)
             .cloned()
             .unwrap();
-        Ok(Json(BlockTransactionResponse {
+        BlockTransactionResponse {
             transaction: transaction.into(),
-        }))
+        }
     }
 }

@@ -242,7 +242,7 @@ pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStr
                         route_group.route_base,
                         route.path,
                         &method,
-                        &req_data,
+                        req_data,
                         &req_method,
                     ),
                     Some(cacher) => build_cached_route(
@@ -251,7 +251,7 @@ pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStr
                         route_group.route_base,
                         route.path,
                         &method,
-                        &req_data,
+                        req_data,
                         &req_method,
                         cacher,
                     ),
@@ -261,7 +261,7 @@ pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStr
                         route_group.route_base,
                         route.path,
                         &method,
-                        &req_data,
+                        req_data,
                         &req_method,
                     ),
                 };
@@ -279,16 +279,15 @@ fn build_route(
     route_base: &str,
     path: &str,
     method: &Ident,
-    req_data: &Option<Ident>,
+    req_data: Option<Ident>,
     req_method: &Ident,
 ) -> TokenStream2 {
-    quote!(
-        let api = server.#api.clone();
-        let #method = match #req_data {
-            Some(data) => {
-                move |
+    match req_data {
+        Some(data) => quote!(
+            let api = server.#api.clone();
+            let #method = move |
                 ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
-                Json(req_data): Json<data>,
+                Json(req_data): Json<#data>,
                 Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
                 Extension(rpc_caller): Extension<RpcCaller>
                 | {
@@ -299,12 +298,14 @@ fn build_route(
                         tracing::debug!("response {}{} {:?}", #route_base, #path, resp);
                         resp
                     })
-                },
-            },
-            None => {
-                move |
+                }.instrument(tracing::info_span!(stringify!(#method)));
+
+            app = app.route(concat!(#route_base, #path), routing::#req_method(#method));
+        ),
+        None => quote!(
+            let api = server.#api.clone();
+            let #method = move |
                     ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
-                    Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
                     Extension(rpc_caller): Extension<RpcCaller>
                 | {
                     ::std::boxed::Box::pin(async move {
@@ -314,12 +315,11 @@ fn build_route(
                         tracing::debug!("response {}{} {:?}", #route_base, #path, resp);
                         resp
                     })
-                }
-            }
-        }.instrument(tracing::info_span!(stringify!(#method)));
+                }.instrument(tracing::info_span!(stringify!(#method)));
 
-        app = app.route(concat!(#route_base, #path), routing::#req_method(#method));
-    )
+            app = app.route(concat!(#route_base, #path), routing::#req_method(#method));
+        ),
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -329,18 +329,18 @@ fn build_cached_route(
     route_base: &str,
     path: &str,
     method: &Ident,
-    req_data: &Option<Ident>,
+    req_data: Option<Ident>,
     req_method: &Ident,
     cacher: &Ident,
 ) -> TokenStream2 {
-    quote!(
-        let api = server.#api.clone();
-        let cache = Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None);
-        let #method = match #req_data {
-            Some(data) => {
-                move |
+    match req_data {
+        Some(data) => quote!(
+            let api = server.#api.clone();
+            let cache = Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None);
+
+            let #method = move |
                     ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
-                    extract::Json(req_data): Json<data>,
+                    extract::Json(req_data): Json<#data>,
                     extract::Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
                     extract::Extension(rpc_caller): Extension<RpcCaller>
                 | {
@@ -357,12 +357,16 @@ fn build_cached_route(
                         })
                         .await
                     })
-                },
-            },
-            None => {
-                move |
+                }.instrument(tracing::info_span!(stringify!(#method)));
+
+            app = app.route(concat!(#route_base, #path), routing::#req_method(#method));
+        ),
+        None => quote!(
+            let api = server.#api.clone();
+            let cache = Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None);
+
+            let #method = move |
                     ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
-                    extract::Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
                     extract::Extension(rpc_caller): Extension<RpcCaller>
                 | {
                     Box::pin(async move {
@@ -378,10 +382,9 @@ fn build_cached_route(
                         })
                         .await
                     })
-                }
-            }
-        }.instrument(tracing::info_span!(stringify!(#method)));
+                }.instrument(tracing::info_span!(stringify!(#method)));
 
-        app = app.route(concat!(#route_base, #path), routing::#req_method(#method));
-    )
+            app = app.route(concat!(#route_base, #path), routing::#req_method(#method));
+        ),
+    }
 }

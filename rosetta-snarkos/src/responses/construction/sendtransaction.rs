@@ -1,9 +1,7 @@
 use mentat::{
-    api::MentatResponse,
     identifiers::TransactionIdentifier,
     responses::TransactionIdentifierResponse,
     IndexMap,
-    Json,
 };
 
 use super::*;
@@ -16,13 +14,13 @@ pub struct SendTransactionResponse {
     _id: String,
 }
 
-impl From<SendTransactionResponse> for MentatResponse<TransactionIdentifierResponse> {
-    fn from(response: SendTransactionResponse) -> MentatResponse<TransactionIdentifierResponse> {
-        Ok(Json(TransactionIdentifierResponse {
+impl From<SendTransactionResponse> for TransactionIdentifierResponse {
+    fn from(response: SendTransactionResponse) -> TransactionIdentifierResponse {
+        TransactionIdentifierResponse {
             transaction_identifier: TransactionIdentifier {
                 hash: response.result,
             },
             metadata: IndexMap::new(),
-        }))
+        }
     }
 }

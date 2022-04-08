@@ -1,9 +1,4 @@
-use mentat::{
-    api::MentatResponse,
-    identifiers::TransactionIdentifier,
-    responses::MempoolResponse,
-    Json,
-};
+use mentat::{identifiers::TransactionIdentifier, responses::MempoolResponse};
 
 use super::*;
 
@@ -44,10 +39,10 @@ pub struct GetMemoryPoolResponse {
     _id: String,
 }
 
-impl From<GetMemoryPoolResponse> for MentatResponse<MempoolResponse> {
-    fn from(response: GetMemoryPoolResponse) -> MentatResponse<MempoolResponse> {
-        Ok(Json(MempoolResponse {
+impl From<GetMemoryPoolResponse> for MempoolResponse {
+    fn from(response: GetMemoryPoolResponse) -> MempoolResponse {
+        MempoolResponse {
             transaction_identifiers: response.result.into_iter().map(|r| r.into()).collect(),
-        }))
+        }
     }
 }

@@ -2,7 +2,7 @@
 // digits"},"id":"1"}
 
 use mentat::{
-    errors::{ApiError, MentatError},
+    errors::{ApiError, MentatError, Result},
     serde::Deserialize,
     IndexMap,
 };
@@ -14,7 +14,7 @@ pub struct ErrorResponse {
     pub message: String,
 }
 
-impl<R> From<ErrorResponse> for Result<R, MentatError> {
+impl<R> From<ErrorResponse> for Result<R> {
     fn from(response: ErrorResponse) -> Self {
         Err(MentatError::Internal(ApiError {
             code: 500,

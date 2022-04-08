@@ -12,9 +12,14 @@ pub trait AdditionalApi: Clone + Default {
         Ok(Json(HealthCheckResponse {
             caller,
             msg: "Healthy!".to_string(),
-            node_status: self.check_node_status(rpc_caller).await?.take(),
+            node_status: self.check_node_status(&rpc_caller).await?,
+            cache_status: self.check_cache_status(&rpc_caller).await?,
         }))
     }
 
-    async fn check_node_status(&self, rpc_caller: RpcCaller) -> MentatResponse<Value>;
+    async fn check_node_status(&self, rpc_caller: &RpcCaller) -> Result<Value>;
+
+    async fn check_cache_status(&self, _rpc_caller: &RpcCaller) -> Result<Option<Value>> {
+        Ok(None)
+    }
 }

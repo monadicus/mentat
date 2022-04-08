@@ -1,11 +1,9 @@
 use mentat::{
-    api::MentatResponse,
     identifiers::BlockIdentifier,
     models::Block,
     responses::BlockResponse,
     serde_json::Value,
     IndexMap,
-    Json,
 };
 
 use super::*;
@@ -65,14 +63,14 @@ struct BlockResult {
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct GetBlockResponse {
-    _jsonrpc: String,
+    jsonrpc: String,
     result: BlockResult,
-    _id: String,
+    id: String,
 }
 
-impl From<GetBlockResponse> for MentatResponse<BlockResponse> {
+impl From<GetBlockResponse> for BlockResponse {
     fn from(response: GetBlockResponse) -> Self {
-        Ok(Json(BlockResponse {
+        BlockResponse {
             block: Some(Block {
                 block_identifier: BlockIdentifier {
                     index: response.result.header.metadata.height,
@@ -87,6 +85,6 @@ impl From<GetBlockResponse> for MentatResponse<BlockResponse> {
                 metadata: response.result.header.metadata.into(),
             }),
             other_transactions: None,
-        }))
+        }
     }
 }

@@ -1,6 +1,7 @@
 use mentat::{
-    api::{AdditionalApi, MentatResponse},
+    api::AdditionalApi,
     async_trait,
+    errors::Result,
     serde_json::{self, Value},
     server::RpcCaller,
 };
@@ -12,7 +13,12 @@ pub struct BitcoinAdditionalApi;
 
 #[async_trait]
 impl AdditionalApi for BitcoinAdditionalApi {
-    async fn check_node_status(&self, rpc_caller: RpcCaller) -> MentatResponse<Value> {
-        jsonrpc_call!("/getmemoryinfo", Vec::<()>::new(), rpc_caller, Value)
+    async fn check_node_status(&self, rpc_caller: &RpcCaller) -> Result<Value> {
+        Ok(jsonrpc_call!(
+            "/getmemoryinfo",
+            Vec::<()>::new(),
+            rpc_caller,
+            Value
+        ))
     }
 }
