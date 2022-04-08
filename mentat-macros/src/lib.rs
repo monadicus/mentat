@@ -21,7 +21,7 @@ use syn::{
     Type,
 };
 
-/// parses the provided macro argument for the optional cache type
+/// Matches the provided macro argument for the optional `CacheInner` type.
 fn get_cache_inner_type(arg: &NestedMeta) -> Result<&Ident, TokenStream> {
     if let NestedMeta::Meta(Meta::Path(path)) = arg {
         if let Some(id) = path.get_ident() {
@@ -35,8 +35,8 @@ fn get_cache_inner_type(arg: &NestedMeta) -> Result<&Ident, TokenStream> {
     )
 }
 
-/// mutates the provided main function's name to `__mentat_main_server_call` so
-/// that it can be called from mentat's `main` function
+/// Mutates the provided main function's name to `__mentat_main_server_call` so
+/// that it can be called from mentat's `main` function.
 fn swap_main_name(f: &mut ItemFn) -> Result<(), TokenStream> {
     if f.sig.ident == "main" {
         f.sig.ident = Ident::new("__mentat_main_server_call", f.sig.ident.span());
@@ -51,9 +51,9 @@ fn swap_main_name(f: &mut ItemFn) -> Result<(), TokenStream> {
     }
 }
 
-/// matches the provided main function for the `Server`'s `ServerType`
+/// Matches the provided main function for the `Server`'s `ServerType`.
 fn get_function_return_server_type(f: &ItemFn) -> Result<&Ident, TokenStream> {
-    // TODO this is horribly nested but they dont provide any helper functions to
+    // TODO this is horribly nested but they don't provide any helper functions to
     // avoid this
     if let ReturnType::Type(_, t) = &f.sig.output {
         if let Type::Path(t) = &**t {
@@ -78,7 +78,7 @@ fn get_function_return_server_type(f: &ItemFn) -> Result<&Ident, TokenStream> {
     .into())
 }
 
-/// generates code to derive Clone on a user supplied `ServerType`
+/// Generates code to derive Clone on a user supplied `ServerType`.
 fn gen_derive(server_def: &ItemStruct) -> TokenStream2 {
     quote!(
         #[::std::prelude::v1::derive(::std::clone::Clone)]
@@ -86,7 +86,7 @@ fn gen_derive(server_def: &ItemStruct) -> TokenStream2 {
     )
 }
 
-/// generates the main function for the given mentat implementation
+/// Generates the main function for the given mentat implementation.
 fn gen_main(
     server_call: &TokenStream2,
     server_type: &Ident,
@@ -107,7 +107,7 @@ fn gen_main(
     )
 }
 
-/// a macro for generating mentat routes from a default `Server` instance
+/// A macro for generating mentat routes from a default `Server` instance.
 #[proc_macro_attribute]
 pub fn mentat(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as AttributeArgs);
@@ -127,7 +127,7 @@ pub fn mentat(attr: TokenStream, item: TokenStream) -> TokenStream {
     out.into()
 }
 
-/// a macro for generating mentat routes from a user supplied `Server` instance
+/// A macro for generating mentat routes from a user supplied `main` function.
 #[proc_macro_attribute]
 pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as AttributeArgs);

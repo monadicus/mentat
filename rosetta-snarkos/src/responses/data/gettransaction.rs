@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use mentat::{api::MentatResponse, responses::BlockTransactionResponse, Json};
+use mentat::{api::MentatResponse, axum::Json, responses::BlockTransactionResponse};
 
 use super::*;
 use crate::responses::common::SnarkosTransaction;

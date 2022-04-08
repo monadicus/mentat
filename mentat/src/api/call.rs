@@ -1,6 +1,10 @@
+//! Houses the traits for the Rosetta Call API.
+//! These traits are easily overridable for custom
+//! implementations.
 use super::*;
 use crate::errors::MentatError;
 
+/// Trait to define the endpoints necessary for the Rosetta Call API.
 #[axum::async_trait]
 pub trait CallApi {
     /// Make a Network-Specific Procedure Call
@@ -14,9 +18,12 @@ pub trait CallApi {
     }
 }
 
+/// Trait to wrap the `CallApi`.
+/// This trait helps to define default behavior for running the endpoints
+/// on different modes.
 #[axum::async_trait]
 pub trait CallerCallApi: CallApi + Clone + Default {
-    /// Make a Network-Specific Procedure Call
+    /// This endpoint only runs in online mode.
     async fn call_call(
         &self,
         caller: Caller,

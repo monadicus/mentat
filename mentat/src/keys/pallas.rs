@@ -5,6 +5,10 @@ use mina_signer::{create_legacy, CompressedPubKey, Keypair, NetworkId, Signature
 
 use super::{Keys, KeysError};
 
+/// A keypair used for signing and verifying messages in the Mina signature
+/// scheme. Note that the signature scheme needs to be instantiated with a
+/// specific message structure beforehand; this is currently hardcoded on the
+/// [`Transaction`] struct found below.
 pub struct PallasKeys<H: Hashable> {
     keypair: Keypair,
     _phantom_data: PhantomData<H>,
@@ -43,6 +47,7 @@ impl<H: Hashable> Keys for PallasKeys<H> {
 const MEMO_BYTES: usize = 34;
 const TAG_BITS: usize = 3;
 
+/// A Mina transaction. Used for instantiation of the [`PallasKeys`].
 #[derive(Clone, Copy)]
 pub struct Transaction {
     // Common

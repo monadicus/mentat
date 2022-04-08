@@ -1,6 +1,6 @@
 use mentat::{
     api::{CallerConstructionApi, ConstructionApi},
-    async_trait,
+    axum::async_trait,
 };
 
 #[derive(Clone, Default)]

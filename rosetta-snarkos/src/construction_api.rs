@@ -1,6 +1,6 @@
 use mentat::{
     api::{Caller, CallerConstructionApi, ConstructionApi, MentatResponse},
-    async_trait,
+    axum::async_trait,
     requests::ConstructionSubmitRequest,
     responses::TransactionIdentifierResponse,
     server::RpcCaller,

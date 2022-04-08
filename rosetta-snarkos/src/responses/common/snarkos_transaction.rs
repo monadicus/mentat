@@ -1,4 +1,4 @@
-use mentat::{identifiers::TransactionIdentifier, models::Transaction, IndexMap};
+use mentat::{identifiers::TransactionIdentifier, indexmap::IndexMap, models::Transaction};
 
 use super::*;
 

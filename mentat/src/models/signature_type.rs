@@ -1,7 +1,9 @@
+//! The module defines the `SignatureType` model.
+
 use super::*;
 
 /// OperatorSignatureType is the type of a cryptographic signature.
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum SignatureType {
     /// r (32-bytes) + s (32-bytes)
     #[serde(rename = "ecdsa")]

@@ -1,3 +1,5 @@
+//! This module contains a cli client for making Rosetta calls.
+
 use core::fmt;
 
 use anyhow::anyhow;
@@ -6,15 +8,22 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{errors::ApiError, requests::*, responses::*};
 
+/// The client struct to call a rosetta API.
 pub struct Client {
+    /// The actual request client to do so.
     inner: reqwest::Client,
+    /// The URL of the rosetta API being called.
     origin: Url,
 }
 
+/// The different types of Errors that can happen when using the CLI.
 #[derive(Debug)]
 pub enum ClientError {
+    /// A CLI parsing error.
     ParseError(anyhow::Error),
+    /// A networking error.
     NetworkError(anyhow::Error),
+    /// A rosetta API error.
     ServerError(ApiError),
 }
 
@@ -30,6 +39,7 @@ impl fmt::Display for ClientError {
 
 impl std::error::Error for ClientError {}
 
+/// The result type for the CLI.
 type Result<T, E = ClientError> = std::result::Result<T, E>;
 
 impl Client {
@@ -49,6 +59,7 @@ impl Client {
         Self { inner, origin }
     }
 
+    /// Create a post request to a Rosetta API.
     async fn post<Q: Serialize, R: DeserializeOwned>(&self, path: &str, request: &Q) -> Result<R> {
         let url = match self.origin.join(path) {
             Ok(url) => url.to_string(),
@@ -74,10 +85,12 @@ impl Client {
         }
     }
 
+    /// Make a call to the /network/list Rosetta API endpoint.
     pub async fn network_list(&self, request: &MetadataRequest) -> Result<NetworkListResponse> {
         self.post("network/list", request).await
     }
 
+    /// Make a call to the /network/options Rosetta API endpoint.
     pub async fn network_options(
         &self,
         request: &NetworkRequest,
@@ -85,10 +98,12 @@ impl Client {
         self.post("network/options", request).await
     }
 
+    /// Make a call to the /network/status Rosetta API endpoint.
     pub async fn network_status(&self, request: &NetworkRequest) -> Result<NetworkStatusResponse> {
         self.post("network/status", request).await
     }
 
+    /// Make a call to the /account/balance Rosetta API endpoint.
     pub async fn account_balance(
         &self,
         request: &AccountBalanceRequest,
@@ -96,6 +111,7 @@ impl Client {
         self.post("account/balance", request).await
     }
 
+    /// Make a call to the /account/coins Rosetta API endpoint.
     pub async fn account_coins(
         &self,
         request: &AccountCoinsRequest,
@@ -103,10 +119,12 @@ impl Client {
         self.post("account/coins", request).await
     }
 
+    /// Make a call to the /block Rosetta API endpoint.
     pub async fn block(&self, request: &BlockRequest) -> Result<BlockResponse> {
         self.post("block", request).await
     }
 
+    /// Make a call to the /block/transaction Rosetta API endpoint.
     pub async fn block_transaction(
         &self,
         request: &BlockTransactionRequest,
@@ -114,10 +132,12 @@ impl Client {
         self.post("block/transaction", request).await
     }
 
+    /// Make a call to the /mempool Rosetta API endpoint.
     pub async fn mempool(&self, request: &NetworkRequest) -> Result<MempoolResponse> {
         self.post("mempool", request).await
     }
 
+    /// Make a call to the /mempool/transaction Rosetta API endpoint.
     pub async fn mempool_transaction(
         &self,
         request: &MempoolTransactionRequest,
@@ -125,6 +145,7 @@ impl Client {
         self.post("mempool/transaction", request).await
     }
 
+    /// Make a call to the /construction/combine Rosetta API endpoint.
     pub async fn construction_combine(
         &self,
         request: &ConstructionCombineRequest,
@@ -132,6 +153,7 @@ impl Client {
         self.post("construction/combine", request).await
     }
 
+    /// Make a call to the /construction/derive Rosetta API endpoint.
     pub async fn construction_derive(
         &self,
         request: &ConstructionDeriveRequest,
@@ -139,6 +161,7 @@ impl Client {
         self.post("construction/derive", request).await
     }
 
+    /// Make a call to the /construction/hash Rosetta API endpoint.
     pub async fn construction_hash(
         &self,
         request: &ConstructionHashRequest,
@@ -146,6 +169,7 @@ impl Client {
         self.post("construction/hash", request).await
     }
 
+    /// Make a call to the /construction/metadata Rosetta API endpoint.
     pub async fn construction_metadata(
         &self,
         request: &ConstructionMetadataRequest,
@@ -153,6 +177,7 @@ impl Client {
         self.post("construction/metadata", request).await
     }
 
+    /// Make a call to the /construction/parse Rosetta API endpoint.
     pub async fn construction_parse(
         &self,
         request: &ConstructionParseRequest,
@@ -160,6 +185,7 @@ impl Client {
         self.post("construction/parse", request).await
     }
 
+    /// Make a call to the /construction/payloads Rosetta API endpoint.
     pub async fn construction_payloads(
         &self,
         request: &ConstructionPayloadsRequest,
@@ -167,6 +193,7 @@ impl Client {
         self.post("construction/payloads", request).await
     }
 
+    /// Make a call to the /construction/preprocess Rosetta API endpoint.
     pub async fn construction_preprocess(
         &self,
         request: &ConstructionPreprocessRequest,
@@ -174,6 +201,7 @@ impl Client {
         self.post("construction/preprocess", request).await
     }
 
+    /// Make a call to the /construction/submit Rosetta API endpoint.
     pub async fn construction_submit(
         &self,
         request: &ConstructionSubmitRequest,
@@ -181,6 +209,7 @@ impl Client {
         self.post("construction/submit", request).await
     }
 
+    /// Make a call to the /events/blocks Rosetta API endpoint.
     pub async fn events_blocks(
         &self,
         request: &EventsBlocksRequest,
@@ -188,6 +217,7 @@ impl Client {
         self.post("events/blocks", request).await
     }
 
+    /// Make a call to the /search/transactions Rosetta API endpoint.
     pub async fn search_transactions(
         &self,
         request: &SearchTransactionsRequest,

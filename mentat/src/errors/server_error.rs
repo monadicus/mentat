@@ -1,3 +1,5 @@
+//! Defines endpoint errors for the Rosetta API.
+
 use std::fmt::{Debug, Display};
 
 use axum::{
@@ -11,13 +13,17 @@ use serde::{Deserialize, Serialize};
 use super::ApiError;
 use crate::api::MentatResponse;
 
+/// Represents the different types of http Errors.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum MentatError {
+    /// An Internal HTTP Error.
     Internal(ApiError),
+    /// A NotImplemented HTTP Error.
     NotImplemented(ApiError),
 }
 
 impl MentatError {
+    /// For when a method is not implemented.
     pub fn not_implemented<R>() -> MentatResponse<R> {
         Err(MentatError::NotImplemented(ApiError {
             code: 501,
@@ -28,6 +34,7 @@ impl MentatError {
         }))
     }
 
+    /// For when a method called but not available on the current network.
     pub fn wrong_network<P: Debug, R>(payload: P) -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError {
             code: 500,
@@ -38,6 +45,8 @@ impl MentatError {
         }))
     }
 
+    /// This error is returned when the requested
+    /// [`crate::identifiers::AccountIdentifier`] is improperly formatted.
     pub fn invalid_account_format<R>() -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError{
             code: 12,
@@ -48,6 +57,7 @@ impl MentatError {
         }))
     }
 
+    /// When a transaction could not be found.
     pub fn unable_to_find_transaction<R>(hash: &str) -> MentatResponse<R> {
         Err(MentatError::Internal(ApiError {
             code: 16,
@@ -89,4 +99,5 @@ impl IntoResponse for MentatError {
     }
 }
 
+/// The Result type for Mentat to always return a `MentatError`.
 pub type Result<T, E = MentatError> = std::result::Result<T, E>;
