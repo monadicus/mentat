@@ -5,9 +5,9 @@ use super::ErrorResponse;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct InnerResponse<R> {
-    _jsonrpc: String,
+    // jsonrpc: String,
     pub result: R,
-    _id: String,
+    // id: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]

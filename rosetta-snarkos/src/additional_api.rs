@@ -4,6 +4,7 @@ use mentat::{
     errors::Result,
     serde_json::{self, Value},
     server::RpcCaller,
+    tracing,
 };
 
 use crate::{jsonrpc_call, request::SnarkosJrpc, responses::Response};

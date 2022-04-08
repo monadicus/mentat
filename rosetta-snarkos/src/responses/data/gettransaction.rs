@@ -3,35 +3,35 @@ use std::ops::Add;
 use mentat::responses::BlockTransactionResponse;
 
 use super::*;
-use crate::responses::common::{SnarkosTransaction, SnarkosTransactions};
+use crate::responses::common::SnarkosTransactions;
 
-#[derive(Debug, Deserialize)]
-#[serde(crate = "mentat::serde")]
-struct DecryptedRecords {
-    _commitment: String,
-    _owner: String,
-    _payload: String,
-    _program_id: String,
-    _randomizer: String,
-    _record_view_key: String,
-    _value: i64,
-}
+// #[derive(Debug, Deserialize)]
+// #[serde(crate = "mentat::serde")]
+// struct DecryptedRecords {
+//     _commitment: String,
+//     _owner: String,
+//     _payload: String,
+//     _program_id: String,
+//     _randomizer: String,
+//     _record_view_key: String,
+//     _value: i64,
+// }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 struct Metadata {
-    _block_hash: String,
-    _block_height: u64,
-    _block_timestamp: u64,
+    // _block_hash: String,
+    // _block_height: u64,
+    // _block_timestamp: u64,
     transaction_index: usize,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct GetTransactionResult {
-    _decrypted_records: Vec<DecryptedRecords>,
+    // _decrypted_records: Vec<DecryptedRecords>,
     metadata: Metadata,
-    _transaction: SnarkosTransaction,
+    // _transaction: SnarkosTransaction,
 }
 
 impl Add<SnarkosTransactions> for GetTransactionResult {

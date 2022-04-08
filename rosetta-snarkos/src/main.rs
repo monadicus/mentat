@@ -8,7 +8,10 @@ mod node;
 mod request;
 mod responses;
 
-use mentat::server::{Server, ServerType};
+use mentat::{
+    cache::DefaultCacheInner,
+    server::{Server, ServerType},
+};
 
 #[derive(Clone)]
 struct MentatSnarkos;
@@ -22,7 +25,7 @@ impl ServerType for MentatSnarkos {
     type IndexerApi = indexer_api::SnarkosIndexerApi;
 }
 
-#[mentat::main]
+#[mentat::main(DefaultCacheInner)]
 async fn main() -> Server<MentatSnarkos> {
     println!("hello rosetta!");
     Server::default()

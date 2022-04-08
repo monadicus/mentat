@@ -35,20 +35,20 @@ impl From<Metadata> for IndexMap<String, Value> {
     }
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(crate = "mentat::serde")]
-struct Proof {
-    _hiding: String,
-}
+// #[derive(Debug, Deserialize)]
+// #[serde(crate = "mentat::serde")]
+// struct Proof {
+//     _hiding: String,
+// }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 struct Header {
     metadata: Metadata,
-    _nonce: String,
-    _previous_ledger_root: String,
-    _proof: Proof,
-    _transactions_root: String,
+    // _nonce: String,
+    // _previous_ledger_root: String,
+    // _proof: Proof,
+    // _transactions_root: String,
 }
 
 #[derive(Debug, Deserialize)]

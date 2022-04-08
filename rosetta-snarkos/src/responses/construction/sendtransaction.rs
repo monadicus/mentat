@@ -8,6 +8,7 @@ use super::*;
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
+
 pub struct SendTransactionResult(String);
 
 impl From<SendTransactionResult> for TransactionIdentifierResponse {

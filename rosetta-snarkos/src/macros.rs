@@ -11,13 +11,16 @@ macro_rules! jsonrpc_call {
             .await?;
 
         let snarkos_text = response.text().await?;
-        // tracing::debug!("{snarkos_json:?}");
+        tracing::debug!("snarkos_text: {snarkos_text}",);
         match serde_json::from_str::<Response<$resp>>(&snarkos_text) {
-            Ok(Response::Ok(res)) => res.result,
+            Ok(Response::Ok(res)) => {
+                tracing::debug!("res: {res:#?}");
+                res.result
+            }
             Ok(Response::Err(err)) => {
                 return err.into();
             }
-            Err(e) => return Err(format!("error decoding: {}: {}", e, snarkos_text).into()),
+            Err(e) => return Err(format!("error decoding: {e} {snarkos_text}").into()),
         }
     }};
 }

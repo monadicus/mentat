@@ -5,6 +5,7 @@ use mentat::{
     responses::TransactionIdentifierResponse,
     serde_json,
     server::RpcCaller,
+    tracing,
 };
 
 use crate::{
