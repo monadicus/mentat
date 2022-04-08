@@ -15,5 +15,33 @@ pub struct OperationIdentifier {
     /// was used in a transaction. network_index should not be populated if
     /// there is no notion of an operation index in a blockchain (typically most
     /// account-based blockchains).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub network_index: Option<u64>,
+}
+
+impl From<u64> for OperationIdentifier {
+    fn from(index: u64) -> Self {
+        Self {
+            index,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<(u64, u64)> for OperationIdentifier {
+    fn from((index, net_index): (u64, u64)) -> Self {
+        Self {
+            index,
+            network_index: Some(net_index),
+        }
+    }
+}
+
+impl From<(u64, Option<u64>)> for OperationIdentifier {
+    fn from((index, net_index): (u64, Option<u64>)) -> Self {
+        Self {
+            index,
+            network_index: net_index,
+        }
+    }
 }

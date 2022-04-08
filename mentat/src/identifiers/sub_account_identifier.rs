@@ -15,5 +15,15 @@ pub struct SubAccountIdentifier {
     /// important to note that two SubAccounts with identical addresses but
     /// differing metadata will not be considered equal by clients.
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl From<String> for SubAccountIdentifier {
+    fn from(address: String) -> Self {
+        Self {
+            address,
+            ..Default::default()
+        }
+    }
 }

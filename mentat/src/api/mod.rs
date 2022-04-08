@@ -16,12 +16,7 @@ pub use data::*;
 mod indexer;
 pub use indexer::*;
 
-use crate::{
-    conf::Mode,
-    errors::{ApiError, Result},
-    requests::*,
-    responses::*,
-};
+use crate::{conf::Mode, errors::Result, requests::*, responses::*};
 
 pub struct Caller {
     pub ip: SocketAddr,

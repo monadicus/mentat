@@ -1,4 +1,5 @@
 use super::*;
+use crate::errors::MentatError;
 
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
@@ -12,7 +13,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionCombineRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionCombineResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Derive returns the AccountIdentifier associated with a public key.
@@ -24,7 +25,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionDeriveRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionDeriveResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// TransactionHash returns the network-specific transaction hash for a
@@ -35,7 +36,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionHashRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Get any information required to construct a transaction for a specific
@@ -56,7 +57,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionMetadataRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Parse is called on both unsigned and signed transactions to understand
@@ -69,7 +70,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionParseRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionParseResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Payloads is called with an array of operations and the response from
@@ -89,7 +90,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionPayloadsRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionPayloadsResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Preprocess is called prior to /construction/payloads to construct a
@@ -106,7 +107,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionPreprocessRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionPreprocessResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Submit a pre-signed transaction to the node. This call should not block
@@ -121,7 +122,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionSubmitRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 }
 
@@ -165,7 +166,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.metadata(caller, data, rpc_caller).await
         }
@@ -209,7 +210,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.submit(caller, data, rpc_caller).await
         }

@@ -1,7 +1,9 @@
+use from_tuple::FromTuple;
+
 use super::*;
 
 /// The transaction submission request includes a signed transaction.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, FromTuple)]
 pub struct MempoolTransactionRequest {
     /// EventsBlocksRequest is utilized to fetch a sequence of BlockEvents
     /// indicating which blocks were added and removed from storage to reach the

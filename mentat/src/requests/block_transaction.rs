@@ -1,7 +1,9 @@
+use from_tuple::FromTuple;
+
 use super::*;
 
 /// A BlockRequest is utilized to make a block request on the /block endpoint.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, FromTuple)]
 pub struct BlockTransactionRequest {
     /// The network_identifier specifies which network a particular object is
     /// associated with.
