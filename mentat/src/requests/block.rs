@@ -15,3 +15,25 @@ pub struct BlockRequest {
     /// This is represented via a `PartialBlockIdentifier`.
     pub block_identifier: PartialBlockIdentifier,
 }
+
+impl From<(NetworkIdentifier, PartialBlockIdentifier)> for BlockRequest {
+    fn from(
+        (network_identifier, block_identifier): (NetworkIdentifier, PartialBlockIdentifier),
+    ) -> Self {
+        Self {
+            network_identifier,
+            block_identifier,
+        }
+    }
+}
+
+impl From<(PartialBlockIdentifier, NetworkIdentifier)> for BlockRequest {
+    fn from(
+        (block_identifier, network_identifier): (PartialBlockIdentifier, NetworkIdentifier),
+    ) -> Self {
+        Self {
+            network_identifier,
+            block_identifier,
+        }
+    }
+}

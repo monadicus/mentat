@@ -13,5 +13,15 @@ pub struct SubNetworkIdentifier {
     pub network: String,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(default)]
+    #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl From<String> for SubNetworkIdentifier {
+    fn from(network: String) -> Self {
+        Self {
+            network,
+            ..Default::default()
+        }
+    }
 }

@@ -18,12 +18,7 @@ pub use data::*;
 mod indexer;
 pub use indexer::*;
 
-use crate::{
-    conf::Mode,
-    errors::{ApiError, Result},
-    requests::*,
-    responses::*,
-};
+use crate::{conf::Mode, errors::Result, requests::*, responses::*};
 
 /// The struct to represent the user who called the endpoint.
 pub struct Caller {

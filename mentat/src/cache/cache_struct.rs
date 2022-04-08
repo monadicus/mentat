@@ -99,6 +99,6 @@ where
         };
 
         // waiting for in progress request
-        Ok(rx.recv().await.map_err(MentatError::from)??)
+        rx.recv().await.map_err(MentatError::from)?
     }
 }

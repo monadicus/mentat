@@ -6,7 +6,7 @@ use super::*;
 
 /// A `NetworkRequest` is utilized to retrieve some data specific exclusively to
 /// a [`NetworkIdentifier`].
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct NetworkRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

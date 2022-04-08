@@ -1,9 +1,11 @@
 //! The module defines the `MempoolTransactionRequest` request.
 
+use from_tuple::FromTuple;
+
 use super::*;
 
 /// The transaction submission request includes a signed transaction.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize)]
 pub struct MempoolTransactionRequest {
     /// [`EventsBlocksRequest`] is utilized to fetch a sequence of
     /// [`BlockEvent`]s indicating which blocks were added and removed from

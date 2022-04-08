@@ -2,6 +2,7 @@
 //! These traits are easily overridable for custom
 //! implementations.
 use super::*;
+use crate::errors::MentatError;
 
 /// Trait to define the endpoints necessary for the Rosetta Indexer API.
 #[axum::async_trait]
@@ -21,7 +22,7 @@ pub trait IndexerApi: Default {
         _data: EventsBlocksRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<EventsBlocksResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// `/events/blocks` allows the `_caller` to query a sequence of
@@ -39,7 +40,7 @@ pub trait IndexerApi: Default {
         _data: SearchTransactionsRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<SearchTransactionsResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 }
 

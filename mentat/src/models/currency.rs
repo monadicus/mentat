@@ -23,3 +23,12 @@ pub struct Currency {
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }
+
+impl From<String> for Currency {
+    fn from(symbol: String) -> Self {
+        Self {
+            symbol,
+            ..Default::default()
+        }
+    }
+}

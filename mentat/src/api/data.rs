@@ -2,6 +2,7 @@
 //! These traits are easily overridable for custom
 //! implementations.
 use super::*;
+use crate::errors::MentatError;
 
 /// Trait to define the endpoints necessary for the Rosetta Data API.
 #[axum::async_trait]
@@ -15,7 +16,7 @@ pub trait DataApi: Default {
         _data: MetadataRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkListResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// This endpoint returns the version information and allowed
@@ -31,7 +32,7 @@ pub trait DataApi: Default {
         _data: NetworkRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkOptionsResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// This endpoint returns the current status of the network requested. Any
@@ -43,7 +44,7 @@ pub trait DataApi: Default {
         _data: NetworkRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkStatusResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Get an array of all AccountBalances for an
@@ -71,7 +72,7 @@ pub trait DataApi: Default {
         _data: AccountBalanceRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountBalanceResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Get an array of all unspent coins for an
@@ -100,7 +101,7 @@ pub trait DataApi: Default {
         _data: AccountCoinsRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountCoinsResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Get a block by its [`crate::identifiers::BlockIdentifier`]. If
@@ -122,7 +123,7 @@ pub trait DataApi: Default {
         _data: BlockRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Get a transaction in a block by its
@@ -151,7 +152,7 @@ pub trait DataApi: Default {
         _data: BlockTransactionRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockTransactionResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Get all [`crate::identifiers::TransactionIdentifier`]s in the mempool
@@ -161,7 +162,7 @@ pub trait DataApi: Default {
         _data: NetworkRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 
     /// Get a transaction in the mempool by its
@@ -180,7 +181,7 @@ pub trait DataApi: Default {
         _data: MempoolTransactionRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolTransactionResponse> {
-        ApiError::not_implemented()
+        MentatError::not_implemented()
     }
 }
 
@@ -220,7 +221,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkStatusResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.network_status(caller, data, rpc_caller).await
         }
@@ -235,7 +236,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountBalanceResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.account_balance(caller, data, rpc_caller).await
         }
@@ -250,7 +251,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountCoinsResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.account_coins(caller, data, rpc_caller).await
         }
@@ -265,7 +266,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.block(caller, data, rpc_caller).await
         }
@@ -280,7 +281,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockTransactionResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.block_transaction(caller, data, rpc_caller).await
         }
@@ -295,7 +296,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.mempool(caller, data, rpc_caller).await
         }
@@ -310,7 +311,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolTransactionResponse> {
         if mode.is_offline() {
-            ApiError::wrong_network(&data)
+            MentatError::wrong_network(&data)
         } else {
             self.mempool_transaction(caller, data, rpc_caller).await
         }

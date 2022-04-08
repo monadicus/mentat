@@ -88,7 +88,8 @@ mod server_exports {
     pub mod macro_exports {
         pub use axum::{
             extract::{self, ConnectInfo, Extension, Json},
-            routing, Router,
+            routing,
+            Router,
         };
         pub use tracing::Instrument;
 
@@ -106,5 +107,17 @@ mod server_exports {
 #[cfg(feature = "server")]
 pub use server_exports::*;
 
+#[allow(clippy::all, clippy::missing_docs_in_private_items)]
 #[cfg(feature = "client")]
-pub mod client;
+#[path = ""]
+mod client_rexport {
+    pub use anyhow;
+    pub mod client;
+    pub use reqwest;
+    pub use serde;
+    pub use serde_json;
+    pub use tokio;
+}
+
+#[cfg(feature = "client")]
+pub use client_rexport::*;

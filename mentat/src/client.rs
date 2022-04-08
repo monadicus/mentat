@@ -1,21 +1,29 @@
 //! This module contains a cli client for making Rosetta calls.
 
 use core::fmt;
-use std::fmt::Pointer;
 
 use anyhow::anyhow;
+use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{errors::*, requests::*, responses::*};
+use crate::{errors::ApiError, requests::*, responses::*};
 
+/// The client struct to call a rosetta API.
 pub struct Client {
+    /// The actual request client to do so.
     inner: reqwest::Client,
-    origin: String,
+    /// The URL of the rosetta API being called.
+    origin: Url,
 }
 
+/// The different types of Errors that can happen when using the CLI.
 #[derive(Debug)]
 pub enum ClientError {
+    /// A CLI parsing error.
+    ParseError(anyhow::Error),
+    /// A networking error.
     NetworkError(anyhow::Error),
+    /// A rosetta API error.
     ServerError(ApiError),
 }
 
@@ -24,19 +32,22 @@ impl fmt::Display for ClientError {
         match self {
             ClientError::ServerError(e) => e.fmt(f),
             ClientError::NetworkError(e) => e.fmt(f),
+            ClientError::ParseError(e) => e.fmt(f),
         }
     }
 }
 
 impl std::error::Error for ClientError {}
 
+/// The result type for the CLI.
 type Result<T, E = ClientError> = std::result::Result<T, E>;
 
 impl Client {
     /// `origin` should be of the form `http[s]://hostname:port/`
     pub fn new(origin: &str) -> anyhow::Result<Self> {
         Ok(Self::new_full(
-            origin,
+            // ensure origin parses into a url
+            origin.parse::<Url>()?,
             reqwest::ClientBuilder::default()
                 .build()
                 .map_err(|e| anyhow!(e))?,
@@ -44,19 +55,16 @@ impl Client {
     }
 
     /// `origin` should be of the form `http[s]://hostname:port/`.
-    pub fn new_full(origin: &str, inner: reqwest::Client) -> Self {
-        Self {
-            inner,
-            origin: origin.to_string(),
-        }
+    pub fn new_full(origin: Url, inner: reqwest::Client) -> Self {
+        Self { inner, origin }
     }
 
-    async fn post<Q: Serialize, R: DeserializeOwned>(
-        &mut self,
-        path: &str,
-        request: &Q,
-    ) -> Result<R> {
-        let url = format!("{}{}", self.origin, path);
+    /// Create a post request to a Rosetta API.
+    async fn post<Q: Serialize, R: DeserializeOwned>(&self, path: &str, request: &Q) -> Result<R> {
+        let url = match self.origin.join(path) {
+            Ok(url) => url.to_string(),
+            Err(e) => return Err(ClientError::ParseError(anyhow!(e))),
+        };
         let out = self.inner.post(url).json(request).send().await;
         match out {
             Err(e) => Err(ClientError::NetworkError(anyhow!(e))),
@@ -77,125 +85,141 @@ impl Client {
         }
     }
 
-    pub async fn network_list(&mut self, request: &MetadataRequest) -> Result<NetworkListResponse> {
+    /// Make a call to the /network/list Rosetta API endpoint.
+    pub async fn network_list(&self, request: &MetadataRequest) -> Result<NetworkListResponse> {
         self.post("network/list", request).await
     }
 
+    /// Make a call to the /network/options Rosetta API endpoint.
     pub async fn network_options(
-        &mut self,
+        &self,
         request: &NetworkRequest,
     ) -> Result<NetworkOptionsResponse> {
         self.post("network/options", request).await
     }
 
-    pub async fn network_status(
-        &mut self,
-        request: &NetworkRequest,
-    ) -> Result<NetworkStatusResponse> {
+    /// Make a call to the /network/status Rosetta API endpoint.
+    pub async fn network_status(&self, request: &NetworkRequest) -> Result<NetworkStatusResponse> {
         self.post("network/status", request).await
     }
 
+    /// Make a call to the /account/balance Rosetta API endpoint.
     pub async fn account_balance(
-        &mut self,
+        &self,
         request: &AccountBalanceRequest,
     ) -> Result<AccountBalanceResponse> {
         self.post("account/balance", request).await
     }
 
+    /// Make a call to the /account/coins Rosetta API endpoint.
     pub async fn account_coins(
-        &mut self,
+        &self,
         request: &AccountCoinsRequest,
     ) -> Result<AccountCoinsResponse> {
         self.post("account/coins", request).await
     }
 
-    pub async fn block(&mut self, request: &BlockRequest) -> Result<BlockResponse> {
+    /// Make a call to the /block Rosetta API endpoint.
+    pub async fn block(&self, request: &BlockRequest) -> Result<BlockResponse> {
         self.post("block", request).await
     }
 
+    /// Make a call to the /block/transaction Rosetta API endpoint.
     pub async fn block_transaction(
-        &mut self,
+        &self,
         request: &BlockTransactionRequest,
     ) -> Result<BlockTransactionResponse> {
         self.post("block/transaction", request).await
     }
 
-    pub async fn mempool(&mut self, request: &NetworkRequest) -> Result<MempoolResponse> {
+    /// Make a call to the /mempool Rosetta API endpoint.
+    pub async fn mempool(&self, request: &NetworkRequest) -> Result<MempoolResponse> {
         self.post("mempool", request).await
     }
 
+    /// Make a call to the /mempool/transaction Rosetta API endpoint.
     pub async fn mempool_transaction(
-        &mut self,
+        &self,
         request: &MempoolTransactionRequest,
     ) -> Result<MempoolTransactionResponse> {
         self.post("mempool/transaction", request).await
     }
 
+    /// Make a call to the /construction/combine Rosetta API endpoint.
     pub async fn construction_combine(
-        &mut self,
+        &self,
         request: &ConstructionCombineRequest,
     ) -> Result<ConstructionCombineResponse> {
         self.post("construction/combine", request).await
     }
 
+    /// Make a call to the /construction/derive Rosetta API endpoint.
     pub async fn construction_derive(
-        &mut self,
+        &self,
         request: &ConstructionDeriveRequest,
     ) -> Result<ConstructionDeriveResponse> {
         self.post("construction/derive", request).await
     }
 
+    /// Make a call to the /construction/hash Rosetta API endpoint.
     pub async fn construction_hash(
-        &mut self,
+        &self,
         request: &ConstructionHashRequest,
     ) -> Result<TransactionIdentifierResponse> {
         self.post("construction/hash", request).await
     }
 
+    /// Make a call to the /construction/metadata Rosetta API endpoint.
     pub async fn construction_metadata(
-        &mut self,
+        &self,
         request: &ConstructionMetadataRequest,
     ) -> Result<ConstructionMetadataResponse> {
         self.post("construction/metadata", request).await
     }
 
+    /// Make a call to the /construction/parse Rosetta API endpoint.
     pub async fn construction_parse(
-        &mut self,
+        &self,
         request: &ConstructionParseRequest,
     ) -> Result<ConstructionParseResponse> {
         self.post("construction/parse", request).await
     }
 
+    /// Make a call to the /construction/payloads Rosetta API endpoint.
     pub async fn construction_payloads(
-        &mut self,
+        &self,
         request: &ConstructionPayloadsRequest,
     ) -> Result<ConstructionPayloadsResponse> {
         self.post("construction/payloads", request).await
     }
 
+    /// Make a call to the /construction/preprocess Rosetta API endpoint.
     pub async fn construction_preprocess(
-        &mut self,
+        &self,
         request: &ConstructionPreprocessRequest,
     ) -> Result<ConstructionPreprocessResponse> {
         self.post("construction/preprocess", request).await
     }
 
+    /// Make a call to the /construction/submit Rosetta API endpoint.
     pub async fn construction_submit(
-        &mut self,
+        &self,
         request: &ConstructionSubmitRequest,
     ) -> Result<TransactionIdentifierResponse> {
         self.post("construction/submit", request).await
     }
 
+    /// Make a call to the /events/blocks Rosetta API endpoint.
     pub async fn events_blocks(
-        &mut self,
+        &self,
         request: &EventsBlocksRequest,
     ) -> Result<EventsBlocksResponse> {
         self.post("events/blocks", request).await
     }
 
+    /// Make a call to the /search/transactions Rosetta API endpoint.
     pub async fn search_transactions(
-        &mut self,
+        &self,
         request: &SearchTransactionsRequest,
     ) -> Result<SearchTransactionsResponse> {
         self.post("search/transactions", request).await

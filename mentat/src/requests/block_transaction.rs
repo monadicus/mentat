@@ -1,10 +1,12 @@
 //! The module defines the `BlockTransactionRequest` request.
 
+use from_tuple::FromTuple;
+
 use super::*;
 
 /// A `BlockRequest` is utilized to make a block request on the `/block`
 /// endpoint.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, FromTuple, Serialize)]
 pub struct BlockTransactionRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

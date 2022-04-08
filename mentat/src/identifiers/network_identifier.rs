@@ -1,8 +1,11 @@
 //! The module defines the `NetworkIdentifier`.
 
+#[cfg(feature = "server")]
 use axum::http::Extensions;
 
 use super::*;
+use crate::requests::NetworkRequest;
+#[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network, NodeConf},
     errors::{MentatError, Result},
@@ -22,9 +25,50 @@ pub struct NetworkIdentifier {
     /// In blockchains with sharded state, the `SubNetworkIdentifier` is
     /// required to query some object on a specific shard. This identifier
     /// is optional for all non-sharded blockchains.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sub_network_identifier: Option<SubNetworkIdentifier>,
 }
 
+impl From<(String, String)> for NetworkIdentifier {
+    fn from((blockchain, network): (String, String)) -> Self {
+        Self {
+            blockchain,
+            network,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<(String, String, String)> for NetworkIdentifier {
+    fn from((blockchain, network, subnet): (String, String, String)) -> Self {
+        Self {
+            blockchain,
+            network,
+            sub_network_identifier: Some(subnet.into()),
+        }
+    }
+}
+
+impl From<(String, String, Option<String>)> for NetworkIdentifier {
+    fn from((blockchain, network, subnet): (String, String, Option<String>)) -> Self {
+        Self {
+            blockchain,
+            network,
+            sub_network_identifier: subnet.map(|s| s.into()),
+        }
+    }
+}
+
+impl From<NetworkIdentifier> for NetworkRequest {
+    fn from(net: NetworkIdentifier) -> Self {
+        Self {
+            network_identifier: net,
+            ..Default::default()
+        }
+    }
+}
+
+#[cfg(feature = "server")]
 impl NetworkIdentifier {
     /// A function to check if the server Blockchain specified matches the user
     /// request specified blockchain.
