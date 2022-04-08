@@ -39,6 +39,9 @@ pub use construction_preprocess::*;
 mod event_blocks;
 pub use event_blocks::*;
 
+mod health_check;
+pub use health_check::*;
+
 mod mempool;
 pub use mempool::*;
 

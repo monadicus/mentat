@@ -17,6 +17,7 @@ use self::middleware_checks::middleware_checks;
 use crate::{api::*, conf::*};
 
 pub trait ServerType: Sized + 'static {
+    type AdditionalApi: AdditionalApi;
     type CallApi: CallerCallApi;
     type CustomConfig: DeserializeOwned + NodeConf;
     type ConstructionApi: CallerConstructionApi;
@@ -36,6 +37,7 @@ pub trait ServerType: Sized + 'static {
 }
 
 pub struct ServerBuilder<Types: ServerType> {
+    additional_api: Option<Types::AdditionalApi>,
     call_api: Option<Types::CallApi>,
     configuration: Option<Configuration<Types::CustomConfig>>,
     construction_api: Option<Types::ConstructionApi>,
@@ -46,6 +48,7 @@ pub struct ServerBuilder<Types: ServerType> {
 impl<Types: ServerType> Default for ServerBuilder<Types> {
     fn default() -> Self {
         Self {
+            additional_api: None,
             call_api: None,
             configuration: None,
             construction_api: None,
@@ -58,6 +61,9 @@ impl<Types: ServerType> Default for ServerBuilder<Types> {
 impl<Types: ServerType> ServerBuilder<Types> {
     pub fn build(self) -> Server<Types> {
         Server {
+            additional_api: self
+                .additional_api
+                .expect("You did not set the additional api."),
             call_api: self.call_api.expect("You did not set the call api."),
             configuration: self
                 .configuration
@@ -68,6 +74,11 @@ impl<Types: ServerType> ServerBuilder<Types> {
             data_api: self.data_api.expect("You did not set the data api."),
             indexer_api: self.indexer_api.expect("You did not set the indexer api."),
         }
+    }
+
+    pub fn additional_api(mut self, a: Types::AdditionalApi) -> Self {
+        self.additional_api = Some(a);
+        self
     }
 
     pub fn call_api(mut self, a: Types::CallApi) -> Self {
@@ -108,6 +119,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
 }
 
 pub struct Server<Types: ServerType> {
+    pub additional_api: Types::AdditionalApi,
     pub call_api: Types::CallApi,
     pub configuration: Configuration<Types::CustomConfig>,
     pub construction_api: Types::ConstructionApi,
@@ -118,6 +130,7 @@ pub struct Server<Types: ServerType> {
 impl<Types: ServerType> Default for Server<Types> {
     fn default() -> Self {
         Self {
+            additional_api: Default::default(),
             call_api: Default::default(),
             configuration: <Types>::load_config(),
             construction_api: Default::default(),
@@ -152,7 +165,7 @@ impl<Types: ServerType> Server<Types> {
 
         info!("Listening on http://{}", addr);
         axum::Server::bind(&addr)
-            .serve(app.into_make_service_with_connect_info::<SocketAddr, _>())
+            .serve(app.into_make_service_with_connect_info::<SocketAddr>())
             .await?;
 
         logging::teardown();

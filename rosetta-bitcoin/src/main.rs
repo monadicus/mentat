@@ -1,3 +1,4 @@
+mod additional_api;
 mod call_api;
 mod construction_api;
 mod data_api;
@@ -13,6 +14,7 @@ use mentat::{cache::DefaultCacheInner, mentat, server::ServerType};
 struct MentatBitcoin;
 
 impl ServerType for MentatBitcoin {
+    type AdditionalApi = additional_api::BitcoinAdditionalApi;
     type CallApi = call_api::BitcoinCallApi;
     type ConstructionApi = construction_api::BitcoinConstructionApi;
     type CustomConfig = node::NodeConfig;

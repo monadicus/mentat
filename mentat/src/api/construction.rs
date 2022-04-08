@@ -1,5 +1,4 @@
 use super::*;
-use crate::errors::MentatError;
 
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
