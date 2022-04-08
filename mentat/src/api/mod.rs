@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{errors::MentatError, server::RpcCaller};
 
-mod additional;
-pub use additional::*;
+mod optional;
+pub use optional::*;
 
 mod call;
 pub use call::*;

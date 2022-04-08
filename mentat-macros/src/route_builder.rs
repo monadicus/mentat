@@ -3,9 +3,9 @@ use quote::quote;
 
 const ROUTES: &[ApiGroup] = &[
     ApiGroup {
-        api: "additional_api",
+        api: "optional_api",
         route_groups: &[RouteGroup {
-            route_base: "/",
+            route_base: "/optional",
             routes: &[Route {
                 path: "health",
                 method: "health",

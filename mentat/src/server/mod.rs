@@ -32,7 +32,6 @@ use crate::{api::*, conf::*};
 /// }
 /// ```
 pub trait ServerType: Sized + 'static {
-    type AdditionalApi: AdditionalApi;
     /// The blockchain's `CallApi` Rosetta implementation.
     type CallApi: CallerCallApi;
     /// The blockchain's `ConstructionApi` Rosetta implementation.
@@ -41,12 +40,14 @@ pub trait ServerType: Sized + 'static {
     type DataApi: CallerDataApi;
     /// The blockchain's `IndexerApi` Rosetta implementation.
     type IndexerApi: CallerIndexerApi;
+    /// Any optional endpoints for the Mentat implementation.
+    type OptionalApi: OptionalApi;
     /// The nodes's `NodeConf` implementation.
     type CustomConfig: DeserializeOwned + NodeConf;
 }
 
 pub struct ServerBuilder<Types: ServerType> {
-    additional_api: Option<Types::AdditionalApi>,
+    optional_api: Option<Types::OptionalApi>,
     call_api: Option<Types::CallApi>,
     construction_api: Option<Types::ConstructionApi>,
     data_api: Option<Types::DataApi>,
@@ -57,7 +58,7 @@ pub struct ServerBuilder<Types: ServerType> {
 impl<Types: ServerType> Default for ServerBuilder<Types> {
     fn default() -> Self {
         Self {
-            additional_api: None,
+            optional_api: None,
             call_api: None,
             configuration: None,
             construction_api: None,
@@ -70,8 +71,8 @@ impl<Types: ServerType> Default for ServerBuilder<Types> {
 impl<Types: ServerType> ServerBuilder<Types> {
     pub fn build(self) -> Server<Types> {
         Server {
-            additional_api: self
-                .additional_api
+            optional_api: self
+                .optional_api
                 .expect("You did not set the additional api."),
             call_api: self.call_api.expect("You did not set the call api."),
             configuration: self
@@ -85,8 +86,8 @@ impl<Types: ServerType> ServerBuilder<Types> {
         }
     }
 
-    pub fn additional_api(mut self, a: Types::AdditionalApi) -> Self {
-        self.additional_api = Some(a);
+    pub fn optional_api(mut self, a: Types::OptionalApi) -> Self {
+        self.optional_api = Some(a);
         self
     }
 
@@ -128,7 +129,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
 }
 
 pub struct Server<Types: ServerType> {
-    pub additional_api: Types::AdditionalApi,
+    pub optional_api: Types::OptionalApi,
     pub call_api: Types::CallApi,
     pub configuration: Configuration<Types::CustomConfig>,
     pub construction_api: Types::ConstructionApi,
@@ -139,7 +140,7 @@ pub struct Server<Types: ServerType> {
 impl<Types: ServerType> Default for Server<Types> {
     fn default() -> Self {
         Self {
-            additional_api: Default::default(),
+            optional_api: Default::default(),
             call_api: Default::default(),
             configuration: Types::CustomConfig::load_config(),
             construction_api: Default::default(),

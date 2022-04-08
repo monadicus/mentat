@@ -1,21 +1,22 @@
 use mentat::{
-    api::AdditionalApi,
+    api::OptionalApi,
     axum::async_trait,
     errors::Result,
     serde_json::{self, Value},
     server::RpcCaller,
+    tracing,
 };
 
-use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};
+use crate::{jsonrpc_call, request::SnarkosJrpc, responses::Response};
 
 #[derive(Clone, Default)]
-pub struct BitcoinAdditionalApi;
+pub struct SnarkosOptionalApi;
 
 #[async_trait]
-impl AdditionalApi for BitcoinAdditionalApi {
+impl OptionalApi for SnarkosOptionalApi {
     async fn check_node_status(&self, rpc_caller: &RpcCaller) -> Result<Value> {
         Ok(jsonrpc_call!(
-            "/getmemoryinfo",
+            "getnodestate",
             Vec::<()>::new(),
             rpc_caller,
             Value

@@ -2,13 +2,14 @@
 //! These traits are easily overridable for custom
 //! implementations.
 
-use serde_json::Value;
+use axum::async_trait;
+use serde_json::{json, Value};
 
 use super::*;
 
 #[axum::async_trait]
-/// The `AdditionalApi` Trait.
-pub trait AdditionalApi: Clone + Default {
+/// The `OptionalApi` Trait.
+pub trait OptionalApi: Clone + Default {
     /// A default implementation for providing a health check.
     async fn health(
         &self,
@@ -25,7 +26,31 @@ pub trait AdditionalApi: Clone + Default {
     }
 
     /// A method for providing a node status check.
-    async fn check_node_status(&self, rpc_caller: &RpcCaller) -> Result<Value>;
+    async fn check_node_status(&self, _rpc_caller: &RpcCaller) -> Result<Value>;
+
+    /// A default implementation for providing a cache status check.
+    async fn check_cache_status(&self, _rpc_caller: &RpcCaller) -> Result<Option<Value>> {
+        Ok(None)
+    }
+}
+
+#[derive(Clone, Default)]
+pub struct UnimplementedOptionalApi;
+
+#[async_trait]
+impl OptionalApi for UnimplementedOptionalApi {
+    async fn health(
+        &self,
+        _caller: Caller,
+        _rpc_caller: RpcCaller,
+    ) -> MentatResponse<HealthCheckResponse> {
+        MentatError::not_implemented()
+    }
+
+    /// A method for providing a node status check.
+    async fn check_node_status(&self, _rpc_caller: &RpcCaller) -> Result<Value> {
+        Ok(json!("unknown"))
+    }
 
     /// A default implementation for providing a cache status check.
     async fn check_cache_status(&self, _rpc_caller: &RpcCaller) -> Result<Option<Value>> {
