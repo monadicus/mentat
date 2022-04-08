@@ -13,12 +13,16 @@ pub async fn middleware_checks<Types: ServerType>(
     next: Next<Body>,
 ) -> Result<impl IntoResponse> {
     let (parts, body) = req.into_parts();
-    let extensions = &parts.extensions;
-    let bytes = hyper::body::to_bytes(body).await?;
-    let json = serde_json::from_slice::<Value>(&bytes).map_err(MentatError::from)?;
 
-    NetworkIdentifier::check::<Types>(extensions, &json).await?;
+    let req = if parts.method == axum::http::Method::POST {
+        let extensions = &parts.extensions;
+        let bytes = hyper::body::to_bytes(body).await?;
+        let json = serde_json::from_slice::<Value>(&bytes).map_err(MentatError::from)?;
+        NetworkIdentifier::check::<Types>(extensions, &json).await?;
+        Request::from_parts(parts, Body::from(bytes))
+    } else {
+        Request::from_parts(parts, body)
+    };
 
-    let req = Request::from_parts(parts, Body::from(bytes));
     Ok(next.run(req).await)
 }

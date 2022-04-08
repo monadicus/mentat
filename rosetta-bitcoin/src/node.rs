@@ -6,7 +6,7 @@ use mentat::{
     serde::{Deserialize, Serialize},
 };
 
-#[derive(Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct NodeConfig {
     data_dir: PathBuf,

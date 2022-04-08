@@ -1,6 +1,7 @@
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;
 
+#[tracing::instrument]
 pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     let tracer =
         opentelemetry_jaeger::new_pipeline().install_batch(opentelemetry::runtime::Tokio)?;

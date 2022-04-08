@@ -20,7 +20,7 @@ const ROUTES: &[ApiGroup] = &[
         route_groups: &[RouteGroup {
             route_base: "/",
             routes: &[Route {
-                path: "/call",
+                path: "call",
                 method: "call_call",
                 req_data: Some("CallRequest"),
                 req_method: "post",
@@ -144,7 +144,7 @@ const ROUTES: &[ApiGroup] = &[
                 route_base: "/block",
                 routes: &[
                     Route {
-                        path: "/",
+                        path: "",
                         method: "call_block",
                         req_data: Some("BlockRequest"),
                         req_method: "post",
@@ -163,7 +163,7 @@ const ROUTES: &[ApiGroup] = &[
                 route_base: "/mempool",
                 routes: &[
                     Route {
-                        path: "/",
+                        path: "",
                         method: "call_mempool",
                         req_data: Some("NetworkRequest"),
                         req_method: "post",
@@ -207,6 +207,7 @@ const ROUTES: &[ApiGroup] = &[
     },
 ];
 
+#[derive(Debug)]
 struct Route {
     path: &'static str,
     method: &'static str,
@@ -215,11 +216,13 @@ struct Route {
     never_cache: bool,
 }
 
+#[derive(Debug)]
 struct RouteGroup {
     route_base: &'static str,
     routes: &'static [Route],
 }
 
+#[derive(Debug)]
 struct ApiGroup {
     api: &'static str,
     route_groups: &'static [RouteGroup],
@@ -284,6 +287,7 @@ fn build_route(
 ) -> TokenStream2 {
     match req_data {
         Some(data) => quote!(
+            tracing::debug!("{}", #path);
             let api = server.#api.clone();
             let #method = move |
                 ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
@@ -293,6 +297,9 @@ fn build_route(
                 | {
                     ::std::boxed::Box::pin(async move {
                         let c = Caller { ip };
+                        tracing::info!("{:#?}", c);
+                        tracing::info!("{:#?}", req_data);
+                        tracing::info!("{:#?}", conf);
                         let resp = api.#method(c, req_data, &conf.mode, rpc_caller).await;
                         #[cfg(debug_assertions)]
                         tracing::debug!("response {}{} {:?}", #route_base, #path, resp);
@@ -303,6 +310,7 @@ fn build_route(
             app = app.route(concat!(#route_base, #path), routing::#req_method(#method));
         ),
         None => quote!(
+            tracing::debug!("{}", #path);
             let api = server.#api.clone();
             let #method = move |
                     ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
@@ -310,6 +318,7 @@ fn build_route(
                 | {
                     ::std::boxed::Box::pin(async move {
                         let c = Caller { ip };
+                        tracing::info!("{:#?}", c);
                         let resp = api.#method(c, rpc_caller).await;
                         #[cfg(debug_assertions)]
                         tracing::debug!("response {}{} {:?}", #route_base, #path, resp);
@@ -346,6 +355,9 @@ fn build_cached_route(
                 | {
                     Box::pin(async move {
                         let c = Caller { ip };
+                        tracing::info!("{:#?}", c);
+                        tracing::info!("{:#?}", req_data);
+                        tracing::info!("{:#?}", conf);
                         cache.get_cached(move || {
                             std::boxed::Box::pin(async move {
                                 let resp = api.#method(c, req_data, &conf.mode, rpc_caller).await;
@@ -371,6 +383,7 @@ fn build_cached_route(
                 | {
                     Box::pin(async move {
                         let c = Caller { ip };
+                        tracing::info!("{:#?}", c);
                         cache.get_cached(move || {
                             std::boxed::Box::pin(async move {
                                 let resp = api.#method(c, rpc_caller).await;

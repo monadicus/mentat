@@ -9,6 +9,7 @@ pub trait AdditionalApi: Clone + Default {
         caller: Caller,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<HealthCheckResponse> {
+        tracing::debug!("health check!");
         Ok(Json(HealthCheckResponse {
             caller,
             msg: "Healthy!".to_string(),

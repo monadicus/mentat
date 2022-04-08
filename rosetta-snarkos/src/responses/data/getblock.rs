@@ -63,9 +63,9 @@ struct BlockResult {
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct GetBlockResponse {
-    jsonrpc: String,
+    _jsonrpc: String,
     result: BlockResult,
-    id: String,
+    _id: String,
 }
 
 impl From<GetBlockResponse> for BlockResponse {
