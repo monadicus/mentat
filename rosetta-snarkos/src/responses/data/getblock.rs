@@ -1,9 +1,9 @@
 use mentat::{
     identifiers::BlockIdentifier,
+    indexmap::IndexMap,
     models::Block,
     responses::BlockResponse,
     serde_json::Value,
-    IndexMap,
 };
 
 use super::*;

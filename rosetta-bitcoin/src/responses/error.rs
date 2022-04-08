@@ -3,8 +3,8 @@
 
 use mentat::{
     errors::{ApiError, MentatError, Result},
+    indexmap::IndexMap,
     serde::Deserialize,
-    IndexMap,
 };
 
 #[derive(Clone, Debug, Deserialize)]

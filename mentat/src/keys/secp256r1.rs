@@ -7,6 +7,7 @@ use p256::ecdsa::{
 
 use super::{Keys, KeysError};
 
+/// An ECDSA keypair, created from the Secp256r1 curve.
 pub struct Secp256r1Keys {
     priv_key: SigningKey,
     pub_key: VerifyingKey,

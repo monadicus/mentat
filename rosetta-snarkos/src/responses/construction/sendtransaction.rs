@@ -1,7 +1,7 @@
 use mentat::{
     identifiers::TransactionIdentifier,
+    indexmap::IndexMap,
     responses::TransactionIdentifierResponse,
-    IndexMap,
 };
 
 use super::*;

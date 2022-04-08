@@ -1,12 +1,11 @@
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentatResponse},
-    async_trait,
+    axum::{async_trait, Json},
     errors::MentatError,
     requests::*,
     responses::*,
     serde_json,
     server::RpcCaller,
-    Json,
 };
 
 use crate::{

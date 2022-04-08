@@ -1,3 +1,5 @@
+//! This modules contains the middleware fn that performs all middleware checks.
+
 use axum::{middleware::Next, response::IntoResponse};
 use hyper::{Body, Request};
 use serde_json::Value;
@@ -8,6 +10,7 @@ use crate::{
     identifiers::NetworkIdentifier,
 };
 
+/// A function to do all middleware checks.
 pub async fn middleware_checks<Types: ServerType>(
     req: Request<Body>,
     next: Next<Body>,

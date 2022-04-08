@@ -5,7 +5,7 @@ macro_rules! jsonrpc_call {
 
         let response = $rpc_caller
             .client
-            .post(&$rpc_caller.node_rpc_url)
+            .post($rpc_caller.node_rpc_url.clone())
             .json(&req)
             .send()
             .await?;

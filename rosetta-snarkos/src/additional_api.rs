@@ -1,6 +1,6 @@
 use mentat::{
     api::AdditionalApi,
-    async_trait,
+    axum::async_trait,
     errors::Result,
     serde_json::{self, Value},
     server::RpcCaller,
