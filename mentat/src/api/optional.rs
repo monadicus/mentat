@@ -19,13 +19,13 @@ pub trait OptionalApi: Clone + Default {
         node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
         tracing::debug!("health check!");
-        let system = System::new();
+        let system = System::new_all();
         Ok(Json(HealthCheckResponse {
             caller,
             msg: "Healthy!".to_string(),
             usage: self.usage("server", &system, server_pid).await?,
-            node_status: self.usage("node", &system, node_pid.0).await?,
-            cache_status: self.check_cache_status().await?,
+            node_usage: self.usage("node", &system, node_pid.0).await?,
+            cache_usage: self.check_cache_usage().await?,
         }))
     }
 
@@ -45,8 +45,8 @@ pub trait OptionalApi: Clone + Default {
         })
     }
 
-    /// A default implementation for providing a cache status check.
-    async fn check_cache_status(&self) -> Result<Option<Usage>> {
+    /// A default implementation for providing a cache usage check.
+    async fn check_cache_usage(&self) -> Result<Option<Usage>> {
         Ok(None)
     }
 }
@@ -63,10 +63,5 @@ impl OptionalApi for UnimplementedOptionalApi {
         _node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
         MentatError::not_implemented()
-    }
-
-    /// A default implementation for providing a cache status check.
-    async fn check_cache_status(&self) -> Result<Option<Usage>> {
-        Ok(None)
     }
 }

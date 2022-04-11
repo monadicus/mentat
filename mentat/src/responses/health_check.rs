@@ -30,8 +30,8 @@ pub struct HealthCheckResponse {
     /// The server's usage.
     pub usage: Usage,
     /// The usage of the node.
-    pub node_status: Usage,
+    pub node_usage: Usage,
     /// The usage of the cache if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_status: Option<Usage>,
+    pub cache_usage: Option<Usage>,
 }
