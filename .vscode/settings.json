@@ -1,0 +1,8 @@
+{
+  "eslint.options": {
+    "ignorePattern": "webpack.config.js",
+  },
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "javascript.preferences.quoteStyle": "single",
+  "javascript.preferences.importModuleSpecifierEnding": "minimal",
+}

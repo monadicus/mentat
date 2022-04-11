@@ -1,0 +1,76 @@
+{
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [
+          ".ts",
+          ".tsx"
+        ]
+      },
+      "typescript": {
+        "directory": "./src/tsconfig.json",
+        "alwaysTryTypes": true
+      }
+    },
+    "import/parsers": {
+      "@typescript-eslint/parser": [
+        ".tsx",
+        ".jsx"
+      ]
+    }
+  },
+  "env": {
+    "es6": true,
+    "browser": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint",
+    "import",
+    "promise",
+    "prettier",
+    "react",
+    "react-redux"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true,
+      "modules": true
+    },
+    "requireConfigFile": false,
+    "ecmaVersion": 2020
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "plugin:promise/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:react-redux/recommended",
+    "plugin:react/recommended"
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "no-console": "off",
+    "react/jsx-uses-vars": 1,
+    "brace-style": [
+      "warn",
+      "1tbs"
+    ],
+    "max-len": [
+      "error",
+      100
+    ],
+    "dot-location": [
+      "error",
+      "property"
+    ],
+    "react/jsx-indent": "off"
+  }
+}
