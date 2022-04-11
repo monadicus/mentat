@@ -7,7 +7,7 @@ const ROUTES: &[ApiGroup] = &[
         route_groups: &[RouteGroup {
             route_base: "/optional",
             routes: &[Route {
-                path: "health",
+                path: "/health",
                 method: "health",
                 req_data: None,
                 req_method: "get",
@@ -276,32 +276,42 @@ fn build_route(
     req_data: Option<Ident>,
     req_method: &Ident,
 ) -> TokenStream2 {
-    let mut req_input = None;
-    let mut req_trace = None;
-    let mut method_args = None;
+    let req_input;
+    let req_trace;
+    let method_args;
     if let Some(r) = &req_data {
-        req_input = Some(quote!(
+        req_input = quote!(
             Json(req_data): Json<#r>,
             Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
-        ));
-        req_trace = Some(quote!(
+            Extension(rpc_caller): Extension<RpcCaller>,
+        );
+        req_trace = quote!(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
-        ));
-        method_args = Some(quote!(req_data, &conf.mode,));
+        );
+        method_args = quote!(req_data, &conf.mode, rpc_caller);
+    } else {
+        req_input = quote!(
+            Extension(server_pid): Extension<Pid>,
+            Extension(node_pid): Extension<NodePid>,
+        );
+        req_trace = quote! (
+            tracing::info!("{}", server_pid);
+            tracing::info!("{}", node_pid.0);
+        );
+        method_args = quote!(server_pid, node_pid,);
     }
     quote!(
         let api = server.#api.clone();
         let #method = move |
             ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
             #req_input
-            Extension(rpc_caller): Extension<RpcCaller>,
             | {
                 ::std::boxed::Box::pin(async move {
                     let c = Caller { ip };
                     tracing::info!("{:#?}", c);
                     #req_trace
-                    let resp = api.#method(c, #method_args rpc_caller).await;
+                    let resp = api.#method(c, #method_args).await;
                     #[cfg(debug_assertions)]
                     tracing::debug!("response {}{} {:?}", #route_base, #path, resp);
                     resp
@@ -323,19 +333,30 @@ fn build_cached_route(
     req_method: &Ident,
     cacher: &Ident,
 ) -> TokenStream2 {
-    let mut req_input = None;
-    let mut req_trace = None;
-    let mut method_args = None;
+    let req_input;
+    let req_trace;
+    let method_args;
     if let Some(r) = &req_data {
-        req_input = Some(quote!(
+        req_input = quote!(
             Json(req_data): Json<#r>,
             Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
-        ));
-        req_trace = Some(quote!(
+            Extension(rpc_caller): Extension<RpcCaller>,
+        );
+        req_trace = quote!(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
-        ));
-        method_args = Some(quote!(req_data, &conf.mode,));
+        );
+        method_args = quote!(req_data, &conf.mode, rpc_caller);
+    } else {
+        req_input = quote!(
+            Extension(server_pid): Extension<Pid>,
+            Extension(node_pid): Extension<NodePid>,
+        );
+        req_trace = quote! (
+            tracing::info!("{}", server_pid);
+            tracing::info!("{}", node_pid.0);
+        );
+        method_args = quote!(server_pid, node_pid,);
     }
     quote!(
         let api = server.#api.clone();
@@ -344,7 +365,6 @@ fn build_cached_route(
         let #method = move |
                 ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
                 #req_input
-                extract::Extension(rpc_caller): Extension<RpcCaller>
             | {
                 Box::pin(async move {
                     let c = Caller { ip };
@@ -352,7 +372,7 @@ fn build_cached_route(
                     #req_trace
                     cache.get_cached(move || {
                         std::boxed::Box::pin(async move {
-                            let resp = api.#method(c, #method_args rpc_caller).await;
+                            let resp = api.#method(c, #method_args).await;
                             #[cfg(debug_assertions)]
                             tracing::debug!("response {}{} {:?}", #route_base, #path, resp);
                             resp

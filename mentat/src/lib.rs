@@ -81,6 +81,7 @@ mod server_exports {
     pub use reqwest;
     pub use serde;
     pub use serde_json;
+    pub use sysinfo;
     pub use tokio;
     pub use tracing;
 

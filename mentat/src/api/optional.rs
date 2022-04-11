@@ -3,9 +3,10 @@
 //! implementations.
 
 use axum::async_trait;
-use serde_json::{json, Value};
+use sysinfo::{Pid, ProcessExt, System, SystemExt};
 
 use super::*;
+use crate::conf::NodePid;
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
@@ -14,22 +15,38 @@ pub trait OptionalApi: Clone + Default {
     async fn health(
         &self,
         caller: Caller,
-        rpc_caller: RpcCaller,
+        server_pid: Pid,
+        node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
         tracing::debug!("health check!");
+        let system = System::new();
         Ok(Json(HealthCheckResponse {
             caller,
             msg: "Healthy!".to_string(),
-            node_status: self.check_node_status(&rpc_caller).await?,
-            cache_status: self.check_cache_status(&rpc_caller).await?,
+            usage: self.usage("server", &system, server_pid).await?,
+            node_status: self.usage("node", &system, node_pid.0).await?,
+            cache_status: self.check_cache_status().await?,
         }))
     }
 
-    /// A method for providing a node status check.
-    async fn check_node_status(&self, _rpc_caller: &RpcCaller) -> Result<Value>;
+    /// A method for getting the usage of a Process.
+    async fn usage(&self, process: &str, system: &System, pid: Pid) -> Result<Usage> {
+        let proc = system.process(pid).ok_or(MentatError::from(format!(
+            "Could not find `{process}` process pid: `{pid}`."
+        )))?;
+        let total_cpu_usage = proc.cpu_usage();
+        Ok(Usage {
+            cpu_usage: (total_cpu_usage / num_cpus::get() as f32),
+            total_cpu_usage,
+            memory_usage: proc.memory(),
+            virtual_memory_usage: proc.virtual_memory(),
+            start_time: proc.start_time(),
+            run_time: proc.run_time(),
+        })
+    }
 
     /// A default implementation for providing a cache status check.
-    async fn check_cache_status(&self, _rpc_caller: &RpcCaller) -> Result<Option<Value>> {
+    async fn check_cache_status(&self) -> Result<Option<Usage>> {
         Ok(None)
     }
 }
@@ -42,18 +59,14 @@ impl OptionalApi for UnimplementedOptionalApi {
     async fn health(
         &self,
         _caller: Caller,
-        _rpc_caller: RpcCaller,
+        _server_pid: Pid,
+        _node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
         MentatError::not_implemented()
     }
 
-    /// A method for providing a node status check.
-    async fn check_node_status(&self, _rpc_caller: &RpcCaller) -> Result<Value> {
-        Ok(json!("unknown"))
-    }
-
     /// A default implementation for providing a cache status check.
-    async fn check_cache_status(&self, _rpc_caller: &RpcCaller) -> Result<Option<Value>> {
+    async fn check_cache_status(&self) -> Result<Option<Usage>> {
         Ok(None)
     }
 }

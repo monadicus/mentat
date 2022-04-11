@@ -1,6 +1,7 @@
 //! Defines the `Server` methods and launcher for Mentat.
 
 use serde::de::DeserializeOwned;
+use sysinfo::{Pid, PidExt};
 pub mod logging;
 mod middleware_checks;
 mod rpc_caller;
@@ -158,9 +159,8 @@ impl<Types: ServerType> Server<Types> {
         color_backtrace::install();
         logging::setup()?;
 
-        if !self.configuration.mode.is_offline() {
-            Types::CustomConfig::start_node(&self.configuration)?;
-        }
+        let node_pid = Types::CustomConfig::start_node(&self.configuration)?;
+        let server_pid = Pid::from_u32(std::process::id());
 
         let rpc_caller = RpcCaller::new(&self.configuration);
         let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
@@ -170,6 +170,8 @@ impl<Types: ServerType> Server<Types> {
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(Extension(self.configuration))
+                    .layer(Extension(node_pid))
+                    .layer(Extension(server_pid))
                     .layer(Extension(rpc_caller)),
             );
 

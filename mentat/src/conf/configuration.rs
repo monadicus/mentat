@@ -13,8 +13,12 @@ use std::{
 
 use axum::async_trait;
 use serde::de::DeserializeOwned;
+use sysinfo::{Pid, PidExt};
 
 use super::*;
+
+#[derive(Clone, Debug)]
+pub struct NodePid(pub Pid);
 
 /// Custom configuration settings for running a node.
 ///
@@ -72,7 +76,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     ///
     /// The user can change `NodeConf::log` to control how the node output is
     /// logged in the terminal.
-    fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
+    fn start_node(config: &Configuration<Self>) -> Result<NodePid, Box<dyn std::error::Error>> {
         let mut child = Self::node_command(config)
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())
@@ -82,7 +86,8 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
 
         Self::log(stdout, false);
         Self::log(stderr, true);
-        Ok(())
+
+        Ok(NodePid(Pid::from_u32(child.id())))
     }
 
     /// Used to control how the node logs its output to the console.
