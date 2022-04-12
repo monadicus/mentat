@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use mina_hasher::{Hashable, ROInput};
-use mina_signer::{create_legacy, CompressedPubKey, Keypair, NetworkId, PubKey, Signature, Signer};
+use mina_signer::{create_legacy, CompressedPubKey, Keypair, NetworkId, Signature, Signer};
 
 use super::{Keys, KeysError};
 
@@ -109,7 +109,8 @@ impl Hashable for Transaction {
 
 #[cfg(test)]
 mod tests {
-    use rand::{rngs::OsRng, Rng};
+    use mina_signer::PubKey;
+    use rand::rngs::OsRng;
 
     use super::*;
 

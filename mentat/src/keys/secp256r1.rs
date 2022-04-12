@@ -35,7 +35,7 @@ impl Keys for Secp256r1Keys {
 
 #[cfg(test)]
 mod tests {
-    use rand::{rngs::OsRng, CryptoRng, Rng, RngCore};
+    use rand::{rngs::OsRng, Rng};
 
     use super::*;
 
