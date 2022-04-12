@@ -32,7 +32,7 @@ impl Keys for Ed25519Keys {
 
 #[cfg(test)]
 mod tests {
-    use rand_old::{rngs::OsRng, CryptoRng, Rng, RngCore};
+    use rand_old::{rngs::OsRng, Rng};
 
     use super::*;
 
