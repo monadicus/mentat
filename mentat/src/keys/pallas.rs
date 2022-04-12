@@ -96,7 +96,7 @@ impl Hashable for Transaction {
         roi
     }
 
-    fn domain_string(_: Option<&Self>, network_id: NetworkId) -> Option<String> {
+    fn domain_string(network_id: NetworkId) -> Option<String> {
         // Domain strings must have length <= 20
         match network_id {
             NetworkId::MAINNET => "MinaSignatureMainnet",

@@ -53,7 +53,7 @@ impl<N: Network> Keys for AleoKeys<N> {
 #[cfg(test)]
 mod tests {
     use rand::Rng;
-    use snarkvm_dpc::{testnet2::Testnet2, PrivateKey};
+    use snarkvm_dpc::testnet2::Testnet2;
     use snarkvm_utilities::ToBytes;
 
     use super::*;
