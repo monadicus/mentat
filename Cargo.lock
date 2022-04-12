@@ -213,6 +213,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "array-init"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6945cc5422176fc5e602e590c2878d2c2acd9a4fe20a4baa7c28022521698ec6"
+
+[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1317,6 +1323,7 @@ name = "mentat"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "array-init",
  "axum",
  "color-backtrace",
  "ed25519-dalek",

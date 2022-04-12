@@ -61,3 +61,4 @@ from_tuple = "0.1.2"
 
 [dev-dependencies]
 rand-old = { package = "rand", version = "0.7" }
+array-init = "2.0.0"
