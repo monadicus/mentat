@@ -95,7 +95,7 @@ fn gen_main(
     let routes = route_builder::build_routes(server_type, cache_type);
 
     quote!(
-        use ::mentat::macro_exports::tokio;
+        use ::mentat::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
         #[tokio::main]
         async fn main() -> ::std::result::Result<(), ::std::boxed::Box<dyn ::std::error::Error>> {
             use ::mentat::macro_exports::*;

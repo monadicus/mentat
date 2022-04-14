@@ -4,6 +4,7 @@ mod data_api;
 mod indexer_api;
 mod macros;
 mod node;
+mod optional_api;
 mod request;
 mod responses;
 
@@ -18,4 +19,5 @@ impl ServerType for MentatBitcoin {
     type CustomConfig = node::NodeConfig;
     type DataApi = data_api::BitcoinDataApi;
     type IndexerApi = indexer_api::BitcoinIndexerApi;
+    type OptionalApi = optional_api::BitcoinOptionalApi;
 }

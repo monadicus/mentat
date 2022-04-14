@@ -3,8 +3,12 @@
 use std::net::SocketAddr;
 
 use axum::Json;
+use serde::{Deserialize, Serialize};
 
-use crate::server::RpcCaller;
+use crate::{errors::MentatError, server::RpcCaller};
+
+mod optional;
+pub use optional::*;
 
 mod call;
 pub use call::*;
@@ -20,6 +24,7 @@ pub use indexer::*;
 
 use crate::{conf::Mode, errors::Result, requests::*, responses::*};
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
 /// The struct to represent the user who called the endpoint.
 pub struct Caller {
     /// The socket address of the user who called the end point.
