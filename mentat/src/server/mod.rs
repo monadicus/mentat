@@ -8,12 +8,12 @@ mod rpc_caller;
 
 use std::net::SocketAddr;
 
-use axum::{extract::Extension, middleware, Router};
+use axum::{extract::Extension, handler::Handler, middleware, Router};
 pub use rpc_caller::RpcCaller;
 use tracing::info;
 
 use self::middleware_checks::middleware_checks;
-use crate::{api::*, conf::*};
+use crate::{api::*, conf::*, errors::MentatError};
 
 /// Contains the types required to construct a mentat [`Server`].
 ///
@@ -173,7 +173,8 @@ impl<Types: ServerType> Server<Types> {
                     .layer(Extension(node_pid))
                     .layer(Extension(server_pid))
                     .layer(Extension(rpc_caller)),
-            );
+            )
+            .fallback(MentatError::not_found.into_service());
 
         info!("Listening on http://{}", addr);
         axum::Server::bind(&addr)
