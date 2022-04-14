@@ -1,9 +1,11 @@
 use mentat::{
     api::{Caller, CallerConstructionApi, ConstructionApi, MentatResponse},
-    axum::async_trait,
+    axum::{async_trait, Json},
     requests::ConstructionSubmitRequest,
     responses::TransactionIdentifierResponse,
+    serde_json,
     server::RpcCaller,
+    tracing,
 };
 
 use crate::{
@@ -26,12 +28,14 @@ impl ConstructionApi for SnarkosConstructionApi {
         data: ConstructionSubmitRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        jsonrpc_call!(
-            @ret
-            "sendtransaction",
-            vec![data.signed_transaction],
-            rpc_caller,
-            SendTransactionResponse
-        )
+        Ok(Json(
+            jsonrpc_call!(
+                "sendtransaction",
+                vec![data.signed_transaction],
+                rpc_caller,
+                SendTransactionResult
+            )
+            .into(),
+        ))
     }
 }

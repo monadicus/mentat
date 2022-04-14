@@ -1,6 +1,7 @@
 //! Defines the `Server` methods and launcher for Mentat.
 
 use serde::de::DeserializeOwned;
+use sysinfo::{Pid, PidExt};
 pub mod logging;
 mod middleware_checks;
 mod rpc_caller;
@@ -40,11 +41,14 @@ pub trait ServerType: Sized + 'static {
     type DataApi: CallerDataApi;
     /// The blockchain's `IndexerApi` Rosetta implementation.
     type IndexerApi: CallerIndexerApi;
+    /// Any optional endpoints for the Mentat implementation.
+    type OptionalApi: OptionalApi;
     /// The nodes's `NodeConf` implementation.
     type CustomConfig: DeserializeOwned + NodeConf;
 }
 
 pub struct ServerBuilder<Types: ServerType> {
+    optional_api: Option<Types::OptionalApi>,
     call_api: Option<Types::CallApi>,
     construction_api: Option<Types::ConstructionApi>,
     data_api: Option<Types::DataApi>,
@@ -55,6 +59,7 @@ pub struct ServerBuilder<Types: ServerType> {
 impl<Types: ServerType> Default for ServerBuilder<Types> {
     fn default() -> Self {
         Self {
+            optional_api: None,
             call_api: None,
             configuration: None,
             construction_api: None,
@@ -67,6 +72,9 @@ impl<Types: ServerType> Default for ServerBuilder<Types> {
 impl<Types: ServerType> ServerBuilder<Types> {
     pub fn build(self) -> Server<Types> {
         Server {
+            optional_api: self
+                .optional_api
+                .expect("You did not set the additional api."),
             call_api: self.call_api.expect("You did not set the call api."),
             configuration: self
                 .configuration
@@ -77,6 +85,11 @@ impl<Types: ServerType> ServerBuilder<Types> {
             data_api: self.data_api.expect("You did not set the data api."),
             indexer_api: self.indexer_api.expect("You did not set the indexer api."),
         }
+    }
+
+    pub fn optional_api(mut self, a: Types::OptionalApi) -> Self {
+        self.optional_api = Some(a);
+        self
     }
 
     pub fn call_api(mut self, a: Types::CallApi) -> Self {
@@ -117,6 +130,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
 }
 
 pub struct Server<Types: ServerType> {
+    pub optional_api: Types::OptionalApi,
     pub call_api: Types::CallApi,
     pub configuration: Configuration<Types::CustomConfig>,
     pub construction_api: Types::ConstructionApi,
@@ -127,6 +141,7 @@ pub struct Server<Types: ServerType> {
 impl<Types: ServerType> Default for Server<Types> {
     fn default() -> Self {
         Self {
+            optional_api: Default::default(),
             call_api: Default::default(),
             configuration: Types::CustomConfig::load_config(),
             construction_api: Default::default(),
@@ -144,9 +159,8 @@ impl<Types: ServerType> Server<Types> {
         color_backtrace::install();
         logging::setup()?;
 
-        if !self.configuration.mode.is_offline() {
-            Types::CustomConfig::start_node(&self.configuration)?;
-        }
+        let node_pid = Types::CustomConfig::start_node(&self.configuration)?;
+        let server_pid = Pid::from_u32(std::process::id());
 
         let rpc_caller = RpcCaller::new(&self.configuration);
         let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
@@ -156,12 +170,14 @@ impl<Types: ServerType> Server<Types> {
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(Extension(self.configuration))
+                    .layer(Extension(node_pid))
+                    .layer(Extension(server_pid))
                     .layer(Extension(rpc_caller)),
             );
 
         info!("Listening on http://{}", addr);
         axum::Server::bind(&addr)
-            .serve(app.into_make_service_with_connect_info::<SocketAddr, _>())
+            .serve(app.into_make_service_with_connect_info::<SocketAddr>())
             .await?;
 
         logging::teardown();
