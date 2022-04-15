@@ -16,6 +16,8 @@ use crate::api::MentatResponse;
 /// Represents the different types of http Errors.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum MentatError {
+    /// A Not Found HTTP Error.
+    NotFound(ApiError),
     /// An Internal HTTP Error.
     Internal(ApiError),
     /// A NotImplemented HTTP Error.
@@ -23,6 +25,17 @@ pub enum MentatError {
 }
 
 impl MentatError {
+    /// For when a route is not found.
+    pub async fn not_found() -> MentatError {
+        MentatError::NotFound(ApiError {
+            code: 404,
+            message: "Not Found".to_string(),
+            description: None,
+            retriable: false,
+            details: Default::default(),
+        })
+    }
+
     /// For when a method is not implemented.
     pub fn not_implemented<R>() -> MentatResponse<R> {
         Err(MentatError::NotImplemented(ApiError {
@@ -91,6 +104,7 @@ impl<T: Display> From<T> for MentatError {
 impl IntoResponse for MentatError {
     fn into_response(self) -> Response {
         let (status, error) = match self {
+            MentatError::NotFound(error) => (StatusCode::NOT_FOUND, Json(error)),
             MentatError::Internal(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(error)),
             MentatError::NotImplemented(error) => (StatusCode::NOT_IMPLEMENTED, Json(error)),
         };

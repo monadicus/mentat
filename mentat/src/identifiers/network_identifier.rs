@@ -72,7 +72,7 @@ impl From<NetworkIdentifier> for NetworkRequest {
 impl NetworkIdentifier {
     /// A function to check if the server Blockchain specified matches the user
     /// request specified blockchain.
-    pub async fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {
+    pub fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {
         let config = extensions
             .get::<Configuration<Types::CustomConfig>>()
             .unwrap();

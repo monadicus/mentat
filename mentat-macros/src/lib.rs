@@ -97,7 +97,7 @@ fn gen_main(
     quote!(
         use ::mentat::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
         #[tokio::main]
-        async fn main() -> ::std::result::Result<(), ::std::boxed::Box<dyn ::std::error::Error>> {
+        async fn main() {
             use ::mentat::macro_exports::*;
             let server = #server_call;
             let mut app = Router::new();

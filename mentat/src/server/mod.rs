@@ -1,19 +1,25 @@
 //! Defines the `Server` methods and launcher for Mentat.
 
 use serde::de::DeserializeOwned;
+use serde_json::Value;
 use sysinfo::{Pid, PidExt};
-pub mod logging;
+use tracing_subscriber::util::SubscriberInitExt;
 mod middleware_checks;
 mod rpc_caller;
 
 use std::net::SocketAddr;
 
-use axum::{extract::Extension, middleware, Router};
+use axum::{extract::Extension, handler::Handler, http::Extensions, middleware, Router};
 pub use rpc_caller::RpcCaller;
 use tracing::info;
 
 use self::middleware_checks::middleware_checks;
-use crate::{api::*, conf::*};
+use crate::{
+    api::*,
+    conf::*,
+    errors::{MentatError, Result},
+    identifiers::NetworkIdentifier,
+};
 
 /// Contains the types required to construct a mentat [`Server`].
 ///
@@ -45,6 +51,10 @@ pub trait ServerType: Sized + 'static {
     type OptionalApi: OptionalApi;
     /// The nodes's `NodeConf` implementation.
     type CustomConfig: DeserializeOwned + NodeConf;
+
+    fn middleware_checks(extensions: &Extensions, json: &Value) -> Result<()> {
+        NetworkIdentifier::check::<Self>(extensions, &json)
+    }
 }
 
 pub struct ServerBuilder<Types: ServerType> {
@@ -155,11 +165,11 @@ impl<Types: ServerType> Server<Types> {
     /// WARNING: Do not use this method outside of Mentat! Use the `mentat` or
     /// `main` macros instead
     #[doc(hidden)]
-    pub async fn serve(self, mut app: Router) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn serve(self, mut app: Router) {
         color_backtrace::install();
-        logging::setup()?;
+        Types::CustomConfig::setup_logging().init();
 
-        let node_pid = Types::CustomConfig::start_node(&self.configuration)?;
+        let node_pid = Types::CustomConfig::start_node(&self.configuration);
         let server_pid = Pid::from_u32(std::process::id());
 
         let rpc_caller = RpcCaller::new(&self.configuration);
@@ -173,14 +183,15 @@ impl<Types: ServerType> Server<Types> {
                     .layer(Extension(node_pid))
                     .layer(Extension(server_pid))
                     .layer(Extension(rpc_caller)),
-            );
+            )
+            .fallback(MentatError::not_found.into_service());
 
         info!("Listening on http://{}", addr);
         axum::Server::bind(&addr)
             .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-            .await?;
+            .await
+            .unwrap_or_else(|err| panic!("Failed to listen on addr `{addr}`: `{err}`."));
 
-        logging::teardown();
-        Ok(())
+        Types::CustomConfig::teardown_logging();
     }
 }
