@@ -16,7 +16,6 @@ pub struct Client;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-
 export type JSClientError =
     | NetworkError(string)
     | ServerError(ApiError);
