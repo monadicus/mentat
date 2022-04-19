@@ -10,7 +10,7 @@ import { LANGUAGES } from './languages';
  */
 export const i18n = (
   name: string,
-  language = localStorage.oocLanguage
+  language = localStorage.mentatLanguage
 ): string =>
   get(LANGUAGES[language || 'en_US'], name) ?? get(LANGUAGES.en_US, name);
 

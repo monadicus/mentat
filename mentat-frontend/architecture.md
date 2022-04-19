@@ -119,12 +119,12 @@ Similar to the Private Portal architecture, however it is not bundled with Menta
 
 ### Pros
 
-- Inherits pros from the [Private Portal]
+- Inherits pros from the [Private Interface]
 - Could have auth middleware and allow a user to login remotely to this frontend and access their private backends.
 
 ### Cons
 
-- Inherits cons from the [Private Portal]
+- Inherits cons from the [Private Interface]
 - Not as accessible as a public portal and requires software to be downloaded
 
 ### Development Overhead
