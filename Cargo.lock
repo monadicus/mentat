@@ -1274,6 +1274,7 @@ dependencies = [
  "from_tuple",
  "hyper",
  "indexmap",
+ "js-sys",
  "mentat-macros",
  "mina-hasher",
  "mina-signer",
@@ -1298,6 +1299,9 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-subscriber",
  "tracing-tree",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
@@ -2905,6 +2909,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27370197c907c55e3f1a9fbe26f44e937fe6451368324e009cba39e139dc08ad"
 dependencies = [
  "cfg-if",
+ "serde",
+ "serde_json",
  "wasm-bindgen-macro",
 ]
 

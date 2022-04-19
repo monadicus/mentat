@@ -4,9 +4,12 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.59.0"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [features]
-_network = ["indexmap", "serde", "serde_json", "reqwest"]
-client = ["_network", "anyhow", "tokio"]
+_network = ["indexmap", "serde", "serde_json", "reqwest", "wasm-bindgen"]
+client = ["_network", "anyhow", "tokio", "web-sys"]
 default = ["server"]
 server = [
     "_network",
@@ -37,7 +40,7 @@ color-backtrace = { version = "0.5.1", optional = true, default-features = false
 ed25519-dalek = { version = "1.0.1", optional = true, default-features = false }
 from_tuple = "0.1.2"
 hyper = { version = "0.14.18", optional = true, default-features = false }
-indexmap = { version = "1.8.1", optional = true, default-features = false, features = ["serde"] }
+indexmap = { version = "1.8.1", optional = true, default-features = false, features = ["serde", "std"] }
 mentat-macros = { path = "../mentat-macros", optional = true }
 mina-hasher = { git = "https://github.com/o1-labs/proof-systems", optional = true, default-features = false }
 mina-signer = { git = "https://github.com/o1-labs/proof-systems", optional = true, default-features = false }
@@ -62,3 +65,7 @@ tracing-opentelemetry = { version = "0.17.2", optional = true, default-features 
 tracing-subscriber = { version = "0.3.10", optional = true, features = ["env-filter"] }
 tracing-tree = { version = "0.2.0", optional = true, default-features = false }
 sysinfo = { version = "0.23.9", optional = true, default-features = false}
+wasm-bindgen = { version = "0.2.80", optional = true, default-features = false, features = ["serde-serialize", "spans"] }
+web-sys = { version = "0.3.57", optional = true, default-features = false, features = ["Headers", "Request", "RequestInit", "RequestMode", "Response", "Window"] }
+wasm-bindgen-futures = "0.4.30"
+js-sys = "0.3.57"

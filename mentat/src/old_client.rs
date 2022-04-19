@@ -1,51 +1,30 @@
 //! This module contains a cli client for making Rosetta calls.
 
 use core::fmt;
-use std::fmt::Display;
 
+use anyhow::anyhow;
+use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
-use wasm_bindgen::{prelude::*, JsCast};
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
 
 use crate::{errors::ApiError, requests::*, responses::*};
 
 /// The client struct to call a rosetta API.
-#[wasm_bindgen]
-pub struct Client;
-
-#[wasm_bindgen(typescript_custom_section)]
-const TS_APPEND_CONTENT: &'static str = r#"
-
-export type JSClientError =
-    | NetworkError(string)
-    | ServerError(ApiError);
-
-"#;
+pub struct Client {
+    /// The actual request client to do so.
+    inner: reqwest::Client,
+    /// The URL of the rosetta API being called.
+    origin: Url,
+}
 
 /// The different types of Errors that can happen when using the CLI.
 #[derive(Debug)]
 pub enum ClientError {
-    /// A networking error
-    NetworkError(String),
+    /// A CLI parsing error.
+    ParseError(anyhow::Error),
+    /// A networking error.
+    NetworkError(anyhow::Error),
     /// A rosetta API error.
     ServerError(ApiError),
-}
-
-impl From<JsValue> for ClientError {
-    fn from(v: JsValue) -> Self {
-        let is_api_error: Result<ApiError, _> = v.into_serde();
-        match is_api_error {
-            Ok(api_error) => ClientError::ServerError(api_error),
-            Err(e) => ClientError::NetworkError(e.to_string()),
-        }
-    }
-}
-
-impl From<serde_json::Error> for ClientError {
-    fn from(err: serde_json::Error) -> Self {
-        ClientError::NetworkError(err.to_string())
-    }
 }
 
 impl fmt::Display for ClientError {
@@ -53,6 +32,7 @@ impl fmt::Display for ClientError {
         match self {
             ClientError::ServerError(e) => e.fmt(f),
             ClientError::NetworkError(e) => e.fmt(f),
+            ClientError::ParseError(e) => e.fmt(f),
         }
     }
 }
@@ -62,68 +42,54 @@ impl std::error::Error for ClientError {}
 /// The result type for the CLI.
 type Result<T, E = ClientError> = std::result::Result<T, E>;
 
-#[wasm_bindgen]
 impl Client {
-    // /// `origin` should be of the form `http[s]://hostname:port/`
-    // #[wasm_bindgen(constructor)]
-    // pub fn new(origin: &str) -> Self {
-    //     let mut opts = RequestInit::new();
-    //     opts.method("POST");
-    //     Self::new_full(
-    //         // ensure origin parses into a url
-    //         origin.to_string(),
-    //         opts,
-    //     )
-    // }
+    /// `origin` should be of the form `http[s]://hostname:port/`
+    pub fn new(origin: &str) -> anyhow::Result<Self> {
+        Ok(Self::new_full(
+            // ensure origin parses into a url
+            origin.parse::<Url>()?,
+            reqwest::ClientBuilder::default()
+                .build()
+                .map_err(|e| anyhow!(e))?,
+        ))
+    }
 
-    // /// `origin` should be of the form `http[s]://hostname:port/`.
-    // #[wasm_bindgen(constructor)]
-    // pub fn new_full(origin: String, inner: RequestInit) -> Self {
-    //     Self { inner, origin }
-    // }
+    /// `origin` should be of the form `http[s]://hostname:port/`.
+    pub fn new_full(origin: Url, inner: reqwest::Client) -> Self {
+        Self { inner, origin }
+    }
 
-    // /// Create a post request to a Rosetta API.
-    // async fn post<Q: Serialize, R: DeserializeOwned>(
-    //     &self,
-    //     path: &str,
-    //     request_body: &Q,
-    // ) -> Result<R> {
-    //     let url = format!("{}/{path}", self.origin);
-    //     let mut request_init = self.inner.clone();
-    //     request_init.body(Some(&JsValue::from_serde(request_body)?));
-    //     let request = Request::new_with_str_and_init(&url, &self.inner)?;
-    //     let window = web_sys::window()
-    //         .ok_or_else(|| ClientError::NetworkError("Error: Failed to get
-    // window.".to_string()))?;     let out =
-    // JsFuture::from(window.fetch_with_request(&request)).await?;
-    //     let response: Response = out.dyn_into()?;
-    //     if (200..=299).contains(&response.status()) {
-    //         let out: R = match response.json() {
-    //             Ok(x) => JsFuture::from(x).await?.into_serde()?,
-    //             Err(e) => return Err(e.into()),
-    //         };
-    //         Ok(out)
-    //     } else {
-    //         match response.json() {
-    //             Ok(e) => {
-    //                 let api_error: ApiError =
-    // JsFuture::from(e).await?.into_serde()?;
-    // Err(ClientError::ServerError(api_error))             }
-    //             Err(e) => Err(e.into()),
-    //         }
-    //     }
-    // }
-
-    // /// Make a call to the /network/list Rosetta API endpoint.
-    // #[wasm_bindgen]
-    pub async fn network_list(self, _request: MetadataRequest) -> NetworkListResponse {
-        // self.post("network/list", request).await.unwrap()
-        NetworkListResponse {
-            network_identifiers: Vec::new(),
+    /// Create a post request to a Rosetta API.
+    async fn post<Q: Serialize, R: DeserializeOwned>(&self, path: &str, request: &Q) -> Result<R> {
+        let url = match self.origin.join(path) {
+            Ok(url) => url.to_string(),
+            Err(e) => return Err(ClientError::ParseError(anyhow!(e))),
+        };
+        let out = self.inner.post(url).json(request).send().await;
+        match out {
+            Err(e) => Err(ClientError::NetworkError(anyhow!(e))),
+            Ok(response) => {
+                if response.status().is_success() {
+                    let out: R = match response.json().await {
+                        Ok(x) => x,
+                        Err(e) => return Err(ClientError::NetworkError(anyhow!(e))),
+                    };
+                    Ok(out)
+                } else {
+                    match response.json().await {
+                        Ok(e) => Err(ClientError::ServerError(e)),
+                        Err(e) => Err(ClientError::NetworkError(anyhow!(e))),
+                    }
+                }
+            }
         }
     }
 
-    /*
+    /// Make a call to the /network/list Rosetta API endpoint.
+    pub async fn network_list(&self, request: &MetadataRequest) -> Result<NetworkListResponse> {
+        self.post("network/list", request).await
+    }
+
     /// Make a call to the /network/options Rosetta API endpoint.
     pub async fn network_options(
         &self,
@@ -257,5 +223,5 @@ impl Client {
         request: &SearchTransactionsRequest,
     ) -> Result<SearchTransactionsResponse> {
         self.post("search/transactions", request).await
-    } */
+    }
 }

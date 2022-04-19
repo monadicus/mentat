@@ -5,9 +5,11 @@ use std::fmt::{self, Debug, Display};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+#[cfg(feature = "client")]
 
 /// The Error type for any mentat responses.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "client")]
 pub struct ApiError {
     /// The http status code.
     pub code: u16,
