@@ -6,29 +6,35 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 
 const development = process.env.MODE !== 'production';
 
-const SWC_LOADER = {
-  loader: 'swc-loader',
-  options: {
-    jsc: {
-      keepClassNames: true,
-      loose: true,
-      parser: {
-        syntax: 'typescript',
-        tsx: true,
-        dynamicImport: true,
-        exportDefaultFrom: true,
-        experimental: { styledComponent: true },
-      },
-      transform: {
-        react: {
-          runtime: 'automatic',
-          refresh: development,
+const SWC_LOADER = [
+  {
+    loader: 'babel-loader',
+  },
+  {
+    loader: 'swc-loader',
+    options: {
+      parseMap: true,
+      jsc: {
+        keepClassNames: true,
+        loose: true,
+        parser: {
+          syntax: 'typescript',
+          tsx: true,
+          dynamicImport: true,
+          exportDefaultFrom: true,
+          experimental: { styledComponent: true },
         },
+        transform: {
+          react: {
+            runtime: 'automatic',
+            refresh: development,
+          },
+        },
+        target: 'es2016',
       },
-      target: 'es2016',
     },
   },
-};
+].filter(Boolean);
 
 module.exports = {
   mode: development ? 'development' : 'production',
@@ -56,13 +62,13 @@ module.exports = {
         test: /\.js(on|x)?$/,
         include: path.resolve(__dirname, 'src'),
         exclude: /node_modules/,
-        use: [SWC_LOADER],
+        use: SWC_LOADER,
       },
       {
         test: /\.tsx?$/,
         include: path.resolve(__dirname, 'src'),
         exclude: /node_modules/,
-        use: [SWC_LOADER],
+        use: SWC_LOADER,
       },
       {
         test: /\.css$/,
@@ -99,8 +105,8 @@ module.exports = {
         columns: true,
         module: true,
       }),
-    development &&
-      new ReactRefreshWebpackPlugin({ overlay: { sockIntegration: 'whm' } }),
+    development && new webpack.HotModuleReplacementPlugin(),
+    development && new ReactRefreshWebpackPlugin(),
   ].filter(Boolean),
   devServer: {
     devMiddleware: { writeToDisk: true },
