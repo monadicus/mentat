@@ -3,8 +3,13 @@ country_code: us
 navigation:
   home: Home
   not_found: Not Found
+  loading: Loading
   sidenav:
     home: Home
     networks: Networks
     accounts: Accounts
     transactions: Transactions
+connection:
+  failed: Failed to Connect.
+  invalid: Invalid Connection.
+  connecting: Connecting...

@@ -1,0 +1,83 @@
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
+
+/** Get the endpoint url from route params */
+export function useEndpointUrl() {
+  const { endpoint } = useParams();
+  if (!endpoint) return null;
+
+  const host = (() => {
+    // ~ redirects to localhost
+    if (endpoint === '~') return location.hostname + ':8080';
+
+    // allow :port
+    if (endpoint.match(/\d+/)) return '127.0.0.1:' + endpoint;
+
+    // default to the value of the host
+    return endpoint;
+  })();
+
+  return `${location.protocol}//${host}`;
+}
+
+export type ApiState = 'init' | 'loading' | 'ok' | 'error';
+
+const empty = {};
+/** make a request to the rosetta-api from the route param */
+export function useApi<
+  T extends Record<string, unknown> = Record<string, unknown>
+>(
+  path: string,
+  requestBody: Record<string, unknown> = empty,
+  opts?: RequestInit
+): [ApiState, null | T] {
+  const [status, setStatus] = useState<ApiState>('init');
+  const [response, setResponse] = useState<null | T>(null);
+  const url = useEndpointUrl();
+  useEffect(() => {
+    let unmount = false;
+    setStatus('loading');
+    setResponse(null);
+
+    (async () => {
+      try {
+        // make the request
+        const resp = await fetch(url + path, {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          ...(opts ?? {}),
+          headers: {
+            'content-type': 'application/json',
+            ...(opts?.headers ?? {}),
+          },
+        });
+
+        if (unmount) return;
+        // read body as text
+        const body = await resp.text();
+
+        // parse body as json
+        try {
+          const blob = JSON.parse(body);
+          if (unmount) return;
+          setStatus('ok');
+          setResponse(blob);
+        } catch (err) {
+          if (unmount) return;
+          console.error('error parsing request body', path, body, err);
+          setStatus('error');
+        }
+      } catch (err) {
+        if (unmount) return;
+        console.error('error making request', path, err);
+        setStatus('error');
+      }
+    })();
+
+    return () => {
+      unmount = true;
+    };
+  }, [path, opts, url, requestBody]);
+
+  return [status, response];
+}
