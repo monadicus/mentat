@@ -1,5 +1,5 @@
 use mentat::{
-    api::{Caller, CallerDataApi, DataApi, MentatResponse},
+    api::{CallerDataApi, DataApi, MentatResponse},
     axum::{async_trait, Json},
     errors::*,
     identifiers::TransactionIdentifier,
@@ -8,6 +8,7 @@ use mentat::{
     responses::*,
     serde_json::{self, json},
     server::RpcCaller,
+    Caller,
 };
 
 use crate::{

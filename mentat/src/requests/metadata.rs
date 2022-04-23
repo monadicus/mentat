@@ -1,26 +1,26 @@
 //! The module defines the `MetadataRequest` request.
 
 use indexmap::IndexMap;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use super::*;
 
 #[wasm_bindgen(typescript_custom_section)]
-const TS_APPEND_CONTENT: &'static str = r#"
-
-export interface JSMetadata = {
+const METADATA_TYPE: &'static str = r#"
+export type JSMetadata = {
     [key in string]: any
 };
-
-export type JSMetadataRequest = {
-    metadata: JSMetadata,
-};
-
 "#;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(typescript_type = "JSMetadata")]
+    pub type JSMetadata;
+}
 
 /// A `MetadataRequest` is utilized in any request where the only argument is
 /// optional metadata.
-#[wasm_bindgen(typescript_type = "JSMetadataRequest")]
+#[wasm_bindgen]
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MetadataRequest {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -28,4 +28,28 @@ pub struct MetadataRequest {
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     #[wasm_bindgen(skip)]
     pub metadata: IndexMap<String, Value>,
+}
+
+#[wasm_bindgen]
+impl MetadataRequest {
+    #[wasm_bindgen(catch, constructor)]
+    pub fn new(metadata: Option<JSMetadata>) -> Self {
+        Self {
+            metadata: if let Some(data) = metadata {
+                data.into_serde().unwrap()
+            } else {
+                Default::default()
+            },
+        }
+    }
+
+    #[wasm_bindgen(getter = metadata, typescript_type = "JSMetadata")]
+    pub fn metadata(&self) -> JsValue {
+        JsValue::from_serde(&self.metadata).unwrap()
+    }
+
+    #[wasm_bindgen(setter = metadata, typescript_type = "JSMetadata")]
+    pub fn set_test3(&mut self, field: JSMetadata) {
+        self.metadata = field.into_serde().unwrap()
+    }
 }

@@ -1,11 +1,12 @@
 use mentat::{
-    api::{Caller, CallerIndexerApi, IndexerApi, MentatResponse},
+    api::{CallerIndexerApi, IndexerApi, MentatResponse},
     axum::{async_trait, Json},
     errors::*,
     requests::*,
     responses::*,
     serde_json,
     server::RpcCaller,
+    Caller,
 };
 
 #[derive(Clone, Default)]

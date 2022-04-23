@@ -1,7 +1,7 @@
 //! The module defines the `HealthCheckResponse` response.
 
 use super::*;
-use crate::api::Caller;
+use crate::Caller;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 /// The `Usage` struct tracks usage of a Process.

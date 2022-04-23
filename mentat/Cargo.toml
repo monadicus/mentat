@@ -8,8 +8,8 @@ rust-version = "1.59.0"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-_network = ["indexmap", "serde", "serde_json", "reqwest", "wasm-bindgen"]
-client = ["_network", "anyhow", "tokio", "web-sys"]
+_network = ["from_tuple", "indexmap", "serde", "serde_json", "wasm-bindgen"]
+client = ["_network", "wasm-bindgen", "wasm-bindgen-futures", "web-sys"]
 default = ["server"]
 server = [
     "_network",
@@ -21,6 +21,7 @@ server = [
     "opentelemetry",
     "opentelemetry-jaeger",
     "sysinfo",
+    "reqwest",
     "tokio",
     "toml",
     "tower",
@@ -34,13 +35,19 @@ sdk = ["keys"]
 keys = ["ed25519-dalek", "mina-hasher", "mina-signer", "p256", "p256/ecdsa", "rand", "secp256k1", "secp256k1/bitcoin_hashes", "secp256k1/recovery", "secp256k1/rand-std", "snarkvm-dpc", "snarkvm-algorithms", "snarkvm-utilities"]
 
 [dependencies]
-anyhow = { version = "1.0.56", optional = true }
+from_tuple = { version = "0.1.2", optional = true, default-features = false }
+indexmap = { version = "1.8.1", optional = true, default-features = false, features = ["serde", "std"] }
+serde = { version = "1.0.136", optional = true, default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.79", optional = true, default-features = false }
+wasm-bindgen = { version = "0.2.80", optional = true, default-features = false, features = ["serde-serialize", "spans"] }
+wasm-bindgen-futures = { version = "0.4.30", optional = true }
+web-sys = { version = "0.3.57", optional = true, default-features = false, features = ["Request", "RequestInit", "Response", "Window"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 axum = { version = "0.5.1", optional = true, default-features = false, features = ["http1", "json"] }
 color-backtrace = { version = "0.5.1", optional = true, default-features = false }
 ed25519-dalek = { version = "1.0.1", optional = true, default-features = false }
-from_tuple = "0.1.2"
 hyper = { version = "0.14.18", optional = true, default-features = false }
-indexmap = { version = "1.8.1", optional = true, default-features = false, features = ["serde", "std"] }
 mentat-macros = { path = "../mentat-macros", optional = true }
 mina-hasher = { git = "https://github.com/o1-labs/proof-systems", optional = true, default-features = false }
 mina-signer = { git = "https://github.com/o1-labs/proof-systems", optional = true, default-features = false }
@@ -49,8 +56,6 @@ opentelemetry = { version = "0.17.0", optional = true, default-features = false,
 opentelemetry-jaeger = { version = "0.16.0", optional = true, default-features = false, features = ["rt-tokio"] }
 p256 = { version = "0.10.1", optional = true, default-features = false }
 secp256k1 = { version = "0.22.1", optional = true, default-features = false }
-serde = { version = "1.0.136", optional = true, default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.79", optional = true, default-features = false }
 snarkvm-algorithms = { version = "0.8.0", optional = true, default-features = false }
 snarkvm-dpc = { version = "0.8.0", optional = true, default-features = false }
 snarkvm-utilities = { version = "0.8.0", optional = true, default-features = false }
@@ -65,7 +70,3 @@ tracing-opentelemetry = { version = "0.17.2", optional = true, default-features 
 tracing-subscriber = { version = "0.3.10", optional = true, features = ["env-filter"] }
 tracing-tree = { version = "0.2.0", optional = true, default-features = false }
 sysinfo = { version = "0.23.9", optional = true, default-features = false}
-wasm-bindgen = { version = "0.2.80", optional = true, default-features = false, features = ["serde-serialize", "spans"] }
-web-sys = { version = "0.3.57", optional = true, default-features = false, features = ["Headers", "Request", "RequestInit", "RequestMode", "Response", "Window"] }
-wasm-bindgen-futures = "0.4.30"
-js-sys = "0.3.57"

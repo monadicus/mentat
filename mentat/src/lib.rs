@@ -1,6 +1,8 @@
-#![deny(clippy::all, clippy::missing_docs_in_private_items)]
+// #![deny(clippy::all, clippy::missing_docs_in_private_items)]
 #![doc = include_str!("../../README.md")]
 
+pub mod caller;
+pub use caller::Caller;
 pub mod errors;
 pub mod identifiers;
 pub mod misc;
@@ -112,12 +114,9 @@ pub use server_exports::*;
 #[cfg(feature = "client")]
 #[path = ""]
 mod client_rexport {
-    pub use anyhow;
     pub mod client;
-    pub use reqwest;
     pub use serde;
     pub use serde_json;
-    pub use tokio;
 }
 
 #[cfg(feature = "client")]

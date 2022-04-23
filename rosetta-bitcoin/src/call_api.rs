@@ -1,11 +1,12 @@
 use mentat::{
-    api::{CallApi, Caller, CallerCallApi, MentatResponse},
+    api::{CallApi, CallerCallApi, MentatResponse},
     axum::{async_trait, Json},
     indexmap::IndexMap,
     requests::*,
     responses::*,
     serde_json::{self, Value},
     server::RpcCaller,
+    Caller,
 };
 
 use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};

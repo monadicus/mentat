@@ -8,7 +8,10 @@ mod optional_api;
 mod request;
 mod responses;
 
-use mentat::server::{Server, ServerType};
+use mentat::{
+    server::{Server, ServerType},
+    Caller,
+};
 
 #[derive(Clone)]
 struct MentatSnarkos;

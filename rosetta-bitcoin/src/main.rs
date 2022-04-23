@@ -8,7 +8,7 @@ mod optional_api;
 mod request;
 mod responses;
 
-use mentat::{cache::DefaultCacheInner, mentat, server::ServerType};
+use mentat::{cache::DefaultCacheInner, mentat, server::ServerType, Caller};
 
 #[mentat(DefaultCacheInner)]
 struct MentatBitcoin;

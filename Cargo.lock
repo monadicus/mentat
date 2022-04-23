@@ -1267,14 +1267,12 @@ dependencies = [
 name = "mentat"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "axum",
  "color-backtrace",
  "ed25519-dalek",
  "from_tuple",
  "hyper",
  "indexmap",
- "js-sys",
  "mentat-macros",
  "mina-hasher",
  "mina-signer",

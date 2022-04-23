@@ -1,11 +1,12 @@
 use mentat::{
-    api::{Caller, CallerConstructionApi, ConstructionApi, MentatResponse},
+    api::{CallerConstructionApi, ConstructionApi, MentatResponse},
     axum::{async_trait, Json},
     requests::ConstructionSubmitRequest,
     responses::TransactionIdentifierResponse,
     serde_json,
     server::RpcCaller,
     tracing,
+    Caller,
 };
 
 use crate::{
