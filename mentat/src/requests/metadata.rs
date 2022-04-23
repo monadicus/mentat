@@ -1,25 +1,16 @@
 //! The module defines the `MetadataRequest` request.
 
 use indexmap::IndexMap;
+#[cfg(feature = "client")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use super::*;
-
-#[wasm_bindgen(typescript_custom_section)]
-const METADATA_TYPE: &'static str = r#"
-export type JSMetadata = {
-    [key in string]: any
-};
-"#;
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(typescript_type = "JSMetadata")]
-    pub type JSMetadata;
-}
+#[cfg(feature = "client")]
+use crate::identifiers::JSMetadata;
 
 /// A `MetadataRequest` is utilized in any request where the only argument is
 /// optional metadata.
+#[cfg(feature = "client")]
 #[wasm_bindgen]
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MetadataRequest {
@@ -30,6 +21,7 @@ pub struct MetadataRequest {
     pub metadata: IndexMap<String, Value>,
 }
 
+#[cfg(feature = "client")]
 #[wasm_bindgen]
 impl MetadataRequest {
     #[wasm_bindgen(catch, constructor)]

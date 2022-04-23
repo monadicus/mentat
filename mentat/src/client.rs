@@ -78,7 +78,7 @@ impl Client {
     }
 
     /// `origin` should be of the form `http[s]://hostname:port/`.
-    #[wasm_bindgen(constructor)]
+    #[wasm_bindgen]
     pub fn new_full(origin: String, inner: RequestInit) -> Self {
         Self { inner, origin }
     }

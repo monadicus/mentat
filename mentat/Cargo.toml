@@ -8,7 +8,7 @@ rust-version = "1.59.0"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-_network = ["from_tuple", "indexmap", "serde", "serde_json", "wasm-bindgen"]
+_network = ["from_tuple", "indexmap", "serde", "serde_json"]
 client = ["_network", "wasm-bindgen", "wasm-bindgen-futures", "web-sys"]
 default = ["server"]
 server = [
