@@ -11,7 +11,9 @@ use std::net::SocketAddr;
 
 use axum::{extract::Extension, handler::Handler, http::Extensions, middleware, Router};
 pub use rpc_caller::RpcCaller;
-use tracing::info;
+use tracing::{info, Dispatch};
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
+use tracing_tree::HierarchicalLayer;
 
 use self::middleware_checks::middleware_checks;
 use crate::{
@@ -54,6 +56,32 @@ pub trait ServerType: Sized + 'static {
 
     fn middleware_checks(extensions: &Extensions, json: &Value) -> Result<()> {
         NetworkIdentifier::check::<Self>(extensions, &json)
+    }
+
+    /// Sets up a tracing subscriber dispatch
+    fn setup_logging() -> Dispatch {
+        let tracer = opentelemetry_jaeger::new_pipeline()
+            .install_batch(opentelemetry::runtime::Tokio)
+            .unwrap_or_else(|e| panic!("Failed to start opentelemtry_jaeger: `{e}`"));
+        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
+        Registry::default()
+            .with(EnvFilter::new(
+                std::env::var("RUST_LOG").unwrap_or_else(|_| "debug,tower_http=debug".to_string()),
+            ))
+            .with(
+                HierarchicalLayer::new(2)
+                    .with_targets(true)
+                    .with_bracketed_fields(true),
+            )
+            .with(tracing_error::ErrorLayer::default())
+            .with(telemetry)
+            .into()
+    }
+
+    /// Shuts down any necessary logging details for Mentat.
+    fn teardown_logging() {
+        opentelemetry::global::shutdown_tracer_provider();
     }
 }
 
@@ -167,7 +195,7 @@ impl<Types: ServerType> Server<Types> {
     #[doc(hidden)]
     pub async fn serve(self, mut app: Router) {
         color_backtrace::install();
-        Types::CustomConfig::setup_logging().init();
+        Types::setup_logging().init();
 
         let node_pid = Types::CustomConfig::start_node(&self.configuration);
         let server_pid = Pid::from_u32(std::process::id());
@@ -192,6 +220,6 @@ impl<Types: ServerType> Server<Types> {
             .await
             .unwrap_or_else(|err| panic!("Failed to listen on addr `{addr}`: `{err}`."));
 
-        Types::CustomConfig::teardown_logging();
+        Types::teardown_logging();
     }
 }
