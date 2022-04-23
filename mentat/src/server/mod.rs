@@ -10,7 +10,7 @@ mod rpc_caller;
 use std::net::SocketAddr;
 
 use axum::{extract::Extension, handler::Handler, http::Extensions, middleware, Router};
-pub use rpc_caller::RpcCaller;
+pub use rpc_caller::*;
 use tracing::{info, Dispatch};
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;

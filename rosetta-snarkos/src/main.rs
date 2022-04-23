@@ -2,7 +2,6 @@ mod call_api;
 mod construction_api;
 mod data_api;
 mod indexer_api;
-mod macros;
 mod node;
 mod optional_api;
 mod request;
