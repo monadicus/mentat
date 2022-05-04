@@ -7,3 +7,5 @@ rust-version = "1.59.0"
 [dependencies]
 mentat = { path = "../mentat", features = ["server"] }
 futures = "0.3.21"
+hex = "0.4.3"
+bitcoin = "0.28.0"
