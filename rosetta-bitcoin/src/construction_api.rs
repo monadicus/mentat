@@ -47,7 +47,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         &self,
         _caller: Caller,
         data: ConstructionCombineRequest,
-        rpc_caller: RpcCaller,
+        _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionCombineResponse> {
         let mut tx = Transaction::deserialize(
             &hex::decode(data.unsigned_transaction)
@@ -107,38 +107,32 @@ impl ConstructionApi for BitcoinConstructionApi {
     async fn metadata(
         &self,
         _caller: Caller,
-        data: ConstructionMetadataRequest,
+        _data: ConstructionMetadataRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
-        if let Some(pub_keys) = data.public_keys {
-            let suggested_fee = jsonrpc_call!(
-                "estimatesmartfee",
-                // NOTE: this might produce slower to confirm transactions, but they will be cheap.
-                // May want to look into making this configurable.
-                vec![6],
-                rpc_caller,
-                FeeEstimate
-            )
-            .feerate;
+        let suggested_fee = jsonrpc_call!(
+            "estimatesmartfee",
+            // NOTE: this might produce slower to confirm transactions, but they will be
+            // cheaper.
+            // May want to look into making this configurable.
+            vec![6],
+            rpc_caller,
+            FeeEstimate
+        )
+        .feerate;
 
-            // TODO: wtf
-            let mut metadata = IndexMap::new();
-            let _ = metadata.insert("script_pub_keys".to_string(), json!(pub_keys));
-            Ok(Json(ConstructionMetadataResponse {
-                metadata,
-                suggested_fee: Some(vec![Amount {
-                    value: suggested_fee.to_string(),
-                    currency: Currency {
-                        symbol: "BTC".to_string(),
-                        decimals: 8,
-                        metadata: Default::default(),
-                    },
+        Ok(Json(ConstructionMetadataResponse {
+            metadata: Default::default(),
+            suggested_fee: Some(vec![Amount {
+                value: suggested_fee.to_string(),
+                currency: Currency {
+                    symbol: "BTC".to_string(),
+                    decimals: 8,
                     metadata: Default::default(),
-                }]),
-            }))
-        } else {
-            Err(MentatError::from("Did not provide a public key"))
-        }
+                },
+                metadata: Default::default(),
+            }]),
+        }))
     }
 
     async fn parse(
@@ -221,17 +215,30 @@ impl ConstructionApi for BitcoinConstructionApi {
             });
         }
 
-        // TODO
-        let payloads = tx
-            .input
-            .iter()
-            .map(|input| SigningPayload {
+        let mut payloads = vec![];
+        for (i, input) in tx.input.iter().enumerate() {
+            let transaction = jsonrpc_call!(
+                "getrawtransaction",
+                vec![json!(input.previous_output.txid.to_string()), json!(true)],
+                rpc_caller,
+                BitcoinTransaction
+            );
+            payloads.push(SigningPayload {
                 address: None,
                 account_identifier: None,
-                hex_bytes: "".to_string(),
+                hex_bytes: tx
+                    .signature_hash(
+                        i,
+                        &transaction.vout[input.previous_output.vout as usize]
+                            .scriptPubKey
+                            .clone()
+                            .try_into()?,
+                        0,
+                    )
+                    .to_string(),
                 signature_type: Some(SignatureType::Ecdsa),
-            })
-            .collect();
+            });
+        }
 
         for op in data.operations.iter() {
             if op.type_ == "OUTPUT" {
