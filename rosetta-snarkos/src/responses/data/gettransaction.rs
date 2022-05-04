@@ -1,60 +1,51 @@
 use std::ops::Add;
 
-use mentat::{api::MentatResponse, responses::BlockTransactionResponse, Json};
+use mentat::responses::BlockTransactionResponse;
 
 use super::*;
-use crate::responses::common::SnarkosTransaction;
+use crate::responses::common::SnarkosTransactions;
 
-#[derive(Debug, Deserialize)]
-#[serde(crate = "mentat::serde")]
-struct DecryptedRecords {
-    _commitment: String,
-    _owner: String,
-    _payload: String,
-    _program_id: String,
-    _randomizer: String,
-    _record_view_key: String,
-    _value: i64,
-}
+// #[derive(Debug, Deserialize)]
+// #[serde(crate = "mentat::serde")]
+// struct DecryptedRecords {
+//     _commitment: String,
+//     _owner: String,
+//     _payload: String,
+//     _program_id: String,
+//     _randomizer: String,
+//     _record_view_key: String,
+//     _value: i64,
+// }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
 struct Metadata {
-    _block_hash: String,
-    _block_height: u64,
-    _block_timestamp: u64,
+    // _block_hash: String,
+    // _block_height: u64,
+    // _block_timestamp: u64,
     transaction_index: usize,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
-struct GetTransactionResult {
-    _decrypted_records: Vec<DecryptedRecords>,
+pub struct GetTransactionResult {
+    // _decrypted_records: Vec<DecryptedRecords>,
     metadata: Metadata,
-    _transaction: SnarkosTransaction,
+    // _transaction: SnarkosTransaction,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(crate = "mentat::serde")]
-pub struct GetTransactionResponse {
-    _jsonrpc: String,
-    result: GetTransactionResult,
-    _id: String,
-}
+impl Add<SnarkosTransactions> for GetTransactionResult {
+    type Output = BlockTransactionResponse;
 
-impl Add<GetBlockTransactionsResponse> for GetTransactionResponse {
-    type Output = MentatResponse<BlockTransactionResponse>;
-
-    fn add(self, other: GetBlockTransactionsResponse) -> Self::Output {
+    fn add(self, other: SnarkosTransactions) -> Self::Output {
         // TODO Handle unwrap here
         let transaction = other
-            .result
             .transactions
-            .get(self.result.metadata.transaction_index)
+            .get(self.metadata.transaction_index)
             .cloned()
             .unwrap();
-        Ok(Json(BlockTransactionResponse {
+        BlockTransactionResponse {
             transaction: transaction.into(),
-        }))
+        }
     }
 }

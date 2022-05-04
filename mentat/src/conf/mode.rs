@@ -1,16 +1,23 @@
+//! This modules contains the possible modes a rosetta implementation can run
+//! in. `Online` or `Offline`.
+
 use std::{fmt, str::FromStr};
 
 use super::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug)]
+/// The possible modes a rosetta implementation can run in. defaults to
+/// `Online`.
+#[allow(clippy::missing_docs_in_private_items)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mode {
     Online,
     Offline,
 }
 
 impl Mode {
-    pub fn is_offline(&self) -> bool {
-        matches!(&self, &Mode::Offline)
+    /// returns true if the mode is running in offline mode
+    pub fn is_offline(self) -> bool {
+        self == Mode::Offline
     }
 }
 

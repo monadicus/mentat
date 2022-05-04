@@ -1,20 +1,18 @@
 use std::process::Command;
 
 use mentat::{
-    async_trait,
+    axum::async_trait,
     conf::{Configuration, NodeConf},
     serde::{Deserialize, Serialize},
 };
 
-#[derive(Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct NodeConfig;
 
 #[async_trait]
 impl NodeConf for NodeConfig {
-    fn node_name() -> String {
-        String::from("SnarkOS")
-    }
+    const BLOCKCHAIN: &'static str = "Snarkos";
 
     fn node_command(config: &Configuration<Self>) -> Command {
         // TODO: make it so snarkos checks for updates and rebuilds automatically.

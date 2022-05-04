@@ -2,11 +2,10 @@
 // digits"},"id":"1"}
 
 use mentat::{
-    api::MentatResponse,
-    errors::{ApiError, MentatError},
+    errors::{ApiError, MentatError, Result},
+    indexmap::IndexMap,
     serde::Deserialize,
     serde_json::Value,
-    IndexMap,
 };
 
 #[derive(Clone, Debug, Deserialize)]
@@ -17,7 +16,7 @@ pub struct ErrorResponse {
     pub id: String,
 }
 
-impl<R> From<ErrorResponse> for MentatResponse<R> {
+impl<R> From<ErrorResponse> for Result<R> {
     fn from(response: ErrorResponse) -> Self {
         Err(MentatError::Internal(ApiError {
             code: 500,

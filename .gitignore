@@ -13,3 +13,5 @@ local.conf.toml
 
 # Cargo Expand File
 temp.rs
+
+.timetracker

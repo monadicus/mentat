@@ -1,11 +1,11 @@
 use mentat::{
     api::{CallApi, Caller, CallerCallApi, MentatResponse},
-    async_trait,
+    axum::{async_trait, Json},
+    indexmap::IndexMap,
     requests::*,
     responses::*,
     serde_json::{self, Value},
     server::RpcCaller,
-    IndexMap, Json,
 };
 
 use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};
@@ -18,8 +18,9 @@ impl CallerCallApi for BitcoinCallApi {}
 
 #[async_trait]
 impl CallApi for BitcoinCallApi {
-    // TODO associated constant ROUTES that contains a CallRoute struct with all routes and idempotent status
-    //      probably shouldnt check if route is valid before calling though, let node handle that
+    // TODO associated constant ROUTES that contains a CallRoute struct with all
+    // routes and idempotent status      probably shouldnt check if route is
+    // valid before calling though, let node handle that
 
     async fn call(
         &self,

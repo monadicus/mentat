@@ -1,72 +1,178 @@
+//! Defines the configuration settings used to start and interact
+//! with a node instance.
+
 use std::{
     fs,
     io::{BufRead, BufReader, Read},
     net::Ipv4Addr,
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    str::FromStr,
     thread,
 };
 
 use axum::async_trait;
 use serde::de::DeserializeOwned;
+use sysinfo::{Pid, PidExt};
+use tracing::Dispatch;
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
+use tracing_tree::HierarchicalLayer;
 
 use super::*;
 
+#[derive(Clone, Debug)]
+pub struct NodePid(pub Pid);
+
+/// Custom configuration settings for running a node.
+///
+/// Any fields specified here will be included in [`Configuration`] and listed
+/// as configurable fields in the config file that the user provides.
 #[async_trait]
 pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
-    fn node_name() -> String;
+    /// The name of the blockchain run by the node.
+    const BLOCKCHAIN: &'static str;
 
+    /// The command for loading the node `Configuration`.
+    ///
+    /// WARNING: This defaults to assuming that the first argument passed to the
+    /// process contains a path to the config file. Therefor this function
+    /// should absolutely be overridden if you are using your own argument
+    /// parsing.
+    fn load_config() -> Configuration<Self>
+    where
+        Self: DeserializeOwned,
+    {
+        let args: Vec<String> = std::env::args().collect();
+        if args.len() != 2 {
+            eprintln!("Expected usage: <{}> <configuration file>", args[0]);
+            std::process::exit(1);
+        }
+
+        let path = std::path::PathBuf::from(&args[1]);
+        Configuration::load(&path)
+    }
+
+    // TODO: replace with bitcoin example once bitcoin is containerized
+    ///
+    /// The user specified command for running a node.
+    ///
+    /// ```no_run
+    /// fn node_command(config: &Configuration<Self>) -> Command {
+    ///     let mut command = Command::new(&config.node_path);
+    ///     command.args(&[
+    ///         "--node",
+    ///         &format!("{}:4132", config.address),
+    ///         "--rpc",
+    ///         &format!("{}:{}", config.address, config.node_rpc_port),
+    ///         "--trial",
+    ///         "--verbosity",
+    ///         "2",
+    ///     ]);
+    ///     command
+    /// }
+    /// ```
     fn node_command(config: &Configuration<Self>) -> Command;
 
-    fn start_node(config: &Configuration<Self>) -> Result<(), Box<dyn std::error::Error>> {
+    /// Makes a system call with the command returned by
+    /// `NodeConf::node_command` to spawn the node. The default
+    /// implementation should be fine in most cases.
+    ///
+    /// The user can change `NodeConf::log` to control how the node output is
+    /// logged in the terminal.
+    fn start_node(config: &Configuration<Self>) -> NodePid {
         let mut child = Self::node_command(config)
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())
-            .spawn()?;
+            .spawn()
+            .unwrap_or_else(|e| panic!("Failed to start node: `{e}`"));
         let stdout = child.stdout.take().unwrap();
         let stderr = child.stderr.take().unwrap();
 
-        // TODO Maybe use tokio?
-        fn spawn_reader<T: 'static + Read + Send>(name: String, out: T, err: bool) {
-            let mut reader = BufReader::new(out).lines();
-            thread::spawn(move || {
-                while let Some(Ok(line)) = reader.next() {
-                    if err {
-                        tracing::error!("{name}: {line}");
-                    } else {
-                        tracing::info!("{name}: {line}");
-                    }
-                }
-            });
-        }
+        Self::log(stdout, false);
+        Self::log(stderr, true);
 
-        let name = Self::node_name();
-        spawn_reader(name.clone(), stdout, false);
-        spawn_reader(name, stderr, true);
-        Ok(())
+        NodePid(Pid::from_u32(child.id()))
     }
 
-    fn build_url(conf: &Configuration<Self>) -> String {
-        format!(
+    /// Sets up a tracing subscriber dispatch
+    fn setup_logging() -> Dispatch {
+        let tracer = opentelemetry_jaeger::new_pipeline()
+            .install_batch(opentelemetry::runtime::Tokio)
+            .unwrap_or_else(|e| panic!("Failed to start opentelemtry_jaeger: `{e}`"));
+        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
+        Registry::default()
+            .with(EnvFilter::new(
+                std::env::var("RUST_LOG").unwrap_or_else(|_| "debug,tower_http=debug".to_string()),
+            ))
+            .with(
+                HierarchicalLayer::new(2)
+                    .with_targets(true)
+                    .with_bracketed_fields(true),
+            )
+            .with(tracing_error::ErrorLayer::default())
+            .with(telemetry)
+            .into()
+    }
+
+    /// Shuts down any necessary logging details for Mentat.
+    fn teardown_logging() {
+        opentelemetry::global::shutdown_tracer_provider();
+    }
+
+    /// Used to control how the node logs its output to the console.
+    ///
+    /// The default implementation uses the tracing crate to print `stdout`
+    /// and `stderr` to console.
+    fn log<T: 'static + Read + Send>(out: T, err: bool) {
+        let mut reader = BufReader::new(out).lines();
+        thread::spawn(move || {
+            while let Some(Ok(line)) = reader.next() {
+                if err {
+                    tracing::error!("{}: {line}", Self::BLOCKCHAIN);
+                } else {
+                    tracing::info!("{}: {line}", Self::BLOCKCHAIN);
+                }
+            }
+        });
+    }
+
+    /// Builds the url used to call the node using the settings in the user
+    /// config. The default implementation may need to be changed if a
+    /// custom url format is needed.
+    fn build_url(conf: &Configuration<Self>) -> reqwest::Url {
+        let url = format!(
             "{}://{}:{}",
             if conf.secure_http { "https" } else { "http" },
             conf.node_address,
             conf.node_rpc_port
-        )
+        );
+        reqwest::Url::from_str(&url).expect("Invalid node url: {url}")
     }
 }
 
+/// The user specified configuration settings for a node.
+/// Has an extra field called `custom` that can contain any configuration
+/// settings specific to the rosetta implementation.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Configuration<Custom: NodeConf> {
+    /// The Ipv4 that rosetta will run from
     pub address: Ipv4Addr,
-    pub blockchain: String,
-    pub mode: Mode,
-    pub network: Network,
-    pub secure_http: bool,
-    pub node_address: String,
-    pub node_path: PathBuf,
-    pub node_rpc_port: u16,
+    /// The port to bind rosetta to.
     pub port: u16,
+    /// The network mode to run rosetta in. Accepts `Online` and `Offline`.
+    pub mode: Mode,
+    /// The path to the node binary.
+    pub node_path: PathBuf,
+    /// The network to run the node on. Defaults to `mainnet`.
+    pub network: Network,
+    /// If `https` is preferred.
+    pub secure_http: bool,
+    /// The Ipv4 that the node will run from.
+    pub node_address: Ipv4Addr,
+    /// The port that the node will bind to.
+    pub node_rpc_port: u16,
+    /// Configuration settings specific to the rosetta implementation
     #[serde(default)]
     pub custom: Custom,
 }
@@ -75,6 +181,7 @@ impl<Custom> Configuration<Custom>
 where
     Custom: DeserializeOwned + NodeConf,
 {
+    /// Loads a configuration file from the supplied path.
     pub fn load(path: &Path) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| {
             panic!(
@@ -98,6 +205,7 @@ where
         config
     }
 
+    /// Generates a configuration file and writes it to the supplied path.
     pub fn create_template(path: &Path) {
         fs::create_dir_all(path)
             .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", path.display(), e));
@@ -125,10 +233,9 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
     fn default() -> Self {
         Self {
             address: Ipv4Addr::new(0, 0, 0, 0),
-            blockchain: "UNKNOWN".to_string(),
             mode: Default::default(),
             network: Network::Testnet,
-            node_address: "127.0.0.1".to_string(),
+            node_address: Ipv4Addr::new(0, 0, 0, 0),
             node_path: PathBuf::from("/app/rosetta-mentat-service"),
             node_rpc_port: 4032,
             port: 8080,

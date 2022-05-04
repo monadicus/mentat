@@ -1,6 +1,6 @@
 use mentat::{
     api::{CallerIndexerApi, IndexerApi},
-    async_trait,
+    axum::async_trait,
 };
 
 #[derive(Clone, Default)]

@@ -1,15 +1,15 @@
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentatResponse},
-    async_trait,
+    axum::{async_trait, Json},
     errors::*,
     identifiers::{BlockIdentifier, TransactionIdentifier},
+    indexmap::IndexMap,
     misc::{OperationStatus, Version},
     models::Allow,
     requests::*,
     responses::*,
     serde_json::{self, json},
     server::RpcCaller,
-    IndexMap, Json,
 };
 
 use crate::{
@@ -233,7 +233,7 @@ impl DataApi for BitcoinDataApi {
                 transaction: tx.into_transaction(i, &rpc_caller).await?,
             }))
         } else {
-            Err(ApiError::unable_to_find_transaction(&data.transaction_identifier.hash).into())
+            MentatError::unable_to_find_transaction(&data.transaction_identifier.hash)
         }
     }
 
@@ -280,7 +280,7 @@ impl DataApi for BitcoinDataApi {
                 metadata: IndexMap::new(),
             }))
         } else {
-            Err(ApiError::unable_to_find_transaction(&data.transaction_identifier.hash).into())
+            MentatError::unable_to_find_transaction(&data.transaction_identifier.hash)
         }
     }
 }

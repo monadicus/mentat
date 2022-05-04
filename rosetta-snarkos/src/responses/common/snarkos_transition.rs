@@ -1,7 +1,7 @@
 use mentat::{
     identifiers::{CoinIdentifier, OperationIdentifier},
+    indexmap::IndexMap,
     models::{Amount, CoinAction, CoinChange, Currency, Operation},
-    IndexMap,
 };
 
 use super::*;

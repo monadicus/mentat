@@ -1,6 +1,10 @@
+//! Houses the traits for the Rosetta Construction API.
+//! These traits are easily overridable for custom
+//! implementations.
 use super::*;
 use crate::errors::MentatError;
 
+/// Trait to define the endpoints necessary for the Rosetta Construction API.
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
     /// Combine creates a network-specific transaction from an unsigned
@@ -13,22 +17,22 @@ pub trait ConstructionApi: Default {
         _data: ConstructionCombineRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionCombineResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 
-    /// Derive returns the AccountIdentifier associated with a public key.
-    /// Blockchains that require an on-chain action to create an account should
-    /// not implement this method.
+    /// Derive returns the [`crate::identifiers::AccountIdentifier`] associated
+    /// with a public key. Blockchains that require an on-chain action to
+    /// create an account should not implement this method.
     async fn derive(
         &self,
         _caller: Caller,
         _data: ConstructionDeriveRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionDeriveResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 
-    /// TransactionHash returns the network-specific transaction hash for a
+    /// Hash returns the network-specific transaction hash for a
     /// signed transaction.
     async fn hash(
         &self,
@@ -36,7 +40,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionHashRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 
     /// Get any information required to construct a transaction for a specific
@@ -57,7 +61,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionMetadataRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 
     /// Parse is called on both unsigned and signed transactions to understand
@@ -70,27 +74,27 @@ pub trait ConstructionApi: Default {
         _data: ConstructionParseRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionParseResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 
     /// Payloads is called with an array of operations and the response from
     /// /construction/meta_data. It returns an unsigned transaction blob and a
     /// collection of payloads that must be signed by particular
-    /// AccountIdentifiers using a certain SignatureType. The array of
-    /// operations provided in transaction construction often times can not
-    /// specify all "effects" of a transaction (consider invoked transactions in
-    /// Ethereum). However, they can deterministically specify the "intent" of
-    /// the transaction, which is sufficient for construction. For this reason,
-    /// parsing the corresponding transaction in the _Data API (when it lands on
-    /// chain) will contain a superset of whatever operations were provided
-    /// during construction.
+    /// AccountIdentifiers using a certain [`crate::models::SignatureType`]. The
+    /// array of operations provided in transaction construction often times
+    /// can not specify all "effects" of a transaction (consider invoked
+    /// transactions in Ethereum). However, they can deterministically
+    /// specify the "intent" of the transaction, which is sufficient for
+    /// construction. For this reason, parsing the corresponding transaction
+    /// in the _Data API (when it lands on chain) will contain a superset of
+    /// whatever operations were provided during construction.
     async fn payloads(
         &self,
         _caller: Caller,
         _data: ConstructionPayloadsRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionPayloadsResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 
     /// Preprocess is called prior to /construction/payloads to construct a
@@ -107,7 +111,7 @@ pub trait ConstructionApi: Default {
         _data: ConstructionPreprocessRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionPreprocessResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 
     /// Submit a pre-signed transaction to the node. This call should not block
@@ -122,12 +126,16 @@ pub trait ConstructionApi: Default {
         _data: ConstructionSubmitRequest,
         _rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        Err(MentatError::NotImplemented(ApiError::not_implemented()))
+        MentatError::not_implemented()
     }
 }
 
+/// Trait to wrap the `ConstructionApi`.
+/// This trait helps to define default behavior for running the endpoints
+/// on different modes.
 #[axum::async_trait]
 pub trait CallerConstructionApi: Clone + ConstructionApi {
+    /// This endpoint runs in both offline and online mode.
     async fn call_combine(
         &self,
         caller: Caller,
@@ -138,6 +146,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.combine(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_derive(
         &self,
         caller: Caller,
@@ -148,6 +157,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.derive(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_hash(
         &self,
         caller: Caller,
@@ -158,6 +168,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.hash(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_metadata(
         &self,
         caller: Caller,
@@ -166,12 +177,13 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
         if mode.is_offline() {
-            Err(MentatError::Internal(ApiError::wrong_network(&data)))
+            MentatError::wrong_network(&data)
         } else {
             self.metadata(caller, data, rpc_caller).await
         }
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_parse(
         &self,
         caller: Caller,
@@ -182,6 +194,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.parse(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_payloads(
         &self,
         caller: Caller,
@@ -192,6 +205,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.payloads(caller, data, rpc_caller).await
     }
 
+    /// This endpoint runs in both offline and online mode.
     async fn call_preprocess(
         &self,
         caller: Caller,
@@ -202,6 +216,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         self.preprocess(caller, data, rpc_caller).await
     }
 
+    /// This endpoint only runs in online mode.
     async fn call_submit(
         &self,
         caller: Caller,
@@ -210,7 +225,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
         if mode.is_offline() {
-            Err(MentatError::Internal(ApiError::wrong_network(&data)))
+            MentatError::wrong_network(&data)
         } else {
             self.submit(caller, data, rpc_caller).await
         }

@@ -1,4 +1,4 @@
-use mentat::{misc::Peer, serde::Deserialize, IndexMap};
+use mentat::{indexmap::IndexMap, misc::Peer, serde::Deserialize};
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]

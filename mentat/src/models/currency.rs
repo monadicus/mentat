@@ -1,11 +1,13 @@
+//! The module defines the `Currency` model.
+
 use indexmap::IndexMap;
 
 use super::*;
 
-/// Currency is composed of a canonical Symbol and Decimals. This Decimals value
-/// is used to convert an Amount.Value from atomic units (Satoshis) to standard
-/// units (Bitcoins).
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+/// `Currency` is composed of a canonical Symbol and Decimals. This Decimals
+/// value is used to convert an Amount.Value from atomic units (Satoshis) to
+/// standard units (Bitcoins).
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Currency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,
@@ -20,4 +22,13 @@ pub struct Currency {
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     #[serde(default)]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl From<String> for Currency {
+    fn from(symbol: String) -> Self {
+        Self {
+            symbol,
+            ..Default::default()
+        }
+    }
 }

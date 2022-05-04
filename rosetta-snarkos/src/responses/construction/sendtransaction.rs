@@ -1,28 +1,21 @@
 use mentat::{
-    api::MentatResponse,
     identifiers::TransactionIdentifier,
+    indexmap::IndexMap,
     responses::TransactionIdentifierResponse,
-    IndexMap,
-    Json,
 };
 
 use super::*;
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(crate = "mentat::serde")]
-pub struct SendTransactionResponse {
-    _jsonrpc: String,
-    result: String,
-    _id: String,
-}
 
-impl From<SendTransactionResponse> for MentatResponse<TransactionIdentifierResponse> {
-    fn from(response: SendTransactionResponse) -> MentatResponse<TransactionIdentifierResponse> {
-        Ok(Json(TransactionIdentifierResponse {
-            transaction_identifier: TransactionIdentifier {
-                hash: response.result,
-            },
+pub struct SendTransactionResult(String);
+
+impl From<SendTransactionResult> for TransactionIdentifierResponse {
+    fn from(result: SendTransactionResult) -> TransactionIdentifierResponse {
+        TransactionIdentifierResponse {
+            transaction_identifier: TransactionIdentifier { hash: result.0 },
             metadata: IndexMap::new(),
-        }))
+        }
     }
 }

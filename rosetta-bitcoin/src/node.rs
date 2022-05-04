@@ -1,12 +1,13 @@
-use std::{path::PathBuf, process::Command};
+use std::{path::PathBuf, process::Command, str::FromStr};
 
 use mentat::{
-    async_trait,
+    axum::async_trait,
     conf::{Configuration, NodeConf},
+    reqwest::Url,
     serde::{Deserialize, Serialize},
 };
 
-#[derive(Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(crate = "mentat::serde")]
 pub struct NodeConfig {
     data_dir: PathBuf,
@@ -16,19 +17,19 @@ pub struct NodeConfig {
 
 #[async_trait]
 impl NodeConf for NodeConfig {
-    fn node_name() -> String {
-        String::from("Bitcoin")
-    }
+    const BLOCKCHAIN: &'static str = "Bitcoin";
 
-    fn build_url(conf: &Configuration<Self>) -> String {
-        format!(
+    fn build_url(conf: &Configuration<Self>) -> Url {
+        let url = format!(
             "{}://{}:{}@{}:{}",
             if conf.secure_http { "https" } else { "http" },
             conf.custom.user,
             conf.custom.pass,
             conf.node_address,
             conf.node_rpc_port
-        )
+        );
+
+        Url::from_str(&url).expect("Invalid node url: {url}")
     }
 
     fn node_command(config: &Configuration<Self>) -> Command {

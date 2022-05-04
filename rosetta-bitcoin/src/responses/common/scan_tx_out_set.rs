@@ -1,9 +1,9 @@
 use mentat::{
     identifiers::BlockIdentifier,
+    indexmap::IndexMap,
     models::{Amount, Currency},
     responses::AccountBalanceResponse,
     serde::Deserialize,
-    IndexMap,
 };
 
 // #[derive(Clone, Debug, Deserialize)]
