@@ -82,10 +82,14 @@ impl DataApi for BitcoinDataApi {
                     "OUTPUT".to_owned(),
                 ],
                 errors: vec![
-                    ApiError::not_implemented(),
-                    ApiError::wrong_network("payload"),
-                    ApiError::invalid_account_format(),
-                    ApiError::unable_to_find_transaction("hash"),
+                    MentatError::not_implemented::<u8>()
+                        .expect_err("creating an error somehow resulted in an Ok"),
+                    MentatError::wrong_network::<_, u8>("payload")
+                        .expect_err("creating an error somehow resulted in an Ok"),
+                    MentatError::invalid_account_format::<u8>()
+                        .expect_err("creating an error somehow resulted in an Ok"),
+                    MentatError::unable_to_find_transaction::<u8>("hash")
+                        .expect_err("creating an error somehow resulted in an Ok"),
                 ],
                 historical_balance_lookup: true,
                 timestamp_start_index: None,
