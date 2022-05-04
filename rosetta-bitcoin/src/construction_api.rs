@@ -188,16 +188,16 @@ impl ConstructionApi for BitcoinConstructionApi {
         let coins = data
             .metadata
             .get("coins")
-            .ok_or(MentatError::from("no coins provided"))?
+            .ok_or_else(|| MentatError::from("no coins provided"))?
             .as_array()
-            .ok_or(MentatError::from("malformed coins field in metadata"))?;
+            .ok_or_else(|| MentatError::from("malformed coins field in metadata"))?;
         for coin in coins.iter() {
             let items: Vec<&str> = coin
                 .get("coin_identifier")
-                .ok_or(MentatError::from("no coin identifier on coin struct"))?
+                .ok_or_else(|| MentatError::from("no coin identifier on coin struct"))?
                 .as_str()
-                .ok_or(MentatError::from("coin identifier is wrong type"))?
-                .split(":")
+                .ok_or_else(|| MentatError::from("coin identifier is wrong type"))?
+                .split(':')
                 .collect();
             let (txid, vout) = (items[0], items[1]);
             tx.input.push(TxIn {
@@ -245,7 +245,7 @@ impl ConstructionApi for BitcoinConstructionApi {
                     value: op
                         .amount
                         .as_ref()
-                        .ok_or(MentatError::from("no amount for payment operation"))?
+                        .ok_or_else(|| MentatError::from("no amount for payment operation"))?
                         .value
                         .parse::<isize>()
                         .map_err(|_| MentatError::from("invalid value"))?
@@ -254,7 +254,9 @@ impl ConstructionApi for BitcoinConstructionApi {
                         &PubkeyHash::from_str(
                             &op.account
                                 .as_ref()
-                                .ok_or(MentatError::from("no account for payment operation"))?
+                                .ok_or_else(|| {
+                                    MentatError::from("no account for payment operation")
+                                })?
                                 .address,
                         )
                         .map_err(|_| MentatError::from("invalid address"))?,
@@ -281,15 +283,13 @@ impl ConstructionApi for BitcoinConstructionApi {
             .operations
             .iter()
             .filter_map(|operation| {
-                if let Some(coin_change) = &operation.coin_change {
-                    if let Some(amount) = &operation.amount {
-                        Some(Coin {
-                            coin_identifier: coin_change.coin_identifier.clone(),
-                            amount: amount.clone(),
-                        })
-                    } else {
-                        None
-                    }
+                if let (Some(coin_change), Some(amount)) =
+                    (&operation.coin_change, &operation.amount)
+                {
+                    Some(Coin {
+                        coin_identifier: coin_change.coin_identifier.clone(),
+                        amount: amount.clone(),
+                    })
                 } else {
                     None
                 }
