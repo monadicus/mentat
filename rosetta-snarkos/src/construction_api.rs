@@ -25,8 +25,8 @@ impl ConstructionApi for SnarkosConstructionApi {
         data: ConstructionSubmitRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        let result: SendTransactionResult = rpc_caller
-            .rpc_call::<_, _, Response<SendTransactionResult>>(SnarkosJrpc::new(
+        let result = rpc_caller
+            .rpc_call::<Response<SendTransactionResult>>(SnarkosJrpc::new(
                 "sendtransaction",
                 vec![data.signed_transaction],
             ))

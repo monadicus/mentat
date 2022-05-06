@@ -28,11 +28,8 @@ impl DataApi for SnarkosDataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockResponse> {
         if let Some(block_id) = data.block_identifier.index {
-            let result: BlockResult = rpc_caller
-                .rpc_call::<_, _, Response<BlockResult>>(SnarkosJrpc::new(
-                    "getblock",
-                    vec![block_id],
-                ))
+            let result = rpc_caller
+                .rpc_call::<Response<BlockResult>>(SnarkosJrpc::new("getblock", vec![block_id]))
                 .await?;
             Ok(Json(result.into()))
         } else {
@@ -46,14 +43,14 @@ impl DataApi for SnarkosDataApi {
         data: BlockTransactionRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockTransactionResponse> {
-        let first: GetTransactionResult = rpc_caller
-            .rpc_call::<_, _, Response<GetTransactionResult>>(SnarkosJrpc::new(
+        let first = rpc_caller
+            .rpc_call::<Response<GetTransactionResult>>(SnarkosJrpc::new(
                 "gettransaction",
                 vec![data.block_identifier.hash],
             ))
             .await?;
-        let second: SnarkosTransactions = rpc_caller
-            .rpc_call::<_, _, Response<SnarkosTransactions>>(SnarkosJrpc::new(
+        let second = rpc_caller
+            .rpc_call::<Response<SnarkosTransactions>>(SnarkosJrpc::new(
                 "getblocktransactions",
                 vec![data.block_identifier.index],
             ))
@@ -68,8 +65,8 @@ impl DataApi for SnarkosDataApi {
         _data: NetworkRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
-        let result: GetMemoryPoolResult = rpc_caller
-            .rpc_call::<_, _, Response<GetMemoryPoolResult>>(SnarkosJrpc::new(
+        let result = rpc_caller
+            .rpc_call::<Response<GetMemoryPoolResult>>(SnarkosJrpc::new(
                 "getmemorypool",
                 Vec::<()>::new(),
             ))

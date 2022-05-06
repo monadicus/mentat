@@ -17,8 +17,10 @@ pub struct RpcCaller {
     pub node_rpc_url: reqwest::Url,
 }
 
-pub trait RpcResponse<O: DeserializeOwned>: DeserializeOwned {
-    fn unwrap_response(self) -> Result<O>;
+pub trait RpcResponse: DeserializeOwned {
+    type I: Serialize;
+    type O;
+    fn unwrap_response(self) -> Result<Self::O>;
 }
 
 impl RpcCaller {
@@ -32,10 +34,7 @@ impl RpcCaller {
         }
     }
 
-    pub async fn rpc_call<B: Serialize, O: DeserializeOwned, R: RpcResponse<O>>(
-        &self,
-        req: B,
-    ) -> Result<O> {
+    pub async fn rpc_call<R: RpcResponse>(&self, req: R::I) -> Result<R::O> {
         let resp = self
             .client
             .post(self.node_rpc_url.clone())

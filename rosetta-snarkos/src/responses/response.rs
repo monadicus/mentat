@@ -7,6 +7,8 @@ use mentat::{
     tracing,
 };
 
+use crate::request::SnarkosJrpc;
+
 use super::ErrorResponse;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -25,11 +27,13 @@ pub enum Response<O> {
     Err(ErrorResponse),
 }
 
-impl<O> RpcResponse<O> for Response<O>
+impl<O> RpcResponse for Response<O>
 where
     O: Debug + DeserializeOwned,
 {
-    fn unwrap_response(self) -> Result<O> {
+    type I = SnarkosJrpc;
+    type O = O;
+    fn unwrap_response(self) -> Result<Self::O> {
         match self {
             Response::Ok(res) => {
                 tracing::debug!("res: {res:#?}");
