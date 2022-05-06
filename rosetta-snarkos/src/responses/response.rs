@@ -7,9 +7,8 @@ use mentat::{
     tracing,
 };
 
-use crate::request::SnarkosJrpc;
-
 use super::ErrorResponse;
+use crate::request::SnarkosJrpc;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
@@ -33,6 +32,7 @@ where
 {
     type I = SnarkosJrpc;
     type O = O;
+
     fn unwrap_response(self) -> Result<Self::O> {
         match self {
             Response::Ok(res) => {

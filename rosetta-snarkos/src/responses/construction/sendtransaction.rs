@@ -1,5 +1,6 @@
 use mentat::{
-    identifiers::TransactionIdentifier, indexmap::IndexMap,
+    identifiers::TransactionIdentifier,
+    indexmap::IndexMap,
     responses::TransactionIdentifierResponse,
 };
 
