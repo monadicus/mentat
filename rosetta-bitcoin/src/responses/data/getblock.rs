@@ -1,13 +1,7 @@
 use futures::future::join_all;
 use mentat::{
-    api::MentatResponse,
-    axum::Json,
-    errors::*,
-    identifiers::BlockIdentifier,
-    indexmap::IndexMap,
-    models::Block,
-    responses::BlockResponse,
-    server::RpcCaller,
+    api::MentatResponse, axum::Json, errors::*, identifiers::BlockIdentifier, indexmap::IndexMap,
+    models::Block, responses::BlockResponse, server::RpcCaller,
 };
 
 use super::*;

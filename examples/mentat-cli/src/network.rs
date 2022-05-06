@@ -1,9 +1,6 @@
 use clap::Parser;
 use mentat::{
-    anyhow::Result,
-    client::Client,
-    identifiers::NetworkIdentifier,
-    requests::MetadataRequest,
+    anyhow::Result, client::Client, identifiers::NetworkIdentifier, requests::MetadataRequest,
 };
 
 #[derive(Parser)]

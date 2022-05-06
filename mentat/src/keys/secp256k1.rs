@@ -1,13 +1,6 @@
 use secp256k1::{
-    ecdsa::Signature,
-    hashes::sha256,
-    schnorr::Signature as SchnorrSignature,
-    KeyPair,
-    Message,
-    PublicKey,
-    Secp256k1,
-    SecretKey,
-    XOnlyPublicKey,
+    ecdsa::Signature, hashes::sha256, schnorr::Signature as SchnorrSignature, KeyPair, Message,
+    PublicKey, Secp256k1, SecretKey, XOnlyPublicKey,
 };
 
 use super::{Keys, KeysError};

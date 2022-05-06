@@ -1,8 +1,6 @@
 use p256::ecdsa::{
     signature::{Signer, Verifier},
-    Signature,
-    SigningKey,
-    VerifyingKey,
+    Signature, SigningKey, VerifyingKey,
 };
 
 use super::{Keys, KeysError};
