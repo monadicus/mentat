@@ -1,6 +1,9 @@
 name: English (US)
 country_code: us
 navigation:
+  header:
+    links_github_aria: Link to mentat's Github repository
+    links_github_title: Mentat Github Repo
   home: Home
   not_found: Not Found
   loading: Loading
@@ -8,7 +11,16 @@ navigation:
     home: Home
     networks: Networks
     accounts: Accounts
+    blocks: Blocks
     transactions: Transactions
+views:
+  blocks:
+    genesis_block_label: Current Block
+    current_block_label: Genesis Block
+components:
+  blocks:
+    index_label: Index
+    hash_label: Hash
 connection:
   failed: Failed to Connect.
   invalid: Invalid Connection.

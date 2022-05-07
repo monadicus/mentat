@@ -6,9 +6,11 @@ export const theme: DefaultTheme = {
     width: 240,
   },
   colors: {
-    main: '#000066',
+    main: 'rgba(80, 80, 200, 1)',
+    mainHalf: 'rgba(80, 80, 200, 0.1)',
     dominant: '#000000',
-    accent: '#ffffff',
+    accent: 'rgb(255, 255, 255, 1)',
+    accentHalf: 'rgb(255, 255, 255, 0.5)',
     secondary: '#222222',
   },
 };

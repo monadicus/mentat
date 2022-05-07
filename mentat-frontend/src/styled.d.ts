@@ -8,8 +8,10 @@ declare module 'styled-components' {
     };
     colors: {
       main: string;
+      mainHalf: string;
       dominant: string;
       accent: string;
+      accentHalf: string;
       secondary: string;
     };
   }

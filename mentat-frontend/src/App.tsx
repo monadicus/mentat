@@ -4,11 +4,16 @@ import { Content } from './components/Content';
 import { SideNav } from './components/SideNav';
 import { I18n } from './features/i18n/components';
 import { useApi } from './features/rosetta/hooks';
+import { NetworkIdentifier } from './features/rosetta/models';
+
+export const NetworkIdentContext = React.createContext<NetworkIdentifier>(null);
+
+export const useNetId = () => React.useContext(NetworkIdentContext);
 
 export const App = () => {
-  const [status, resp] = useApi<{ network_identifiers: unknown[] }>(
-    '/network/list'
-  );
+  const [status, resp] = useApi<{
+    network_identifiers: NetworkIdentifier[];
+  }>('/network/list');
 
   let message: JSX.Element;
   if (status !== 'ok') {
@@ -20,8 +25,12 @@ export const App = () => {
 
   return (
     <>
-      <SideNav />
-      <Content>{message ?? <Outlet />}</Content>
+      <NetworkIdentContext.Provider
+        value={resp?.network_identifiers?.[0] ?? null}
+      >
+        <SideNav />
+        <Content>{message ?? <Outlet />}</Content>
+      </NetworkIdentContext.Provider>
     </>
   );
 };

@@ -20,9 +20,8 @@ export const SideNavStyle = styled.div<SideNavProps>`
   .items {
     display: grid;
     grid-template-columns: auto 1fr;
-    grid-auto-rows: ${props => props.theme.margin * 4}px;
-    grid-gap: ${props => props.theme.margin}px 0;
-    padding: ${props => props.theme.margin}px;
+    grid-auto-rows: ${props => props.theme.margin * 3}px;
+    grid-gap: 0;
     align-items: stretch;
 
     a.nav-link {
@@ -31,8 +30,18 @@ export const SideNavStyle = styled.div<SideNavProps>`
       &.active {
         .icon,
         .label {
-          background-color: ${props => props.theme.colors.accent};
+          background-color: ${props => props.theme.colors.mainHalf};
           color: ${props => props.theme.colors.main};
+        }
+        .icon {
+          border-color: ${props => props.theme.colors.main};
+        }
+      }
+
+      &:hover {
+        .icon,
+        .label {
+          background-color: ${props => props.theme.colors.mainHalf};
         }
       }
 
@@ -42,6 +51,9 @@ export const SideNavStyle = styled.div<SideNavProps>`
         display: flex;
         align-items: center;
         color: ${props => props.theme.colors.accent};
+      }
+      .icon {
+        border-left: 4px solid transparent;
       }
       .label {
         padding-left: 0;
