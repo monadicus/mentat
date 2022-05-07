@@ -4,13 +4,11 @@ use mentat::{
     errors::MentatError,
     requests::*,
     responses::*,
-    serde_json,
     server::RpcCaller,
     tracing,
 };
 
 use crate::{
-    jsonrpc_call,
     request::SnarkosJrpc,
     responses::{common::SnarkosTransactions, data::*, Response},
 };
@@ -30,11 +28,12 @@ impl DataApi for SnarkosDataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockResponse> {
         if let Some(block_id) = data.block_identifier.index {
-            Ok(Json(
-                jsonrpc_call!("getblock", vec![block_id], rpc_caller, BlockResult).into(),
-            ))
+            let result = rpc_caller
+                .rpc_call::<Response<BlockResult>>(SnarkosJrpc::new("getblock", vec![block_id]))
+                .await?;
+            Ok(Json(result.into()))
         } else {
-            Err(MentatError::from("wtf"))
+            Err(MentatError::from("todo"))
         }
     }
 
@@ -44,19 +43,19 @@ impl DataApi for SnarkosDataApi {
         data: BlockTransactionRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockTransactionResponse> {
-        let first = jsonrpc_call!(
-            "gettransaction",
-            vec![data.block_identifier.hash],
-            rpc_caller,
-            GetTransactionResult
-        );
+        let first = rpc_caller
+            .rpc_call::<Response<GetTransactionResult>>(SnarkosJrpc::new(
+                "gettransaction",
+                vec![data.block_identifier.hash],
+            ))
+            .await?;
+        let second = rpc_caller
+            .rpc_call::<Response<SnarkosTransactions>>(SnarkosJrpc::new(
+                "getblocktransactions",
+                vec![data.block_identifier.index],
+            ))
+            .await?;
         tracing::debug!("first {:#?}", first);
-        let second = jsonrpc_call!(
-            "getblocktransactions",
-            vec![data.block_identifier.index],
-            rpc_caller,
-            SnarkosTransactions
-        );
         Ok(Json(first + second))
     }
 
@@ -66,14 +65,12 @@ impl DataApi for SnarkosDataApi {
         _data: NetworkRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
-        Ok(Json(
-            jsonrpc_call!(
+        let result = rpc_caller
+            .rpc_call::<Response<GetMemoryPoolResult>>(SnarkosJrpc::new(
                 "getmemorypool",
                 Vec::<()>::new(),
-                rpc_caller,
-                GetMemoryPoolResult
-            )
-            .into(),
-        ))
+            ))
+            .await?;
+        Ok(Json(result.into()))
     }
 }

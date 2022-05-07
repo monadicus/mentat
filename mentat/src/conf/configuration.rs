@@ -14,9 +14,6 @@ use std::{
 use axum::async_trait;
 use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
-use tracing::Dispatch;
-use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
-use tracing_tree::HierarchicalLayer;
 
 use super::*;
 
@@ -92,32 +89,6 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
         Self::log(stderr, true);
 
         NodePid(Pid::from_u32(child.id()))
-    }
-
-    /// Sets up a tracing subscriber dispatch
-    fn setup_logging() -> Dispatch {
-        let tracer = opentelemetry_jaeger::new_pipeline()
-            .install_batch(opentelemetry::runtime::Tokio)
-            .unwrap_or_else(|e| panic!("Failed to start opentelemtry_jaeger: `{e}`"));
-        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-
-        Registry::default()
-            .with(EnvFilter::new(
-                std::env::var("RUST_LOG").unwrap_or_else(|_| "debug,tower_http=debug".to_string()),
-            ))
-            .with(
-                HierarchicalLayer::new(2)
-                    .with_targets(true)
-                    .with_bracketed_fields(true),
-            )
-            .with(tracing_error::ErrorLayer::default())
-            .with(telemetry)
-            .into()
-    }
-
-    /// Shuts down any necessary logging details for Mentat.
-    fn teardown_logging() {
-        opentelemetry::global::shutdown_tracer_provider();
     }
 
     /// Used to control how the node logs its output to the console.

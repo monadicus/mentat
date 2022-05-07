@@ -88,3 +88,73 @@ impl_secp_scheme!(
     },
     SchnorrSignature
 );
+
+#[cfg(test)]
+mod tests {
+    use secp256k1::rand::{self, Rng};
+
+    use super::*;
+
+    #[test]
+    fn import_ecdsa() {
+        let secp = Secp256k1::new();
+        let (secret_key, _) = secp.generate_keypair(&mut rand::thread_rng());
+        let bytes = secret_key.secret_bytes();
+        assert!(ECDSA::import_private_key(&bytes).is_ok());
+    }
+
+    #[test]
+    fn import_ecdsa_recoverable() {
+        let secp = Secp256k1::new();
+        let (secret_key, _) = secp.generate_keypair(&mut rand::thread_rng());
+        let bytes = secret_key.secret_bytes();
+        assert!(ECDSARecoverable::import_private_key(&bytes).is_ok());
+    }
+
+    #[test]
+    fn import_schnorr() {
+        let secp = Secp256k1::new();
+        let (secret_key, _) = secp.generate_keypair(&mut rand::thread_rng());
+        let bytes = secret_key.secret_bytes();
+        assert!(Schnorr::import_private_key(&bytes).is_ok());
+    }
+
+    #[test]
+    fn sign_verify_ecdsa() {
+        let secp = Secp256k1::new();
+        let (secret_key, _) = secp.generate_keypair(&mut rand::thread_rng());
+        let bytes = secret_key.secret_bytes();
+        let keys = ECDSA::import_private_key(&bytes).unwrap();
+        let message = (0..32)
+            .map(|_| rand::thread_rng().gen::<u8>())
+            .collect::<Vec<u8>>();
+        let sig = keys.sign(&message).unwrap();
+        assert!(keys.verify(&message, &sig).unwrap());
+    }
+
+    #[test]
+    fn sign_verify_ecdsa_recoverable() {
+        let secp = Secp256k1::new();
+        let (secret_key, _) = secp.generate_keypair(&mut rand::thread_rng());
+        let bytes = secret_key.secret_bytes();
+        let keys = ECDSARecoverable::import_private_key(&bytes).unwrap();
+        let message = (0..32)
+            .map(|_| rand::thread_rng().gen::<u8>())
+            .collect::<Vec<u8>>();
+        let sig = keys.sign(&message).unwrap();
+        assert!(keys.verify(&message, &sig).unwrap());
+    }
+
+    #[test]
+    fn sign_verify_schnorr() {
+        let secp = Secp256k1::new();
+        let (secret_key, _) = secp.generate_keypair(&mut rand::thread_rng());
+        let bytes = secret_key.secret_bytes();
+        let keys = Schnorr::import_private_key(&bytes).unwrap();
+        let message = (0..32)
+            .map(|_| rand::thread_rng().gen::<u8>())
+            .collect::<Vec<u8>>();
+        let sig = keys.sign(&message).unwrap();
+        assert!(keys.verify(&message, &sig).unwrap());
+    }
+}

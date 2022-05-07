@@ -98,7 +98,7 @@ mod server_exports {
             api::*,
             cache::Cache,
             conf::Configuration,
-            server::{RpcCaller, Server},
+            server::{RpcCaller, RpcResponse, Server},
             *,
         };
         pub use crate::requests::*;

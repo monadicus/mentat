@@ -32,3 +32,29 @@ impl Keys for Secp256r1Keys {
         Ok(self.pub_key.verify(message, signature).is_ok())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rand::{rngs::OsRng, Rng};
+
+    use super::*;
+
+    #[test]
+    fn import() {
+        let sk = SigningKey::random(&mut OsRng {});
+        let bytes = sk.to_bytes();
+        assert!(Secp256r1Keys::import_private_key(&bytes).is_ok());
+    }
+
+    #[test]
+    fn sign_verify() {
+        let sk = SigningKey::random(&mut OsRng {});
+        let bytes = sk.to_bytes();
+        let keys = Secp256r1Keys::import_private_key(&bytes).unwrap();
+        let message = (0..32)
+            .map(|_| rand::thread_rng().gen::<u8>())
+            .collect::<Vec<u8>>();
+        let sig = keys.sign(&message).unwrap();
+        assert!(keys.verify(&message, &sig).unwrap());
+    }
+}
