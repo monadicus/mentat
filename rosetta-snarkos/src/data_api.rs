@@ -1,7 +1,6 @@
 use mentat::{
     api::{Caller, CallerDataApi, DataApi, MentatResponse},
     axum::{async_trait, Json},
-    errors::MentatError,
     requests::*,
     responses::*,
     server::RpcCaller,
@@ -33,7 +32,7 @@ impl DataApi for SnarkosDataApi {
                 .await?;
             Ok(Json(result.into()))
         } else {
-            Err(MentatError::from("todo"))
+            Err("todo".into())
         }
     }
 

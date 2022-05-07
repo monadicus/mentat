@@ -62,7 +62,7 @@ impl IndexerApi for BitcoinIndexerApi {
             Err(e) => {
                 return Err(match serde_json::from_str(&e.to_string()) {
                     Ok(s) => MentatError::Internal(s),
-                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
+                    Err(_) => format!("unhandled rosetta-bitcoin error: {}", e).into(),
                 });
             }
         };

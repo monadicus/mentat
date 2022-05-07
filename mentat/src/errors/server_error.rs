@@ -113,5 +113,35 @@ impl IntoResponse for MentatError {
     }
 }
 
+/// allows you to easily return a MentatError instead of a none/err
+pub trait IntoMentat<F> {
+    /// the type to return
+    type T;
+    /// like unwrap_or_else except just returns a mentat error using the given string
+    fn unwrap_or_mentat(self, err: F) -> Result<Self::T, MentatError>;
+}
+
+impl<T, O: Display, F: FnOnce() -> O> IntoMentat<F> for Option<T> {
+    type T = T;
+
+    fn unwrap_or_mentat(self, err: F) -> Result<Self::T, MentatError> {
+        match self {
+            Some(t) => Ok(t),
+            None => Err(MentatError::from(err())),
+        }
+    }
+}
+
+impl<T, E, O: Display, F: FnOnce(E) -> O> IntoMentat<F> for Result<T, E> {
+    type T = T;
+
+    fn unwrap_or_mentat(self, err: F) -> Result<Self::T, MentatError> {
+        match self {
+            Ok(t) => Ok(t),
+            Err(e) => Err(MentatError::from(err(e))),
+        }
+    }
+}
+
 /// The Result type for Mentat to always return a `MentatError`.
 pub type Result<T, E = MentatError> = std::result::Result<T, E>;
