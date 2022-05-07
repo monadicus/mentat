@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use mentat::{
     errors::{MentatError, Result},
     serde::{de::DeserializeOwned, Deserialize},
@@ -5,11 +7,8 @@ use mentat::{
     tracing,
 };
 
-use crate::request::BitcoinJrpc;
-
 use super::ErrorResponse;
-
-use std::fmt::Debug;
+use crate::request::BitcoinJrpc;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]

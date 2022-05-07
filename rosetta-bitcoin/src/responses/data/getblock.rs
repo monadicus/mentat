@@ -1,7 +1,12 @@
 use futures::future::join_all;
 use mentat::{
-    api::MentatResponse, axum::Json, errors::*, identifiers::BlockIdentifier,
-    models::Block, responses::BlockResponse, server::RpcCaller,
+    api::MentatResponse,
+    axum::Json,
+    errors::*,
+    identifiers::BlockIdentifier,
+    models::Block,
+    responses::BlockResponse,
+    server::RpcCaller,
 };
 
 use super::*;
@@ -57,19 +62,17 @@ impl GetBlockResponse {
                     hash: self.previousblockhash,
                 },
                 timestamp: self.time * 1000,
-                metadata: 
-                    [
-                        ("bits".to_string(), self.bits.into()),
-                        ("difficulty".to_string(), self.difficulty.into()),
-                        ("mediantime".to_string(), self.mediantime.into()),
-                        ("merkleroot".to_string(), self.merkleroot.into()),
-                        ("nonce".to_string(), self.nonce.into()),
-                        ("size".to_string(), self.size.into()),
-                        ("version".to_string(), self.version.into()),
-                        ("weight".to_string(), self.weight.into()),
-                    ]
-                    .into()
-                ,
+                metadata: [
+                    ("bits".to_string(), self.bits.into()),
+                    ("difficulty".to_string(), self.difficulty.into()),
+                    ("mediantime".to_string(), self.mediantime.into()),
+                    ("merkleroot".to_string(), self.merkleroot.into()),
+                    ("nonce".to_string(), self.nonce.into()),
+                    ("size".to_string(), self.size.into()),
+                    ("version".to_string(), self.version.into()),
+                    ("weight".to_string(), self.weight.into()),
+                ]
+                .into(),
             }),
             other_transactions: None,
         }))

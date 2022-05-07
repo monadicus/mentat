@@ -3,7 +3,13 @@ use std::str::FromStr;
 use bitcoin::{
     hash_types::PubkeyHash,
     psbt::serialize::{Deserialize, Serialize},
-    OutPoint, Script, Transaction, TxIn, TxOut, Txid, Witness,
+    OutPoint,
+    Script,
+    Transaction,
+    TxIn,
+    TxOut,
+    Txid,
+    Witness,
 };
 use mentat::{
     api::{Caller, CallerConstructionApi, ConstructionApi, MentatResponse},
@@ -166,7 +172,8 @@ impl ConstructionApi for BitcoinConstructionApi {
         }))
     }
 
-    // todo 0rphon: can clean this up once generalized jsonrpc_call is merged into this branch
+    // todo 0rphon: can clean this up once generalized jsonrpc_call is merged into
+    // this branch
     async fn payloads(
         &self,
         _caller: Caller,
