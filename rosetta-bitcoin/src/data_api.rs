@@ -8,12 +8,11 @@ use mentat::{
     models::Allow,
     requests::*,
     responses::*,
-    serde_json::{self, json},
+    serde_json::json,
     server::RpcCaller,
 };
 
 use crate::{
-    jsonrpc_call,
     request::{trim_hash, BitcoinJrpc, ScanObjectsDescriptor},
     responses::{
         common::{BitcoinTransaction, GetNetworkInfo, PeerInfo, ScanTxOutSetResult},
@@ -37,13 +36,13 @@ impl DataApi for BitcoinDataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkListResponse> {
         Ok(Json(
-            jsonrpc_call!(
-                "getblockchaininfo",
-                vec![] as Vec<u8>,
-                rpc_caller,
-                GetBlockchainInfoResponse
-            )
-            .into(),
+            rpc_caller
+                .rpc_call::<Response<GetBlockchainInfoResponse>>(BitcoinJrpc::new(
+                    "getblockchaininfo",
+                    &[] as &[u8],
+                ))
+                .await?
+                .into(),
         ))
     }
 
@@ -54,13 +53,10 @@ impl DataApi for BitcoinDataApi {
         _data: NetworkRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkOptionsResponse> {
-        let node_version = jsonrpc_call!(
-            "getnetworkinfo",
-            vec![] as Vec<u8>,
-            rpc_caller,
-            GetNetworkInfo
-        )
-        .version;
+        let node_version = rpc_caller
+            .rpc_call::<Response<GetNetworkInfo>>(BitcoinJrpc::new("getnetworkinfo", &[] as &[u8]))
+            .await?
+            .version;
 
         Ok(Json(NetworkOptionsResponse {
             version: Version {
@@ -107,21 +103,25 @@ impl DataApi for BitcoinDataApi {
         _data: NetworkRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkStatusResponse> {
-        let current_hash = jsonrpc_call!("getbestblockhash", vec![] as Vec<u8>, rpc_caller, String);
-        let current_block = jsonrpc_call!(
-            "getblock",
-            vec![json!(current_hash), json!(2)],
-            rpc_caller,
-            GetBlockResponse
-        );
+        let current_hash = rpc_caller
+            .rpc_call::<Response<String>>(BitcoinJrpc::new("getbestblockhash", &[] as &[u8]))
+            .await?;
+        let current_block = rpc_caller
+            .rpc_call::<Response<GetBlockResponse>>(BitcoinJrpc::new(
+                "getblock",
+                &[json!(current_hash), json!(2)],
+            ))
+            .await?;
 
-        let genesis_hash = jsonrpc_call!("getblockhash", vec![0], rpc_caller, String);
-        let genesis_block = jsonrpc_call!(
-            "getblock",
-            vec![json!(current_hash), json!(2)],
-            rpc_caller,
-            GetBlockResponse
-        );
+        let genesis_hash = rpc_caller
+            .rpc_call::<Response<String>>(BitcoinJrpc::new("getblockhash", &[0]))
+            .await?;
+        let genesis_block = rpc_caller
+            .rpc_call::<Response<GetBlockResponse>>(BitcoinJrpc::new(
+                "getblock",
+                &[json!(current_hash), json!(2)],
+            ))
+            .await?;
 
         Ok(Json(NetworkStatusResponse {
             current_block_identifier: BlockIdentifier {
@@ -135,7 +135,9 @@ impl DataApi for BitcoinDataApi {
             },
             oldest_block_identifier: None,
             sync_status: None,
-            peers: jsonrpc_call!("getpeerinfo", vec![] as Vec<u8>, rpc_caller, Vec<PeerInfo>)
+            peers: rpc_caller
+                .rpc_call::<Response<Vec<PeerInfo>>>(BitcoinJrpc::new("getpeerinfo", &[] as &[u8]))
+                .await?
                 .into_iter()
                 .map(|p| p.into())
                 .collect(),
@@ -152,15 +154,17 @@ impl DataApi for BitcoinDataApi {
             let range = if let Some(i) = id.index {
                 i
             } else if let Some(hash) = id.hash {
-                jsonrpc_call!(
-                    "getblock",
-                    vec![json!(hash), json!(2u32)],
-                    rpc_caller,
-                    GetBlockResponse
-                )
-                .height
+                rpc_caller
+                    .rpc_call::<Response<GetBlockResponse>>(BitcoinJrpc::new(
+                        "getblock",
+                        &[json!(hash), json!(2u32)],
+                    ))
+                    .await?
+                    .height
             } else {
-                jsonrpc_call!("getblockcount", vec![] as Vec<u8>, rpc_caller, u64)
+                rpc_caller
+                    .rpc_call::<Response<u64>>(BitcoinJrpc::new("getblockcount", &[] as &[u8]))
+                    .await?
             };
             vec![
                 json!("start"),
@@ -174,7 +178,10 @@ impl DataApi for BitcoinDataApi {
         };
 
         Ok(Json(
-            jsonrpc_call!("scantxoutset", args, rpc_caller, ScanTxOutSetResult).into(),
+            rpc_caller
+                .rpc_call::<Response<ScanTxOutSetResult>>(BitcoinJrpc::new("scantxoutset", &args))
+                .await?
+                .into(),
         ))
     }
 
@@ -196,19 +203,23 @@ impl DataApi for BitcoinDataApi {
         let hash = if let Some(block_hash) = data.block_identifier.hash {
             trim_hash(&block_hash).to_string()
         } else if let Some(block_id) = data.block_identifier.index {
-            jsonrpc_call!("getblockhash", vec![block_id], rpc_caller, String)
+            rpc_caller
+                .rpc_call::<Response<String>>(BitcoinJrpc::new("getblockhash", &[block_id]))
+                .await?
         } else {
-            jsonrpc_call!("getbestblockhash", vec![] as Vec<u8>, rpc_caller, String)
+            rpc_caller
+                .rpc_call::<Response<String>>(BitcoinJrpc::new("getbestblockhash", &[] as &[u8]))
+                .await?
         };
 
-        jsonrpc_call!(
-            "getblock",
-            vec![json!(hash), json!(2)],
-            rpc_caller,
-            GetBlockResponse
-        )
-        .into_block_response(&rpc_caller)
-        .await
+        rpc_caller
+            .rpc_call::<Response<GetBlockResponse>>(BitcoinJrpc::new(
+                "getblock",
+                &[json!(hash), json!(2)],
+            ))
+            .await?
+            .into_block_response(&rpc_caller)
+            .await
     }
 
     async fn block_transaction(
@@ -220,12 +231,12 @@ impl DataApi for BitcoinDataApi {
         let block_hash = trim_hash(&data.block_identifier.hash);
         let tx_hash = trim_hash(&data.transaction_identifier.hash);
 
-        let block = jsonrpc_call!(
-            "getblock",
-            vec![json!(block_hash), json!(2u32)],
-            rpc_caller,
-            GetBlockResponse
-        );
+        let block = rpc_caller
+            .rpc_call::<Response<GetBlockResponse>>(BitcoinJrpc::new(
+                "getblock",
+                &[json!(block_hash), json!(2u32)],
+            ))
+            .await?;
 
         if let Some((i, tx)) = block
             .tx
@@ -247,11 +258,12 @@ impl DataApi for BitcoinDataApi {
         _data: NetworkRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
-        let transaction_identifiers =
-            jsonrpc_call!("getrawmempool", vec![] as Vec<u8>, rpc_caller, Vec<String>)
-                .into_iter()
-                .map(|hash| TransactionIdentifier { hash })
-                .collect();
+        let transaction_identifiers = rpc_caller
+            .rpc_call::<Response<Vec<String>>>(BitcoinJrpc::new("getrawmempool", &[] as &[u8]))
+            .await?
+            .into_iter()
+            .map(|hash| TransactionIdentifier { hash })
+            .collect();
         Ok(Json(MempoolResponse {
             transaction_identifiers,
         }))
@@ -264,21 +276,23 @@ impl DataApi for BitcoinDataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolTransactionResponse> {
         let tx_hash = trim_hash(&data.transaction_identifier.hash);
-        let mempool = jsonrpc_call!("getrawmempool", vec![] as Vec<u8>, rpc_caller, Vec<String>);
+        let mempool = rpc_caller
+            .rpc_call::<Response<Vec<String>>>(BitcoinJrpc::new("getrawmempool", &[] as &[u8]))
+            .await?;
 
         if let Some((i, _)) = mempool
             .into_iter()
             .enumerate()
             .find(|(_, id)| id.as_str() == tx_hash)
         {
-            let transaction = jsonrpc_call!(
-                "getrawtransaction",
-                vec![json!(tx_hash), json!(true)],
-                rpc_caller,
-                BitcoinTransaction
-            )
-            .into_transaction(i, &rpc_caller)
-            .await?;
+            let transaction = rpc_caller
+                .rpc_call::<Response<BitcoinTransaction>>(BitcoinJrpc::new(
+                    "getrawtransaction",
+                    &[json!(tx_hash), json!(true)],
+                ))
+                .await?
+                .into_transaction(i, &rpc_caller)
+                .await?;
             Ok(Json(MempoolTransactionResponse {
                 transaction,
                 metadata: IndexMap::new(),

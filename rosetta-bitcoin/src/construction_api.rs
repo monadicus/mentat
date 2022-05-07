@@ -20,7 +20,6 @@ use mentat::{
 use serde_json::json;
 
 use crate::{
-    jsonrpc_call,
     request::BitcoinJrpc,
     responses::{
         common::{BitcoinTransaction, FeeEstimate},
@@ -66,7 +65,9 @@ impl ConstructionApi for BitcoinConstructionApi {
         // NOTE: This will get P2PKH SegWit addresses.
         // Most exchanges implement this as standard nowadays.
         let descriptor = format!("wpkh({})", data.public_key.hex_bytes);
-        let address = jsonrpc_call!("deriveaddresses", vec!(descriptor), rpc_caller, String);
+        let address = rpc_caller
+            .rpc_call::<Response<String>>(BitcoinJrpc::new("deriveaddresses", &[descriptor]))
+            .await?;
         Ok(Json(ConstructionDeriveResponse {
             address: None,
             account_identifier: Some(AccountIdentifier {
@@ -84,13 +85,13 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionHashRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        let hash = jsonrpc_call!(
-            "decoderawtransaction",
-            vec!(data.signed_transaction),
-            rpc_caller,
-            BitcoinTransaction
-        )
-        .hash;
+        let hash = rpc_caller
+            .rpc_call::<Response<BitcoinTransaction>>(BitcoinJrpc::new(
+                "decoderawtransaction",
+                &[data.signed_transaction],
+            ))
+            .await?
+            .hash;
         Ok(Json(TransactionIdentifierResponse {
             transaction_identifier: TransactionIdentifier { hash },
             metadata: IndexMap::new(),
@@ -103,16 +104,16 @@ impl ConstructionApi for BitcoinConstructionApi {
         _data: ConstructionMetadataRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
-        let suggested_fee = jsonrpc_call!(
-            "estimatesmartfee",
-            // NOTE: this might produce slower to confirm transactions, but they will be
-            // cheaper.
-            // May want to look into making this configurable.
-            vec![6],
-            rpc_caller,
-            FeeEstimate
-        )
-        .feerate;
+        let suggested_fee = rpc_caller
+            .rpc_call::<Response<FeeEstimate>>(BitcoinJrpc::new(
+                "estimatesmartfee",
+                // NOTE: this might produce slower to confirm transactions, but they will be
+                // cheaper.
+                // May want to look into making this configurable.
+                &[6],
+            ))
+            .await?
+            .feerate;
 
         Ok(Json(ConstructionMetadataResponse {
             metadata: Default::default(),
@@ -209,17 +210,17 @@ impl ConstructionApi for BitcoinConstructionApi {
 
         let mut payloads = vec![];
         for (i, input) in tx.input.iter().enumerate() {
-            let script_pub_key = jsonrpc_call!(
-                "getrawtransaction",
-                vec![json!(input.previous_output.txid.to_string()), json!(true)],
-                rpc_caller,
-                BitcoinTransaction
-            )
-            .vout
-            .into_iter()
-            .nth(input.previous_output.vout as usize)
-            .unwrap()
-            .scriptPubKey;
+            let script_pub_key = rpc_caller
+                .rpc_call::<Response<BitcoinTransaction>>(BitcoinJrpc::new(
+                    "getrawtransaction",
+                    &[json!(input.previous_output.txid.to_string()), json!(true)],
+                ))
+                .await?
+                .vout
+                .into_iter()
+                .nth(input.previous_output.vout as usize)
+                .unwrap()
+                .scriptPubKey;
 
             payloads.push(SigningPayload {
                 address: None,
@@ -310,12 +311,12 @@ impl ConstructionApi for BitcoinConstructionApi {
         data: ConstructionSubmitRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
-        let hash = jsonrpc_call!(
-            "sendrawtransaction",
-            vec!(data.signed_transaction),
-            rpc_caller,
-            String
-        );
+        let hash = rpc_caller
+            .rpc_call::<Response<String>>(BitcoinJrpc::new(
+                "sendrawtransaction",
+                &[data.signed_transaction],
+            ))
+            .await?;
         Ok(Json(TransactionIdentifierResponse {
             transaction_identifier: TransactionIdentifier { hash },
             metadata: IndexMap::new(),

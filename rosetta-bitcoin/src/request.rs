@@ -1,4 +1,7 @@
-use mentat::serde::Serialize;
+use mentat::{
+    serde::Serialize,
+    serde_json::{json, Value},
+};
 
 pub fn trim_hash(hash: &str) -> &str {
     if let Some(h) = hash.strip_prefix("0x") {
@@ -10,20 +13,20 @@ pub fn trim_hash(hash: &str) -> &str {
 
 #[derive(Debug, Serialize)]
 #[serde(crate = "mentat::serde")]
-pub struct BitcoinJrpc<P: Serialize> {
+pub struct BitcoinJrpc {
     jsonrpc: String,
     id: String,
     method: String,
-    params: Vec<P>,
+    params: Vec<Value>,
 }
 
-impl<P: Serialize> BitcoinJrpc<P> {
-    pub fn new(method: &str, params: Vec<P>) -> Self {
+impl BitcoinJrpc {
+    pub fn new<P: Serialize>(method: &str, params: &[P]) -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: "1".to_string(),
             method: method.to_string(),
-            params,
+            params: params.iter().map(|p| json!(p)).collect(),
         }
     }
 }

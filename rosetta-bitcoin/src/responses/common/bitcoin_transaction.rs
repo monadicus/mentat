@@ -14,7 +14,6 @@ use mentat::{
 
 use super::*;
 use crate::{
-    jsonrpc_call,
     request::{trim_hash, BitcoinJrpc},
     responses::Response,
 };
@@ -47,12 +46,12 @@ impl BitcoinVin {
     ) -> Result<Operation, MentatError> {
         let (account, amount) = match (&self.txid, self.vout) {
             (Some(id), Some(vout_idx)) => {
-                let transaction = jsonrpc_call!(
-                    "getrawtransaction",
-                    vec![json!(trim_hash(id)), json!(true)],
-                    rpc_caller,
-                    BitcoinTransaction
-                );
+                let transaction = rpc_caller
+                    .rpc_call::<Response<BitcoinTransaction>>(BitcoinJrpc::new(
+                        "getrawtransaction",
+                        &[json!(trim_hash(id)), json!(true)],
+                    ))
+                    .await?;
                 let vout = &transaction.vout[vout_idx as usize];
 
                 let account = AccountIdentifier {
@@ -222,12 +221,12 @@ impl BitcoinTransaction {
             },
             related_transactions: None,
             metadata: [
-                    ("size".to_string(), self.size.into()),
-                    ("version".to_string(), self.version.into()),
-                    ("vsize".to_string(), self.vsize.into()),
-                    ("weight".to_string(), self.weight.into()),
-                ]
-                .into(),
+                ("size".to_string(), self.size.into()),
+                ("version".to_string(), self.version.into()),
+                ("vsize".to_string(), self.vsize.into()),
+                ("weight".to_string(), self.weight.into()),
+            ]
+            .into(),
         })
     }
 }
