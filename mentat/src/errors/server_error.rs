@@ -117,7 +117,8 @@ impl IntoResponse for MentatError {
 pub trait MapErrMentat<F> {
     /// the type to return
     type T;
-    /// like `map_err` except returns a mentat error containing the output of the given closure as a string
+    /// like `map_err` except returns a mentat error containing the output of
+    /// the given closure as a string
     fn map_err_mentat(self, err: F) -> Result<Self::T, MentatError>;
 }
 
