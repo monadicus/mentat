@@ -3,13 +3,7 @@ use std::str::FromStr;
 use bitcoin::{
     hash_types::PubkeyHash,
     psbt::serialize::{Deserialize, Serialize},
-    OutPoint,
-    Script,
-    Transaction,
-    TxIn,
-    TxOut,
-    Txid,
-    Witness,
+    OutPoint, Script, Transaction, TxIn, TxOut, Txid, Witness,
 };
 use mentat::{
     api::{Caller, CallerConstructionApi, ConstructionApi, MentatResponse},
@@ -160,8 +154,7 @@ impl ConstructionApi for BitcoinConstructionApi {
                         .into_iter()
                         .enumerate()
                         .filter_map(|(i, vout)| {
-                            vout.into_operation((i + vin_len) as u64, hash.clone())
-                                .account
+                            vout.into_operation((i + vin_len) as u64, &hash).account
                         })
                         .collect(),
                 )
@@ -172,6 +165,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         }))
     }
 
+    // todo 0rphon: can clean this up once generalized jsonrpc_call is merged into this branch
     async fn payloads(
         &self,
         _caller: Caller,
@@ -191,15 +185,14 @@ impl ConstructionApi for BitcoinConstructionApi {
             .ok_or_else(|| MentatError::from("no coins provided"))?
             .as_array()
             .ok_or_else(|| MentatError::from("malformed coins field in metadata"))?;
-        for coin in coins.iter() {
-            let items: Vec<&str> = coin
+        for coin in coins {
+            let (txid, vout) = coin
                 .get("coin_identifier")
                 .ok_or_else(|| MentatError::from("no coin identifier on coin struct"))?
                 .as_str()
                 .ok_or_else(|| MentatError::from("coin identifier is wrong type"))?
-                .split(':')
-                .collect();
-            let (txid, vout) = (items[0], items[1]);
+                .split_once(':')
+                .ok_or_else(|| MentatError::from("invalid coin identifier format"))?;
             tx.input.push(TxIn {
                 previous_output: OutPoint {
                     txid: Txid::from_str(txid).map_err(|_| MentatError::from("invalid txid"))?,
@@ -216,35 +209,33 @@ impl ConstructionApi for BitcoinConstructionApi {
 
         let mut payloads = vec![];
         for (i, input) in tx.input.iter().enumerate() {
-            let transaction = jsonrpc_call!(
+            let script_pub_key = jsonrpc_call!(
                 "getrawtransaction",
                 vec![json!(input.previous_output.txid.to_string()), json!(true)],
                 rpc_caller,
                 BitcoinTransaction
-            );
+            )
+            .vout
+            .into_iter()
+            .nth(input.previous_output.vout as usize)
+            .unwrap()
+            .scriptPubKey;
+
             payloads.push(SigningPayload {
                 address: None,
                 account_identifier: None,
                 hex_bytes: tx
-                    .signature_hash(
-                        i,
-                        &transaction.vout[input.previous_output.vout as usize]
-                            .scriptPubKey
-                            .clone()
-                            .try_into()?,
-                        0,
-                    )
+                    .signature_hash(i, &script_pub_key.try_into()?, 0)
                     .to_string(),
                 signature_type: Some(SignatureType::Ecdsa),
             });
         }
 
-        for op in data.operations.iter() {
+        for op in data.operations {
             if op.type_ == "OUTPUT" {
                 tx.output.push(TxOut {
                     value: op
                         .amount
-                        .as_ref()
                         .ok_or_else(|| MentatError::from("no amount for payment operation"))?
                         .value
                         .parse::<isize>()
@@ -253,7 +244,6 @@ impl ConstructionApi for BitcoinConstructionApi {
                     script_pubkey: Script::new_p2pkh(
                         &PubkeyHash::from_str(
                             &op.account
-                                .as_ref()
                                 .ok_or_else(|| {
                                     MentatError::from("no account for payment operation")
                                 })?
@@ -301,10 +291,10 @@ impl ConstructionApi for BitcoinConstructionApi {
             options,
             required_public_keys: Some(
                 data.operations
-                    .iter()
+                    .into_iter()
                     .filter_map(|operation| {
                         if operation.account.is_some() {
-                            operation.account.clone()
+                            operation.account
                         } else {
                             None
                         }

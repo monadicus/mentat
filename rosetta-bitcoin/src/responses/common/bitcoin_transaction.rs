@@ -137,7 +137,7 @@ pub struct BitcoinVout {
 }
 
 impl BitcoinVout {
-    pub fn into_operation(self, index: u64, hash: String) -> Operation {
+    pub fn into_operation(self, index: u64, hash: &str) -> Operation {
         Operation {
             operation_identifier: OperationIdentifier {
                 index,
@@ -166,14 +166,11 @@ impl BitcoinVout {
                 },
                 coin_action: CoinAction::CoinCreated,
             }),
-            metadata: {
-                let mut map = IndexMap::new();
-                map.insert(
-                    "scriptPubKey".to_string(),
-                    serde_json::to_value(&self.scriptPubKey).unwrap(),
-                );
-                map
-            },
+            metadata: [(
+                "scriptPubKey".to_string(),
+                serde_json::to_value(&self.scriptPubKey).unwrap(),
+            )]
+            .into(),
         }
     }
 }
@@ -218,22 +215,19 @@ impl BitcoinTransaction {
                     self.vout
                         .into_iter()
                         .enumerate()
-                        .map(|(i, vout)| {
-                            vout.into_operation((i + vin_len) as u64, self.hash.clone())
-                        })
+                        .map(|(i, vout)| vout.into_operation((i + vin_len) as u64, &self.hash))
                         .collect::<Vec<_>>(),
                 );
                 out
             },
             related_transactions: None,
-            metadata: {
-                let mut map = IndexMap::new();
-                map.insert("size".to_string(), self.size.into());
-                map.insert("version".to_string(), self.version.into());
-                map.insert("vsize".to_string(), self.vsize.into());
-                map.insert("weight".to_string(), self.weight.into());
-                map
-            },
+            metadata: [
+                    ("size".to_string(), self.size.into()),
+                    ("version".to_string(), self.version.into()),
+                    ("vsize".to_string(), self.vsize.into()),
+                    ("weight".to_string(), self.weight.into()),
+                ]
+                .into(),
         })
     }
 }

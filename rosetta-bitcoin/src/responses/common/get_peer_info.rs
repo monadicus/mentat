@@ -1,4 +1,4 @@
-use mentat::{indexmap::IndexMap, misc::Peer, serde::Deserialize};
+use mentat::{misc::Peer, serde::Deserialize};
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(crate = "mentat::serde")]
@@ -44,20 +44,19 @@ impl From<PeerInfo> for Peer {
     fn from(peer: PeerInfo) -> Self {
         Self {
             peer_id: peer.addr.clone(),
-            metadata: {
-                let mut map = IndexMap::new();
-                map.insert(String::from("addr"), peer.addr.into());
-                map.insert(String::from("banscore"), peer.banscore.into());
-                map.insert(String::from("lastrecv"), peer.lastrecv.into());
-                map.insert(String::from("lastsend"), peer.lastsend.into());
-                map.insert(String::from("relaytxes"), peer.relaytxes.into());
-                map.insert(String::from("startingheight"), peer.startingheight.into());
-                map.insert(String::from("subver"), peer.subver.into());
-                map.insert(String::from("synced_blocks"), peer.synced_blocks.into());
-                map.insert(String::from("synced_headers"), peer.synced_headers.into());
-                map.insert(String::from("version"), peer.version.into());
-                map
-            },
+            metadata: [
+                ("addr".to_string(), peer.addr.into()),
+                ("banscore".to_string(), peer.banscore.into()),
+                ("lastrecv".to_string(), peer.lastrecv.into()),
+                ("lastsend".to_string(), peer.lastsend.into()),
+                ("relaytxes".to_string(), peer.relaytxes.into()),
+                ("startingheight".to_string(), peer.startingheight.into()),
+                ("subver".to_string(), peer.subver.into()),
+                ("synced_blocks".to_string(), peer.synced_blocks.into()),
+                ("synced_headers".to_string(), peer.synced_headers.into()),
+                ("version".to_string(), peer.version.into()),
+            ]
+            .into(),
         }
     }
 }
