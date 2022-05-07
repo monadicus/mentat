@@ -8,7 +8,7 @@ use crate::requests::NetworkRequest;
 #[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network, NodeConf},
-    errors::{Result},
+    errors::Result,
     server::ServerType,
 };
 

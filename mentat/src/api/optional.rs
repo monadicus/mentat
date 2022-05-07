@@ -2,12 +2,11 @@
 //! These traits are easily overridable for custom
 //! implementations.
 
-use crate::errors::MapErrMentat;
 use axum::async_trait;
 use sysinfo::{Pid, ProcessExt, System, SystemExt};
 
 use super::*;
-use crate::conf::NodePid;
+use crate::{conf::NodePid, errors::MapErrMentat};
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
