@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
+export const useLinkRoute = (...path: string[]) => {
+  const { endpoint } = useParams();
+  return `/${endpoint}/${path.map(s => encodeURIComponent(s)).join('/')}`;
+};
+
 /** Get the endpoint url from route params */
 export function useEndpointUrl() {
   const { endpoint } = useParams();

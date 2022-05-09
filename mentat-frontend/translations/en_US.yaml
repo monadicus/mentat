@@ -15,8 +15,17 @@ navigation:
     transactions: Transactions
 views:
   blocks:
-    genesis_block_label: Current Block
-    current_block_label: Genesis Block
+    genesis_block_label: Genesis Block
+    current_block_label: Current Block
+  block:
+    current_block_label: Current Block
+    parent_block_label: Parent Block
+    next_block_label: Next Block
+    meta_header: Meta
+    meta_timestamp_label: Timestamp
+    meta_transactions_label: Transactions
+    transactions_header: Transactions
+    account_text: Account
 components:
   blocks:
     index_label: Index

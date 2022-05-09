@@ -10,12 +10,15 @@ export const Home = () => {
 
   return (
     <>
-      <I18n name="navigation.home" />
+      <h2>
+        <I18n name="navigation.home" />
+      </h2>
       <br />
       {status === 'loading' && <I18n name="navigation.loading" />}
-      <pre>{JSON.stringify(resp, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(resp, null, 2)}</pre> */}
       {resp && (
         <>
+          <h3>Blocks</h3>
           <BlockId
             id={resp.current_block_identifier}
             label={i18n('views.blocks.current_block_label')}
@@ -24,6 +27,12 @@ export const Home = () => {
             id={resp.genesis_block_identifier}
             label={i18n('views.blocks.genesis_block_label')}
           />
+          <h3>Peers</h3>
+          <ul>
+            {resp.peers.map(p => (
+              <li key={p.peer_id}>{p.peer_id}</li>
+            ))}
+          </ul>
         </>
       )}
     </>

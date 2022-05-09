@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import { FaCubes, FaExchangeAlt, FaHome, FaUsers } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router';
 import { i18n } from '../../features/i18n/components';
+import { useLinkRoute } from '../../features/rosetta/hooks';
 import { toggleOpen } from '../../features/sidenav/reducer';
 import { selectSideNavOpen } from '../../features/sidenav/selectors';
 import { AppDispatch } from '../../store';
@@ -13,7 +13,6 @@ export const SideNav = () => {
   const open = useSelector(selectSideNavOpen);
   const dispatch = useDispatch<AppDispatch>();
   const toggleSideNav = useCallback(() => dispatch(toggleOpen()), [dispatch]);
-  const { endpoint } = useParams();
 
   return (
     <>
@@ -21,7 +20,7 @@ export const SideNav = () => {
       <SideNavStyle open={open}>
         <div className="items">
           <SideNavItem
-            to={`/${endpoint}/`}
+            to={useLinkRoute('')}
             name={i18n('navigation.sidenav.home')}
             icon={FaHome}
           />
@@ -31,17 +30,17 @@ export const SideNav = () => {
             icon={FaNetworkWired}
           /> */}
           <SideNavItem
-            to={`/${endpoint}/accounts`}
+            to={useLinkRoute('accounts')}
             name={i18n('navigation.sidenav.accounts')}
             icon={FaUsers}
           />
           <SideNavItem
-            to={`/${endpoint}/blocks`}
+            to={useLinkRoute('blocks')}
             name={i18n('navigation.sidenav.blocks')}
             icon={FaCubes}
           />
           <SideNavItem
-            to={`/${endpoint}/transactions`}
+            to={useLinkRoute('transactions')}
             name={i18n('navigation.sidenav.transactions')}
             icon={FaExchangeAlt}
           />

@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { ApiState, useApi } from './hooks';
-import { NetworkIdentifier, NetworkStatus } from './models';
+import { NetworkIdentifier, NetworkStatusResponse } from './models';
 
 export const useNetStatus = (
   netId: NetworkIdentifier
-): [ApiState, NetworkStatus | null] => {
+): [ApiState, NetworkStatusResponse | null] => {
   return useApi(
     '/network/status',
     useMemo(
