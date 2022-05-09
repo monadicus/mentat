@@ -14,9 +14,14 @@ navigation:
     blocks: Blocks
     transactions: Transactions
 views:
+  home:
+    blocks_header: Blocks
+    options_header: Options
+    peers_header: Peers
   blocks:
     genesis_block_label: Genesis Block
     current_block_label: Current Block
+    redirect_note: Redirecting to current block...
   block:
     current_block_label: Current Block
     parent_block_label: Parent Block
@@ -26,6 +31,9 @@ views:
     meta_transactions_label: Transactions
     transactions_header: Transactions
     account_text: Account
+  accounts:
+    no_followed_accounts_note: No Followed Accounts
+  account:
 components:
   blocks:
     index_label: Index

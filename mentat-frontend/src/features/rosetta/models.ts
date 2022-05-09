@@ -10,6 +10,39 @@ export type NetworkStatusResponse = {
   peers: { peer_id: string; metadata: Record<string, unknown> }[];
 };
 
+export type RosettaError = {
+  code: number;
+  message: string;
+  description: string;
+  retriable: boolean;
+  details: Record<string, unknown>;
+};
+
+export type NetworkOptionsResponse = {
+  version: {
+    rosetta_version: string;
+    node_version: string;
+    middleware_version: string;
+    metadata: Record<string, unknown>;
+  };
+  allow: {
+    operation_statuses: { status: string; successful: boolean }[];
+    operation_types: string[];
+    errors: RosettaError[];
+    historical_balance_lookup: boolean;
+    timestamp_start_index: number;
+    call_methods: string[];
+    balance_exemptions: {
+      sub_account_address: string;
+      currency: Currency;
+      exemption_type: string;
+    }[];
+    mempool_coins: boolean;
+    block_hash_case: string;
+    transaction_hash_case: string;
+  };
+};
+
 export type BlockIdentifier = {
   index: number;
   hash: string;
@@ -26,11 +59,11 @@ export type OperationIdentifier = {
 
 export type Account = {
   address: string;
-  sub_account: {
+  sub_account?: {
     address: string;
     metadata: Record<string, unknown>;
   };
-  metadata: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 };
 
 export type Currency = {

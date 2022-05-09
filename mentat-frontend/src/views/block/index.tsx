@@ -17,7 +17,7 @@ export const BlockView = () => {
     [hash, index]
   );
 
-  const [status, resp] = useApi<BlockResponse>(
+  const [, resp] = useApi<BlockResponse>(
     '/block',
     useMemo(
       () => ({
@@ -44,7 +44,6 @@ export const BlockView = () => {
 
   return (
     <BlockViewStyle>
-      <div>loading: {status}</div>
       {resp && (
         <>
           {resp.block.parent_block_identifier.index !==

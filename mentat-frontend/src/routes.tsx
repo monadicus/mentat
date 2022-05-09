@@ -1,7 +1,10 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import { App } from './App';
+import { AccountView } from './views/account';
+import { AccountsView } from './views/accounts';
 import { BlockView } from './views/block';
+import { BlocksView } from './views/blocks';
 import { Home } from './views/home';
 import { NotFound } from './views/NotFound';
 import { Root } from './views/Root';
@@ -14,11 +17,11 @@ export const Router = () => (
         <Route index element={<Home />} />
         {/* <Route path="networks" element={<NotFound />} /> */}
         <Route path="accounts">
-          <Route index element={<NotFound />} />
-          <Route path=":address" element={<NotFound />} />
+          <Route index element={<AccountsView />} />
+          <Route path=":address" element={<AccountView />} />
         </Route>
         <Route path="blocks">
-          <Route index element={<NotFound />} />
+          <Route index element={<BlocksView />} />
           <Route path="index/:index" element={<BlockView />} />
           <Route path="hash/:hash" element={<BlockView />} />
         </Route>

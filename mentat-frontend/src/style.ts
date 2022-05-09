@@ -2,6 +2,10 @@ import { createGlobalStyle } from 'styled-components';
 import media from 'styled-media-query';
 
 export const GlobalStyle = createGlobalStyle`
+  html {
+    height: 100%;
+  }
+
   body {
     box-sizing: border-box;
     margin: 0;
@@ -12,12 +16,14 @@ export const GlobalStyle = createGlobalStyle`
     display: flex;
     align-items: stretch;
     justify-content: stretch;
+    height: 100%;
 
     font-family: Arial, Helvetica, sans-serif;
 
     #app {
       display: grid;
       width: 100%;
+      height: 100%;
 
       ${media.greaterThan('medium')`
         grid-template: "topnav topnav" auto
