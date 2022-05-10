@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use mentat::{
-    errors::{MentatError, Result},
+    errors::{Result},
     serde::{de::DeserializeOwned, Deserialize},
     server::RpcResponse,
     tracing,
@@ -35,7 +35,7 @@ where
                 result: None,
                 error: Some(err),
             } => err.into(),
-            _ => Err(MentatError::from(format!("unknown response: {self:?}"))),
+            _ => Err(format!("unknown response: {self:?}").into()),
         }
     }
 }

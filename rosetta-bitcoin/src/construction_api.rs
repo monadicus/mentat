@@ -3,18 +3,12 @@ use std::str::FromStr;
 use bitcoin::{
     hash_types::PubkeyHash,
     psbt::serialize::{Deserialize, Serialize},
-    OutPoint,
-    Script,
-    Transaction,
-    TxIn,
-    TxOut,
-    Txid,
-    Witness,
+    OutPoint, Script, Transaction, TxIn, TxOut, Txid, Witness,
 };
 use mentat::{
     api::{Caller, CallerConstructionApi, ConstructionApi, MentatResponse},
     axum::{async_trait, Json},
-    errors::MentatError,
+    errors::MapErrMentat,
     identifiers::{AccountIdentifier, TransactionIdentifier},
     indexmap::IndexMap,
     models::{Amount, Coin, Currency, SignatureType, SigningPayload},
@@ -49,11 +43,11 @@ impl ConstructionApi for BitcoinConstructionApi {
     ) -> MentatResponse<ConstructionCombineResponse> {
         let mut tx = Transaction::deserialize(
             &hex::decode(data.unsigned_transaction)
-                .map_err(|_| MentatError::from("transaction malformed"))?,
+                .merr(|e| format!("transaction malformed: {e}"))?,
         )?;
         for (vin, sig) in tx.input.iter_mut().zip(data.signatures) {
             vin.script_sig = Script::from(
-                hex::decode(sig.hex_bytes).map_err(|_| MentatError::from("signature malformed"))?,
+                hex::decode(sig.hex_bytes).merr(|e| format!("signature malformed: {e}"))?,
             );
         }
 
@@ -142,8 +136,7 @@ impl ConstructionApi for BitcoinConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionParseResponse> {
         let tx = BitcoinTransaction::from(Transaction::deserialize(
-            &hex::decode(data.transaction)
-                .map_err(|_| MentatError::from("transaction malformed"))?,
+            &hex::decode(data.transaction).merr(|e| format!("transaction malformed: {e}"))?,
         )?);
 
         Ok(Json(ConstructionParseResponse {
@@ -190,23 +183,23 @@ impl ConstructionApi for BitcoinConstructionApi {
         let coins = data
             .metadata
             .get("coins")
-            .ok_or_else(|| MentatError::from("no coins provided"))?
+            .merr(|| "no coins provided")?
             .as_array()
-            .ok_or_else(|| MentatError::from("malformed coins field in metadata"))?;
+            .merr(|| "malformed coins field in metadata")?;
         for coin in coins {
             let (txid, vout) = coin
                 .get("coin_identifier")
-                .ok_or_else(|| MentatError::from("no coin identifier on coin struct"))?
+                .merr(|| "no coin identifier on coin struct")?
                 .as_str()
-                .ok_or_else(|| MentatError::from("coin identifier is wrong type"))?
+                .merr(|| "coin identifier is wrong type")?
                 .split_once(':')
-                .ok_or_else(|| MentatError::from("invalid coin identifier format"))?;
+                .merr(|| "invalid coin identifier format")?;
             tx.input.push(TxIn {
                 previous_output: OutPoint {
-                    txid: Txid::from_str(txid).map_err(|_| MentatError::from("invalid txid"))?,
+                    txid: Txid::from_str(txid).merr(|e| format!("invalid txid `{txid}`: {e}"))?,
                     vout: vout
                         .parse::<u32>()
-                        .map_err(|_| MentatError::from("invalid vout field"))?,
+                        .merr(|e| format!("invalid vout field `{vout}`: {e}"))?,
                 },
                 // This gets filled in later in `combine`.
                 script_sig: Script::new(),
@@ -244,20 +237,17 @@ impl ConstructionApi for BitcoinConstructionApi {
                 tx.output.push(TxOut {
                     value: op
                         .amount
-                        .ok_or_else(|| MentatError::from("no amount for payment operation"))?
+                        .merr(|| "no amount for payment operation")?
                         .value
                         .parse::<isize>()
-                        .map_err(|_| MentatError::from("invalid value"))?
-                        as u64,
+                        .merr(|e| format!("invalid value: {e}"))? as u64,
                     script_pubkey: Script::new_p2pkh(
                         &PubkeyHash::from_str(
                             &op.account
-                                .ok_or_else(|| {
-                                    MentatError::from("no account for payment operation")
-                                })?
+                                .merr(|| "no account for payment operation")?
                                 .address,
                         )
-                        .map_err(|_| MentatError::from("invalid address"))?,
+                        .merr(|e| format!("invalid address: {e}"))?,
                     ),
                 })
             }

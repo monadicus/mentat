@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use bitcoin::{hashes::hex::FromHex, Script, Transaction as BTCTransaction, TxIn, TxOut};
 use futures::future::join_all;
 use mentat::{
-    errors::MentatError,
+    errors::{MentatError, MapErrMentat},
     identifiers::{AccountIdentifier, CoinIdentifier, OperationIdentifier, TransactionIdentifier},
     indexmap::IndexMap,
     models::{Amount, CoinAction, CoinChange, Currency, Operation, Transaction},
@@ -293,6 +293,6 @@ impl TryFrom<BitcoinScriptPubKey> for Script {
     type Error = MentatError;
 
     fn try_from(value: BitcoinScriptPubKey) -> Result<Self, MentatError> {
-        Script::from_hex(&value.hex).map_err(|_| MentatError::from("invalid script"))
+        Script::from_hex(&value.hex).merr(|e| format!("invalid script: {e}"))
     }
 }
