@@ -11,7 +11,7 @@ use std::{
 use tokio::sync::{broadcast, Mutex};
 
 use super::CacheInner;
-use crate::{api::MentatResponse, errors::MentatError};
+use crate::{api::MentatResponse, errors::MapErrMentat};
 
 /// A type to represent a async closure with some output.
 pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;
@@ -99,6 +99,6 @@ where
         };
 
         // waiting for in progress request
-        rx.recv().await.map_err(MentatError::from)?
+        rx.recv().await.merr(|e| e)?
     }
 }
