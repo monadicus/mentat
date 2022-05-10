@@ -6,7 +6,7 @@ use axum::async_trait;
 use sysinfo::{Pid, ProcessExt, System, SystemExt};
 
 use super::*;
-use crate::conf::NodePid;
+use crate::{conf::NodePid, errors::MapErrMentat};
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
@@ -31,9 +31,9 @@ pub trait OptionalApi: Clone + Default {
 
     /// A method for getting the usage of a Process.
     async fn usage(&self, process: &str, system: &System, pid: Pid) -> Result<Usage> {
-        let proc = system.process(pid).ok_or(MentatError::from(format!(
-            "Could not find `{process}` process pid: `{pid}`."
-        )))?;
+        let proc = system
+            .process(pid)
+            .merr(|| format!("Could not find `{process}` process pid: `{pid}`."))?;
         let total_cpu_usage = proc.cpu_usage();
         Ok(Usage {
             cpu_usage: (total_cpu_usage / num_cpus::get() as f32),
