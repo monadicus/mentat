@@ -33,6 +33,7 @@ views:
     account_text: Account
   accounts:
     no_followed_accounts_note: No Followed Accounts
+    followed_accounts_header: Followed Accounts
   account:
 components:
   blocks:

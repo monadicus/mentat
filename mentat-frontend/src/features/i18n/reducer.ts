@@ -1,11 +1,11 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Language, LANGUAGES } from './languages';
 
 const i18n = createSlice({
   name: 'i18n',
   initialState: (localStorage.mentatLanguage as Language) || 'en_US',
   reducers: {
-    setLanguage(state, action: { payload: Language }) {
+    setLanguage(state, action: PayloadAction<Language>) {
       const lang = action.payload;
       if (!(lang in LANGUAGES)) return;
 
