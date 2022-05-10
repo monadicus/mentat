@@ -99,6 +99,6 @@ where
         };
 
         // waiting for in progress request
-        rx.recv().await.map_err_mentat(|e| e)?
+        rx.recv().await.merr(|e| e)?
     }
 }

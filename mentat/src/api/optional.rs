@@ -33,7 +33,7 @@ pub trait OptionalApi: Clone + Default {
     async fn usage(&self, process: &str, system: &System, pid: Pid) -> Result<Usage> {
         let proc = system
             .process(pid)
-            .map_err_mentat(|| format!("Could not find `{process}` process pid: `{pid}`."))?;
+            .merr(|| format!("Could not find `{process}` process pid: `{pid}`."))?;
         let total_cpu_usage = proc.cpu_usage();
         Ok(Usage {
             cpu_usage: (total_cpu_usage / num_cpus::get() as f32),
