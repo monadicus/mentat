@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useParams } from 'react-router';
+import { selectNetworkIdentifier } from './selectors';
+
+export const useNetId = () => useSelector(selectNetworkIdentifier);
 
 export const useLinkRoute = (...path: string[]) => {
   const { endpoint } = useParams();

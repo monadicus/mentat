@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
-import { useNetId } from '../../App';
 import { BlockId } from '../../components/Blocks';
 import { I18n, i18n } from '../../features/i18n/components';
-import { useApi } from '../../features/rosetta/hooks';
+import { useApi, useNetId } from '../../features/rosetta/hooks';
 import { BlockResponse } from '../../features/rosetta/models';
 import { BlockViewStyle } from './style';
 

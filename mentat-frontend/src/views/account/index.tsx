@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaUserMinus, FaUserPlus } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router';
-import { useNetId } from '../../App';
 import {
   addAccount,
   removeAccount,
@@ -12,7 +11,7 @@ import {
   selectAccountAlias,
   selectIsAccountFollowed,
 } from '../../features/accounts/selectors';
-import { useApi } from '../../features/rosetta/hooks';
+import { useApi, useNetId } from '../../features/rosetta/hooks';
 import { Account } from '../../features/rosetta/models';
 import { AppDispatch } from '../../store';
 
