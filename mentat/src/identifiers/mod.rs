@@ -12,10 +12,6 @@ pub use block_identifier::*;
 mod coin_identifier;
 pub use coin_identifier::*;
 
-#[cfg(feature = "client")]
-mod js_metadata;
-pub use js_metadata::*;
-
 mod network_identifier;
 pub use network_identifier::*;
 

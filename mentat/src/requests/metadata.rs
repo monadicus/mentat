@@ -5,8 +5,21 @@ use indexmap::IndexMap;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use super::*;
+
 #[cfg(feature = "client")]
-use crate::identifiers::JSMetadata;
+#[wasm_bindgen(typescript_custom_section)]
+const METADATA_TYPE: &'static str = r#"
+export type JSMetadata = {
+    [key in string]: any
+};
+"#;
+
+#[cfg(feature = "client")]
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(typescript_type = "JSMetadata")]
+    pub type JSMetadata;
+}
 
 /// A `MetadataRequest` is utilized in any request where the only argument is
 /// optional metadata.
