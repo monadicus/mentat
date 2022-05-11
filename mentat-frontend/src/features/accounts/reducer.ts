@@ -45,6 +45,7 @@ const accounts = createSlice({
           const { [address]: _removed, ...rest } = state.aliases;
           state.aliases = rest;
         } else state.aliases[address] = alias;
+        localStorage.mentatAccountAliases = JSON.stringify(state.aliases);
       },
       prepare(address: string, alias: string) {
         return { payload: { address, alias } };

@@ -1,11 +1,36 @@
 import React, { useMemo } from 'react';
+import { FaStar } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import { BlockId } from '../../components/Blocks';
+import {
+  selectAccountAlias,
+  selectIsAccountFollowed,
+} from '../../features/accounts/selectors';
 import { I18n, i18n } from '../../features/i18n/components';
-import { useApi, useNetId } from '../../features/rosetta/hooks';
-import { BlockResponse } from '../../features/rosetta/models';
+import { useApi, useLinkRoute, useNetId } from '../../features/rosetta/hooks';
+import { BlockResponse, Operation } from '../../features/rosetta/models';
 import { BlockViewStyle } from './style';
+
+const TransactionOperation: React.FC<{ operation: Operation }> = ({
+  operation: { operation_identifier, metadata: _metadata, account, ...rest },
+}) => {
+  const route = useLinkRoute('accounts', account?.address);
+  const alias = useSelector(selectAccountAlias(account?.address));
+  const followed = useSelector(selectIsAccountFollowed(account?.address));
+  return (
+    <li key={operation_identifier.index}>
+      {account && (
+        <NavLink to={route}>
+          {alias || <I18n name="views.block.account_text" />}
+          {followed && <FaStar />}
+        </NavLink>
+      )}
+      <pre>{JSON.stringify(rest, null, 2)}</pre>
+    </li>
+  );
+};
 
 export const BlockView = () => {
   const { index, hash, endpoint } = useParams();
@@ -16,7 +41,7 @@ export const BlockView = () => {
     [hash, index]
   );
 
-  const [, resp] = useApi<BlockResponse>(
+  const [, currResp] = useApi<BlockResponse>(
     '/block',
     useMemo(
       () => ({
@@ -32,29 +57,28 @@ export const BlockView = () => {
     useMemo(
       () => ({
         network_identifier,
-        block_identifier: resp
-          ? { index: resp.block.block_identifier.index + 1 }
+        block_identifier: currResp
+          ? { index: currResp.block.block_identifier.index + 1 }
           : { index: 0 },
       }),
-      [network_identifier, resp]
+      [network_identifier, currResp]
     )
   );
-  console.debug('[debug]', nextResp);
 
   return (
     <BlockViewStyle>
-      {resp && (
+      {currResp && (
         <>
-          {resp.block.parent_block_identifier.index !==
-            resp.block.block_identifier.index && (
+          {currResp.block.parent_block_identifier.index !==
+            currResp.block.block_identifier.index && (
             <BlockId
-              id={resp.block.parent_block_identifier}
+              id={currResp.block.parent_block_identifier}
               label={i18n('views.block.parent_block_label')}
             />
           )}
           <BlockId
             noLink
-            id={resp.block.block_identifier}
+            id={currResp.block.block_identifier}
             label={i18n('views.block.current_block_label')}
           />
           {nextResp?.block && (
@@ -74,7 +98,7 @@ export const BlockView = () => {
                     <I18n name="views.block.meta_timestamp_label" />
                   </b>
                 </td>
-                <td>{new Date(resp.block.timestamp).toString()}</td>
+                <td>{new Date(currResp.block.timestamp).toString()}</td>
               </tr>
               <tr>
                 <td>
@@ -82,7 +106,7 @@ export const BlockView = () => {
                     <I18n name="views.block.meta_transactions_label" />
                   </b>
                 </td>
-                <td>{resp.block.transactions.length}</td>
+                <td>{currResp.block.transactions.length}</td>
               </tr>
             </tbody>
           </table>
@@ -90,7 +114,7 @@ export const BlockView = () => {
             <I18n name="views.block.transactions_header" />
           </h3>
           <ol>
-            {resp.block.transactions.map(t => (
+            {currResp.block.transactions.map(t => (
               <li key={t.transaction_identifier.hash}>
                 <div>
                   <NavLink
@@ -101,24 +125,12 @@ export const BlockView = () => {
                 </div>
                 <div className="transaction" style={{ marginLeft: 14 }}>
                   <ul>
-                    {t.operations.map(
-                      ({
-                        operation_identifier,
-                        metadata: _metadata,
-                        ...rest
-                      }) => (
-                        <li key={operation_identifier.index}>
-                          {'account' in rest && (
-                            <NavLink
-                              to={`/${endpoint}/accounts/${rest.account.address}`}
-                            >
-                              <I18n name="views.block.account_text" />
-                            </NavLink>
-                          )}
-                          <pre>{JSON.stringify(rest, null, 2)}</pre>
-                        </li>
-                      )
-                    )}
+                    {t.operations.map(o => (
+                      <TransactionOperation
+                        key={o.operation_identifier.index}
+                        operation={o}
+                      />
+                    ))}
                   </ul>
                 </div>
               </li>

@@ -1,22 +1,22 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import { I18n } from '../../features/i18n/components';
-import { useNetId } from '../../features/rosetta/hooks';
-import { useNetStatus } from '../../features/rosetta/impl';
+import { useLinkRoute } from '../../features/rosetta/hooks';
 import { selectNetworkStatus } from '../../features/rosetta/selectors';
 
 export const BlocksView = () => {
-  const { endpoint } = useParams();
   const status = useSelector(selectNetworkStatus);
+  const route = useLinkRoute(
+    'blocks',
+    'hash',
+    status?.current_block_identifier.hash ?? ''
+  );
 
   const navigate = useNavigate();
   useEffect(() => {
-    if (status)
-      navigate(
-        `/${endpoint}/blocks/hash/${status.current_block_identifier.hash}`
-      );
-  }, [endpoint, navigate, status]);
+    if (status) navigate(route);
+  }, [navigate, route, status]);
 
   return (
     <>

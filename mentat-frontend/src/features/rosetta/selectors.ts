@@ -25,3 +25,8 @@ export const selectNetworkIdentifier = createSelector(
   selectNetworkState,
   state => state.identifier
 );
+
+export const selectNetworkVersions = createSelector(
+  selectNetworkOptions,
+  options => options?.version ?? null
+);

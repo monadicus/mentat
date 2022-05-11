@@ -28,7 +28,13 @@ export const AccountsView = () => {
       {followedAccounts.length === 0 ? (
         <I18n name="views.accounts.no_followed_accounts_note" />
       ) : (
-        followedAccounts.map(addr => <AccountEntry key={addr} address={addr} />)
+        <ul>
+          {followedAccounts.map(addr => (
+            <li key={addr}>
+              <AccountEntry address={addr} />
+            </li>
+          ))}
+        </ul>
       )}
     </>
   );
