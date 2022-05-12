@@ -103,3 +103,9 @@ export type BlockResponse = {
     transactions: Transaction[];
   };
 };
+
+export type BalanceResponse = {
+  block_identifier: BlockIdentifier;
+  balances: Amount[];
+  metadata: Record<string, unknown>;
+};

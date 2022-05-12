@@ -16,6 +16,11 @@ export const selectNetworkStatus = createSelector(
   state => state.status
 );
 
+export const selectCurrentBlock = createSelector(
+  selectNetworkStatus,
+  status => status?.current_block_identifier ?? null
+);
+
 export const selectNetworkOptions = createSelector(
   selectNetworkState,
   state => state.options

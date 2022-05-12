@@ -35,10 +35,13 @@ views:
     no_followed_accounts_note: No Followed Accounts
     followed_accounts_header: Followed Accounts
   account:
+    balances_header: Balances
 components:
   blocks:
     index_label: Index
     hash_label: Hash
+  amount:
+    label: 'Amount: '
 connection:
   failed: Failed to Connect.
   invalid: Invalid Connection.

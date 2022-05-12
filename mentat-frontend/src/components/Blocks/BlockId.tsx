@@ -10,7 +10,10 @@ export const BlockId: React.FC<{
   label: string;
   noLink?: boolean;
 }> = ({ id, label, noLink }) => {
-  const route = useLinkRoute('blocks', 'hash', id.hash);
+  const route = useLinkRoute('blocks', 'hash', id?.hash);
+
+  if (!id) return null;
+
   return (
     <BlockIdStyle>
       <label>{noLink ? label : <NavLink to={route}>{label}</NavLink>}</label>
