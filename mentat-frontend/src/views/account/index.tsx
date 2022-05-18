@@ -90,7 +90,15 @@ export const AccountView = () => {
           ))}
         </ul>
       </div>
-      <pre>{JSON.stringify(coinsResp, null, 2)}</pre>
+      <pre>
+        {JSON.stringify(
+          coinsResp
+            ? (({ balances: _balances, ...resp }) => resp)(coinsResp)
+            : null,
+          null,
+          2
+        )}
+      </pre>
     </>
   );
 };
