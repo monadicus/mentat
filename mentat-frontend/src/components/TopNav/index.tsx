@@ -1,8 +1,9 @@
 import React from 'react';
-import { FaGithub } from 'react-icons/fa';
+import { FaCube, FaGithub, FaNetworkWired } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { i18n } from '../../features/i18n/components';
+import { useNetId } from '../../features/rosetta/hooks';
 import { selectNetworkVersions } from '../../features/rosetta/selectors';
 import { MenuButton } from './MenuButton';
 
@@ -31,7 +32,24 @@ export const TopNavStyle = styled.div`
     font-family: monospace;
     margin-left: ${props => props.theme.margin}px;
     opacity: 0.5;
-    font-size: 8px;
+    font-size: 10px;
+  }
+
+  .network-id {
+    margin-left: ${props => props.theme.margin}px;
+    font-family: monospace;
+    .network,
+    .blockchain {
+      font-weight: bold;
+    }
+
+    div {
+      display: flex;
+      align-items: center;
+      svg {
+        margin-right: 4px;
+      }
+    }
   }
 
   a,
@@ -43,6 +61,7 @@ export const TopNavStyle = styled.div`
 
 export const TopNav: React.FC = () => {
   const version = useSelector(selectNetworkVersions);
+  const netId = useNetId();
 
   return (
     <TopNavStyle>
@@ -57,6 +76,18 @@ export const TopNav: React.FC = () => {
               </>
             </div>
           ))}
+        </div>
+      )}
+      {netId && (
+        <div className="network-id">
+          <div>
+            <FaCube />
+            <span className="blockchain">{netId.blockchain}</span>
+          </div>
+          <div>
+            <FaNetworkWired />
+            <span className="network">{netId.network}</span>
+          </div>
         </div>
       )}
       <div className="flex" />

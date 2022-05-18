@@ -36,7 +36,7 @@ export const Home = () => {
             <I18n name="views.home.peers_header" />
           </h3>
           <ul>
-            {status.peers.map(p => (
+            {status.peers?.map(p => (
               <li key={p.peer_id}>{p.peer_id}</li>
             ))}
           </ul>
@@ -47,7 +47,16 @@ export const Home = () => {
           <h3>
             <I18n name="views.home.options" />
           </h3>
-          <pre>{JSON.stringify(options, null, 2)}</pre>
+          <pre>
+            options.allow=
+            {JSON.stringify(
+              (({ allow: { errors: _errors, ...options } }) => options)(
+                options
+              ),
+              null,
+              2
+            )}
+          </pre>
         </>
       )}
     </>
