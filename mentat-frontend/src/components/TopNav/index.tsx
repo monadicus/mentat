@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCube, FaGithub, FaNetworkWired } from 'react-icons/fa';
+import { FaCodeBranch, FaCube, FaGithub, FaNetworkWired } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { i18n } from '../../features/i18n/components';
@@ -39,7 +39,8 @@ export const TopNavStyle = styled.div`
     margin-left: ${props => props.theme.margin}px;
     font-family: monospace;
     .network,
-    .blockchain {
+    .blockchain,
+    .sub-network {
       font-weight: bold;
     }
 
@@ -88,6 +89,14 @@ export const TopNav: React.FC = () => {
             <FaNetworkWired />
             <span className="network">{netId.network}</span>
           </div>
+          {netId.sub_network_identifier && (
+            <div>
+              <FaCodeBranch />
+              <span className="sub-network">
+                {netId.sub_network_identifier.network}
+              </span>
+            </div>
+          )}
         </div>
       )}
       <div className="flex" />
