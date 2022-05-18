@@ -1,6 +1,10 @@
 export type NetworkIdentifier = {
   blockchain: string;
   network: string;
+  sub_network_identifier?: {
+    network: string;
+    metadata: Record<string, unknown>;
+  };
 };
 
 export type NetworkStatusResponse = {
@@ -13,9 +17,9 @@ export type NetworkStatusResponse = {
 export type RosettaError = {
   code: number;
   message: string;
-  description: string;
+  description?: string;
   retriable: boolean;
-  details: Record<string, unknown>;
+  details?: Record<string, unknown>;
 };
 
 export type NetworkOptionsResponse = {

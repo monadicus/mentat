@@ -10,7 +10,12 @@ import {
   selectIsAccountFollowed,
 } from '../../features/accounts/selectors';
 import { I18n, i18n } from '../../features/i18n/components';
-import { useApi, useLinkRoute, useNetId } from '../../features/rosetta/hooks';
+import {
+  useApi,
+  useApiUnhandled,
+  useLinkRoute,
+  useNetId,
+} from '../../features/rosetta/hooks';
 import {
   BlockResponse,
   NetworkIdentifier,
@@ -55,7 +60,7 @@ export const BlockByIndex: React.FC<{
   netId: NetworkIdentifier;
   index: number;
 }> = ({ netId: network_identifier, index }) => {
-  const [, nextResp] = useApi<BlockResponse>(
+  const [, nextResp] = useApiUnhandled<BlockResponse>(
     '/block',
     useMemo(
       () => ({
@@ -67,7 +72,9 @@ export const BlockByIndex: React.FC<{
   );
 
   return (
-    nextResp?.block && (
+    nextResp &&
+    'block' in nextResp &&
+    nextResp.block && (
       <BlockId
         id={nextResp.block?.block_identifier}
         label={i18n('views.block.next_block_label')}

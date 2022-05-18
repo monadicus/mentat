@@ -13,6 +13,7 @@ declare module 'styled-components' {
       accent: string;
       accentHalf: string;
       secondary: string;
+      error: string;
     };
   }
 }

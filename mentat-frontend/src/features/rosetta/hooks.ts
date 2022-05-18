@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { AppDispatch } from './../../store';
+import { useEffect, useMemo, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router';
 import { selectNetworkIdentifier } from './selectors';
+import { addError } from '../errors/reducer';
+import { RosettaError } from './models';
 
 export const useNetId = () => useSelector(selectNetworkIdentifier);
 
@@ -32,16 +35,44 @@ export function useEndpointUrl() {
 export type ApiState = 'init' | 'loading' | 'ok' | 'error';
 
 const empty = {};
+
+export function useErrorHandling<T extends Record<string, unknown>>(
+  [status, resp]: [ApiState, null | T | RosettaError],
+  activity?: string
+): [ApiState, null | T] {
+  const dispatch: AppDispatch = useDispatch();
+  return useMemo(() => {
+    // probably an error
+    if (
+      status === 'ok' &&
+      resp &&
+      'code' in resp &&
+      typeof resp.code === 'number' &&
+      'message' in resp &&
+      typeof resp.message === 'string' &&
+      'retriable' in resp &&
+      typeof resp.retriable === 'boolean'
+    ) {
+      dispatch(addError({ ...resp } as RosettaError, activity));
+      return ['error', null];
+    }
+
+    // probably not an error?
+    return [status, resp as T];
+  }, [status, resp, dispatch, activity]);
+}
+
 /** make a request to the rosetta-api from the route param */
-export function useApi<
+export function useApiUnhandled<
   T extends Record<string, unknown> = Record<string, unknown>
 >(
   path: string,
   requestBody: Record<string, unknown> = empty,
   opts?: RequestInit
-): [ApiState, null | T] {
+): [ApiState, null | T | RosettaError] {
   const [status, setStatus] = useState<ApiState>('init');
   const [response, setResponse] = useState<null | T>(null);
+
   const url = useEndpointUrl();
   useEffect(() => {
     let unmount = false;
@@ -67,7 +98,7 @@ export function useApi<
 
         // parse body as json
         try {
-          const blob = JSON.parse(body);
+          const blob: T = JSON.parse(body);
           if (unmount) return;
           setStatus('ok');
           setResponse(blob);
@@ -88,5 +119,18 @@ export function useApi<
     };
   }, [path, opts, url, requestBody]);
 
-  return [status, response];
+  return useMemo(() => [status, response], [status, response]);
+}
+
+export function useApi<
+  T extends Record<string, unknown> = Record<string, unknown>
+>(
+  path: string,
+  requestBody: Record<string, unknown> = empty,
+  opts?: RequestInit
+): [ApiState, null | T] {
+  return useErrorHandling(
+    useApiUnhandled(path, requestBody, opts),
+    'API Req: ' + path
+  );
 }

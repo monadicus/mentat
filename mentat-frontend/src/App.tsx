@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Outlet } from 'react-router';
 import { Content } from './components/Content';
+import { ErrorContainer } from './components/Errors';
 import { SideNav } from './components/SideNav';
 import { I18n } from './features/i18n/components';
 import { useApi, useNetId } from './features/rosetta/hooks';
@@ -59,6 +60,7 @@ export const App = () => {
   return (
     <>
       {netId && <NetworkHandler netId={netId} />}
+      <ErrorContainer />
       <SideNav />
       <Content>{message ?? <Outlet />}</Content>
     </>

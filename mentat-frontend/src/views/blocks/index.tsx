@@ -15,7 +15,7 @@ export const BlocksView = () => {
 
   const navigate = useNavigate();
   useEffect(() => {
-    if (status) navigate(route);
+    if (status) navigate(route, { replace: true });
   }, [navigate, route, status]);
 
   return (

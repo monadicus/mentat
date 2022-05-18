@@ -50,9 +50,7 @@ export const Home = () => {
           <pre>
             options.allow=
             {JSON.stringify(
-              (({ allow: { errors: _errors, ...options } }) => options)(
-                options
-              ),
+              (({ allow: { ...options } }) => options)(options),
               null,
               2
             )}
