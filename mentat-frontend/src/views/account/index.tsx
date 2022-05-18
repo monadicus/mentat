@@ -26,8 +26,10 @@ export const AccountView = () => {
   const dispatch: AppDispatch = useDispatch();
 
   const toggleFollowed = useCallback(() => {
-    dispatch((isFollowed ? removeAccount : addAccount)(address));
-  }, [isFollowed, dispatch, address]);
+    dispatch(
+      (isFollowed ? removeAccount : addAccount)(network_identifier, address)
+    );
+  }, [isFollowed, dispatch, address, network_identifier]);
 
   const block_identifier = useSelector(selectCurrentBlock);
 
@@ -49,8 +51,8 @@ export const AccountView = () => {
   useEffect(() => setStateAlias(alias), [alias]);
 
   const setAlias = useCallback(() => {
-    dispatch(setAccountAlias(address, stateAlias));
-  }, [address, dispatch, stateAlias]);
+    dispatch(setAccountAlias(network_identifier, address, stateAlias));
+  }, [network_identifier, address, dispatch, stateAlias]);
 
   const onAliasChange: React.ChangeEventHandler<HTMLInputElement> = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

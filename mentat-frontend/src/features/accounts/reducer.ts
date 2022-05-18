@@ -1,54 +1,105 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { NetworkIdentifier } from '../rosetta/models';
+import { netIdStr } from './util';
 
-type AccountsState = {
+export type AccountTracking = {
   accounts: string[];
   aliases: Record<string, string>;
 };
 
+/** map of netId to account tracking state */
+export type AccountsState = Record<string, AccountTracking>;
+
 const accounts = createSlice({
   name: 'accounts',
-  initialState: {
-    accounts: ((localStorage.mentatAccounts as string) || '')
-      .split(',')
-      .filter(Boolean),
-    aliases: (() => {
-      try {
-        return JSON.parse(localStorage.mentatAccountAliases || '{}');
-      } catch (err) {
-        console.warn('error parsing account aliases', err);
+  initialState: ((): AccountsState => {
+    try {
+      const state: AccountsState = JSON.parse(
+        localStorage.mentatAccountState || '{}'
+      );
+
+      // weak type checking for parsing state from local storage
+      if (typeof state !== 'object' || Array.isArray(state)) return {};
+      if (!Object.values(state).every(v => 'accounts' in v && 'aliases' in v))
         return {};
-      }
-    })(),
-  } as AccountsState,
+      return state;
+    } catch (err) {
+      console.warn('error parsing account aliases', err);
+      return {};
+    }
+  })(),
   reducers: {
-    addAccount(state, action: PayloadAction<string>) {
-      if (!state.accounts.includes(action.payload)) {
-        state.accounts.push(action.payload);
-        localStorage.mentatAccounts = state.accounts.join(',');
-      }
+    addAccount: {
+      reducer(
+        state,
+        action: PayloadAction<{
+          address: string;
+          network_identifier: NetworkIdentifier;
+        }>
+      ) {
+        const { address, network_identifier } = action.payload;
+        const key = netIdStr(network_identifier);
+        state[key] ??= { accounts: [], aliases: {} };
+
+        if (!state[key].accounts.includes(address)) {
+          state[key].accounts.push(address);
+          localStorage.mentatAccountState = JSON.stringify(state);
+        }
+      },
+      prepare(network_identifier: NetworkIdentifier, address: string) {
+        return { payload: { address, network_identifier } };
+      },
     },
-    removeAccount(state, action: PayloadAction<string>) {
-      const index = state.accounts.indexOf(action.payload);
-      if (index > -1) {
-        state.accounts.splice(index, 1);
-        localStorage.mentatAccounts = state.accounts.join(',');
-      }
+
+    removeAccount: {
+      reducer(
+        state,
+        action: PayloadAction<{
+          address: string;
+          network_identifier: NetworkIdentifier;
+        }>
+      ) {
+        const { address, network_identifier } = action.payload;
+        const key = netIdStr(network_identifier);
+        state[key] ??= { accounts: [], aliases: {} };
+
+        const index = state[key].accounts.indexOf(address) ?? -1;
+        if (index > -1) {
+          state[key].accounts.splice(index, 1);
+          localStorage.mentatAccountState = JSON.stringify(state);
+        }
+      },
+      prepare(network_identifier: NetworkIdentifier, address: string) {
+        return { payload: { address, network_identifier } };
+      },
     },
+
     setAccountAlias: {
       reducer(
         state,
-        action: PayloadAction<{ address: string; alias: string }>
+        action: PayloadAction<{
+          address: string;
+          alias: string;
+          network_identifier: NetworkIdentifier;
+        }>
       ) {
-        const { address, alias } = action.payload;
+        const { address, alias, network_identifier } = action.payload;
+        const key = netIdStr(network_identifier);
+        state[key] ??= { accounts: [], aliases: {} };
+
         if (!alias) {
           // eslint-disable-next-line
-          const { [address]: _removed, ...rest } = state.aliases;
-          state.aliases = rest;
-        } else state.aliases[address] = alias;
-        localStorage.mentatAccountAliases = JSON.stringify(state.aliases);
+          const { [address]: _removed, ...rest } = state[key].aliases ?? {};
+          state[key].aliases = rest;
+        } else state[key].aliases[address] = alias;
+        localStorage.mentatAccountState = JSON.stringify(state);
       },
-      prepare(address: string, alias: string) {
-        return { payload: { address, alias } };
+      prepare(
+        network_identifier: NetworkIdentifier,
+        address: string,
+        alias: string
+      ) {
+        return { payload: { network_identifier, address, alias } };
       },
     },
   },
