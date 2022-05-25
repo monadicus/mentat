@@ -294,12 +294,14 @@ fn build_route(
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
             Extension(node_pid): Extension<NodePid>,
+            Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
+            Extension(rpc_caller): Extension<RpcCaller>
         );
         req_trace = quote! (
             tracing::info!("{}", server_pid);
             tracing::info!("{}", node_pid.0);
         );
-        method_args = quote!(server_pid, node_pid,);
+        method_args = quote!(&conf.mode, rpc_caller, server_pid, node_pid,);
     }
     quote!(
         let api = server.#api.clone();

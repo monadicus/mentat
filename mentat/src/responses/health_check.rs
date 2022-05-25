@@ -21,6 +21,16 @@ pub struct Usage {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+/// Tracks the number of connections a Node has if it is online mode.
+pub enum NodeConnections {
+    /// Represents Rosetta offline mode where no outbound connections should
+    /// exist.
+    Offline,
+    /// Represents the number of connections your node has during online mode.
+    Online(usize),
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 /// The `HealthCheckResponse` type.
 pub struct HealthCheckResponse {
     /// Who called the endpoint.
@@ -31,6 +41,10 @@ pub struct HealthCheckResponse {
     pub usage: Usage,
     /// The usage of the node.
     pub node_usage: Usage,
+    /// The number of the connections the node has if the operation is
+    /// supported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub node_connections: Option<NodeConnections>,
     /// The usage of the cache if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_usage: Option<Usage>,

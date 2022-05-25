@@ -15,6 +15,8 @@ pub trait OptionalApi: Clone + Default {
     async fn health(
         &self,
         caller: Caller,
+        mode: &Mode,
+        rpc_caller: RpcCaller,
         server_pid: Pid,
         node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
@@ -25,6 +27,7 @@ pub trait OptionalApi: Clone + Default {
             msg: "Healthy!".to_string(),
             usage: self.usage("server", &system, server_pid).await?,
             node_usage: self.usage("node", &system, node_pid.0).await?,
+            node_connections: self.node_connections(mode, rpc_caller).await?,
             cache_usage: self.check_cache_usage().await?,
         }))
     }
@@ -45,6 +48,15 @@ pub trait OptionalApi: Clone + Default {
         })
     }
 
+    /// A method for getting the number of connections a node has.
+    async fn node_connections(
+        &self,
+        _mode: &Mode,
+        _rpc_caller: RpcCaller,
+    ) -> Result<Option<NodeConnections>> {
+        Ok(None)
+    }
+
     /// A default implementation for providing a cache usage check.
     async fn check_cache_usage(&self) -> Result<Option<Usage>> {
         Ok(None)
@@ -59,6 +71,8 @@ impl OptionalApi for UnimplementedOptionalApi {
     async fn health(
         &self,
         _caller: Caller,
+        _mode: &Mode,
+        _rpc_caller: RpcCaller,
         _server_pid: Pid,
         _node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
