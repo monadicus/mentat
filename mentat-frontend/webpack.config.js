@@ -1,12 +1,11 @@
 const webpack = require('webpack');
 const path = require('path');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const development = process.env.MODE !== 'production';
 
-const SWC_LOADER = [
+const SWC_LOADER_REACT = [
   {
     loader: 'babel-loader',
   },
@@ -34,89 +33,127 @@ const SWC_LOADER = [
       },
     },
   },
-].filter(Boolean);
+];
 
-module.exports = {
+const common = {
   mode: development ? 'development' : 'production',
   devtool: development && 'source-map',
-  entry: './src/root.tsx',
   cache: { type: 'filesystem' },
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: `[name].${development ? 'dev' : '[fullhash:7]'}.js`,
-    publicPath: '/',
-  },
   resolve: {
     cacheWithContext: true,
     extensions: ['', '.js', '.jsx', '.ts', '.tsx'],
   },
   watchOptions: { poll: true, ignored: /node_modules/ },
-  module: {
-    rules: [
-      {
-        test: /\.ya?ml$/,
-        type: 'json',
-        use: [{ loader: 'yaml-loader', options: { asJSON: true } }],
-      },
-      {
-        test: /\.js(on|x)?$/,
-        include: path.resolve(__dirname, 'src'),
-        exclude: /node_modules/,
-        use: SWC_LOADER,
-      },
-      {
-        test: /\.tsx?$/,
-        include: path.resolve(__dirname, 'src'),
-        exclude: /node_modules/,
-        use: SWC_LOADER,
-      },
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: { import: true },
-          },
-        ],
-      },
-      {
-        test: /\.(png|woff|woff2|eot|ttf|svg|wav|ico)$/,
-        type: 'asset',
-        parser: {
-          dataUrlCondition: {
-            maxSize: 16 * 1024,
+};
+
+module.exports = [
+  {
+    ...common,
+    entry: './src/root.tsx',
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: `[name].${development ? 'dev' : '[fullhash:7]'}.js`,
+      publicPath: '/',
+    },
+    module: {
+      rules: [
+        {
+          test: /\.ya?ml$/,
+          type: 'json',
+          use: [{ loader: 'yaml-loader', options: { asJSON: true } }],
+        },
+        {
+          test: /\.js(on|x)?$/,
+          include: path.resolve(__dirname, 'src'),
+          exclude: /node_modules/,
+          use: SWC_LOADER_REACT,
+        },
+        {
+          test: /\.tsx?$/,
+          include: path.resolve(__dirname, 'src'),
+          exclude: /node_modules/,
+          use: SWC_LOADER_REACT,
+        },
+        {
+          test: /\.css$/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: { import: true },
+            },
+          ],
+        },
+        {
+          test: /\.(png|woff|woff2|eot|ttf|svg|wav|ico)$/,
+          type: 'asset',
+          parser: {
+            dataUrlCondition: {
+              maxSize: 16 * 1024,
+            },
           },
         },
-      },
-    ],
-  },
-  plugins: [
-    new CleanWebpackPlugin(),
-    new HtmlWebpackPlugin({
-      // TODO: create a nice favicon
-      // favicon: './res/favicon.ico',
-      template: './src/index.html',
-      publicPath: '/',
-    }),
-    development &&
-      new webpack.EvalSourceMapDevToolPlugin({
-        exclude: ['vendor'],
-        columns: true,
-        module: true,
+      ],
+    },
+    plugins: [
+      new HtmlWebpackPlugin({
+        // TODO: create a nice favicon
+        // favicon: './res/favicon.ico',
+        template: './src/index.html',
+        publicPath: '/',
       }),
-    development && new webpack.HotModuleReplacementPlugin(),
-    development && new ReactRefreshWebpackPlugin(),
-  ].filter(Boolean),
-  devServer: {
-    devMiddleware: { writeToDisk: true },
-    static: [path.resolve(__dirname, 'dist')],
-    hot: true,
-    host: '0.0.0.0',
-    port: 3000,
-    headers: { 'Access-Control-Allow-Origin': '*' },
-    server: { type: 'http' },
-    // lets react router handle 404s rather than the web server
-    historyApiFallback: { index: '/' },
+      development &&
+        new webpack.EvalSourceMapDevToolPlugin({
+          exclude: ['vendor'],
+          columns: true,
+          module: true,
+        }),
+      development && new webpack.HotModuleReplacementPlugin(),
+      development && new ReactRefreshWebpackPlugin(),
+    ].filter(Boolean),
+    devServer: {
+      devMiddleware: { writeToDisk: true },
+      static: [path.resolve(__dirname, 'dist')],
+      hot: true,
+      host: '0.0.0.0',
+      port: 3000,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      server: { type: 'http' },
+      // lets react router handle 404s rather than the web server
+      historyApiFallback: { index: '/' },
+    },
   },
-};
+  {
+    ...common,
+    entry: './backend/main.ts',
+    target: 'node',
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'server.js',
+    },
+    resolve: {
+      extensions: ['.ts', '.js', '.json'],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.[jt]s$/,
+          exclude: /(node_modules)/,
+          use: {
+            loader: 'swc-loader',
+            options: {
+              isModule: true,
+              jsc: {
+                target: 'es2020',
+                parser: {
+                  syntax: 'typescript',
+                },
+                transform: {},
+              },
+            },
+          },
+        },
+      ],
+    },
+  },
+];
