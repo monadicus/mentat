@@ -7,3 +7,6 @@ pub use error::*;
 
 mod response;
 pub use response::*;
+
+mod optional;
+pub use optional::*;
