@@ -370,17 +370,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bitcoin"
-version = "0.28.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05bba324e6baf655b882df672453dbbc527bc938cadd27750ae510aaccc3a66a"
-dependencies = [
- "bech32",
- "bitcoin_hashes",
- "secp256k1",
-]
-
-[[package]]
 name = "bitcoin_hashes"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2111,23 +2100,6 @@ dependencies = [
  "crypto-bigint",
  "hmac",
  "zeroize",
-]
-
-[[package]]
-name = "rosetta-bitcoin"
-version = "0.1.0"
-dependencies = [
- "bitcoin",
- "futures",
- "hex",
- "mentat",
-]
-
-[[package]]
-name = "rosetta-snarkos"
-version = "0.1.0"
-dependencies = [
- "mentat",
 ]
 
 [[package]]

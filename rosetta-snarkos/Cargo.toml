@@ -1,8 +1,0 @@
-[package]
-name = "rosetta-snarkos"
-version = "0.1.0"
-edition = "2021"
-rust-version = "1.59.0"
-
-[dependencies]
-mentat = { path = "../mentat", features = ["server"] }
