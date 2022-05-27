@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
 
 const development = process.env.MODE !== 'production';
 
@@ -116,7 +117,7 @@ module.exports = [
       static: [path.resolve(__dirname, 'dist')],
       hot: true,
       host: '0.0.0.0',
-      port: 3000,
+      port: 2999,
       headers: { 'Access-Control-Allow-Origin': '*' },
       server: { type: 'http' },
       // lets react router handle 404s rather than the web server
@@ -127,6 +128,7 @@ module.exports = [
     ...common,
     entry: './backend/main.ts',
     target: 'node',
+    externals: [nodeExternals()],
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: 'server.js',
@@ -148,7 +150,6 @@ module.exports = [
                 parser: {
                   syntax: 'typescript',
                 },
-                transform: {},
               },
             },
           },

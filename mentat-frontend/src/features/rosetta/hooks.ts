@@ -1,3 +1,4 @@
+import { selectMentatHasServer } from './../mentat/selectors';
 import { AppDispatch } from './../../store';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -16,7 +17,12 @@ export const useLinkRoute = (...path: string[]) => {
 /** Get the endpoint url from route params */
 export function useEndpointUrl() {
   const { endpoint } = useParams();
+  const backendHasServer = useSelector(selectMentatHasServer(endpoint));
+
   if (!endpoint) return null;
+
+  // use proxy if the endpoint id is in mentat's servers
+  if (backendHasServer) return `${location.origin}/api/rosetta/${endpoint}`;
 
   const host = (() => {
     // ~ redirects to localhost
@@ -36,6 +42,16 @@ export type ApiState = 'init' | 'loading' | 'ok' | 'error';
 
 const empty = {};
 
+export const isRosettaError = (obj: unknown): obj is RosettaError =>
+  obj &&
+  typeof obj === 'object' &&
+  'code' in obj &&
+  typeof obj['code'] === 'number' &&
+  'message' in obj &&
+  typeof obj['message'] === 'string' &&
+  'retriable' in obj &&
+  typeof obj['retriable'] === 'boolean';
+
 export function useErrorHandling<T extends Record<string, unknown>>(
   [status, resp]: [ApiState, null | T | RosettaError],
   activity?: string
@@ -43,17 +59,8 @@ export function useErrorHandling<T extends Record<string, unknown>>(
   const dispatch: AppDispatch = useDispatch();
   return useMemo(() => {
     // probably an error
-    if (
-      status === 'ok' &&
-      resp &&
-      'code' in resp &&
-      typeof resp.code === 'number' &&
-      'message' in resp &&
-      typeof resp.message === 'string' &&
-      'retriable' in resp &&
-      typeof resp.retriable === 'boolean'
-    ) {
-      dispatch(addError({ ...resp } as RosettaError, activity));
+    if (status === 'ok' && isRosettaError(resp)) {
+      dispatch(addError(resp, activity));
       return ['error', null];
     }
 

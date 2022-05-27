@@ -16,11 +16,17 @@ A Frontend for the Rosetta API. See [architecture.md](./architecture.md) for pro
 
         npm i
 
-3.  Build project with dev server:
+3.  Build project:
 
-        npm run server
+        npm run build
 
-4.  Open dev server in browser: https://127.0.0.1:3000 _(:8080 is taken by Rosetta API)_
+4.  Start backend:
+
+        npm start
+
+5.  Open server in browser: https://127.0.0.1:3000 _(:8080 is taken by Rosetta API)_
+
+To skip using a backend and access endpoints directly, run `npm run server` instead of `npm run build` and `npm run start`. This will prevent usage of network aliasing/aggregating.
 
 ## Access
 

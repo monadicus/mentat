@@ -1,37 +1,39 @@
+import { nanoid } from '@reduxjs/toolkit';
 import express from 'express';
-import httpProxy from 'http-proxy';
+import fetch from 'node-fetch';
 import path from 'path';
 import pkg from '../package.json';
 import { RosettaError } from '../src/features/rosetta/models';
+import db from './db';
 import { IServers } from './models';
 import { getNetworksFromUrl, getValidUrl } from './scanner';
+import { MentatStatus } from './types';
 
-import db from './db';
-
-const apiProxy = httpProxy.createProxyServer();
-
-let servers: IServers = db.read<IServers>() ?? {}; /* {
-  eth: { name: 'Ethereum', url: 'http://localhost:8082' },
-  btc: { name: 'Bitcoin', url: 'http://localhost:8083' },
-} */
+let servers: IServers = db.read<IServers>() ?? {};
 
 const app = express();
 
 app.use(express.json());
 app.use(express.static('dist'));
 
+const getStatus = (): MentatStatus => ({ version: pkg.version, servers });
+
 // get servers and mentat version
 app.get('/api/v1/mentat', (_req, res) => {
-  res.status(200).json({
-    version: pkg.version,
-    servers,
-  });
+  res.status(200).json(getStatus());
+});
+
+// data injection via js
+app.get('/api/v1/servers.js', (req, res) => {
+  res.status(200).send(`
+    window.MENTAT = ${JSON.stringify(getStatus())};
+  `);
 });
 
 // add a new server to the servers database
-app.post('/api/v1/servers/:id', async (req, res) => {
+app.post('/api/v1/servers/:id?', async (req, res) => {
   const { url, name, force } = req.body;
-  const { id } = req.params;
+  const id = req.params.id || nanoid();
 
   if (!url || !name)
     return res.status(422).json({
@@ -65,11 +67,20 @@ app.post('/api/v1/servers/:id', async (req, res) => {
           message: 'Url did not respond per Rosetta API spec',
           retriable: false,
         } as RosettaError);
+
+      console.info(
+        '[info] adding server',
+        id,
+        'from',
+        url,
+        'with networks',
+        resp
+      );
     }
 
     servers = { ...servers, [id]: { url: validUrl.origin, name } };
     db.write(servers);
-    res.status(200).json({});
+    res.status(200).json(getStatus());
   } catch (err) {
     res.status(500).json({
       code: -1,
@@ -96,7 +107,7 @@ app.delete('/api/v1/servers/:id', async (req, res) => {
   servers = rest;
   db.write(servers);
 
-  res.status(200).json({});
+  res.status(200).json(getStatus());
 });
 
 // scan a url for rosetta networks
@@ -118,7 +129,7 @@ app.post('/api/v1/scan', async (req, res) => {
 });
 
 // proxy rosetta requests
-app.all('/api/rosetta/:id/*', (req, res) => {
+app.all('/api/rosetta/:id/*', async (req, res) => {
   const { id } = req.params;
   if (!(id in servers)) {
     res.status(404).send({
@@ -135,9 +146,29 @@ app.all('/api/rosetta/:id/*', (req, res) => {
   const target = servers[id].url;
 
   // remove the prefix in the proxied request url
-  req.url = req.url.replace(new RegExp(`^/api/rosetta/${id}/`), '/');
+  const url = req.url.replace(new RegExp(`^/api/rosetta/${id}/`), '/');
 
-  apiProxy.web(req, res, { target });
+  try {
+    // galaxy brain reverse proxy
+    const resp = await fetch(target + url, {
+      method: req.method,
+      headers: req.headers as Record<string, string>,
+      body: JSON.stringify(req.body),
+    });
+
+    const body = await resp.text();
+
+    res.status(resp.status).send(body);
+  } catch (err) {
+    res.status(500).send({
+      code: -1,
+      message: 'Error making proxy request',
+      retriable: false,
+      details: {
+        message: err?.message ?? err.toString(),
+      },
+    } as RosettaError);
+  }
 });
 
 // server the index file instead of a 404

@@ -13,6 +13,8 @@ export const ErrorContainerStyle = styled.div<{ count: number }>`
     border: 1px solid ${props => props.theme.colors.error};
     overflow: hidden;
     max-height: 200px;
+    max-width: 400px;
+    background-color: ${props => props.theme.colors.dominant};
 
     .header {
       display: flex;
@@ -31,7 +33,9 @@ export const ErrorContainerStyle = styled.div<{ count: number }>`
 
     .content {
       padding: ${props => props.theme.margin}px;
+      white-space: pre-wrap;
       pre {
+        white-space: pre-wrap;
         margin: 0;
       }
     }

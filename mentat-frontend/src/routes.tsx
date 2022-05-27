@@ -15,7 +15,6 @@ export const Router = () => (
       <Route index element={<Navigate replace to="/~/" />} />
       <Route path=":endpoint/" element={<App />}>
         <Route index element={<Home />} />
-        {/* <Route path="networks" element={<NotFound />} /> */}
         <Route path="accounts">
           <Route index element={<AccountsView />} />
           <Route path=":address" element={<AccountView />} />

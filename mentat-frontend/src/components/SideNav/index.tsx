@@ -24,11 +24,6 @@ export const SideNav = () => {
             name={i18n('navigation.sidenav.home')}
             icon={FaHome}
           />
-          {/* <SideNavItem
-            to={`/${endpoint}/networks`}
-            name={i18n('navigation.sidenav.networks')}
-            icon={FaNetworkWired}
-          /> */}
           <SideNavItem
             to={useLinkRoute('accounts')}
             name={i18n('navigation.sidenav.accounts')}

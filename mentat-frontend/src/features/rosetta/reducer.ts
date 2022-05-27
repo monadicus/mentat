@@ -14,16 +14,18 @@ type RosettaState = {
   };
 };
 
+const initialState = {
+  identifiers: [],
+  network: {
+    identifier: null,
+    status: null,
+    options: null,
+  },
+} as RosettaState;
+
 const rosetta = createSlice({
   name: 'rosetta',
-  initialState: {
-    identifiers: [],
-    network: {
-      identifier: null,
-      status: null,
-      options: null,
-    },
-  } as RosettaState,
+  initialState,
   reducers: {
     setStatus(state, action: PayloadAction<NetworkStatusResponse>) {
       state.network.status = action.payload;
@@ -37,9 +39,17 @@ const rosetta = createSlice({
     setIdentifiers(state, action: PayloadAction<NetworkIdentifier[]>) {
       state.identifiers = action.payload;
     },
+    resetRosetta() {
+      return initialState;
+    },
   },
 });
 
-export const { setStatus, setOptions, setIdentifier, setIdentifiers } =
-  rosetta.actions;
+export const {
+  setStatus,
+  setOptions,
+  setIdentifier,
+  setIdentifiers,
+  resetRosetta,
+} = rosetta.actions;
 export default rosetta.reducer;

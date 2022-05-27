@@ -4,6 +4,7 @@ import sidenav from './features/sidenav/reducer';
 import accounts from './features/accounts/reducer';
 import rosetta from './features/rosetta/reducer';
 import errors from './features/errors/reducer';
+import mentat from './features/mentat/reducer';
 
 const reducer = combineReducers({
   i18n,
@@ -11,6 +12,7 @@ const reducer = combineReducers({
   sidenav,
   rosetta,
   errors,
+  mentat,
 });
 
 export type RootState = ReturnType<typeof reducer>;

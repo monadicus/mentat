@@ -37,6 +37,9 @@ views:
   account:
     balances_header: Balances
 components:
+  network_nav:
+    no_networks_label: No Networks
+    add_network_button: Add Network
   blocks:
     index_label: Index
     hash_label: Hash
