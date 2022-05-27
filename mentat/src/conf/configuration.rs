@@ -154,8 +154,10 @@ where
 {
     /// Loads a configuration file from the supplied path.
     pub fn load(path: &Path) -> Self {
+        let path = path.with_extension("toml");
+
         if path.is_file() {
-            let content = fs::read_to_string(path).unwrap_or_else(|e| {
+            let content = fs::read_to_string(&path).unwrap_or_else(|e| {
                 panic!(
                     "Failed to read config file at path `{}`: {}",
                     path.display(),
@@ -176,7 +178,7 @@ where
 
             config
         } else {
-            Self::create_template(path);
+            Self::create_template(&path);
             println!("created config file `{}`", path.display());
             exit(1);
         }
@@ -184,8 +186,6 @@ where
 
     /// Generates a configuration file and writes it to the supplied path.
     pub fn create_template(path: &Path) {
-        let path = path.with_extension("toml");
-
         if let Some(p) = path.parent() {
             fs::create_dir_all(&p)
                 .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", p.display(), e));
