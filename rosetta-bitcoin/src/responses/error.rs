@@ -3,7 +3,6 @@
 
 use mentat::{
     errors::{ApiError, MentatError, Result},
-    indexmap::IndexMap,
     serde::Deserialize,
 };
 
@@ -21,12 +20,11 @@ impl<R> From<ErrorResponse> for Result<R> {
             message: "Bitcoin JsonRPC Error.".to_string(),
             description: None,
             retriable: true,
-            details: {
-                let mut map = IndexMap::new();
-                map.insert("code".to_string(), response.code.into());
-                map.insert("message".into(), response.message.into());
-                map
-            },
+            details: [
+                ("code".to_string(), response.code.into()),
+                ("message".to_string(), response.message.into()),
+            ]
+            .into(),
         }))
     }
 }

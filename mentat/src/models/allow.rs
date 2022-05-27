@@ -20,7 +20,7 @@ pub struct Allow {
     /// All `ApiError` that this implementation could return. Any error that
     /// is returned during parsing that is not listed here will cause client
     /// validation to error.
-    pub errors: Vec<ApiError>,
+    pub errors: Vec<MentatError>,
     /// Any Rosetta implementation that supports querying the balance of an
     /// account at any height in the past should set this to true.
     pub historical_balance_lookup: bool,

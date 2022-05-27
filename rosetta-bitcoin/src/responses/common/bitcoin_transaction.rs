@@ -1,6 +1,9 @@
+use std::convert::TryFrom;
+
+use bitcoin::{hashes::hex::FromHex, Script, Transaction as BTCTransaction, TxIn, TxOut};
 use futures::future::join_all;
 use mentat::{
-    errors::MentatError,
+    errors::{MapErrMentat, MentatError},
     identifiers::{AccountIdentifier, CoinIdentifier, OperationIdentifier, TransactionIdentifier},
     indexmap::IndexMap,
     models::{Amount, CoinAction, CoinChange, Currency, Operation, Transaction},
@@ -11,7 +14,6 @@ use mentat::{
 
 use super::*;
 use crate::{
-    jsonrpc_call,
     request::{trim_hash, BitcoinJrpc},
     responses::Response,
 };
@@ -44,17 +46,17 @@ impl BitcoinVin {
     ) -> Result<Operation, MentatError> {
         let (account, amount) = match (&self.txid, self.vout) {
             (Some(id), Some(vout_idx)) => {
-                let transaction = jsonrpc_call!(
-                    "getrawtransaction",
-                    vec![json!(trim_hash(id)), json!(true)],
-                    rpc_caller,
-                    BitcoinTransaction
-                );
+                let transaction = rpc_caller
+                    .rpc_call::<Response<BitcoinTransaction>>(BitcoinJrpc::new(
+                        "getrawtransaction",
+                        &[json!(trim_hash(id)), json!(true)],
+                    ))
+                    .await?;
                 let vout = &transaction.vout[vout_idx as usize];
 
                 let account = AccountIdentifier {
                     address: vout.scriptPubKey.hex.clone(),
-                    decimals: None,
+                    sub_account: None,
                     metadata: IndexMap::new(),
                 };
 
@@ -134,7 +136,7 @@ pub struct BitcoinVout {
 }
 
 impl BitcoinVout {
-    fn into_operation(self, index: u64, hash: String) -> Operation {
+    pub fn into_operation(self, index: u64, hash: &str) -> Operation {
         Operation {
             operation_identifier: OperationIdentifier {
                 index,
@@ -145,7 +147,7 @@ impl BitcoinVout {
             status: Some(String::from("SUCCESS")),
             account: Some(AccountIdentifier {
                 address: self.scriptPubKey.hex.clone(),
-                decimals: None,
+                sub_account: None,
                 metadata: IndexMap::new(),
             }),
             amount: Some(Amount {
@@ -163,14 +165,11 @@ impl BitcoinVout {
                 },
                 coin_action: CoinAction::CoinCreated,
             }),
-            metadata: {
-                let mut map = IndexMap::new();
-                map.insert(
-                    "scriptPubKey".to_string(),
-                    serde_json::to_value(&self.scriptPubKey).unwrap(),
-                );
-                map
-            },
+            metadata: [(
+                "scriptPubKey".to_string(),
+                serde_json::to_value(&self.scriptPubKey).unwrap(),
+            )]
+            .into(),
         }
     }
 }
@@ -215,22 +214,85 @@ impl BitcoinTransaction {
                     self.vout
                         .into_iter()
                         .enumerate()
-                        .map(|(i, vout)| {
-                            vout.into_operation((i + vin_len) as u64, self.hash.clone())
-                        })
+                        .map(|(i, vout)| vout.into_operation((i + vin_len) as u64, &self.hash))
                         .collect::<Vec<_>>(),
                 );
                 out
             },
             related_transactions: None,
-            metadata: {
-                let mut map = IndexMap::new();
-                map.insert("size".to_string(), self.size.into());
-                map.insert("version".to_string(), self.version.into());
-                map.insert("vsize".to_string(), self.vsize.into());
-                map.insert("weight".to_string(), self.weight.into());
-                map
-            },
+            metadata: [
+                ("size".to_string(), self.size.into()),
+                ("version".to_string(), self.version.into()),
+                ("vsize".to_string(), self.vsize.into()),
+                ("weight".to_string(), self.weight.into()),
+            ]
+            .into(),
         })
+    }
+}
+
+// TODO: This is a bit nasty but because mentat re-exports serde and we use it
+// everywhere it's really hard to use any outside types with any of the internal
+// code. So I'll just leave it to a From impl for now.
+impl From<BTCTransaction> for BitcoinTransaction {
+    fn from(value: BTCTransaction) -> Self {
+        BitcoinTransaction {
+            hash: value.txid().to_string(),
+            version: value.version as usize,
+            size: value.size(),
+            vsize: value.vsize(),
+            weight: value.weight(),
+            vin: value.input.into_iter().map(|i| i.into()).collect(),
+            vout: value.output.into_iter().map(|o| o.into()).collect(),
+        }
+    }
+}
+
+impl From<TxIn> for BitcoinVin {
+    fn from(value: TxIn) -> Self {
+        BitcoinVin {
+            txid: Some(value.previous_output.txid.to_string()),
+            vout: Some(value.previous_output.vout as u64),
+            scriptSig: Some(value.script_sig.into()),
+            sequence: value.sequence as usize,
+            coinbase: None,
+        }
+    }
+}
+
+impl From<TxOut> for BitcoinVout {
+    fn from(value: TxOut) -> Self {
+        BitcoinVout {
+            value: value.value as f64,
+            n: 0,
+            scriptPubKey: value.script_pubkey.into(),
+        }
+    }
+}
+
+impl From<Script> for BitcoinScriptSig {
+    fn from(value: Script) -> Self {
+        BitcoinScriptSig {
+            asm: value.asm(),
+            hex: hex::encode(value.to_bytes()),
+        }
+    }
+}
+
+impl From<Script> for BitcoinScriptPubKey {
+    fn from(value: Script) -> Self {
+        BitcoinScriptPubKey {
+            asm: value.asm(),
+            hex: hex::encode(value.to_bytes()),
+            _type: "".to_string(),
+        }
+    }
+}
+
+impl TryFrom<BitcoinScriptPubKey> for Script {
+    type Error = MentatError;
+
+    fn try_from(value: BitcoinScriptPubKey) -> Result<Self, MentatError> {
+        Script::from_hex(&value.hex).merr(|e| format!("invalid script: {e}"))
     }
 }

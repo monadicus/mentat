@@ -22,21 +22,16 @@ impl IndexerApi for BitcoinIndexerApi {
         data: EventsBlocksRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<EventsBlocksResponse> {
-        let resp = match rpc_caller
+        let resp = rpc_caller
             .client
             .post(rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
-        {
-            Ok(resp) => resp,
-            Err(e) => {
-                return Err(match serde_json::from_str(&e.to_string()) {
-                    Ok(s) => MentatError::Internal(s),
-                    Err(_) => MentatError::from(format!("unhandled rosetta-bitcoin error: {}", e)),
-                });
-            }
-        };
+            .merr(|e| {
+                serde_json::from_str(&e.to_string())
+                    .unwrap_or_else(|e| format!("unhandled rosetta-bitcoin error: {}", e))
+            })?;
 
         let out = resp.text().await?;
         match serde_json::from_str(&out) {
@@ -51,21 +46,16 @@ impl IndexerApi for BitcoinIndexerApi {
         data: SearchTransactionsRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<SearchTransactionsResponse> {
-        let resp = match rpc_caller
+        let resp = rpc_caller
             .client
             .post(rpc_caller.node_rpc_url)
             .json(&data)
             .send()
             .await
-        {
-            Ok(resp) => resp,
-            Err(e) => {
-                return Err(match serde_json::from_str(&e.to_string()) {
-                    Ok(s) => MentatError::Internal(s),
-                    Err(_) => format!("unhandled rosetta-bitcoin error: {}", e).into(),
-                });
-            }
-        };
+            .merr(|e| {
+                serde_json::from_str(&e.to_string())
+                    .unwrap_or_else(|e| format!("unhandled rosetta-bitcoin error: {}", e))
+            })?;
 
         let out = resp.text().await?;
         Ok(Json(serde_json::from_str(&out)?))

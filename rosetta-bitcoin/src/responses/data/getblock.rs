@@ -4,7 +4,6 @@ use mentat::{
     axum::Json,
     errors::*,
     identifiers::BlockIdentifier,
-    indexmap::IndexMap,
     models::Block,
     responses::BlockResponse,
     server::RpcCaller,
@@ -63,18 +62,17 @@ impl GetBlockResponse {
                     hash: self.previousblockhash,
                 },
                 timestamp: self.time * 1000,
-                metadata: {
-                    let mut map = IndexMap::new();
-                    map.insert("bits".to_string(), self.bits.into());
-                    map.insert("difficulty".to_string(), self.difficulty.into());
-                    map.insert("mediantime".to_string(), self.mediantime.into());
-                    map.insert("merkleroot".to_string(), self.merkleroot.into());
-                    map.insert("nonce".to_string(), self.nonce.into());
-                    map.insert("size".to_string(), self.size.into());
-                    map.insert("version".to_string(), self.version.into());
-                    map.insert("weight".to_string(), self.weight.into());
-                    map
-                },
+                metadata: [
+                    ("bits".to_string(), self.bits.into()),
+                    ("difficulty".to_string(), self.difficulty.into()),
+                    ("mediantime".to_string(), self.mediantime.into()),
+                    ("merkleroot".to_string(), self.merkleroot.into()),
+                    ("nonce".to_string(), self.nonce.into()),
+                    ("size".to_string(), self.size.into()),
+                    ("version".to_string(), self.version.into()),
+                    ("weight".to_string(), self.weight.into()),
+                ]
+                .into(),
             }),
             other_transactions: None,
         }))
