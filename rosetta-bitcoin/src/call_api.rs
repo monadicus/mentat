@@ -4,11 +4,11 @@ use mentat::{
     indexmap::IndexMap,
     requests::*,
     responses::*,
-    serde_json::{self, Value},
+    serde_json::Value,
     server::RpcCaller,
 };
 
-use crate::{jsonrpc_call, request::BitcoinJrpc, responses::Response};
+use crate::{request::BitcoinJrpc, responses::Response};
 
 #[derive(Clone, Default)]
 pub struct BitcoinCallApi;
@@ -18,18 +18,26 @@ impl CallerCallApi for BitcoinCallApi {}
 
 #[async_trait]
 impl CallApi for BitcoinCallApi {
+    // TODO associated constant ROUTES that contains a CallRoute struct with all
+    // routes and idempotent status      probably shouldnt check if route is
+    // valid before calling though, let node handle that
+
     async fn call(
         &self,
         _caller: Caller,
         data: CallRequest,
         rpc_caller: RpcCaller,
     ) -> MentatResponse<CallResponse> {
-        let result = jsonrpc_call!(
-            &data.method,
-            data.parameters.into_iter().map(|(_, p)| p).collect(),
-            rpc_caller,
-            IndexMap<String, Value>
-        );
+        let result = rpc_caller
+            .rpc_call::<Response<IndexMap<String, Value>>>(BitcoinJrpc::new(
+                &data.method,
+                &data
+                    .parameters
+                    .into_iter()
+                    .map(|(_, p)| p)
+                    .collect::<Vec<_>>(),
+            ))
+            .await?;
         Ok(Json(CallResponse {
             result,
             // TODO: figure out when to set this as true

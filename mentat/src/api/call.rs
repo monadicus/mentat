@@ -3,6 +3,7 @@
 //! implementations.
 
 use super::*;
+use crate::errors::MentatError;
 
 /// Trait to define the endpoints necessary for the Rosetta Call API.
 #[axum::async_trait]

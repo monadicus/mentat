@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{errors::ApiError, identifiers::*, misc::*};
+use crate::{errors::MentatError, identifiers::*, misc::*};
 
 mod allow;
 pub use allow::*;
