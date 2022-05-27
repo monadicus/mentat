@@ -6,7 +6,7 @@ use std::{
     io::{BufRead, BufReader, Read},
     net::Ipv4Addr,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::{exit, Command, Stdio},
     str::FromStr,
     thread,
 };
@@ -154,34 +154,43 @@ where
 {
     /// Loads a configuration file from the supplied path.
     pub fn load(path: &Path) -> Self {
-        let content = fs::read_to_string(path).unwrap_or_else(|e| {
-            panic!(
-                "Failed to read config file at path `{}`: {}",
-                path.display(),
-                e
-            )
-        });
-        let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
-            panic!(
-                "Failed to parse config file at path `{}`: {}",
-                path.display(),
-                e
-            )
-        });
+        let path = path.with_extension("toml");
 
-        if !config.node_path.exists() {
-            panic!("Failed to find node at `{}`", config.node_path.display())
+        if path.is_file() {
+            let content = fs::read_to_string(&path).unwrap_or_else(|e| {
+                panic!(
+                    "Failed to read config file at path `{}`: {}",
+                    path.display(),
+                    e
+                )
+            });
+            let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
+                panic!(
+                    "Failed to parse config file at path `{}`: {}",
+                    path.display(),
+                    e
+                )
+            });
+
+            if !config.node_path.exists() {
+                panic!("Failed to find node at `{}`", config.node_path.display())
+            }
+
+            config
+        } else {
+            Self::create_template(&path);
+            println!("created config file `{}`", path.display());
+            exit(1);
         }
-
-        config
     }
 
     /// Generates a configuration file and writes it to the supplied path.
     pub fn create_template(path: &Path) {
-        fs::create_dir_all(path)
-            .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", path.display(), e));
+        if let Some(p) = path.parent() {
+            fs::create_dir_all(&p)
+                .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", p.display(), e));
+        }
 
-        let default_config = path.join("default.config.toml");
         let content = toml::to_string_pretty(&Self::default()).unwrap_or_else(|e| {
             panic!(
                 "Failed to create default toml configuration at `{}`: {}",
@@ -190,7 +199,7 @@ where
             )
         });
 
-        fs::write(&default_config, content).unwrap_or_else(|e| {
+        fs::write(&path, content).unwrap_or_else(|e| {
             panic!(
                 "failed to write to default config `{}`: {}",
                 path.display(),
