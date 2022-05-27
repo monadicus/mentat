@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use bitcoin::{hashes::hex::FromHex, Script, Transaction as BTCTransaction, TxIn, TxOut};
 use futures::future::join_all;
 use mentat::{
-    errors::{MentatError, MapErrMentat},
+    errors::{MapErrMentat, MentatError},
     identifiers::{AccountIdentifier, CoinIdentifier, OperationIdentifier, TransactionIdentifier},
     indexmap::IndexMap,
     models::{Amount, CoinAction, CoinChange, Currency, Operation, Transaction},

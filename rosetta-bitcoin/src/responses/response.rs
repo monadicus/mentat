@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use mentat::{
-    errors::{Result},
+    errors::Result,
     serde::{de::DeserializeOwned, Deserialize},
     server::RpcResponse,
     tracing,
