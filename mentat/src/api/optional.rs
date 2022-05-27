@@ -26,8 +26,12 @@ pub trait OptionalApi: Clone + Default {
             caller,
             msg: "Healthy!".to_string(),
             usage: self.usage("server", &system, server_pid).await?,
-            node_usage: self.usage("node", &system, node_pid.0).await?,
-            node_connections: self.node_connections(mode, rpc_caller).await?,
+            node: NodeInformation {
+                usage: self.usage("node", &system, node_pid.0).await?,
+                address: self.node_address(&rpc_caller).await?,
+                connections: self.node_connections(mode, &rpc_caller).await?,
+                net_usage: self.node_net_usage(mode, &rpc_caller).await?,
+            },
             cache_usage: self.check_cache_usage().await?,
         }))
     }
@@ -48,12 +52,26 @@ pub trait OptionalApi: Clone + Default {
         })
     }
 
+    /// A method for getting the address of the node.
+    async fn node_address(&self, _rpc_caller: &RpcCaller) -> Result<String> {
+        Ok(String::new())
+    }
+
     /// A method for getting the number of connections a node has.
     async fn node_connections(
         &self,
         _mode: &Mode,
-        _rpc_caller: RpcCaller,
+        _rpc_caller: &RpcCaller,
     ) -> Result<Option<NodeConnections>> {
+        Ok(None)
+    }
+
+    /// A method for getting the network usage of a node.
+    async fn node_net_usage(
+        &self,
+        _mode: &Mode,
+        _rpc_caller: &RpcCaller,
+    ) -> Result<Option<NodeNetwork>> {
         Ok(None)
     }
 
