@@ -56,6 +56,7 @@ module.exports = [
       path: path.resolve(__dirname, 'dist'),
       filename: `[name].${development ? 'dev' : '[fullhash:7]'}.js`,
       publicPath: '/',
+      clean: true,
     },
     module: {
       rules: [
@@ -139,6 +140,7 @@ module.exports = [
     target: 'node',
     externals: [nodeExternals()],
     output: {
+      clean: true,
       path: path.resolve(__dirname, 'dist'),
       filename: 'server.js',
     },
