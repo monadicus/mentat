@@ -1,8 +1,9 @@
 import React from 'react';
-import { FaCodeBranch, FaCube, FaGithub, FaNetworkWired } from 'react-icons/fa';
+import { FaCodeBranch, FaGithub, FaNetworkWired } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { i18n } from '../../features/i18n/components';
+import { getCryptoIcon } from '../../features/icons/crypto';
 import { useNetId } from '../../features/rosetta/hooks';
 import { selectNetworkVersions } from '../../features/rosetta/selectors';
 import { NetworkNav } from '../../views/networks/NetworkNav';
@@ -49,6 +50,13 @@ export const TopNavStyle = styled.div`
         font-weight: bold;
       }
 
+      .crypto-icon {
+        width: 13px;
+        height: 13px;
+        object-fit: contain;
+        margin-right: 4px;
+      }
+
       div {
         display: flex;
         align-items: center;
@@ -89,7 +97,10 @@ export const TopNav: React.FC = () => {
         {netId && (
           <div className="network-id">
             <div>
-              <FaCube />
+              <img
+                className="crypto-icon"
+                src={getCryptoIcon(netId.blockchain, 'white')}
+              />
               <span className="blockchain">{netId.blockchain}</span>
             </div>
             <div>

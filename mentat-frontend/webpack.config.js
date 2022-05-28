@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 
 const development = process.env.MODE !== 'production';
@@ -102,6 +103,14 @@ module.exports = [
         // favicon: './res/favicon.ico',
         template: './src/index.html',
         publicPath: '/',
+      }),
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: 'node_modules/cryptocurrency-icons/svg',
+            to: 'assets/cryptocurrency-icons',
+          },
+        ],
       }),
       development &&
         new webpack.EvalSourceMapDevToolPlugin({

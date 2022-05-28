@@ -4,6 +4,7 @@
     "allowJs": false,
     "importHelpers": true,
     "jsx": "react",
+    "resolveJsonModule": true,
     "lib": [
       "DOM",
       "ES5",
