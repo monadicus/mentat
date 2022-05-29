@@ -189,7 +189,7 @@ where
             fs::create_dir_all(&p)
                 .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", p.display(), e));
         }
-        
+
         let content = toml::to_string_pretty(&Self::default()).unwrap_or_else(|e| {
             panic!(
                 "Failed to create default toml configuration at `{}`: {}",
@@ -223,7 +223,7 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
                 Some(Default::default())
             } else {
                 None
-            }
+            },
         }
     }
 }
