@@ -144,8 +144,7 @@ pub struct Configuration<Custom: NodeConf> {
     /// The port that the node will bind to.
     pub node_rpc_port: u16,
     /// Configuration settings specific to the rosetta implementation
-    #[serde(default)]
-    pub custom: Custom,
+    pub custom: Option<Custom>,
 }
 
 impl<Custom> Configuration<Custom>
@@ -190,7 +189,7 @@ where
             fs::create_dir_all(&p)
                 .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", p.display(), e));
         }
-
+        
         let content = toml::to_string_pretty(&Self::default()).unwrap_or_else(|e| {
             panic!(
                 "Failed to create default toml configuration at `{}`: {}",
@@ -220,7 +219,11 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
-            custom: Default::default(),
+            custom: if std::mem::size_of::<Custom>() != 0 {
+                Some(Default::default())
+            } else {
+                None
+            }
         }
     }
 }
