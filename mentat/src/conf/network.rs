@@ -9,7 +9,9 @@ use super::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Network {
+    #[serde(alias = "mainnet", alias = "Mainnet", alias = "MAINNET")]
     Mainnet,
+    #[serde(alias = "testnet", alias = "Testnet", alias = "TESTNET")]
     Testnet,
     Other(String),
 }
