@@ -1,3 +1,8 @@
+//! mentat route generation macros
+
+#![deny(clippy::all, clippy::missing_docs_in_private_items)]
+#![warn(clippy::todo)]
+
 extern crate proc_macro;
 
 mod route_builder;
