@@ -15,6 +15,7 @@ use crate::api::MentatResponse;
 
 /// Represents the different types of http Errors.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(untagged)]
 pub enum MentatError {
     /// A Not Found HTTP Error.
     NotFound(ApiError),
