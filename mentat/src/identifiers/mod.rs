@@ -12,8 +12,9 @@ pub use block_identifier::*;
 mod coin_identifier;
 pub use coin_identifier::*;
 
-#[cfg(feature = "client")]
+#[cfg(target_arch = "wasm32")]
 mod js_metadata;
+#[cfg(target_arch = "wasm32")]
 pub use js_metadata::*;
 
 mod network_identifier;

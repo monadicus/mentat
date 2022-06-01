@@ -1,6 +1,7 @@
 //! The module defines the `MetadataRequest` request.
 
 use indexmap::IndexMap;
+
 #[cfg(feature = "client")]
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 

@@ -39,6 +39,8 @@ from_tuple = { version = "0.1.2", optional = true, default-features = false }
 indexmap = { version = "1.8.1", optional = true, default-features = false, features = ["serde", "std"] }
 serde = { version = "1.0.136", optional = true, default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.79", optional = true, default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { version = "0.2.80", optional = true, default-features = false, features = ["serde-serialize", "spans"] }
 wasm-bindgen-futures = { version = "0.4.30", optional = true }
 web-sys = { version = "0.3.57", optional = true, default-features = false, features = ["Request", "RequestInit", "Response", "Window"] }
