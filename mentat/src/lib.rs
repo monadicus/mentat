@@ -1,8 +1,6 @@
-// #![deny(clippy::all, clippy::missing_docs_in_private_items)]
+#![deny(clippy::all, clippy::missing_docs_in_private_items)]
+#![warn(clippy::todo)]
 #![doc = include_str!("../../README.md")]
-
-pub mod caller;
-pub use caller::Caller;
 pub mod errors;
 pub mod identifiers;
 pub mod misc;
@@ -100,7 +98,7 @@ mod server_exports {
             api::*,
             cache::Cache,
             conf::Configuration,
-            server::{RpcCaller, Server},
+            server::{RpcCaller, RpcResponse, Server},
             *,
         };
         pub use crate::requests::*;

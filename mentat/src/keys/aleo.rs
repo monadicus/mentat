@@ -49,3 +49,33 @@ impl<N: Network> Keys for AleoKeys<N> {
             .map_err(|_| KeysError::InvalidSignature)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rand::Rng;
+    use snarkvm_dpc::testnet2::Testnet2;
+    use snarkvm_utilities::ToBytes;
+
+    use super::*;
+
+    #[test]
+    fn import() {
+        let sk = <<Testnet2 as Network>::AccountSignatureScheme as SignatureScheme>::setup(SRS)
+            .generate_private_key(&mut rand::thread_rng());
+        let bytes = sk.to_bytes_le().unwrap();
+        assert!(AleoKeys::<Testnet2>::import_private_key(&bytes).is_ok());
+    }
+
+    #[test]
+    fn sign_verify() {
+        let sk = <<Testnet2 as Network>::AccountSignatureScheme as SignatureScheme>::setup(SRS)
+            .generate_private_key(&mut rand::thread_rng());
+        let bytes = sk.to_bytes_le().unwrap();
+        let keys = AleoKeys::<Testnet2>::import_private_key(&bytes).unwrap();
+        let message = (0..32)
+            .map(|_| rand::thread_rng().gen::<u8>())
+            .collect::<Vec<u8>>();
+        let sig = keys.sign(&message).unwrap();
+        assert!(keys.verify(&message, &sig).unwrap());
+    }
+}

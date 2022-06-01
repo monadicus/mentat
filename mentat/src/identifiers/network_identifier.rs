@@ -8,7 +8,7 @@ use crate::requests::NetworkRequest;
 #[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network, NodeConf},
-    errors::{MentatError, Result},
+    errors::Result,
     server::ServerType,
 };
 
@@ -81,17 +81,19 @@ impl NetworkIdentifier {
             if network_identifier.blockchain.to_uppercase()
                 != Types::CustomConfig::BLOCKCHAIN.to_uppercase()
             {
-                return Err(MentatError::from(format!(
+                return Err(format!(
                     "invalid blockchain ID: found `{}`, expected `{}`",
                     network_identifier.blockchain.to_uppercase(),
                     Types::CustomConfig::BLOCKCHAIN.to_uppercase()
-                )));
+                )
+                .into());
             } else if Network::from(network_identifier.network.to_uppercase()) != config.network {
-                return Err(MentatError::from(format!(
+                return Err(format!(
                     "invalid network ID: found `{}`, expected `{}`",
                     network_identifier.network.to_uppercase(),
                     config.network
-                )));
+                )
+                .into());
             }
         }
         Ok(())

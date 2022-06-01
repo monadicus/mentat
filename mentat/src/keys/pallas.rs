@@ -96,7 +96,7 @@ impl Hashable for Transaction {
         roi
     }
 
-    fn domain_string(_: Option<&Self>, network_id: NetworkId) -> Option<String> {
+    fn domain_string(network_id: NetworkId) -> Option<String> {
         // Domain strings must have length <= 20
         match network_id {
             NetworkId::MAINNET => "MinaSignatureMainnet",
@@ -104,5 +104,94 @@ impl Hashable for Transaction {
         }
         .to_string()
         .into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use mina_signer::PubKey;
+    use rand::rngs::OsRng;
+
+    use super::*;
+
+    #[test]
+    fn import() {
+        let keypair = Keypair::rand(&mut OsRng {});
+        let bytes = format!("{keypair}");
+        assert!(PallasKeys::<Transaction>::import_private_key(&bytes.as_bytes()).is_ok());
+    }
+
+    #[test]
+    fn sign_verify() {
+        let keypair = Keypair::rand(&mut OsRng {});
+        let bytes = format!("{keypair}");
+        let keys = PallasKeys::<Transaction>::import_private_key(&bytes.as_bytes()).unwrap();
+        let message = Transaction::new_payment(keypair.public, keypair.public, 0, 0, 0);
+        let sig = keys.sign(&message).unwrap();
+        assert!(keys.verify(&message, &sig).unwrap());
+    }
+
+    const PAYMENT_TX_TAG: [bool; TAG_BITS] = [false, false, false];
+    const DELEGATION_TX_TAG: [bool; TAG_BITS] = [false, false, true];
+
+    impl Transaction {
+        pub fn new_payment(from: PubKey, to: PubKey, amount: u64, fee: u64, nonce: u32) -> Self {
+            Transaction {
+                fee,
+                fee_token: 1,
+                fee_payer_pk: from.into_compressed(),
+                nonce,
+                valid_until: u32::MAX,
+                memo: array_init::array_init(|i| (i == 0) as u8),
+                tag: PAYMENT_TX_TAG,
+                source_pk: from.into_compressed(),
+                receiver_pk: to.into_compressed(),
+                token_id: 1,
+                amount,
+                token_locked: false,
+            }
+        }
+
+        pub fn new_delegation(from: PubKey, to: PubKey, fee: u64, nonce: u32) -> Self {
+            Transaction {
+                fee,
+                fee_token: 1,
+                fee_payer_pk: from.into_compressed(),
+                nonce,
+                valid_until: u32::MAX,
+                memo: array_init::array_init(|i| (i == 0) as u8),
+                tag: DELEGATION_TX_TAG,
+                source_pk: from.into_compressed(),
+                receiver_pk: to.into_compressed(),
+                token_id: 1,
+                amount: 0,
+                token_locked: false,
+            }
+        }
+
+        pub fn set_valid_until(mut self, global_slot: u32) -> Self {
+            self.valid_until = global_slot;
+
+            self
+        }
+
+        pub fn set_memo(mut self, memo: [u8; MEMO_BYTES - 2]) -> Self {
+            self.memo[0] = 0x01;
+            self.memo[1] = (MEMO_BYTES - 2) as u8;
+            self.memo[2..].copy_from_slice(&memo[..]);
+
+            self
+        }
+
+        pub fn set_memo_str(mut self, memo: &str) -> Self {
+            self.memo[0] = 0x01;
+            self.memo[1] = std::cmp::min(memo.len(), MEMO_BYTES - 2) as u8;
+            let memo = format!("{:\0<32}", memo); // Pad user-supplied memo with zeros
+            self.memo[2..]
+                .copy_from_slice(&memo.as_bytes()[..std::cmp::min(memo.len(), MEMO_BYTES - 2)]);
+            // Anything beyond MEMO_BYTES is truncated
+
+            self
+        }
     }
 }

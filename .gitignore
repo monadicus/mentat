@@ -15,3 +15,6 @@ local.conf.toml
 temp.rs
 
 .timetracker
+
+# wasm
+/mentat/pkg

@@ -7,7 +7,7 @@ use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
-use crate::{errors::ApiError, requests::*, responses::*};
+use crate::{errors::MentatError, requests::*, responses::*};
 
 /// The client struct to call a rosetta API.
 #[wasm_bindgen]
@@ -30,12 +30,12 @@ pub enum ClientError {
     /// A networking error
     NetworkError(String),
     /// A rosetta API error.
-    ServerError(ApiError),
+    ServerError(MentatError),
 }
 
 impl From<JsValue> for ClientError {
     fn from(v: JsValue) -> Self {
-        let is_api_error: Result<ApiError, _> = v.into_serde();
+        let is_api_error: Result<MentatError, _> = v.into_serde();
         match is_api_error {
             Ok(api_error) => ClientError::ServerError(api_error),
             Err(e) => ClientError::NetworkError(e.to_string()),
@@ -111,7 +111,7 @@ impl Client {
         } else {
             match response.json() {
                 Ok(e) => {
-                    let api_error: ApiError = JsFuture::from(e).await?.into_serde()?;
+                    let api_error: MentatError = JsFuture::from(e).await?.into_serde()?;
                     Err(ClientError::ServerError(api_error))
                 }
                 Err(e) => Err(e.into()),

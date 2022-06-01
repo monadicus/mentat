@@ -220,7 +220,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NetworkStatusResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.network_status(caller, data, rpc_caller).await
         }
@@ -235,7 +235,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountBalanceResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.account_balance(caller, data, rpc_caller).await
         }
@@ -250,7 +250,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<AccountCoinsResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.account_coins(caller, data, rpc_caller).await
         }
@@ -265,7 +265,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.block(caller, data, rpc_caller).await
         }
@@ -280,7 +280,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<BlockTransactionResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.block_transaction(caller, data, rpc_caller).await
         }
@@ -295,7 +295,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.mempool(caller, data, rpc_caller).await
         }
@@ -310,7 +310,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<MempoolTransactionResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.mempool_transaction(caller, data, rpc_caller).await
         }

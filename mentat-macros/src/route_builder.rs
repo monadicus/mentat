@@ -1,6 +1,9 @@
+//! logic used to generate routes from the user specified types
+
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
 
+/// mentat routes
 const ROUTES: &[ApiGroup] = &[
     ApiGroup {
         api: "optional_api",
@@ -207,6 +210,8 @@ const ROUTES: &[ApiGroup] = &[
     },
 ];
 
+/// a mentat route
+#[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug)]
 struct Route {
     path: &'static str,
@@ -216,18 +221,24 @@ struct Route {
     never_cache: bool,
 }
 
+/// a group of endpoints for rosetta
+#[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug)]
 struct RouteGroup {
     route_base: &'static str,
     routes: &'static [Route],
 }
 
+/// a base rosetta endpoint and its corresponding route groups
+#[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug)]
 struct ApiGroup {
     api: &'static str,
     route_groups: &'static [RouteGroup],
 }
 
+/// builds the routes for rosetta and any optional mentat routes the user
+/// specified
 pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStream2 {
     let mut out = TokenStream2::new();
 
@@ -267,6 +278,7 @@ pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStr
     out
 }
 
+/// builds a mentat route without caching enabled
 fn build_route(
     server_type: &Ident,
     api: &Ident,
@@ -294,12 +306,14 @@ fn build_route(
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
             Extension(node_pid): Extension<NodePid>,
+            Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
+            Extension(rpc_caller): Extension<RpcCaller>
         );
         req_trace = quote! (
             tracing::info!("{}", server_pid);
             tracing::info!("{}", node_pid.0);
         );
-        method_args = quote!(server_pid, node_pid,);
+        method_args = quote!(&conf.mode, rpc_caller, server_pid, node_pid,);
     }
     quote!(
         let api = server.#api.clone();
@@ -323,6 +337,7 @@ fn build_route(
 }
 
 #[allow(clippy::too_many_arguments)]
+/// builds a mentat route with caching enabled
 fn build_cached_route(
     server_type: &Ident,
     api: &Ident,

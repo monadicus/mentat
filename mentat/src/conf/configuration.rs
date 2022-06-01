@@ -6,7 +6,7 @@ use std::{
     io::{BufRead, BufReader, Read},
     net::Ipv4Addr,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::{exit, Command, Stdio},
     str::FromStr,
     thread,
 };
@@ -14,9 +14,6 @@ use std::{
 use axum::async_trait;
 use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
-use tracing::Dispatch;
-use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
-use tracing_tree::HierarchicalLayer;
 
 use super::*;
 
@@ -94,32 +91,6 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
         NodePid(Pid::from_u32(child.id()))
     }
 
-    /// Sets up a tracing subscriber dispatch
-    fn setup_logging() -> Dispatch {
-        let tracer = opentelemetry_jaeger::new_pipeline()
-            .install_batch(opentelemetry::runtime::Tokio)
-            .unwrap_or_else(|e| panic!("Failed to start opentelemtry_jaeger: `{e}`"));
-        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-
-        Registry::default()
-            .with(EnvFilter::new(
-                std::env::var("RUST_LOG").unwrap_or_else(|_| "debug,tower_http=debug".to_string()),
-            ))
-            .with(
-                HierarchicalLayer::new(2)
-                    .with_targets(true)
-                    .with_bracketed_fields(true),
-            )
-            .with(tracing_error::ErrorLayer::default())
-            .with(telemetry)
-            .into()
-    }
-
-    /// Shuts down any necessary logging details for Mentat.
-    fn teardown_logging() {
-        opentelemetry::global::shutdown_tracer_provider();
-    }
-
     /// Used to control how the node logs its output to the console.
     ///
     /// The default implementation uses the tracing crate to print `stdout`
@@ -173,8 +144,7 @@ pub struct Configuration<Custom: NodeConf> {
     /// The port that the node will bind to.
     pub node_rpc_port: u16,
     /// Configuration settings specific to the rosetta implementation
-    #[serde(default)]
-    pub custom: Custom,
+    pub custom: Option<Custom>,
 }
 
 impl<Custom> Configuration<Custom>
@@ -183,34 +153,43 @@ where
 {
     /// Loads a configuration file from the supplied path.
     pub fn load(path: &Path) -> Self {
-        let content = fs::read_to_string(path).unwrap_or_else(|e| {
-            panic!(
-                "Failed to read config file at path `{}`: {}",
-                path.display(),
-                e
-            )
-        });
-        let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
-            panic!(
-                "Failed to parse config file at path `{}`: {}",
-                path.display(),
-                e
-            )
-        });
+        let path = path.with_extension("toml");
 
-        if !config.node_path.exists() {
-            panic!("Failed to find node at `{}`", config.node_path.display())
+        if path.is_file() {
+            let content = fs::read_to_string(&path).unwrap_or_else(|e| {
+                panic!(
+                    "Failed to read config file at path `{}`: {}",
+                    path.display(),
+                    e
+                )
+            });
+            let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
+                panic!(
+                    "Failed to parse config file at path `{}`: {}",
+                    path.display(),
+                    e
+                )
+            });
+
+            if !config.node_path.exists() {
+                panic!("Failed to find node at `{}`", config.node_path.display())
+            }
+
+            config
+        } else {
+            Self::create_template(&path);
+            println!("created config file `{}`", path.display());
+            exit(1);
         }
-
-        config
     }
 
     /// Generates a configuration file and writes it to the supplied path.
     pub fn create_template(path: &Path) {
-        fs::create_dir_all(path)
-            .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", path.display(), e));
+        if let Some(p) = path.parent() {
+            fs::create_dir_all(&p)
+                .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", p.display(), e));
+        }
 
-        let default_config = path.join("default.config.toml");
         let content = toml::to_string_pretty(&Self::default()).unwrap_or_else(|e| {
             panic!(
                 "Failed to create default toml configuration at `{}`: {}",
@@ -219,7 +198,7 @@ where
             )
         });
 
-        fs::write(&default_config, content).unwrap_or_else(|e| {
+        fs::write(&path, content).unwrap_or_else(|e| {
             panic!(
                 "failed to write to default config `{}`: {}",
                 path.display(),
@@ -240,7 +219,11 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
-            custom: Default::default(),
+            custom: if std::mem::size_of::<Custom>() != 0 {
+                Some(Default::default())
+            } else {
+                None
+            },
         }
     }
 }

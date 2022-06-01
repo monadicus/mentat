@@ -32,7 +32,7 @@ pub trait CallerCallApi: CallApi + Clone + Default {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<CallResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.call(caller, data, rpc_caller).await
         }

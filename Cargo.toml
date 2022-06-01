@@ -3,15 +3,13 @@
 members = [
         "mentat",
         "mentat-macros",
-        "rosetta-bitcoin",
-        "rosetta-snarkos",
         "examples/mentat-cli",
 ]
 
 [profile.release]
 codegen-units = 1
 panic = "abort"
-lto = "fat"
+lto = "thin"
 strip = true
 
 [profile.release-docker]
@@ -19,5 +17,5 @@ inherits = "release"
 codegen-units = 1
 opt-level = "z"
 panic = "abort"
-lto = true
+lto = "thin"
 strip = true

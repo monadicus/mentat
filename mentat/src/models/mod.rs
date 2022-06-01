@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{errors::ApiError, identifiers::*, misc::*};
+use crate::{errors::MentatError, identifiers::*, misc::*};
 
 mod allow;
 pub use allow::*;
@@ -25,6 +25,9 @@ pub use block_transaction::*;
 
 mod block;
 pub use block::*;
+
+mod caller;
+pub use caller::*;
 
 mod coin_action;
 pub use coin_action::*;

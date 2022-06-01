@@ -1,7 +1,6 @@
 //! The module defines the `HealthCheckResponse` response.
 
 use super::*;
-use crate::Caller;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 /// The `Usage` struct tracks usage of a Process.
@@ -21,6 +20,54 @@ pub struct Usage {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+/// Tracks the number of connections a Node has if it is online mode.
+pub enum NodeConnections {
+    /// Represents Rosetta offline mode where no outbound connections should
+    /// exist.
+    Offline,
+    /// Represents the number of connections your node has during online mode.
+    Online {
+        /// The total number of connections.
+        total: u64,
+        /// The number of inbound connections.
+        inbound: u64,
+        /// The number of outbound connections.
+        outbound: u64,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+/// Tracks the amount of data sent and received by the node.
+pub enum NodeNetwork {
+    /// Represents Rosetta offline mode where no traffic should be received or
+    /// sent.
+    Offline,
+    /// Represents the amount of data received and sent during online mode.
+    Online {
+        /// The total number of bytes received.
+        bytes_recv: u64,
+        /// The total number of bytes sent.
+        bytes_sent: u64,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+/// The node information for a health check operation.
+pub struct NodeInformation {
+    /// The usage of the node.
+    pub usage: Usage,
+    /// The address of the node.
+    pub address: String,
+    /// The number of the connections the node has if the operation is
+    /// supported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub connections: Option<NodeConnections>,
+    /// The network usage of the node if the operation is supported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub net_usage: Option<NodeNetwork>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 /// The `HealthCheckResponse` type.
 pub struct HealthCheckResponse {
     /// Who called the endpoint.
@@ -29,8 +76,8 @@ pub struct HealthCheckResponse {
     pub msg: String,
     /// The server's usage.
     pub usage: Usage,
-    /// The usage of the node.
-    pub node_usage: Usage,
+    /// The node information.
+    pub node: NodeInformation,
     /// The usage of the cache if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_usage: Option<Usage>,

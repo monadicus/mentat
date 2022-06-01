@@ -176,7 +176,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<ConstructionMetadataResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.metadata(caller, data, rpc_caller).await
         }
@@ -224,7 +224,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<TransactionIdentifierResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(&data)
+            MentatError::wrong_network(Some(mode))
         } else {
             self.submit(caller, data, rpc_caller).await
         }
