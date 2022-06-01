@@ -41,7 +41,8 @@ impl MentatError {
             .unwrap_or_default()
     }
 
-    // has to be done separate from the display trait due to a conflict with rust default impls
+    // has to be done separate from the display trait due to a conflict with rust
+    // default impls
     /// display formatting
     pub fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(desc) = &self.description {
