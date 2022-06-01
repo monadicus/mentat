@@ -6,7 +6,7 @@ use anyhow::anyhow;
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{errors::ApiError, requests::*, responses::*};
+use crate::{errors::MentatError, requests::*, responses::*};
 
 /// The client struct to call a rosetta API.
 pub struct Client {
@@ -24,7 +24,7 @@ pub enum ClientError {
     /// A networking error.
     NetworkError(anyhow::Error),
     /// A rosetta API error.
-    ServerError(ApiError),
+    ServerError(MentatError),
 }
 
 impl fmt::Display for ClientError {
