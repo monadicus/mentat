@@ -4,7 +4,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     conf::{Configuration, NodeConf},
-    errors::Result,
+    errors::{MapErrMentat, Result},
 };
 
 /// The `RpcCaller` struct is a wrapper to hold a rpc caller instance
@@ -43,7 +43,8 @@ impl RpcCaller {
             .await?;
 
         let resp_text = resp.text().await?;
-        let response_type: R = serde_json::from_str::<R>(&resp_text)?;
+        let response_type: R = serde_json::from_str::<R>(&resp_text)
+            .merr(|e| format!("failed to serialize response: `{e}`\ntext: `{resp_text}`"))?;
         response_type.unwrap_response()
     }
 }
