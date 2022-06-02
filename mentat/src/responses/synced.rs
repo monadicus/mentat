@@ -1,4 +1,5 @@
-//! a struct for the /optional/synced endpoint that contains local and global tip
+//! a struct for the /optional/synced endpoint that contains local and global
+//! tip
 
 use serde::{Deserialize, Serialize};
 

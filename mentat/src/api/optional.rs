@@ -11,10 +11,7 @@ use crate::{conf::NodePid, errors::MapErrMentat};
 /// The `OptionalApi` Trait.
 pub trait OptionalApi: Clone + Default {
     /// returns local and global chain tips
-    async fn synced(
-        &self,
-        _rpc_caller: RpcCaller,
-    ) -> MentatResponse<Synced> {
+    async fn synced(&self, _rpc_caller: RpcCaller) -> MentatResponse<Synced> {
         MentatError::not_implemented()
     }
 
