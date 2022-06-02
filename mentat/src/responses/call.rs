@@ -1,7 +1,5 @@
 //! The module defines the `BlockTransactionResponse` response.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// `CallResponse` contains the result of a `/call` invocation.
@@ -10,7 +8,7 @@ pub struct CallResponse {
     /// Result contains the result of the `/call` invocation. This result will
     /// not be inspected or interpreted by Rosetta tooling and is left to
     /// the caller to decode.
-    pub result: IndexMap<String, Value>,
+    pub result: Value,
     /// Idempotent indicates that if `/call` is invoked with the same
     /// [`crate::requests::CallRequest`] again, at any point in time, it will
     /// return the same `CallResponse`. Integrators may cache the
