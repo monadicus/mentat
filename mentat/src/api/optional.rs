@@ -2,7 +2,6 @@
 //! These traits are easily overridable for custom
 //! implementations.
 
-use axum::async_trait;
 use sysinfo::{Pid, ProcessExt, System, SystemExt};
 
 use super::*;
@@ -12,7 +11,10 @@ use crate::{conf::NodePid, errors::MapErrMentat};
 /// The `OptionalApi` Trait.
 pub trait OptionalApi: Clone + Default {
     /// returns local and global chain tips
-    async fn synced(&self) -> MentatResponse<Synced> {
+    async fn synced(
+        &self,
+        _rpc_caller: RpcCaller,
+    ) -> MentatResponse<Synced> {
         MentatError::not_implemented()
     }
 
@@ -86,12 +88,12 @@ pub trait OptionalApi: Clone + Default {
     }
 }
 
-#[derive(Clone, Default)]
-pub struct UnimplementedOptionalApi;
-
-#[async_trait]
-impl OptionalApi for UnimplementedOptionalApi {
-    async fn health(
+/// Trait to wrap the `OptionalApi`.
+/// This trait helps to define default behavior for running the endpoints
+/// on different modes.
+#[axum::async_trait]
+pub trait CallerOptionalApi: OptionalApi + Clone + Default {
+    async fn call_health(
         &self,
         _caller: Caller,
         _mode: &Mode,
@@ -100,5 +102,21 @@ impl OptionalApi for UnimplementedOptionalApi {
         _node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
         MentatError::not_implemented()
+    }
+
+    /// This endpoint only runs in online mode.
+    async fn call_synced(
+        &self,
+        _caller: Caller,
+        mode: &Mode,
+        rpc_caller: RpcCaller,
+        _server_pid: Pid,
+        _node_pid: NodePid,
+    ) -> MentatResponse<Synced> {
+        if mode.is_offline() {
+            MentatError::wrong_network(Some(mode))
+        } else {
+            self.synced(rpc_caller).await
+        }
     }
 }

@@ -12,14 +12,14 @@ const ROUTES: &[ApiGroup] = &[
             routes: &[
                 Route {
                     path: "/health",
-                    method: "health",
+                    method: "call_health",
                     req_data: None,
                     req_method: "get",
                     never_cache: true,
                 },
                 Route {
                     path: "/synced",
-                    method: "synced",
+                    method: "call_synced",
                     req_data: None,
                     req_method: "get",
                     never_cache: true,
