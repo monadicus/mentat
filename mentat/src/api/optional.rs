@@ -11,6 +11,11 @@ use crate::{conf::NodePid, errors::MapErrMentat};
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
 pub trait OptionalApi: Clone + Default {
+    /// returns local and global chain tips
+    async fn synced(&self) -> MentatResponse<Synced> {
+        MentatError::not_implemented()
+    }
+
     /// A default implementation for providing a health check.
     async fn health(
         &self,
