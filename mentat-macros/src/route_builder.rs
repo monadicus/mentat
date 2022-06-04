@@ -9,13 +9,22 @@ const ROUTES: &[ApiGroup] = &[
         api: "optional_api",
         route_groups: &[RouteGroup {
             route_base: "/optional",
-            routes: &[Route {
-                path: "/health",
-                method: "health",
-                req_data: None,
-                req_method: "get",
-                never_cache: true,
-            }],
+            routes: &[
+                Route {
+                    path: "/health",
+                    method: "call_health",
+                    req_data: None,
+                    req_method: "get",
+                    never_cache: true,
+                },
+                Route {
+                    path: "/synced",
+                    method: "call_synced",
+                    req_data: None,
+                    req_method: "get",
+                    never_cache: true,
+                },
+            ],
         }],
     },
     ApiGroup {

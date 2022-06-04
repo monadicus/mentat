@@ -64,3 +64,6 @@ pub use search_transactions::*;
 
 mod transaction_identifier;
 pub use transaction_identifier::*;
+
+mod synced;
+pub use synced::*;

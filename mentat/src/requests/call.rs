@@ -20,5 +20,6 @@ pub struct CallRequest {
     /// Parameters is some network-specific argument for a method. It is up to
     /// the caller to determine which parameters to provide when invoking
     /// `/call`.
+    #[serde(default)]
     pub parameters: IndexMap<String, Value>,
 }
