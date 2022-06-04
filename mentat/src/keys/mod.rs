@@ -6,6 +6,11 @@ pub mod secp256k1;
 pub mod secp256r1;
 use errors::KeysError;
 
+#[cfg(test)]
+mod errors_test;
+#[cfg(test)]
+mod keys_test;
+
 /// Defines generic operations performed with sets of keys.
 pub trait Keys: Sized {
     type M;
