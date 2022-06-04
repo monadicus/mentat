@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.59.0"
 
+[lib]
+doctest = false
+
 [features]
 _network = ["indexmap", "serde", "serde_json", "reqwest"]
 client = ["_network", "anyhow", "tokio"]
@@ -28,13 +31,13 @@ server = [
     "tracing-tree"
 ]
 sdk = ["keys"]
-keys = ["ed25519-dalek", "mina-hasher", "mina-signer", "p256", "p256/ecdsa", "rand", "secp256k1", "secp256k1/bitcoin_hashes", "secp256k1/recovery", "secp256k1/rand-std", "snarkvm-dpc", "snarkvm-algorithms", "snarkvm-utilities"]
+keys = ["ed25519-dalek-blake3", "mina-hasher", "mina-signer", "p256", "p256/ecdsa", "rand", "secp256k1", "secp256k1/bitcoin_hashes", "secp256k1/recovery", "secp256k1/rand-std", "snarkvm-dpc", "snarkvm-algorithms", "snarkvm-utilities"]
 
 [dependencies]
 anyhow = { version = "1.0.57", optional = true }
 axum = { version = "0.5.6", optional = true, default-features = false, features = ["http1", "json"] }
 color-backtrace = { version = "0.5.1", optional = true, default-features = false }
-ed25519-dalek = { version = "1.0.1", optional = true }
+ed25519-dalek-blake3 = { version = "1.0.11", optional = true }
 from_tuple = "0.1.2"
 hyper = { version = "0.14.19", optional = true, default-features = false }
 indexmap = { version = "1.8.2", optional = true, default-features = false, features = ["serde"] }
@@ -62,6 +65,7 @@ tracing-opentelemetry = { version = "0.17.2", optional = true, default-features 
 tracing-subscriber = { version = "0.3.11", optional = true, features = ["env-filter"] }
 tracing-tree = { version = "0.2.1", optional = true, default-features = false }
 sysinfo = { version = "0.24.1", optional = true, default-features = false }
+thiserror = "1.0.31"
 
 [dev-dependencies]
 array-init = "2.0.0"
