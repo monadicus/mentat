@@ -2,6 +2,7 @@
 #![warn(clippy::todo)]
 #![doc = include_str!("../../README.md")]
 
+mod asserter;
 pub mod errors;
 pub mod identifiers;
 pub mod misc;

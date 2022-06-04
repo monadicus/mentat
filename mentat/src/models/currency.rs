@@ -7,7 +7,7 @@ use super::*;
 /// `Currency` is composed of a canonical Symbol and Decimals. This Decimals
 /// value is used to convert an Amount.Value from atomic units (Satoshis) to
 /// standard units (Bitcoins).
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Currency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,
@@ -30,5 +30,13 @@ impl From<String> for Currency {
             symbol,
             ..Default::default()
         }
+    }
+}
+
+impl Sortable for Currency {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.metadata.sort_keys();
+        new
     }
 }
