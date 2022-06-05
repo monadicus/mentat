@@ -4,13 +4,13 @@
 use axum::http::Extensions;
 
 use super::*;
-use crate::requests::NetworkRequest;
 #[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network, NodeConf},
     errors::Result,
     server::ServerType,
 };
+use crate::{models::Sortable, requests::NetworkRequest};
 
 /// The `network_identifier` specifies which network a particular object is
 /// associated with.
@@ -65,6 +65,14 @@ impl From<NetworkIdentifier> for NetworkRequest {
             network_identifier: net,
             ..Default::default()
         }
+    }
+}
+
+impl Sortable for NetworkIdentifier {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.sub_network_identifier.clone().map(|sni| sni.sort());
+        new
     }
 }
 

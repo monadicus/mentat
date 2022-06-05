@@ -3,6 +3,7 @@
 use indexmap::IndexMap;
 
 use super::*;
+use crate::models::Sortable;
 
 /// In blockchains with sharded state, the `SubNetworkIdentifier` is required to
 /// query some object on a specific shard. This identifier is optional for all
@@ -23,5 +24,13 @@ impl From<String> for SubNetworkIdentifier {
             network,
             ..Default::default()
         }
+    }
+}
+
+impl Sortable for SubNetworkIdentifier {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.metadata.sort_keys();
+        new
     }
 }

@@ -72,5 +72,5 @@ mod transaction;
 pub use transaction::*;
 
 pub(crate) trait Sortable {
-	fn sort(&self) -> Self;
+    fn sort(&self) -> Self;
 }
