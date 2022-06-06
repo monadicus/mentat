@@ -21,4 +21,11 @@ pub enum ExemptionType {
     /// supply.
     #[serde(rename = "dynamic")]
     Dynamic,
+    None,
+}
+
+impl Default for ExemptionType {
+    fn default() -> Self {
+        Self::None
+    }
 }

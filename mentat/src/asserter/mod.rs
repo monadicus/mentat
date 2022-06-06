@@ -1,7 +1,11 @@
 mod account;
 mod asserter;
 mod block;
+mod coins;
 mod errors;
+mod events;
+mod mempool;
 mod network;
+mod search;
 mod server;
 mod util;

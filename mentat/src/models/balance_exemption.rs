@@ -36,6 +36,5 @@ pub struct BalanceExemption {
     /// to spendable on a vesting account. * dynamic: The live balance may
     /// increase above, decrease below, or equal the computed balance. This
     /// typically occurs with tokens that have a dynamic supply.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub exemption_type: Option<ExemptionType>,
+    pub exemption_type: ExemptionType,
 }

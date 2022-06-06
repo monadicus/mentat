@@ -1,9 +1,12 @@
+use std::path::Path;
+
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 
 use super::{
     block::block_identifier,
-    network::{operation_statuses, operation_types, network_identifier},
+    errors::{AssertResult, NetworkError, ServerError},
+    network::{network_identifier, operation_statuses, operation_types},
     server::supported_networks,
 };
 use crate::{
@@ -12,8 +15,8 @@ use crate::{
     responses::{NetworkOptionsResponse, NetworkStatusResponse},
 };
 
-static ACCOUNT: &'static str = "account";
-static UTXO: &'static str = "utxo";
+const ACCOUNT: &str = "account";
+const UTXO: &str = "utxo";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub(crate) struct Operation {
@@ -36,11 +39,11 @@ pub(crate) struct Validations {
     related_ops_exists: bool,
     chain_type: String,
     payment: ValidationOperation,
-    Fee: ValidationOperation,
+    fee: ValidationOperation,
 }
 
 impl Validations {
-    pub(crate) fn get_calidation_config(validation_file_path: String) -> Result<Self, String> {
+    pub(crate) fn get_validation_config(validation_file_path: &Path) -> Result<Self, String> {
         todo!()
     }
 }
@@ -49,8 +52,8 @@ impl Validations {
 #[derive(Debug)]
 pub(crate) struct ResponseAsserter {
     network: NetworkIdentifier,
-    operation_types: Vec<String>,
-    operation_status_map: IndexMap<String, bool>,
+    pub operation_types: Vec<String>,
+    pub operation_status_map: IndexMap<String, bool>,
     error_type_map: IndexMap<i32, String>,
     genesis_block: BlockIdentifier,
     timestamp_start_index: i64,
@@ -60,7 +63,7 @@ pub(crate) struct ResponseAsserter {
 impl ResponseAsserter {
     /// ClientConfiguration returns all variables currently set in an Asserter.
     /// This function will error if it is called on an uninitialized asserter.
-    pub(crate) fn client_configuration(&self) -> Result<Configuration, String> {
+    pub(crate) fn client_configuration(&self) -> AssertResult<Configuration> {
         // TODO if self nil
 
         let mut allowed_operation_statuses = Vec::new();
@@ -92,7 +95,7 @@ impl ResponseAsserter {
         errors: Vec<String>,
         timestamp_start_index: i64,
         validations: Validations,
-    ) -> Result<Self, String> {
+    ) -> AssertResult<Self> {
         network_identifier(&network)?;
         block_identifier(&genesis_block)?;
         operation_statuses(&operation_stats)?;
@@ -104,7 +107,11 @@ impl ResponseAsserter {
         // TODO if timestampindex nil set parsedtimestampindex = timestampstartindex
 
         if timestamp_start_index < 0 {
-            return Err(format!("{}: {timestamp_start_index}", todo!()));
+            return Err(format!(
+                "{}: {timestamp_start_index}",
+                NetworkError::TimestampStartIndexInvalid
+            )
+            .into());
         }
 
         let operation_status_map = operation_stats
@@ -144,23 +151,21 @@ impl RequestAsserter {
         supp_networks: Vec<NetworkIdentifier>,
         call_methods: Vec<String>,
         mempool_coins: bool,
-        validation_file_path: String,
-    ) -> Result<Self, String> {
+        validation_file_path: &Path,
+    ) -> AssertResult<Self> {
         operation_types(&supported_operation_types)?;
         supported_networks(&supp_networks)?;
 
-        let validations = Validations::get_calidation_config(validation_file_path)?;
+        let validations = Validations::get_validation_config(validation_file_path)?;
         let mut call_map: IndexSet<String> = IndexSet::new();
         for method in call_methods {
             if method.is_empty() {
-                return Err(todo!());
+                return Err(ServerError::CallMethodEmpty.into());
+            } else if call_map.contains(&method) {
+                return Err(format!("{}: {method}", ServerError::CallMethodDuplicate).into());
+            } else {
+                call_map.insert(method);
             }
-
-            if call_map.contains(&method) {
-                return Err(format!("{}: {method}", todo!()));
-            }
-
-            call_map.insert(method);
         }
 
         Ok(Self {
@@ -191,8 +196,8 @@ impl Asserter {
         supp_networks: Vec<NetworkIdentifier>,
         call_methods: Vec<String>,
         mempool_coins: bool,
-        validation_file_path: String,
-    ) -> Result<Self, String> {
+        validation_file_path: &Path,
+    ) -> AssertResult<Self> {
         Ok(Asserter::Request(RequestAsserter::new_server(
             supported_operation_types,
             historical_balance_lookup,
@@ -203,25 +208,25 @@ impl Asserter {
         )?))
     }
 
-	/// NewClientWithResponses constructs a new Asserter
-	/// from a NetworkStatusResponse and
-	/// NetworkOptionsResponse.
+    /// NewClientWithResponses constructs a new Asserter
+    /// from a NetworkStatusResponse and
+    /// NetworkOptionsResponse.
     pub(crate) fn new_client_with_responses(
         network: NetworkIdentifier,
         status: NetworkStatusResponse,
         options: NetworkOptionsResponse,
-        validation_file_path: String,
-    ) -> Result<Self, String> {
-		network_identifier(&network)?;
-		
+        validation_file_path: &Path,
+    ) -> AssertResult<Self> {
+        network_identifier(&network)?;
+
         todo!()
     }
 
-    pub(crate) fn new_with_file(file_path: String) -> Result<Self, String> {
+    pub(crate) fn new_with_file(file_path: String) -> AssertResult<Self> {
         todo!()
     }
 
-    pub(crate) fn operation_successful(&self, operation: &Operation) -> Result<bool, String> {
+    pub(crate) fn operation_successful(&self, operation: &Operation) -> AssertResult<bool> {
         todo!()
     }
 }

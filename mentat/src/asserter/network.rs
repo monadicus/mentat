@@ -1,12 +1,19 @@
-use indexmap::IndexMap;
+use indexmap::IndexSet;
 
-use super::{util::{hash, string_array}, block::{block_identifier, timestamp}, errors::{NetworkError, AssertResult, BlockError, AsserterError, ErrorError}};
+use super::{
+    block::{block_identifier, currency, timestamp},
+    errors::{AssertResult, AsserterError, BlockError, ErrorError, NetworkError},
+    util::{hash, string_array},
+};
 use crate::{
+    errors::MentatError,
     identifiers::{NetworkIdentifier, SubNetworkIdentifier},
-    misc::{OperationStatus, Peer, SyncStatus, Version}, responses::NetworkStatusResponse, errors::MentatError,
+    misc::{OperationStatus, Peer, SyncStatus, Version},
+    models::{Allow, BalanceExemption},
+    responses::{NetworkListResponse, NetworkOptionsResponse, NetworkStatusResponse},
 };
 
-/// SubNetworkIdentifier asserts a types.SubNetworkIdentifer is valid (if not
+/// `sub_network_identifier` asserts a [`SubNetworkIdentifer`] is valid (if not
 /// nil).
 pub(crate) fn sub_network_identifier(
     sub_network_identifier: Option<&SubNetworkIdentifier>,
@@ -23,7 +30,7 @@ pub(crate) fn sub_network_identifier(
     Ok(())
 }
 
-/// NetworkIdentifier ensures a types.NetworkIdentifier has
+/// `network_identifier` ensures a [`NetworkIdentifier`] has
 /// a valid blockchain and network.
 pub(crate) fn network_identifier(network: &NetworkIdentifier) -> AssertResult<()> {
     // TODO if nil
@@ -38,66 +45,72 @@ pub(crate) fn network_identifier(network: &NetworkIdentifier) -> AssertResult<()
     sub_network_identifier(network.sub_network_identifier.as_ref())
 }
 
-/// Peer ensures a types.Peer has a valid peer_id.
+/// peer ensures a [`Peer`] has a valid peer_id.
 pub(crate) fn peer(peer: &Peer) -> AssertResult<()> {
-	// or if p nil
-	if peer.peer_id.is_empty() {
-		return Err(NetworkError::PeerIDMissing.into());
-	}
+    // or if p nil
+    if peer.peer_id.is_empty() {
+        return Err(NetworkError::PeerIDMissing.into());
+    }
 
-	Ok(())
+    Ok(())
 }
 
-/// Version ensures the version of the node is
+/// `version` ensures the [`Version`] of the node is
 /// returned.
 pub(crate) fn version(version: &Version) -> AssertResult<()> {
-	// if version nil
-	if version.node_version.is_empty() {
-		return Err(NetworkError::VersionNodeVersionMissing.into());
-	}
+    // if version nil
+    if version.node_version.is_empty() {
+        return Err(NetworkError::VersionNodeVersionMissing.into());
+    }
 
-	if version.middleware_version.is_none() || version.middleware_version.as_ref().unwrap().is_empty() {
-		return Err(NetworkError::VersionMiddlewareVersionMissing.into());
-	}
+    if version.middleware_version.is_none()
+        || version.middleware_version.as_ref().unwrap().is_empty()
+    {
+        return Err(NetworkError::VersionMiddlewareVersionMissing.into());
+    }
 
-	Ok(())
+    Ok(())
 }
 
-/// SyncStatus ensures any types.SyncStatus is valid.
+/// `sync_status` ensures any [`SyncStatus`] is valid.
 pub(crate) fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
-	let status = match status {
-		Some(s) => s,
-		None => return Ok(()),
-	};
+    let status = match status {
+        Some(s) => s,
+        None => return Ok(()),
+    };
 
-	if status.current_index.is_none() || status.current_index.unwrap() < 0 {
-		return Err(NetworkError::SyncStatusCurrentIndexNegative.into());
-	}
+    if status.current_index.is_none() || status.current_index.unwrap() < 0 {
+        return Err(NetworkError::SyncStatusCurrentIndexNegative.into());
+    }
 
-	if status.target_index.is_none() || status.target_index.unwrap() < 0 {
-		return Err(NetworkError::SyncStatusTargetIndexNegative.into());
-	}
+    if status.target_index.is_none() || status.target_index.unwrap() < 0 {
+        return Err(NetworkError::SyncStatusTargetIndexNegative.into());
+    }
 
-	if status.stage.is_none() || status.stage.as_ref().unwrap().is_empty() {
-		return Err(NetworkError::SyncStatusStageInvalid.into());
-	}
+    if status.stage.is_none() || status.stage.as_ref().unwrap().is_empty() {
+        return Err(NetworkError::SyncStatusStageInvalid.into());
+    }
 
-	Ok(())
+    Ok(())
 }
 
-/// NetworkStatusResponse ensures any types.NetworkStatusResponse
+/// `network_status_response` ensures any [`NetworkStatusResponse`]
 /// is valid.
 pub(crate) fn network_status_response(resp: &NetworkStatusResponse) -> AssertResult<()> {
-	// TODO if resp nil
-	block_identifier(&resp.current_block_identifier)?;
-	timestamp(resp.current_block_timestamp as i64)?;
-	block_identifier(&resp.genesis_block_identifier)?;
-	resp.peers.iter().map(peer).collect::<AssertResult<Vec<_>>>()?;
-	sync_status(resp.sync_status.as_ref())
+    // TODO if resp nil
+    block_identifier(&resp.current_block_identifier)?;
+    timestamp(resp.current_block_timestamp as i64)?;
+    block_identifier(&resp.genesis_block_identifier)?;
+    resp.peers
+        .iter()
+        .map(peer)
+        .collect::<AssertResult<Vec<_>>>()?;
+    sync_status(resp.sync_status.as_ref())
 }
 
-/// OperationStatuses ensures all items in Options.Allow.OperationStatuses
-/// are valid and that there exists at least 1 successful status.
+/// `operation_statuses` ensures all [OperationStatus``] in
+/// Options.Allow.OperationStatuses are valid and that there exists at least 1
+/// successful status.
 pub(crate) fn operation_statuses(stats: &[OperationStatus]) -> AssertResult<()> {
     if stats.is_empty() {
         return Err(NetworkError::NoAllowedOperationStatuses.into());
@@ -124,41 +137,138 @@ pub(crate) fn operation_statuses(stats: &[OperationStatus]) -> AssertResult<()> 
     string_array("Allow.OperationStatuses", &statuses).map_err(AsserterError::from)
 }
 
-/// OperationTypes ensures all items in Options.Allow.OperationStatuses
+/// `operation_types` ensures all items in Options.Allow.OperationStatuses
 /// are valid and that there are no repeats.
 pub(crate) fn operation_types(types: &[String]) -> AssertResult<()> {
     string_array("Allow.OperationTypes", types).map_err(AsserterError::from)
 }
 
-/// Error ensures a types.Error is valid.
-pub(crate) fn error(err: MentatError) -> AssertResult<()> {
-	// if err nil
+/// `error` ensures a [`MentatError`] is valid.
+pub(crate) fn error(err: &MentatError) -> AssertResult<()> {
+    // if err nil
 
-	if err.code < 0 {
-		return Err(ErrorError::IsNil.into());
-	}
+    if err.code < 0 {
+        return Err(ErrorError::IsNil.into());
+    }
 
-	if err.message.is_empty() {
-		return Err(ErrorError::MessageMissing.into());
-	}
+    if err.message.is_empty() {
+        return Err(ErrorError::MessageMissing.into());
+    }
 
-	if err.description.is_none() || err.description.unwrap().is_empty() {
-		return Err(ErrorError::DescriptionEmpty.into());
-	}
+    if err.description.is_none() || err.description.unwrap().is_empty() {
+        return Err(ErrorError::DescriptionEmpty.into());
+    }
 
-	Ok(())
+    Ok(())
 }
 
-/// Errors ensures each types.Error in a slice is valid
+/// `errors` ensures each [`MentatError`] in a slice is valid
 /// and that there is no error code collision.
 pub(crate) fn errors(errors: &[MentatError]) -> AssertResult<()> {
-	Ok(())
+    let mut status_codes = IndexSet::new();
+
+    for err in errors {
+        error(err)?;
+
+        if !err.details.is_empty() {
+            return Err(NetworkError::ErrorDetailsPopulated.into());
+        }
+
+        if status_codes.contains(&err.code) {
+            return Err(NetworkError::ErrorCodeUsedMultipleTimes.into());
+        }
+
+        status_codes.insert(err.code);
+    }
+
+    Ok(())
 }
 
-/// containsNetworkIdentifier returns a boolean indicating if a
-/// *types.NetworkIdentifier is contained within a slice of
-/// *types.NetworkIdentifier. The check for equality takes
-/// into account everything within the types.NetworkIdentifier
+/// `balance_exemptions` ensures [`BalanceExemption`]] in a slice is valid.
+pub(crate) fn balance_exemptions(exemptions: &[BalanceExemption]) -> AssertResult<()> {
+    for (index, exemption) in exemptions.iter().enumerate() {
+        // TODO if exemption nil
+
+        // TODO if a non existing enum pattern
+        // exemption.exemption_type
+
+        if exemption.currency.is_none() && exemption.sub_account_address.is_none() {
+            return Err(format!(
+                "{} (index {index})",
+                NetworkError::BalanceExemptionMissingSubject
+            )
+            .into());
+        }
+
+        if exemption.currency.is_some() {
+            exemption
+                .currency
+                .as_ref()
+                .map(currency)
+                .transpose()
+                .map_err(|err| format!("{err} (index {index})"))?;
+        }
+
+        if exemption.sub_account_address.is_some()
+            && exemption.sub_account_address.unwrap().is_empty()
+        {
+            return Err(format!(
+                "{} (index {index})",
+                NetworkError::BalanceExemptionSubAccountAddressEmpty
+            )
+            .into());
+        }
+    }
+
+    Ok(())
+}
+
+/// `call_methods` ensures Allow.CallMethods are valid.
+pub(crate) fn call_methods(methods: &[String]) -> AssertResult<()> {
+    if methods.is_empty() {
+        return Ok(());
+    }
+
+    string_array("Allow.CallMethods", methods)
+}
+
+/// `allow` ensures a [`Allow`] object is valid.
+pub(crate) fn allow(allowed: &Allow) -> AssertResult<()> {
+    // TODO if allowed nil
+    operation_statuses(&allowed.operation_statuses)?;
+    operation_types(&allowed.operation_types)?;
+    errors(&allowed.errors)?;
+    call_methods(&allowed.call_methods)?;
+    balance_exemptions(&allowed.balance_exemptions)?;
+
+    if !allowed.balance_exemptions.is_empty() && !allowed.historical_balance_lookup {
+        return Err(NetworkError::BalanceExemptionNoHistoricalLookup.into());
+    }
+
+    if allowed.timestamp_start_index.is_some() && allowed.timestamp_start_index.unwrap() < 0 {
+        return Err(format!(
+            "{}: {}",
+            NetworkError::TimestampStartIndexInvalid,
+            allowed.timestamp_start_index.unwrap()
+        )
+        .into());
+    }
+
+    Ok(())
+}
+
+/// `network_options_response` ensures a [`NetworkOptionsResponse`] object is
+/// valid.
+pub(crate) fn network_options_response(options: NetworkOptionsResponse) -> AssertResult<()> {
+    // todo if options nil
+    version(&options.version)?;
+    allow(&options.allow)
+}
+
+/// `contains_network_identifier` returns a boolean indicating if a
+/// [`NetworkIdentifier`] is contained within a slice of
+/// [`NetworkIdentifier`]. The check for equality takes
+/// into account everything within the NetworkIdentifier
 /// struct (including currency.Metadata).
 pub(crate) fn contains_network_identifier(
     networks: &[NetworkIdentifier],
@@ -167,4 +277,16 @@ pub(crate) fn contains_network_identifier(
     networks.iter().any(|other| hash(other) == hash(network))
 }
 
-
+/// `network_list_response` ensures a [`NetworkListResponse`] object is valid.
+pub(crate) fn network_list_response(resp: &NetworkListResponse) -> AssertResult<()> {
+    // TODO if resp nil
+    let mut seen = Vec::new();
+    for network in resp.network_identifiers {
+        network_identifier(&network)?;
+        if contains_network_identifier(&seen, &network) {
+            return Err(NetworkError::NetworkListResponseNetworksContainsDuplicates.into());
+        }
+        seen.push(network);
+    }
+    Ok(())
+}

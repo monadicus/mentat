@@ -7,7 +7,7 @@ use super::*;
 /// An account may have state specific to a contract address (ERC-20 token)
 /// and/or a stake (delegated balance). The `sub_account_identifier` should
 /// specify which state (if applicable) an account instantiation refers to.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 pub struct SubAccountIdentifier {
     /// The `SubAccount` address may be a cryptographic value or some other
     /// identifier (ex: bonded) that uniquely specifies a `SubAccount`.
