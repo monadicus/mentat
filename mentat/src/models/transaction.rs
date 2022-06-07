@@ -14,8 +14,8 @@ pub struct Transaction {
     /// The list of `Operation` on the transaction.
     pub operations: Vec<Operation>,
     /// A optional list of `RelatedTransaction` related to this transaction.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub related_transactions: Option<Vec<RelatedTransaction>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub related_transactions: Vec<RelatedTransaction>,
     /// `Transaction`s that are related to other transactions (like a
     /// cross-shard transaction) should include the tranaction_identifier of
     /// these transactions in the metadata.

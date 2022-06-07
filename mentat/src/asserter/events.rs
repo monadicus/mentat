@@ -10,7 +10,7 @@ use crate::{
 pub(crate) fn block_event(event: &BlockEvent) -> AssertResult<()> {
     if event.sequence < 0 {
         todo!("impossible case");
-        return Err(EventError::SequenceInvalid.into());
+        Err(EventError::SequenceInvalid)?;
     }
     block_identifier(&event.block_identifier)?;
 
@@ -28,7 +28,7 @@ pub(crate) fn events_blocks_response(response: &EventsBlocksResponse) -> AssertR
     // TODO impossible case
     if response.max_sequence < 0 {
         todo!("impossible case");
-        return Err(EventError::MaxSequenceInvalid.into());
+        Err(EventError::MaxSequenceInvalid)?;
     }
     let mut seq = -1;
     for (i, event) in response.events.iter().enumerate() {
@@ -37,7 +37,7 @@ pub(crate) fn events_blocks_response(response: &EventsBlocksResponse) -> AssertR
             seq = event.sequence as i64
         }
         if event.sequence as i64 != seq + i as i64 {
-            return Err(EventError::SequenceOutOfOrder.into());
+            Err(EventError::SequenceOutOfOrder)?;
         }
     }
     Ok(())

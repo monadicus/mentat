@@ -15,7 +15,7 @@ pub(crate) fn supported_networks(networks: &[NetworkIdentifier]) -> Result<(), S
         network_identifier(network)?;
 
         if contains_network_identifier(networks, network) {
-            return Err(format!("{}: {network:?}", todo!()));
+            Err(format!("{}: {network:?}", todo!()))?;
         }
         parsed.push(network);
     }

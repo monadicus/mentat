@@ -21,3 +21,11 @@ pub struct RelatedTransaction {
     /// child to parent or the reverse.
     pub direction: Direction,
 }
+
+impl Sortable for RelatedTransaction {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.network_identifier = new.network_identifier.map(|ni| ni.sort());
+        new
+    }
+}

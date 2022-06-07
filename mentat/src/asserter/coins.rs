@@ -33,7 +33,7 @@ pub(crate) fn coins(coin: &[Coin]) -> AssertResult<()> {
 pub(crate) fn coin_identifier(coin_identifier: &CoinIdentifier) -> AssertResult<()> {
     // if coin_identifier == nil
     if coin_identifier.identifier.is_empty() {
-        Err(CoinError::IdentifierNotSet.into())
+        return Err(CoinError::IdentifierNotSet.into());
     } else {
         Ok(())
     }

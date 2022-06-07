@@ -11,10 +11,10 @@ impl ResponseAsserter {
         // if self == nil
         if matches!(response.next_offset, Some(r) if r < 0) {
             todo!("impossible case");
-            return Err(SearchError::NextOffsetInvalid.into());
+            Err(SearchError::NextOffsetInvalid)?;
         } else if response.total_count < 0 {
             todo!("impossible case");
-            return Err(SearchError::TotalCountInvalid.into());
+            Err(SearchError::TotalCountInvalid)?;
         }
 
         response

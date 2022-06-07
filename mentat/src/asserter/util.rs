@@ -11,17 +11,17 @@ use crate::{identifiers::AccountIdentifier, models::Sortable};
 /// are non-empty strings and not duplicates.
 pub(crate) fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
     if values.is_empty() {
-        return Err(format!("no {name} found").into());
+        Err(format!("no {name} found"))?;
     }
 
     let mut parsed = IndexSet::new();
     for value in values {
         if value.is_empty() {
-            return Err(format!("{name} has an empty string").into());
+            Err(format!("{name} has an empty string"))?;
         }
 
         if parsed.contains(value) {
-            return Err(format!("{name} contains a duplicate {value}").into());
+            Err(format!("{name} contains a duplicate {value}"))?;
         }
 
         parsed.insert(value);
@@ -34,7 +34,7 @@ pub(crate) fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
 /// are valid and not duplicates.
 pub(crate) fn account_array(arr_name: &str, arr: &[AccountIdentifier]) -> AssertResult<()> {
     if arr.len() == 0 {
-        return Err(format!("no {} found", arr_name).into());
+        Err(format!("no {} found", arr_name))?;
     }
 
     let mut parsed = IndexSet::new();
@@ -42,7 +42,7 @@ pub(crate) fn account_array(arr_name: &str, arr: &[AccountIdentifier]) -> Assert
         account_identifier(Some(s))
             .map_err(|e| format!("{arr_name} has an invalid account identifier"))?;
         if parsed.contains(hash(s)) {
-            return Err(format!("{arr_name} contains a duplicate {s:?}").into());
+            Err(format!("{arr_name} contains a duplicate {s:?}"))?;
         }
 
         parsed.insert(hash(s));

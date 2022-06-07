@@ -50,7 +50,7 @@ fn assert_unique_amounts(amounts: &[Amount]) -> AssertResult<()> {
         let key = hash(&amt.currency);
 
         if seen.contains(&key) {
-            return Err(format!("currency {:?} used multiple times", amt.currency).into());
+            Err(format!("currency {:?} used multiple times", amt.currency))?;
         }
 
         seen.insert(key);

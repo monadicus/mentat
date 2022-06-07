@@ -71,7 +71,7 @@ impl From<NetworkIdentifier> for NetworkRequest {
 impl Sortable for NetworkIdentifier {
     fn sort(&self) -> Self {
         let mut new = self.clone();
-        new.sub_network_identifier.clone().map(|sni| sni.sort());
+        new.sub_network_identifier = new.sub_network_identifier.map(|sni| sni.sort());
         new
     }
 }

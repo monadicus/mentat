@@ -15,19 +15,19 @@ use crate::{
     responses::{NetworkOptionsResponse, NetworkStatusResponse},
 };
 
-const ACCOUNT: &str = "account";
-const UTXO: &str = "utxo";
+pub(crate) const ACCOUNT: &str = "account";
+pub(crate) const UTXO: &str = "utxo";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub(crate) struct Operation {
-    count: usize,
-    should_balance: bool,
+    pub(crate) count: i64,
+    pub(crate) should_balance: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub(crate) struct ValidationOperation {
-    name: String,
-    operation: Operation,
+    pub(crate) name: String,
+    pub(crate) operation: Operation,
 }
 
 /// Validations is used to define stricter validations
@@ -35,11 +35,11 @@ pub(crate) struct ValidationOperation {
 /// https://github.com/coinbase/rosetta-sdk-go/tree/master/asserter#readme
 #[derive(Debug, Deserialize, Serialize)]
 pub(crate) struct Validations {
-    enabled: bool,
-    related_ops_exists: bool,
-    chain_type: String,
-    payment: ValidationOperation,
-    fee: ValidationOperation,
+    pub(crate) enabled: bool,
+    pub(crate) related_ops_exists: bool,
+    pub(crate) chain_type: String,
+    pub(crate) payment: ValidationOperation,
+    pub(crate) fee: ValidationOperation,
 }
 
 impl Validations {
@@ -51,13 +51,13 @@ impl Validations {
 /// For response assertion.
 #[derive(Debug)]
 pub(crate) struct ResponseAsserter {
-    network: NetworkIdentifier,
-    pub operation_types: Vec<String>,
-    pub operation_status_map: IndexMap<String, bool>,
-    error_type_map: IndexMap<i32, String>,
-    genesis_block: BlockIdentifier,
-    timestamp_start_index: i64,
-    validations: Validations,
+    pub(crate) network: NetworkIdentifier,
+    pub(crate) operation_types: Vec<String>,
+    pub(crate) operation_status_map: IndexMap<String, bool>,
+    pub(crate) error_type_map: IndexMap<i32, String>,
+    pub(crate) genesis_block: BlockIdentifier,
+    pub(crate) timestamp_start_index: i64,
+    pub(crate) validations: Validations,
 }
 
 impl ResponseAsserter {
@@ -136,12 +136,12 @@ impl ResponseAsserter {
 /// For response assertion.
 #[derive(Debug)]
 pub(crate) struct RequestAsserter {
-    operation_types: Vec<String>,
-    historical_balance_lookup: bool,
-    supported_networks: Vec<NetworkIdentifier>,
-    call_methods: IndexSet<String>,
-    mempool_coins: bool,
-    validations: Validations,
+    pub(crate) operation_types: Vec<String>,
+    pub(crate) historical_balance_lookup: bool,
+    pub(crate) supported_networks: Vec<NetworkIdentifier>,
+    pub(crate) call_methods: IndexSet<String>,
+    pub(crate) mempool_coins: bool,
+    pub(crate) validations: Validations,
 }
 
 impl RequestAsserter {
@@ -162,7 +162,7 @@ impl RequestAsserter {
             if method.is_empty() {
                 return Err(ServerError::CallMethodEmpty.into());
             } else if call_map.contains(&method) {
-                return Err(format!("{}: {method}", ServerError::CallMethodDuplicate).into());
+                Err(format!("{}: {method}", ServerError::CallMethodDuplicate))?;
             } else {
                 call_map.insert(method);
             }

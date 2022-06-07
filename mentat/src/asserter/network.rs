@@ -24,7 +24,7 @@ pub(crate) fn sub_network_identifier(
     };
 
     if sub_network_identifier.network.is_empty() {
-        return Err(NetworkError::SubNetworkIdentifierInvalid.into());
+        Err(NetworkError::SubNetworkIdentifierInvalid)?;
     }
 
     Ok(())
@@ -35,11 +35,11 @@ pub(crate) fn sub_network_identifier(
 pub(crate) fn network_identifier(network: &NetworkIdentifier) -> AssertResult<()> {
     // TODO if nil
     if network.blockchain.is_empty() {
-        return Err(NetworkError::NetworkIdentifierBlockchainMissing.into());
+        Err(NetworkError::NetworkIdentifierBlockchainMissing)?;
     }
 
     if network.network.is_empty() {
-        return Err(NetworkError::NetworkIdentifierNetworkMissing.into());
+        Err(NetworkError::NetworkIdentifierNetworkMissing)?;
     }
 
     sub_network_identifier(network.sub_network_identifier.as_ref())
@@ -49,7 +49,7 @@ pub(crate) fn network_identifier(network: &NetworkIdentifier) -> AssertResult<()
 pub(crate) fn peer(peer: &Peer) -> AssertResult<()> {
     // or if p nil
     if peer.peer_id.is_empty() {
-        return Err(NetworkError::PeerIDMissing.into());
+        Err(NetworkError::PeerIDMissing)?;
     }
 
     Ok(())
@@ -60,13 +60,13 @@ pub(crate) fn peer(peer: &Peer) -> AssertResult<()> {
 pub(crate) fn version(version: &Version) -> AssertResult<()> {
     // if version nil
     if version.node_version.is_empty() {
-        return Err(NetworkError::VersionNodeVersionMissing.into());
+        Err(NetworkError::VersionNodeVersionMissing)?;
     }
 
     if version.middleware_version.is_none()
         || version.middleware_version.as_ref().unwrap().is_empty()
     {
-        return Err(NetworkError::VersionMiddlewareVersionMissing.into());
+        Err(NetworkError::VersionMiddlewareVersionMissing)?;
     }
 
     Ok(())
@@ -80,15 +80,15 @@ pub(crate) fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
     };
 
     if status.current_index.is_none() || status.current_index.unwrap() < 0 {
-        return Err(NetworkError::SyncStatusCurrentIndexNegative.into());
+        Err(NetworkError::SyncStatusCurrentIndexNegative)?;
     }
 
     if status.target_index.is_none() || status.target_index.unwrap() < 0 {
-        return Err(NetworkError::SyncStatusTargetIndexNegative.into());
+        Err(NetworkError::SyncStatusTargetIndexNegative)?;
     }
 
     if status.stage.is_none() || status.stage.as_ref().unwrap().is_empty() {
-        return Err(NetworkError::SyncStatusStageInvalid.into());
+        Err(NetworkError::SyncStatusStageInvalid)?;
     }
 
     Ok(())
@@ -113,14 +113,14 @@ pub(crate) fn network_status_response(resp: &NetworkStatusResponse) -> AssertRes
 /// successful status.
 pub(crate) fn operation_statuses(stats: &[OperationStatus]) -> AssertResult<()> {
     if stats.is_empty() {
-        return Err(NetworkError::NoAllowedOperationStatuses.into());
+        Err(NetworkError::NoAllowedOperationStatuses)?;
     }
 
     let mut statuses = Vec::new();
     let mut found_success = false;
     for status in stats {
         if status.status.is_empty() {
-            return Err(BlockError::OperationStatusMissing.into());
+            Err(BlockError::OperationStatusMissing)?;
         }
 
         if status.successful {
@@ -131,7 +131,7 @@ pub(crate) fn operation_statuses(stats: &[OperationStatus]) -> AssertResult<()> 
     }
 
     if !found_success {
-        return Err(NetworkError::NoSuccessfulAllowedOperationStatuses.into());
+        Err(NetworkError::NoSuccessfulAllowedOperationStatuses)?;
     }
 
     string_array("Allow.OperationStatuses", &statuses).map_err(AsserterError::from)
@@ -148,15 +148,15 @@ pub(crate) fn error(err: &MentatError) -> AssertResult<()> {
     // if err nil
 
     if err.code < 0 {
-        return Err(ErrorError::IsNil.into());
+        Err(ErrorError::IsNil)?;
     }
 
     if err.message.is_empty() {
-        return Err(ErrorError::MessageMissing.into());
+        Err(ErrorError::MessageMissing)?;
     }
 
     if err.description.is_none() || err.description.unwrap().is_empty() {
-        return Err(ErrorError::DescriptionEmpty.into());
+        Err(ErrorError::DescriptionEmpty)?;
     }
 
     Ok(())
@@ -171,11 +171,11 @@ pub(crate) fn errors(errors: &[MentatError]) -> AssertResult<()> {
         error(err)?;
 
         if !err.details.is_empty() {
-            return Err(NetworkError::ErrorDetailsPopulated.into());
+            Err(NetworkError::ErrorDetailsPopulated)?;
         }
 
         if status_codes.contains(&err.code) {
-            return Err(NetworkError::ErrorCodeUsedMultipleTimes.into());
+            Err(NetworkError::ErrorCodeUsedMultipleTimes)?;
         }
 
         status_codes.insert(err.code);
@@ -242,7 +242,7 @@ pub(crate) fn allow(allowed: &Allow) -> AssertResult<()> {
     balance_exemptions(&allowed.balance_exemptions)?;
 
     if !allowed.balance_exemptions.is_empty() && !allowed.historical_balance_lookup {
-        return Err(NetworkError::BalanceExemptionNoHistoricalLookup.into());
+        Err(NetworkError::BalanceExemptionNoHistoricalLookup)?;
     }
 
     if allowed.timestamp_start_index.is_some() && allowed.timestamp_start_index.unwrap() < 0 {
@@ -284,7 +284,7 @@ pub(crate) fn network_list_response(resp: &NetworkListResponse) -> AssertResult<
     for network in resp.network_identifiers {
         network_identifier(&network)?;
         if contains_network_identifier(&seen, &network) {
-            return Err(NetworkError::NetworkListResponseNetworksContainsDuplicates.into());
+            Err(NetworkError::NetworkListResponseNetworksContainsDuplicates)?;
         }
         seen.push(network);
     }
