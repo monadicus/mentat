@@ -155,7 +155,7 @@ pub(crate) fn error(err: &MentatError) -> AssertResult<()> {
         Err(ErrorError::MessageMissing)?;
     }
 
-    if err.description.is_none() || err.description.unwrap().is_empty() {
+    if err.description.is_none() || err.description.as_ref().unwrap().is_empty() {
         Err(ErrorError::DescriptionEmpty)?;
     }
 
@@ -210,7 +210,7 @@ pub(crate) fn balance_exemptions(exemptions: &[BalanceExemption]) -> AssertResul
         }
 
         if exemption.sub_account_address.is_some()
-            && exemption.sub_account_address.unwrap().is_empty()
+            && exemption.sub_account_address.as_ref().unwrap().is_empty()
         {
             return Err(format!(
                 "{} (index {index})",
@@ -281,12 +281,12 @@ pub(crate) fn contains_network_identifier(
 pub(crate) fn network_list_response(resp: &NetworkListResponse) -> AssertResult<()> {
     // TODO if resp nil
     let mut seen = Vec::new();
-    for network in resp.network_identifiers {
-        network_identifier(&network)?;
+    for network in resp.network_identifiers.iter() {
+        network_identifier(network)?;
         if contains_network_identifier(&seen, &network) {
             Err(NetworkError::NetworkListResponseNetworksContainsDuplicates)?;
         }
-        seen.push(network);
+        seen.push(network.clone());
     }
     Ok(())
 }

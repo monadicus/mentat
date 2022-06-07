@@ -41,11 +41,13 @@ pub(crate) fn account_array(arr_name: &str, arr: &[AccountIdentifier]) -> Assert
     for s in arr {
         account_identifier(Some(s))
             .map_err(|e| format!("{arr_name} has an invalid account identifier"))?;
-        if parsed.contains(hash(s)) {
+
+        let key = hash(s);
+        if parsed.contains(&key) {
             Err(format!("{arr_name} contains a duplicate {s:?}"))?;
         }
 
-        parsed.insert(hash(s));
+        parsed.insert(key);
     }
 
     Ok(())
@@ -54,7 +56,7 @@ pub(crate) fn account_array(arr_name: &str, arr: &[AccountIdentifier]) -> Assert
 /// bytes_array_zero returns a boolean indicating if
 /// all elements in an array are 0.
 fn bytes_array_zero(arr: &[u8]) -> bool {
-    arr.iter().all(|b| b == 0)
+    arr.iter().all(|b| b == &0)
 }
 
 // TODO move this file to types module when it exists

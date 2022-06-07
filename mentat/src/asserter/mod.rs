@@ -1,7 +1,9 @@
 mod account;
 mod asserter;
 mod block;
-mod coins;
+mod coin;
+mod construction;
+mod error;
 mod errors;
 mod events;
 mod mempool;

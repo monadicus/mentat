@@ -3,6 +3,7 @@
 use indexmap::IndexMap;
 
 use super::*;
+use crate::models::Sortable;
 
 /// The `account_identifier` uniquely identifies an account within a network.
 /// All fields in the `account_identifier` are utilized to determine this
@@ -51,5 +52,14 @@ impl From<(String, Option<String>)> for AccountIdentifier {
             sub_account: subaccount.map(|s| s.into()),
             ..Default::default()
         }
+    }
+}
+
+impl Sortable for AccountIdentifier {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.sub_account = new.sub_account.map(|sub| sub.sort());
+        new.metadata.sort_keys();
+        new
     }
 }

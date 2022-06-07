@@ -1,11 +1,14 @@
 use indexmap::{IndexMap, IndexSet};
 
-use super::network::{contains_network_identifier, network_identifier};
+use super::{
+    errors::AssertResult,
+    network::{contains_network_identifier, network_identifier},
+};
 use crate::identifiers::NetworkIdentifier;
 
 /// SupportedNetworks returns an error if there is an invalid
 /// types.NetworkIdentifier or there is a duplicate.
-pub(crate) fn supported_networks(networks: &[NetworkIdentifier]) -> Result<(), String> {
+pub(crate) fn supported_networks(networks: &[NetworkIdentifier]) -> AssertResult<()> {
     if networks.is_empty() {
         return todo!();
     }

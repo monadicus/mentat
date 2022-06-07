@@ -5,7 +5,7 @@ use num_bigint_dig::{BigInt, Sign};
 
 use super::{
     asserter::ResponseAsserter,
-    coins::coin_change,
+    coin::coin_change,
     errors::{AssertResult, BlockError},
     network::network_identifier,
     util::hash,
@@ -40,7 +40,7 @@ pub(crate) fn currency(currency: &Currency) -> AssertResult<()> {
 /// integer value, specified precision, and symbol.
 pub(crate) fn amount(amount: Option<&Amount>) -> AssertResult<()> {
     // or if currency nil
-    let amount = amount.ok_or_else(|| BlockError::AmountValueMissing)?;
+    let amount = amount.ok_or(BlockError::AmountValueMissing)?;
 
     if amount.value.is_empty() {
         Err(BlockError::AmountValueMissing)?;
@@ -78,7 +78,7 @@ pub(crate) fn operation_identifier(ident: &OperationIdentifier, index: i64) -> A
 /// is missing an address or a provided SubAccount is missing an identifier.
 pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertResult<()> {
     // TODO if account nil
-    let account = account.ok_or_else(|| BlockError::AccountIsNil)?;
+    let account = account.ok_or(BlockError::AccountIsNil)?;
 
     if account.address.is_empty() {
         Err(BlockError::AccountIsNil)?;
@@ -88,7 +88,7 @@ pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertR
         return Ok(());
     }
 
-    if account.sub_account.unwrap().address.is_empty() {
+    if account.sub_account.as_ref().unwrap().address.is_empty() {
         Err(BlockError::AccountSubAccountAddrMissing)?;
     }
     Ok(())
@@ -96,8 +96,8 @@ pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertR
 
 /// `contains` checks if a value is contained in a slice
 /// of strings.
-pub(crate) fn contains<T: Eq>(valid: &[T], value: T) -> bool {
-    valid.iter().any(|v| v == &value)
+pub(crate) fn contains<T: Eq>(valid: &[T], value: &T) -> bool {
+    valid.iter().any(|v| v == value)
 }
 
 impl ResponseAsserter {
@@ -137,7 +137,7 @@ impl ResponseAsserter {
     /// is not valid.
     pub(crate) fn operation_type(&self, t: String) -> AssertResult<()> {
         // TODO if self nil bruh
-        if t.is_empty() || contains(&self.operation_types, t) {
+        if t.is_empty() || contains(&self.operation_types, &t) {
             Err(format!("{}: {t}", BlockError::OperationTypeInvalid))?;
         }
 
@@ -153,7 +153,7 @@ impl ResponseAsserter {
         construction: bool,
     ) -> AssertResult<()> {
         // TODO if self nil bruh
-        let operation = operation.ok_or_else(|| BlockError::OperationIsNil)?;
+        let operation = operation.ok_or(BlockError::OperationIsNil)?;
 
         operation_identifier(&operation.operation_identifier, index).map_err(|err| {
             format!("{err}: Operation identifier is invalid in operation {index}")
@@ -206,7 +206,7 @@ impl ResponseAsserter {
             self.operation(Some(op), index as i64, construction)?;
             if self.validations.enabled {
                 if op.type_ == self.validations.payment.name {
-                    let val = BigInt::from_str(&op.amount.unwrap().value).unwrap();
+                    let val = BigInt::from_str(&op.amount.as_ref().unwrap().value).unwrap();
                     payment_total += val;
                     payment_count += 1;
                 }
@@ -219,7 +219,7 @@ impl ResponseAsserter {
                         ))?;
                     }
 
-                    let val = BigInt::from_str(&op.amount.unwrap().value)
+                    let val = BigInt::from_str(&op.amount.as_ref().unwrap().value)
                         .map_err(|err| err.to_string())?;
 
                     if !matches!(val.sign(), Sign::Minus) {
@@ -277,6 +277,7 @@ impl ResponseAsserter {
         Ok(())
     }
 
+    /// `validate_payment_and_fee`validates payments and fees.
     pub(crate) fn validate_payment_and_fee(
         &self,
         payment_total: BigInt,
@@ -352,8 +353,8 @@ impl ResponseAsserter {
         }
 
         for (index, related) in related_transactions.iter().enumerate() {
-            if let Some(network_ident) = related.network_identifier {
-                network_identifier(&network_ident).map_err(|err| {
+            if let Some(network_ident) = related.network_identifier.as_ref() {
+                network_identifier(network_ident).map_err(|err| {
                     format!(
                         "{err} invalid network identifier in related transaction at index {index}"
                     )
@@ -375,8 +376,8 @@ impl ResponseAsserter {
 
     /// `direction` returns an error if the value passed is not
     /// [Direction::Forward] or [Direction::Backward]
-    pub(crate) fn direction(&self, dir: &Direction) -> AssertResult<()> {
-        todo!("We only support those two values");
+    pub(crate) fn direction(&self, _: &Direction) -> AssertResult<()> {
+        // TODO We only support those two values
         Ok(())
     }
 
@@ -408,8 +409,7 @@ impl ResponseAsserter {
         block
             .transactions
             .iter()
-            .map(|transaction| self.transaction(transaction))
-            .collect()
+            .try_for_each(|transaction| self.transaction(transaction))
     }
 }
 
@@ -438,7 +438,7 @@ pub(crate) fn partial_block_identifier(
     block_identifier: &PartialBlockIdentifier,
 ) -> AssertResult<()> {
     // TODO if block_identifier nil
-    if block_identifier.hash.is_some() && !block_identifier.hash.unwrap().is_empty() {
+    if block_identifier.hash.is_some() && !block_identifier.hash.as_ref().unwrap().is_empty() {
         return Ok(());
     }
 
@@ -449,8 +449,8 @@ pub(crate) fn partial_block_identifier(
     Err(BlockError::PartialBlockIdentifierFieldsNotSet.into())
 }
 
-// `duplicate_related_transaction` returns nil if no duplicates are found in the
-// array and returns the first duplicated item found otherwise.
+/// `duplicate_related_transaction` returns nil if no duplicates are found in
+/// the array and returns the first duplicated item found otherwise.
 pub(crate) fn duplicate_related_transaction(
     items: &[RelatedTransaction],
 ) -> Option<&RelatedTransaction> {
@@ -480,16 +480,18 @@ pub(crate) fn transaction_identifier(ident: &TransactionIdentifier) -> AssertRes
     Ok(())
 }
 
+/// The min unix epoch
 static MIN_UNIX_EPOCH: i64 = 946713600000;
+/// The max unix epoch
 static MAX_UNIX_EPOCH: i64 = 2209017600000;
 
 /// `timestamp` returns an error if the timestamp
 /// on a block is less than or equal to 0.
 pub(crate) fn timestamp(timestamp: i64) -> Result<(), String> {
     if timestamp < MIN_UNIX_EPOCH {
-        Err(format!("{}: {timestamp}", BlockError::TimestampBeforeMin).into())
+        Err(format!("{}: {timestamp}", BlockError::TimestampBeforeMin))
     } else if timestamp > MAX_UNIX_EPOCH {
-        Err(format!("{}: {timestamp}", BlockError::TimestampAfterMax).into())
+        Err(format!("{}: {timestamp}", BlockError::TimestampAfterMax))
     } else {
         Ok(())
     }

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use super::{
     block::{amount, block_identifier},
-    coins::coins,
+    coin::coins,
     errors::{AccountBalanceError, AssertResult},
     util::hash,
 };
@@ -27,7 +27,7 @@ fn contains_duplicate_currency(currencies: &[Currency]) -> Option<Currency> {
         seen.insert(key);
     }
 
-    return None;
+    None
 }
 
 /// `contains_currency` returns a boolean indicating if a
@@ -74,11 +74,11 @@ fn account_balance_response(
     assert_unique_amounts(&response.balances)
         .map_err(|e| format!("{e}: balance amounts are invalid"));
     // if request.block == nil
-    if matches!(request_block.hash, Some(i) if i == response.block_identifier.hash) {
+    if matches!(request_block.hash.as_ref(), Some(i) if i == &response.block_identifier.hash) {
         Err(format!(
             "{}: requested block hash {} but got {}",
             AccountBalanceError::ReturnedBlockHashMismatch,
-            request_block.hash.unwrap(),
+            request_block.hash.as_ref().unwrap(),
             response.block_identifier.hash
         )
         .into())

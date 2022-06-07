@@ -3,6 +3,7 @@
 use indexmap::IndexMap;
 
 use super::*;
+use crate::models::Sortable;
 
 /// An account may have state specific to a contract address (ERC-20 token)
 /// and/or a stake (delegated balance). The `sub_account_identifier` should
@@ -27,5 +28,13 @@ impl From<String> for SubAccountIdentifier {
             address,
             ..Default::default()
         }
+    }
+}
+
+impl Sortable for SubAccountIdentifier {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.metadata.sort_keys();
+        new
     }
 }

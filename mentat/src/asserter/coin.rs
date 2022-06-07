@@ -1,3 +1,5 @@
+use indexmap::IndexSet;
+
 use super::{
     block::amount,
     errors::{AssertResult, CoinError},
@@ -19,15 +21,24 @@ pub(crate) fn coin(coin: &Coin) -> AssertResult<()> {
 /// [`Coin`] is invalid. If there are any
 /// duplicate identifiers, this function
 /// will also return an error.
-pub(crate) fn coins(coin: &[Coin]) -> AssertResult<()> {
+pub(crate) fn coins(coins: &[Coin]) -> AssertResult<()> {
     // TODO if coins == nil
-    coin.iter()
-        .map(|c| {
-            coin_identifier(&c.coin_identifier).map_err(|e| {
-                format!("{}: {}", CoinError::Duplicate, c.coin_identifier.identifier).into()
-            })
-        })
-        .collect::<Result<_, _>>()
+    let mut ids = IndexSet::new();
+    for c in coins {
+        coin(c).map_err(|err| format!("{err}: coin is invalid"))?;
+
+        if ids.contains(&c.coin_identifier.identifier) {
+            Err(format!(
+                "{}: {}",
+                CoinError::Duplicate,
+                c.coin_identifier.identifier
+            ))?;
+        }
+
+        ids.insert(&c.coin_identifier.identifier);
+    }
+
+    Ok(())
 }
 
 pub(crate) fn coin_identifier(coin_identifier: &CoinIdentifier) -> AssertResult<()> {
@@ -52,7 +63,7 @@ pub(crate) fn coin_change(change: Option<&CoinChange>) -> AssertResult<()> {
 
 /// coin_action returns an error if the provided [`CoinAction`]
 /// is invalid.
-pub(crate) fn coin_action(action: &CoinAction) -> AssertResult<()> {
+pub(crate) fn coin_action(_: &CoinAction) -> AssertResult<()> {
     // TODO
     // match action {
     //     CoinAction::CoinCreated => Ok(()),
