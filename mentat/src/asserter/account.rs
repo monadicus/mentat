@@ -14,7 +14,7 @@ use crate::{
 
 /// `contains_duplicate_currency` retruns a boolean indicating
 /// if an array of [`Currency`] contains any duplicate currencies.
-fn contains_duplicate_currency(currencies: &[Currency]) -> Option<Currency> {
+pub(crate) fn contains_duplicate_currency(currencies: &[Currency]) -> Option<Currency> {
     let mut seen = HashSet::new();
 
     for currency in currencies.iter() {
@@ -35,7 +35,7 @@ fn contains_duplicate_currency(currencies: &[Currency]) -> Option<Currency> {
 /// [`Currency`]. The check for equality takes
 /// into account everything within the [`Currency`]
 /// struct (including currency.Metadata).
-fn contains_currency(currencies: &[Currency], currency: &Currency) -> bool {
+pub(crate) fn contains_currency(currencies: &[Currency], currency: &Currency) -> bool {
     currencies.iter().any(|other| other == currency)
 }
 
@@ -43,7 +43,7 @@ fn contains_currency(currencies: &[Currency], currency: &Currency) -> bool {
 /// of [`Amount`] is invalid. It is considered invalid if the same
 /// currency is returned multiple times (these should be
 /// consolidated) or if a [`Amount`] is considered invalid.
-fn assert_unique_amounts(amounts: &[Amount]) -> AssertResult<()> {
+pub(crate) fn assert_unique_amounts(amounts: &[Amount]) -> AssertResult<()> {
     let mut seen = HashSet::new();
 
     for amt in amounts.iter() {
@@ -65,14 +65,14 @@ fn assert_unique_amounts(amounts: &[Amount]) -> AssertResult<()> {
 /// [`PartialBlockIdentifier`] is invalid, if the requestBlock
 /// is not nil and not equal to the response block, or
 /// if the same currency is present in multiple amounts.
-fn account_balance_response(
+pub(crate) fn account_balance_response(
     request_block: &PartialBlockIdentifier,
     response: &AccountBalanceResponse,
 ) -> AssertResult<()> {
     block_identifier(&response.block_identifier)
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
     assert_unique_amounts(&response.balances)
-        .map_err(|e| format!("{e}: balance amounts are invalid"));
+        .map_err(|e| format!("{e}: balance amounts are invalid"))?;
     // if request.block == nil
     if matches!(request_block.hash.as_ref(), Some(i) if i == &response.block_identifier.hash) {
         Err(format!(
@@ -80,16 +80,14 @@ fn account_balance_response(
             AccountBalanceError::ReturnedBlockHashMismatch,
             request_block.hash.as_ref().unwrap(),
             response.block_identifier.hash
-        )
-        .into())
+        ))?
     } else if matches!(request_block.index, Some(i) if i == response.block_identifier.index) {
         Err(format!(
             "{}: requested block index {} but got {}",
             AccountBalanceError::ReturnedBlockIndexMismatch,
             request_block.index.unwrap(),
             response.block_identifier.index
-        )
-        .into())
+        ))?
     } else {
         Ok(())
     }
@@ -97,7 +95,7 @@ fn account_balance_response(
 
 /// `account_coins` returns an error if the provided
 /// [`AccountCoinsResponse`] is invalid.
-fn account_coins(response: &AccountCoinsResponse) -> AssertResult<()> {
+pub(crate) fn account_coins(response: &AccountCoinsResponse) -> AssertResult<()> {
     block_identifier(&response.block_identifier)
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
     coins(&response.coins).map_err(|e| format!("{e}: coins are invalid"))?;

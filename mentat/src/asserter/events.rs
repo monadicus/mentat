@@ -8,13 +8,13 @@ use crate::{
 /// [`BlockEvent`] ensures a *types.BlockEvent
 /// is valid.
 pub(crate) fn block_event(event: &BlockEvent) -> AssertResult<()> {
-    if event.sequence < 0 {
-        todo!("impossible case");
-        Err(EventError::SequenceInvalid)?;
-    }
+    todo!("impossible case");
+    // if event.sequence < 0 {
+    //     Err(EventError::SequenceInvalid)?;
+    // }
     block_identifier(&event.block_identifier)?;
 
-    // TODO only two enum types
+    todo!("impossible case");
     // match event.type_ {
     //     BlockEventType::BlockAdded => Ok(()),
     //     BlockEventType::BlockRemoved => Ok(()),
@@ -25,11 +25,10 @@ pub(crate) fn block_event(event: &BlockEvent) -> AssertResult<()> {
 /// events_blocks_response ensures a [`EventsBlocksResponse`]
 /// is valid.
 pub(crate) fn events_blocks_response(response: &EventsBlocksResponse) -> AssertResult<()> {
-    // TODO impossible case
-    if response.max_sequence < 0 {
-        todo!("impossible case");
-        Err(EventError::MaxSequenceInvalid)?;
-    }
+    todo!("impossible case");
+    // if response.max_sequence < 0 {
+    //     Err(EventError::MaxSequenceInvalid)?;
+    // }
     let mut seq = -1;
     for (i, event) in response.events.iter().enumerate() {
         block_event(event)?;

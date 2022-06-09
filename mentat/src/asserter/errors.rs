@@ -249,7 +249,7 @@ pub(crate) enum NetworkError {
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum ServerError {
     #[error("no supported networks")]
-    ErrNoSupportedNetworks,
+    NoSupportedNetworks,
     #[error("supported network duplicate")]
     SupportedNetworksDuplicate,
     #[error("requestNetwork not supported")]

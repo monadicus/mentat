@@ -6,8 +6,5 @@ use crate::identifiers::TransactionIdentifier;
 /// The correctness of each populated [`MempoolTransaction`] is
 /// asserted by [`Transaction`].
 pub(crate) fn mempool_transactions(transactions: &[TransactionIdentifier]) -> AssertResult<()> {
-    transactions
-        .iter()
-        .map(|t| transaction_identifier(t))
-        .collect::<Result<_, _>>()
+    transactions.iter().try_for_each(transaction_identifier)
 }

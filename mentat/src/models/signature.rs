@@ -21,5 +21,5 @@ pub struct Signature {
     /// `SignatureType` is the type of a cryptographic signature.
     pub signature_type: SignatureType,
     /// The hex bytes for the `Signature`.
-    pub hex_bytes: String,
+    pub bytes: Vec<u8>,
 }

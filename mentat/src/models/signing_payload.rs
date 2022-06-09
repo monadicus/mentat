@@ -19,7 +19,7 @@ pub struct SigningPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_identifier: Option<AccountIdentifier>,
     /// The hex bytes of the Signing Payload.
-    pub hex_bytes: String,
+    pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub signature_type: Option<SignatureType>,

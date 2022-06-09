@@ -10,6 +10,7 @@ use super::{
     server::supported_networks,
 };
 use crate::{
+    errors::MentatError,
     identifiers::{BlockIdentifier, NetworkIdentifier},
     misc::OperationStatus,
     responses::{NetworkOptionsResponse, NetworkStatusResponse},
@@ -54,7 +55,7 @@ pub(crate) struct ResponseAsserter {
     pub(crate) network: NetworkIdentifier,
     pub(crate) operation_types: Vec<String>,
     pub(crate) operation_status_map: IndexMap<String, bool>,
-    pub(crate) error_type_map: IndexMap<i32, String>,
+    pub(crate) error_type_map: IndexMap<u16, MentatError>,
     pub(crate) genesis_block: BlockIdentifier,
     pub(crate) timestamp_start_index: i64,
     pub(crate) validations: Validations,
@@ -79,7 +80,7 @@ impl ResponseAsserter {
             genesis_block_identifier: self.genesis_block.clone(),
             allowed_operation_types: self.operation_types.clone(),
             allowed_operation_statuses,
-            allowed_errors: todo!(),
+            allowed_errors: Vec::new(),
             allowed_timestamp_start_index: self.timestamp_start_index,
         })
     }
@@ -107,11 +108,10 @@ impl ResponseAsserter {
         // TODO if timestampindex nil set parsedtimestampindex = timestampstartindex
 
         if timestamp_start_index < 0 {
-            return Err(format!(
+            Err(format!(
                 "{}: {timestamp_start_index}",
                 NetworkError::TimestampStartIndexInvalid
-            )
-            .into());
+            ))?
         }
 
         let operation_status_map = operation_stats
@@ -160,9 +160,9 @@ impl RequestAsserter {
         let mut call_map: IndexSet<String> = IndexSet::new();
         for method in call_methods {
             if method.is_empty() {
-                return Err(ServerError::CallMethodEmpty.into());
+                Err(ServerError::CallMethodEmpty)?
             } else if call_map.contains(&method) {
-                Err(format!("{}: {method}", ServerError::CallMethodDuplicate))?;
+                Err(format!("{}: {method}", ServerError::CallMethodDuplicate))?
             } else {
                 call_map.insert(method);
             }

@@ -12,10 +12,7 @@ use super::{
 };
 use crate::{
     identifiers::{
-        AccountIdentifier,
-        BlockIdentifier,
-        OperationIdentifier,
-        PartialBlockIdentifier,
+        AccountIdentifier, BlockIdentifier, OperationIdentifier, PartialBlockIdentifier,
         TransactionIdentifier,
     },
     models::{Amount, Block, Currency, Direction, Operation, RelatedTransaction, Transaction},
@@ -28,10 +25,10 @@ pub(crate) fn currency(currency: &Currency) -> AssertResult<()> {
         Err(BlockError::AmountCurrencySymbolEmpty)?;
     }
 
-    // we use a usize this error doesn't apply?
-    if currency.decimals < 0 {
-        Err(BlockError::AmountCurrencyHasNegDecimals)?;
-    }
+    todo!("impossible case");
+    // if currency.decimals < 0 {
+    //     Err(BlockError::AmountCurrencyHasNegDecimals)?;
+    // }
 
     Ok(())
 }
@@ -39,7 +36,7 @@ pub(crate) fn currency(currency: &Currency) -> AssertResult<()> {
 /// `amount` ensures a [`Amount`] has an
 /// integer value, specified precision, and symbol.
 pub(crate) fn amount(amount: Option<&Amount>) -> AssertResult<()> {
-    // or if currency nil
+    // TODO or if currency nil
     let amount = amount.ok_or(BlockError::AmountValueMissing)?;
 
     if amount.value.is_empty() {
@@ -57,17 +54,18 @@ pub(crate) fn amount(amount: Option<&Amount>) -> AssertResult<()> {
 /// [`OperationIdentifier`] is out-of-order or if the NetworkIndex is
 /// invalid.
 pub(crate) fn operation_identifier(ident: &OperationIdentifier, index: i64) -> AssertResult<()> {
-    // TODO if ident nil
+    // TODO ident == nil
     if ident.index as i64 != index {
-        return Err(format!(
+        Err(format!(
             "{}: expected {index} but got {}",
             BlockError::OperationIdentifierIndexOutOfOrder,
             ident.index
-        )
-        .into());
+        ))?
     }
 
-    if ident.network_index.is_some() && ident.network_index.unwrap() < 0 {
+    todo!("impossible case");
+    if ident.network_index.is_some() {
+        // && ident.network_index.unwrap() < 0 {
         Err(BlockError::OperationIdentifierNetworkIndexInvalid)?;
     }
 
@@ -77,7 +75,7 @@ pub(crate) fn operation_identifier(ident: &OperationIdentifier, index: i64) -> A
 /// `account_identifier` returns an error if a [`AccountIdentifier`]
 /// is missing an address or a provided SubAccount is missing an identifier.
 pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertResult<()> {
-    // TODO if account nil
+    // TODO account == nil
     let account = account.ok_or(BlockError::AccountIsNil)?;
 
     if account.address.is_empty() {
@@ -122,12 +120,11 @@ impl ResponseAsserter {
         }
 
         if !self.operation_status_map[status.unwrap()] {
-            return Err(format!(
+            Err(format!(
                 "{}: {}",
                 BlockError::OperationStatusInvalid,
                 status.unwrap()
-            )
-            .into());
+            ))?
         }
 
         Ok(())
@@ -421,9 +418,10 @@ pub(crate) fn block_identifier(block: &BlockIdentifier) -> AssertResult<()> {
         Err(BlockError::BlockIdentifierHashMissing)?;
     }
 
-    if block.index < 0 {
-        Err(BlockError::BlockIdentifierIndexIsNeg)?;
-    }
+    todo!("impossible case");
+    // if block.index < 0 {
+    //     Err(BlockError::BlockIdentifierIndexIsNeg)?;
+    // }
 
     Ok(())
 }
@@ -442,11 +440,13 @@ pub(crate) fn partial_block_identifier(
         return Ok(());
     }
 
-    if block_identifier.index.is_some() && block_identifier.index.unwrap() >= 0 {
+    todo!("impossible case");
+    if block_identifier.index.is_some() {
+        // && block_identifier.index.unwrap() >= 0 {
         return Ok(());
     }
 
-    Err(BlockError::PartialBlockIdentifierFieldsNotSet.into())
+    Err(BlockError::PartialBlockIdentifierFieldsNotSet)?
 }
 
 /// `duplicate_related_transaction` returns nil if no duplicates are found in

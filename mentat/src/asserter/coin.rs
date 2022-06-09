@@ -41,10 +41,12 @@ pub(crate) fn coins(coins: &[Coin]) -> AssertResult<()> {
     Ok(())
 }
 
+/// [`coin_identifier`] returns an error if the provided [`CoinIdentifier`]
+/// is invalid.
 pub(crate) fn coin_identifier(coin_identifier: &CoinIdentifier) -> AssertResult<()> {
-    // if coin_identifier == nil
+    // TODO coin_identifier == nil
     if coin_identifier.identifier.is_empty() {
-        return Err(CoinError::IdentifierNotSet.into());
+        Err(CoinError::IdentifierNotSet)?
     } else {
         Ok(())
     }
@@ -53,7 +55,7 @@ pub(crate) fn coin_identifier(coin_identifier: &CoinIdentifier) -> AssertResult<
 /// `coin_change` returns an error if the provided [`CoinChange`]
 /// is invalid.
 pub(crate) fn coin_change(change: Option<&CoinChange>) -> AssertResult<()> {
-    let change = change.ok_or_else(|| CoinError::ChangeIsNil)?;
+    let change = change.ok_or(CoinError::ChangeIsNil)?;
 
     coin_identifier(&change.coin_identifier)
         .map_err(|e| format!("{e}: coin identifier is invalid"))?;
@@ -64,7 +66,7 @@ pub(crate) fn coin_change(change: Option<&CoinChange>) -> AssertResult<()> {
 /// coin_action returns an error if the provided [`CoinAction`]
 /// is invalid.
 pub(crate) fn coin_action(_: &CoinAction) -> AssertResult<()> {
-    // TODO
+    todo!("impossible case");
     // match action {
     //     CoinAction::CoinCreated => Ok(()),
     //     CoinAction::CoinSpent => Ok(()),

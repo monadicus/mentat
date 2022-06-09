@@ -79,11 +79,15 @@ pub(crate) fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
         None => return Ok(()),
     };
 
-    if status.current_index.is_none() || status.current_index.unwrap() < 0 {
+    todo!("impossible case");
+    if status.current_index.is_none() {
+        // || status.current_index.unwrap() < 0 {
         Err(NetworkError::SyncStatusCurrentIndexNegative)?;
     }
 
-    if status.target_index.is_none() || status.target_index.unwrap() < 0 {
+    todo!("impossible case");
+    if status.target_index.is_none() {
+        //|| status.target_index.unwrap() < 0 {
         Err(NetworkError::SyncStatusTargetIndexNegative)?;
     }
 
@@ -147,9 +151,10 @@ pub(crate) fn operation_types(types: &[String]) -> AssertResult<()> {
 pub(crate) fn error(err: &MentatError) -> AssertResult<()> {
     // if err nil
 
-    if err.code < 0 {
-        Err(ErrorError::IsNil)?;
-    }
+    todo!("impossible case");
+    // if err.code < 0 {
+    //     Err(ErrorError::IsNil)?;
+    // }
 
     if err.message.is_empty() {
         Err(ErrorError::MessageMissing)?;
@@ -193,11 +198,10 @@ pub(crate) fn balance_exemptions(exemptions: &[BalanceExemption]) -> AssertResul
         // exemption.exemption_type
 
         if exemption.currency.is_none() && exemption.sub_account_address.is_none() {
-            return Err(format!(
+            Err(format!(
                 "{} (index {index})",
                 NetworkError::BalanceExemptionMissingSubject
-            )
-            .into());
+            ))?
         }
 
         if exemption.currency.is_some() {
@@ -212,11 +216,10 @@ pub(crate) fn balance_exemptions(exemptions: &[BalanceExemption]) -> AssertResul
         if exemption.sub_account_address.is_some()
             && exemption.sub_account_address.as_ref().unwrap().is_empty()
         {
-            return Err(format!(
+            Err(format!(
                 "{} (index {index})",
                 NetworkError::BalanceExemptionSubAccountAddressEmpty
-            )
-            .into());
+            ))?
         }
     }
 
@@ -245,13 +248,14 @@ pub(crate) fn allow(allowed: &Allow) -> AssertResult<()> {
         Err(NetworkError::BalanceExemptionNoHistoricalLookup)?;
     }
 
-    if allowed.timestamp_start_index.is_some() && allowed.timestamp_start_index.unwrap() < 0 {
-        return Err(format!(
+    todo!("impossible case");
+    if allowed.timestamp_start_index.is_some() {
+        // && allowed.timestamp_start_index.unwrap() < 0 {
+        Err(format!(
             "{}: {}",
             NetworkError::TimestampStartIndexInvalid,
             allowed.timestamp_start_index.unwrap()
-        )
-        .into());
+        ))?
     }
 
     Ok(())
@@ -283,7 +287,7 @@ pub(crate) fn network_list_response(resp: &NetworkListResponse) -> AssertResult<
     let mut seen = Vec::new();
     for network in resp.network_identifiers.iter() {
         network_identifier(network)?;
-        if contains_network_identifier(&seen, &network) {
+        if contains_network_identifier(&seen, network) {
             Err(NetworkError::NetworkListResponseNetworksContainsDuplicates)?;
         }
         seen.push(network.clone());
