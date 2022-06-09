@@ -1,0 +1,51 @@
+name: English (US)
+country_code: us
+navigation:
+  header:
+    links_github_aria: Link to mentat's Github repository
+    links_github_title: Mentat Github Repo
+  home: Home
+  not_found: Not Found
+  loading: Loading
+  sidenav:
+    home: Home
+    networks: Networks
+    accounts: Accounts
+    blocks: Blocks
+    transactions: Transactions
+views:
+  home:
+    blocks_header: Blocks
+    options_header: Options
+    peers_header: Peers
+  blocks:
+    genesis_block_label: Genesis Block
+    current_block_label: Current Block
+    redirect_note: Redirecting to current block...
+  block:
+    current_block_label: Current Block
+    parent_block_label: Parent Block
+    next_block_label: Next Block
+    meta_header: Meta
+    meta_timestamp_label: Timestamp
+    meta_transactions_label: Transactions
+    transactions_header: Transactions
+    account_text: Account
+  accounts:
+    no_followed_accounts_note: No Followed Accounts
+    followed_accounts_header: Followed Accounts
+  account:
+    balances_header: Balances
+components:
+  network_nav:
+    no_networks_label: No Networks
+    add_network_button: Add Network
+  blocks:
+    index_label: Index
+    hash_label: Hash
+  amount:
+    label: 'Amount: '
+connection:
+  failed: Failed to Connect.
+  invalid: Invalid Connection.
+  connecting: Connecting...
