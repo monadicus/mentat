@@ -14,10 +14,7 @@ use super::{
 };
 use crate::{
     identifiers::{
-        AccountIdentifier,
-        BlockIdentifier,
-        OperationIdentifier,
-        PartialBlockIdentifier,
+        AccountIdentifier, BlockIdentifier, OperationIdentifier, PartialBlockIdentifier,
         TransactionIdentifier,
     },
     models::{Amount, Block, Currency, Direction, Operation, RelatedTransaction, Transaction},
@@ -30,10 +27,10 @@ pub(crate) fn currency(currency: &Currency) -> AssertResult<()> {
         Err(BlockError::AmountCurrencySymbolEmpty)?;
     }
 
-    todo!("impossible case");
-    // if currency.decimals < 0 {
-    //     Err(BlockError::AmountCurrencyHasNegDecimals)?;
-    // }
+    // todo!("impossible case");
+    if currency.decimals < 0 {
+        Err(BlockError::AmountCurrencyHasNegDecimals)?;
+    }
 
     Ok(())
 }
@@ -424,10 +421,10 @@ pub(crate) fn block_identifier(block: &BlockIdentifier) -> AssertResult<()> {
         Err(BlockError::BlockIdentifierHashMissing)?;
     }
 
-    todo!("impossible case");
-    // if block.index < 0 {
-    //     Err(BlockError::BlockIdentifierIndexIsNeg)?;
-    // }
+    // todo!("impossible case");
+    if block.index < 0 {
+        Err(BlockError::BlockIdentifierIndexIsNeg)?;
+    }
 
     Ok(())
 }

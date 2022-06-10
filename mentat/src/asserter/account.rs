@@ -68,22 +68,27 @@ pub(crate) fn assert_unique_amounts(amounts: &[Amount]) -> AssertResult<()> {
 /// is not nil and not equal to the response block, or
 /// if the same currency is present in multiple amounts.
 pub(crate) fn account_balance_response(
-    request_block: &PartialBlockIdentifier,
+    request_block: Option<&PartialBlockIdentifier>,
     response: &AccountBalanceResponse,
 ) -> AssertResult<()> {
     block_identifier(&response.block_identifier)
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
     assert_unique_amounts(&response.balances)
         .map_err(|e| format!("{e}: balance amounts are invalid"))?;
-    // if request.block == nil
-    if matches!(request_block.hash.as_ref(), Some(i) if i == &response.block_identifier.hash) {
+
+    if request_block.is_none() {
+        return Ok(());
+    }
+    let request_block = request_block.unwrap();
+
+    if matches!(request_block.hash.as_ref(), Some(i) if i != &response.block_identifier.hash) {
         Err(format!(
             "{}: requested block hash {} but got {}",
             AccountBalanceError::ReturnedBlockHashMismatch,
             request_block.hash.as_ref().unwrap(),
             response.block_identifier.hash
         ))?
-    } else if matches!(request_block.index, Some(i) if i == response.block_identifier.index) {
+    } else if matches!(request_block.index, Some(i) if i != response.block_identifier.index) {
         Err(format!(
             "{}: requested block index {} but got {}",
             AccountBalanceError::ReturnedBlockIndexMismatch,

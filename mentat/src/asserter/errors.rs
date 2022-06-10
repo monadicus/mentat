@@ -7,7 +7,7 @@ use thiserror::Error;
 // ERR_ASSERTER_NOT_INITIALIZED = ("asserter not initialized");
 
 /// Account Balance Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum AccountBalanceError {
     #[error("request block hash does not match response block hash")]
@@ -17,7 +17,7 @@ pub(crate) enum AccountBalanceError {
 }
 
 /// Block Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum BlockError {
     #[error("Amount.Value is missing")]
@@ -105,7 +105,7 @@ pub(crate) enum BlockError {
 }
 
 // Coin Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum CoinError {
     #[error("coin cannot be nil")]
@@ -123,7 +123,7 @@ pub(crate) enum CoinError {
 }
 
 /// Construction Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum ConstructionError {
     #[error("ConstructionPreprocessResponse cannot be nil")]
@@ -189,7 +189,7 @@ pub(crate) enum ConstructionError {
 }
 
 /// Network Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum NetworkError {
     #[error("NetworkIdentifier is nil")]
@@ -247,7 +247,7 @@ pub(crate) enum NetworkError {
 }
 
 /// Server Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum ServerError {
     #[error("no supported networks")]
@@ -325,7 +325,7 @@ pub(crate) enum ServerError {
 }
 
 /// Event Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum EventError {
     #[error("max sequence invalid")]
@@ -339,7 +339,7 @@ pub(crate) enum EventError {
 }
 
 /// Search Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum SearchError {
     #[error("next offset invalid")]
@@ -349,7 +349,7 @@ pub(crate) enum SearchError {
 }
 
 /// Error Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum ErrorError {
     #[error("Error is nil")]
@@ -369,7 +369,7 @@ pub(crate) enum ErrorError {
 }
 
 /// Asserter Errors
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum AsserterError {
     #[error(transparent)]

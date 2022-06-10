@@ -1,3 +1,5 @@
+//! The asserter contains tools and methods to help validate the other types.
+
 #![allow(clippy::absurd_extreme_comparisons)]
 mod account;
 mod asserter_tools;
