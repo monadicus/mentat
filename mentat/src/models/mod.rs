@@ -71,6 +71,10 @@ pub use signing_payload::*;
 mod transaction;
 pub use transaction::*;
 
+/// A trait that sorts the various aspects
+/// of the types in the crate for testing purposes.
 pub(crate) trait Sortable {
+    /// Takes a reference to the object.
+    /// Then clones it and sorts the fields.
     fn sort(&self) -> Self;
 }

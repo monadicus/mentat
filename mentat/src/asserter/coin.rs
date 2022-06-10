@@ -1,3 +1,5 @@
+//! Validates that coin data is correct.
+
 use indexmap::IndexSet;
 
 use super::{

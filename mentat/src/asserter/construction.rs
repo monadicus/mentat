@@ -1,17 +1,21 @@
-use crate::{
-    models::{CurveType, PublicKey, Signature, SignatureType, SigningPayload},
-    responses::{
-        ConstructionDeriveResponse, ConstructionMetadataResponse, ConstructionParseResponse,
-        ConstructionPayloadsResponse, ConstructionPreprocessResponse,
-    },
-};
+//! Validates that construction data is correct.
 
 use super::{
     account::assert_unique_amounts,
-    asserter::ResponseAsserter,
+    asserter_tools::ResponseAsserter,
     block::account_identifier,
     errors::{AssertResult, ConstructionError},
     util::{account_array, bytes_array_zero},
+};
+use crate::{
+    models::{CurveType, PublicKey, Signature, SignatureType, SigningPayload},
+    responses::{
+        ConstructionDeriveResponse,
+        ConstructionMetadataResponse,
+        ConstructionParseResponse,
+        ConstructionPayloadsResponse,
+        ConstructionPreprocessResponse,
+    },
 };
 
 /// the request public keys are not valid AccountIdentifiers.
@@ -87,6 +91,7 @@ impl ResponseAsserter {
         if signed
             && resp
                 .account_identifier_signers
+                .as_ref()
                 .map_or_else(|| true, |v| v.is_empty())
         {
             Err(ConstructionError::ConstructionParseResponseIsNil)?;
@@ -95,12 +100,14 @@ impl ResponseAsserter {
         if !signed
             && resp
                 .account_identifier_signers
+                .as_ref()
                 .map_or_else(|| true, |v| v.is_empty())
         {
             Err(ConstructionError::ConstructionParseResponseSignersNonEmptyOnUnsignedTx)?;
         }
 
         resp.account_identifier_signers
+            .as_ref()
             .unwrap()
             .iter()
             .enumerate()
@@ -110,6 +117,7 @@ impl ResponseAsserter {
 
         if resp
             .account_identifier_signers
+            .as_ref()
             .map_or_else(|| false, |v| !v.is_empty())
         {
             account_array("signers", resp.account_identifier_signers.as_ref().unwrap())?;
@@ -168,7 +176,7 @@ pub(crate) fn public_key(key: &PublicKey) -> AssertResult<()> {
 
 /// `curve_type` returns an error if
 /// the curve is not a valid [CurveType].
-pub(crate) fn curve_type(curve: &CurveType) -> AssertResult<()> {
+pub(crate) fn curve_type(_: &CurveType) -> AssertResult<()> {
     // todo impossible
     Ok(())
 }
@@ -202,8 +210,8 @@ pub(crate) fn signing_payload(payload: &SigningPayload) -> AssertResult<()> {
     Ok(())
 }
 
-// `signatures` returns an error if any
-// [Signature] is invalid.
+/// `signatures` returns an error if any
+/// [Signature] is invalid.
 pub(crate) fn signatures(signatures: &[Signature]) -> AssertResult<()> {
     if signatures.is_empty() {
         Err(ConstructionError::SignaturesEmpty)?;
@@ -225,7 +233,8 @@ pub(crate) fn signatures(signatures: &[Signature]) -> AssertResult<()> {
         if sig
             .signing_payload
             .signature_type
-            .map_or_else(|| false, |s| s != sig.signature_type)
+            .as_ref()
+            .map_or_else(|| false, |s| s != &sig.signature_type)
         {
             Err(ConstructionError::SignaturesReturnedSigMismatch)?;
         }
@@ -247,7 +256,7 @@ pub(crate) fn signatures(signatures: &[Signature]) -> AssertResult<()> {
 
 /// signature_type returns an error if
 /// signature is not a valid [`SignatureType`].
-pub(crate) fn signature_type(sig: &SignatureType) -> AssertResult<()> {
+pub(crate) fn signature_type(_: &SignatureType) -> AssertResult<()> {
     // TODO impossible since ours is enum
     Ok(())
 }

@@ -1,10 +1,11 @@
-use crate::errors::MentatError;
+//! Validates that error data is correct.
 
 use super::{
-    asserter::ResponseAsserter,
+    asserter_tools::ResponseAsserter,
     errors::{AssertResult, ErrorError},
     network::error,
 };
+use crate::errors::MentatError;
 
 impl ResponseAsserter {
     /// `error` ensures a [`MentatError`] matches some error

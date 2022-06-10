@@ -1,3 +1,4 @@
+//! The asserter contains tools and methods to help validate the other types.
 use std::path::Path;
 
 use indexmap::{IndexMap, IndexSet};
@@ -16,16 +17,21 @@ use crate::{
     responses::{NetworkOptionsResponse, NetworkStatusResponse},
 };
 
+/// A static string representing account type data.
 pub(crate) const ACCOUNT: &str = "account";
-pub(crate) const UTXO: &str = "utxo";
+// pub(crate) const UTXO: &str = "utxo";
 
+/// The `Operation` data helps validate data.
 #[derive(Debug, Deserialize, Serialize)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct Operation {
     pub(crate) count: i64,
     pub(crate) should_balance: bool,
 }
 
+/// The `ValidationOperation` data helps validate data.
 #[derive(Debug, Deserialize, Serialize)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct ValidationOperation {
     pub(crate) name: String,
     pub(crate) operation: Operation,
@@ -35,6 +41,7 @@ pub(crate) struct ValidationOperation {
 /// on the transaction. Fore more details please refer to
 /// https://github.com/coinbase/rosetta-sdk-go/tree/master/asserter#readme
 #[derive(Debug, Deserialize, Serialize)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct Validations {
     pub(crate) enabled: bool,
     pub(crate) related_ops_exists: bool,
@@ -44,6 +51,7 @@ pub(crate) struct Validations {
 }
 
 impl Validations {
+    /// Creates a new `Validations` struct given a config file.
     pub(crate) fn get_validation_config(validation_file_path: &Path) -> Result<Self, String> {
         todo!()
     }
@@ -51,6 +59,7 @@ impl Validations {
 
 /// For response assertion.
 #[derive(Debug)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct ResponseAsserter {
     pub(crate) network: NetworkIdentifier,
     pub(crate) operation_types: Vec<String>,
@@ -119,7 +128,7 @@ impl ResponseAsserter {
             .map(|status| (status.status.clone(), status.successful))
             .collect();
 
-        let error_type_map = todo!();
+        let error_type_map = Default::default();
 
         Ok(Self {
             network,
@@ -135,6 +144,7 @@ impl ResponseAsserter {
 
 /// For response assertion.
 #[derive(Debug)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct RequestAsserter {
     pub(crate) operation_types: Vec<String>,
     pub(crate) historical_balance_lookup: bool,
@@ -145,6 +155,8 @@ pub(crate) struct RequestAsserter {
 }
 
 impl RequestAsserter {
+    /// Creates a new `RequestAsserter` struct given the settings and a
+    /// `Validations` config file.
     pub(crate) fn new_server(
         supported_operation_types: Vec<String>,
         historical_balance_lookup: bool,
@@ -182,6 +194,8 @@ impl RequestAsserter {
 /// Asserter contains all logic to perform static
 /// validation on Rosetta Server responses.
 #[derive(Debug)]
+#[allow(clippy::missing_docs_in_private_items)]
+#[allow(clippy::large_enum_variant)]
 pub(crate) enum Asserter {
     Response(ResponseAsserter),
     Request(RequestAsserter),
@@ -222,16 +236,20 @@ impl Asserter {
         todo!()
     }
 
+    /// Creates a new `Asserter` struct given the settings and a `Validations`
+    /// config file.
     pub(crate) fn new_with_file(file_path: String) -> AssertResult<Self> {
         todo!()
     }
 
+    /// Says whether a given operation was successful or not.
     pub(crate) fn operation_successful(&self, operation: &Operation) -> AssertResult<bool> {
         todo!()
     }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct Configuration {
     network_identifier: NetworkIdentifier,
     genesis_block_identifier: BlockIdentifier,

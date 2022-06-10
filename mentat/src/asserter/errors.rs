@@ -1,3 +1,5 @@
+//! Errors for the validations in this module.
+
 use thiserror::Error;
 
 // AsserterNotInitialized is returned when some call in the asserter
@@ -371,23 +373,23 @@ pub(crate) enum ErrorError {
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum AsserterError {
     #[error(transparent)]
-    AccountBalanceError(#[from] AccountBalanceError),
+    AccountBalance(#[from] AccountBalanceError),
     #[error(transparent)]
-    BlockError(#[from] BlockError),
+    Block(#[from] BlockError),
     #[error(transparent)]
-    CoinError(#[from] CoinError),
+    Coin(#[from] CoinError),
     #[error(transparent)]
-    ConstructionError(#[from] ConstructionError),
+    Construction(#[from] ConstructionError),
     #[error(transparent)]
-    NetworkError(#[from] NetworkError),
+    Network(#[from] NetworkError),
     #[error(transparent)]
-    ServerError(#[from] ServerError),
+    Server(#[from] ServerError),
     #[error(transparent)]
-    EventError(#[from] EventError),
+    Event(#[from] EventError),
     #[error(transparent)]
-    SearchError(#[from] SearchError),
+    Search(#[from] SearchError),
     #[error(transparent)]
-    ErrorError(#[from] ErrorError),
+    Error(#[from] ErrorError),
     #[error("{0}")]
     StringError(String),
 }
@@ -398,4 +400,5 @@ impl From<String> for AsserterError {
     }
 }
 
+/// The result type for any Asserter module errors.
 pub(crate) type AssertResult<T, E = AsserterError> = std::result::Result<T, E>;

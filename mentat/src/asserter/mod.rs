@@ -1,5 +1,6 @@
+#![allow(clippy::absurd_extreme_comparisons)]
 mod account;
-mod asserter;
+mod asserter_tools;
 mod block;
 mod coin;
 mod construction;
@@ -11,3 +12,9 @@ mod network;
 mod search;
 mod server;
 mod util;
+
+#[cfg(test)]
+#[path = ""]
+mod tests {
+    mod account_test;
+}

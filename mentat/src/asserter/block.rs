@@ -1,10 +1,12 @@
+//! Validates that block data is correct.
+
 use std::str::FromStr;
 
 use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    asserter::ResponseAsserter,
+    asserter_tools::ResponseAsserter,
     coin::coin_change,
     errors::{AssertResult, BlockError},
     network::network_identifier,
@@ -12,7 +14,10 @@ use super::{
 };
 use crate::{
     identifiers::{
-        AccountIdentifier, BlockIdentifier, OperationIdentifier, PartialBlockIdentifier,
+        AccountIdentifier,
+        BlockIdentifier,
+        OperationIdentifier,
+        PartialBlockIdentifier,
         TransactionIdentifier,
     },
     models::{Amount, Block, Currency, Direction, Operation, RelatedTransaction, Transaction},
@@ -267,7 +272,8 @@ impl ResponseAsserter {
         }
 
         // only account based validation
-        if self.validations.enabled && self.validations.chain_type == super::asserter::ACCOUNT {
+        if self.validations.enabled && self.validations.chain_type == super::asserter_tools::ACCOUNT
+        {
             self.validate_payment_and_fee(payment_total, payment_count, fee_total, fee_count)?;
         }
 

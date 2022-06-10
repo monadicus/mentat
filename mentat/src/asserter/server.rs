@@ -1,8 +1,13 @@
+//! Validates that server data is correct.
+
 use super::{
     account::{assert_unique_amounts, contains_duplicate_currency},
-    asserter::RequestAsserter,
+    asserter_tools::RequestAsserter,
     block::{
-        account_identifier, block_identifier, currency, partial_block_identifier,
+        account_identifier,
+        block_identifier,
+        currency,
+        partial_block_identifier,
         transaction_identifier,
     },
     coin::coin_identifier,
@@ -10,15 +15,26 @@ use super::{
     errors::{AssertResult, BlockError, ServerError},
     network::{contains_network_identifier, network_identifier},
 };
-
 use crate::{
     identifiers::NetworkIdentifier,
     macro_exports::{
-        AccountBalanceRequest, AccountCoinsRequest, BlockRequest, BlockTransactionRequest,
-        CallRequest, ConstructionCombineRequest, ConstructionDeriveRequest,
-        ConstructionHashRequest, ConstructionMetadataRequest, ConstructionParseRequest,
-        ConstructionPayloadsRequest, ConstructionPreprocessRequest, ConstructionSubmitRequest,
-        EventsBlocksRequest, MempoolTransactionRequest, MetadataRequest, NetworkRequest,
+        AccountBalanceRequest,
+        AccountCoinsRequest,
+        BlockRequest,
+        BlockTransactionRequest,
+        CallRequest,
+        ConstructionCombineRequest,
+        ConstructionDeriveRequest,
+        ConstructionHashRequest,
+        ConstructionMetadataRequest,
+        ConstructionParseRequest,
+        ConstructionPayloadsRequest,
+        ConstructionPreprocessRequest,
+        ConstructionSubmitRequest,
+        EventsBlocksRequest,
+        MempoolTransactionRequest,
+        MetadataRequest,
+        NetworkRequest,
         SearchTransactionsRequest,
     },
 };
@@ -47,8 +63,9 @@ pub(crate) fn supported_networks(networks: &[NetworkIdentifier]) -> AssertResult
 }
 
 impl RequestAsserter {
-    /// [`supported_network`] returns a boolean indicating if the [`NetworkIdentifier`]
-    /// is allowed. This should be called after the [`NetworkIdentifier`] is asserted.
+    /// [`supported_network`] returns a boolean indicating if the
+    /// [`NetworkIdentifier`] is allowed. This should be called after the
+    /// [`NetworkIdentifier`] is asserted.
     pub(crate) fn supported_network(
         &self,
         request_network: &NetworkIdentifier,
@@ -84,14 +101,16 @@ impl RequestAsserter {
         // TODO if request == nil
         self.valid_supported_network(&request.network_identifier)?;
         account_identifier(Some(&request.account_identifier))?;
-        if let Some(c) = contains_duplicate_currency(&request.currencies.unwrap_or_default()) {
+        if let Some(c) =
+            contains_duplicate_currency(request.currencies.as_ref().unwrap_or(&Vec::new()))
+        {
             Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
         } else if request.block_identifier.is_none() {
-            return Ok(());
+            Ok(())
         } else if !self.historical_balance_lookup {
             Err(ServerError::AccountBalanceRequestHistoricalBalanceLookupNotSupported)?
         } else {
-            partial_block_identifier(&request.block_identifier.unwrap())
+            partial_block_identifier(request.block_identifier.as_ref().unwrap())
         }
     }
 
@@ -117,8 +136,8 @@ impl RequestAsserter {
         transaction_identifier(&request.transaction_identifier)
     }
 
-    /// [`construction_metadata_request`] ensures that a [`ConstructionMetadataRequest`]
-    /// is well-formatted.
+    /// [`construction_metadata_request`] ensures that a
+    /// [`ConstructionMetadataRequest`] is well-formatted.
     pub(crate) fn construction_metadata_request(
         &self,
         request: &ConstructionMetadataRequest,
@@ -131,12 +150,11 @@ impl RequestAsserter {
             .public_keys
             .iter()
             .flatten()
-            .map(|p| public_key(p))
-            .collect()
+            .try_for_each(public_key)
     }
 
-    /// [`construction_submit_request`] ensures that a [`ConstructionSubmitRequest`]
-    /// is well-formatted.
+    /// [`construction_submit_request`] ensures that a
+    /// [`ConstructionSubmitRequest`] is well-formatted.
     pub(crate) fn construction_submit_request(
         &self,
         request: &ConstructionSubmitRequest,
@@ -151,8 +169,8 @@ impl RequestAsserter {
         }
     }
 
-    // [`mempool_transaction_request`] ensures that a [`MempoolTransactionRequest`]
-    // is well-formatted.
+    /// [`mempool_transaction_request`] ensures that a
+    /// [`MempoolTransactionRequest`] is well-formatted.
     pub(crate) fn mempool_transaction_request(
         &self,
         request: &MempoolTransactionRequest,
@@ -163,24 +181,24 @@ impl RequestAsserter {
         transaction_identifier(&request.transaction_identifier)
     }
 
-    // [`metadata_request`] ensures that a [`MetadataRequest`]
-    // is well-formatted.
+    /// [`metadata_request`] ensures that a [`MetadataRequest`]
+    /// is well-formatted.
     pub(crate) fn metadata_request(&self, request: &MetadataRequest) -> AssertResult<()> {
         // TODO if self == nil
         // todo if request == nil
         Ok(())
     }
 
-    // [`network_request`] ensures that a [`NetworkRequest`]
-    // is well-formatted.
+    /// [`network_request`] ensures that a [`NetworkRequest`]
+    /// is well-formatted.
     pub(crate) fn network_request(&self, request: &NetworkRequest) -> AssertResult<()> {
         // TODO if self == nil
         // todo if request == nil
         self.valid_supported_network(&request.network_identifier)
     }
 
-    /// [`construction_derive_request`] ensures that a [`ConstructionDeriveRequest`]
-    /// is well-formatted.
+    /// [`construction_derive_request`] ensures that a
+    /// [`ConstructionDeriveRequest`] is well-formatted.
     pub(crate) fn construction_derive_request(
         &self,
         request: &ConstructionDeriveRequest,
@@ -191,8 +209,8 @@ impl RequestAsserter {
         public_key(&request.public_key)
     }
 
-    /// [`construction_preprocess_request`] ensures that a [`ConstructionPreprocessRequest`]
-    /// is well-formatted.
+    /// [`construction_preprocess_request`] ensures that a
+    /// [`ConstructionPreprocessRequest`] is well-formatted.
     pub(crate) fn construction_preprocess_request(
         &self,
         request: &ConstructionPreprocessRequest,
@@ -200,10 +218,10 @@ impl RequestAsserter {
         // TODO if self == nil
         // todo if request == nil
         self.valid_supported_network(&request.network_identifier)?;
-        self.operations(&request.operations, true)?;
-        assert_unique_amounts(&request.max_fee.unwrap_or_default())
+        // self.operations(&request.operations, true)?;
+        assert_unique_amounts(request.max_fee.as_ref().unwrap_or(&Vec::new()))
             .map_err(|e| format!("{e}: duplicate max fee currency found"))?;
-        if matches!(request.suggested_fee_multiplier, Some(i) if i < 0) {
+        if matches!(request.suggested_fee_multiplier, Some(i) if i < 0.0) {
             Err(format!(
                 "{}: {}",
                 ServerError::ConstructionPreprocessRequestSuggestedFeeMultiplierIsNeg,
@@ -214,8 +232,8 @@ impl RequestAsserter {
         }
     }
 
-    /// [`construction_payload_request`] ensures that a [`ConstructionPayloadsRequest`]
-    /// is well-formatted.
+    /// [`construction_payload_request`] ensures that a
+    /// [`ConstructionPayloadsRequest`] is well-formatted.
     pub(crate) fn construction_payload_request(
         &self,
         request: &ConstructionPayloadsRequest,
@@ -223,17 +241,16 @@ impl RequestAsserter {
         // TODO if self == nil
         // todo if request == nil
         self.valid_supported_network(&request.network_identifier)?;
-        self.operations(&request.operations, true)?;
+        // self.operations(&request.operations, true)?;
         request
             .public_keys
             .iter()
             .flatten()
-            .map(|k| public_key(k))
-            .collect()
+            .try_for_each(public_key)
     }
 
-    /// [`construction_combine_request`] ensures that a [`ConstructionCombineRequest`]
-    /// is well-formatted.
+    /// [`construction_combine_request`] ensures that a
+    /// [`ConstructionCombineRequest`] is well-formatted.
     pub(crate) fn construction_combine_request(
         &self,
         request: &ConstructionCombineRequest,
@@ -264,8 +281,8 @@ impl RequestAsserter {
         }
     }
 
-    /// [`construction_parse_request`] ensures that a [`ConstructionParseRequest`]
-    /// is well-formatted.
+    /// [`construction_parse_request`] ensures that a
+    /// [`ConstructionParseRequest`] is well-formatted.
     pub(crate) fn construction_parse_request(
         &self,
         request: &ConstructionParseRequest,
@@ -312,7 +329,8 @@ impl RequestAsserter {
         account_identifier(Some(&request.account_identifier))?;
         if request.include_mempool && !self.mempool_coins {
             Err(ServerError::MempoolCoinsNotSupported)?
-        } else if let Some(c) = contains_duplicate_currency(&request.currencies.unwrap_or_default())
+        } else if let Some(c) =
+            contains_duplicate_currency(request.currencies.as_ref().unwrap_or(&Vec::new()))
         {
             Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
         } else {
@@ -335,8 +353,8 @@ impl RequestAsserter {
         }
     }
 
-    /// [`search_transactions_request`] ensures that a [`SearchTransactionsRequest`]
-    /// is well-formatted.
+    /// [`search_transactions_request`] ensures that a
+    /// [`SearchTransactionsRequest`] is well-formatted.
     pub(crate) fn search_transactions_request(
         &self,
         request: &SearchTransactionsRequest,
@@ -377,11 +395,11 @@ impl RequestAsserter {
         }
 
         if let Some(s) = &request.status {
-            self.operation_status(s, false)?;
+            // self.operation_status(s, false)?;
         }
 
         if let Some(t) = &request.type_ {
-            self.operation_type(t, false)?;
+            // self.operation_type(t, false)?;
         }
 
         if matches!(request.address, Some(a) if a.is_empty()) {

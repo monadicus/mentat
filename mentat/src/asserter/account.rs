@@ -1,3 +1,5 @@
+//! Validates that account data is correct.
+
 use std::collections::HashSet;
 
 use super::{

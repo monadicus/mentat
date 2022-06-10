@@ -1,3 +1,5 @@
+//! Validates that network data is correct.
+
 use indexmap::IndexSet;
 
 use super::{

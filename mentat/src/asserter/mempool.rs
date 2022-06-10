@@ -1,3 +1,5 @@
+//! Validates that mempool data is correct.
+
 use super::{block::transaction_identifier, errors::AssertResult};
 use crate::identifiers::TransactionIdentifier;
 
