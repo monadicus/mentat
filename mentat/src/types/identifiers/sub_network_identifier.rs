@@ -3,7 +3,7 @@
 use indexmap::IndexMap;
 
 use super::*;
-use crate::models::Sortable;
+use crate::types::Sortable;
 
 /// In blockchains with sharded state, the `SubNetworkIdentifier` is required to
 /// query some object on a specific shard. This identifier is optional for all

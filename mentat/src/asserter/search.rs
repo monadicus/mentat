@@ -1,7 +1,6 @@
 //! Validates that search data is correct.
 
-use super::{asserter_tools::ResponseAsserter, block::block_identifier, errors::AssertResult};
-use crate::{asserter::errors::SearchError, responses::SearchTransactionsResponse};
+use super::{block_identifier, AssertResult, ResponseAsserter, SearchTransactionsResponse};
 
 impl ResponseAsserter {
     /// SearchTransactionsResponse ensures a

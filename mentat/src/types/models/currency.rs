@@ -7,7 +7,7 @@ use super::*;
 /// `Currency` is composed of a canonical Symbol and Decimals. This Decimals
 /// value is used to convert an Amount.Value from atomic units (Satoshis) to
 /// standard units (Bitcoins).
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, Eq, Deserialize, PartialEq, Serialize)]
 pub struct Currency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,

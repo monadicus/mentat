@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{errors::MentatError, identifiers::*, misc::*};
+use crate::types::*;
 
 mod allow;
 pub use allow::*;
@@ -70,11 +70,3 @@ pub use signing_payload::*;
 
 mod transaction;
 pub use transaction::*;
-
-/// A trait that sorts the various aspects
-/// of the types in the crate for testing purposes.
-pub(crate) trait Sortable {
-    /// Takes a reference to the object.
-    /// Then clones it and sorts the fields.
-    fn sort(&self) -> Self;
-}

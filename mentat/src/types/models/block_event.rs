@@ -1,6 +1,7 @@
 //! The module defines the `BlockEvent` model.
 
 use super::*;
+use crate::types::BlockIdentifier;
 
 /// `BlockEvent` represents the addition or removal of a [`BlockIdentifier`]
 /// from storage. Streaming `BlockEvent`s allows lightweight clients to update

@@ -1,7 +1,7 @@
 //! The module defines the `NetworkStatusResponse` response.
 
 use super::*;
-use crate::misc::{Peer, SyncStatus};
+use crate::types::{Peer, SyncStatus};
 
 /// `NetworkStatusResponse` contains basic information about the node's view of
 /// a blockchain network. It is assumed that any [`BlockIdentifier.Index`] less

@@ -4,13 +4,12 @@
 use axum::http::Extensions;
 
 use super::*;
+use crate::types::{NetworkRequest, Result, Sortable};
 #[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network, NodeConf},
-    errors::Result,
     server::ServerType,
 };
-use crate::{models::Sortable, requests::NetworkRequest};
 
 /// The `network_identifier` specifies which network a particular object is
 /// associated with.

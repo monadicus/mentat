@@ -1,7 +1,7 @@
 //! The module defines the `NetworkOptionsResponse` response.
 
 use super::*;
-use crate::misc::Version;
+use crate::types::Version;
 
 /// `NetworkOptionsResponse` contains information about the versioning of the
 /// node and the allowed operation statuses, operation types, and errors.

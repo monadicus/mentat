@@ -1,10 +1,11 @@
 //! Validates that event data is correct.
 
-use super::{block::block_identifier, errors::AssertResult};
-use crate::{
-    asserter::errors::EventError,
-    models::{BlockEvent, BlockEventType},
-    responses::EventsBlocksResponse,
+use super::{
+    block::block_identifier,
+    errors::AssertResult,
+    BlockEvent,
+    EventError,
+    EventsBlocksResponse,
 };
 
 /// [`BlockEvent`] ensures a *types.BlockEvent

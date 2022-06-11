@@ -2,14 +2,7 @@
 
 use indexmap::IndexSet;
 
-use super::{
-    block::amount,
-    errors::{AssertResult, CoinError},
-};
-use crate::{
-    identifiers::CoinIdentifier,
-    models::{Coin, CoinAction, CoinChange},
-};
+use super::{amount, AssertResult, Coin, CoinAction, CoinChange, CoinError, CoinIdentifier};
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
 pub(crate) fn coin(coin: &Coin) -> AssertResult<()> {

@@ -3,15 +3,11 @@
 #![doc = include_str!("../../README.md")]
 
 mod asserter;
-pub mod errors;
-pub mod identifiers;
-pub mod misc;
-pub mod models;
-pub mod requests;
-pub mod responses;
-
-#[cfg(feature = "sdk")]
+#[cfg(feature = "keys")]
 pub mod keys;
+
+#[cfg(feature = "types")]
+pub mod types;
 
 #[allow(clippy::all, clippy::missing_docs_in_private_items)]
 #[cfg(feature = "server")]
@@ -103,7 +99,6 @@ mod server_exports {
             server::{RpcCaller, RpcResponse, Server},
             *,
         };
-        pub use crate::requests::*;
     }
 }
 

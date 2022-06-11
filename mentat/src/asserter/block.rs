@@ -6,19 +6,25 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    asserter_tools::ResponseAsserter,
-    coin::coin_change,
-    errors::{AssertResult, BlockError},
-    network::network_identifier,
-    util::hash,
+    coin_change,
+    hash,
+    network_identifier,
+    AccountIdentifier,
+    Amount,
+    AssertResult,
+    Block,
+    BlockError,
+    BlockIdentifier,
+    Currency,
+    Direction,
+    OperationIdentifier,
+    PartialBlockIdentifier,
+    RelatedTransaction,
+    ResponseAsserter,
+    Transaction,
+    TransactionIdentifier,
 };
-use crate::{
-    identifiers::{
-        AccountIdentifier, BlockIdentifier, OperationIdentifier, PartialBlockIdentifier,
-        TransactionIdentifier,
-    },
-    models::{Amount, Block, Currency, Direction, Operation, RelatedTransaction, Transaction},
-};
+use crate::types::Operation as TypesOperation;
 
 /// `currency` ensures a [`Currency`] is valid.
 pub(crate) fn currency(currency: &Currency) -> AssertResult<()> {
@@ -143,11 +149,11 @@ impl ResponseAsserter {
         Ok(())
     }
 
-    /// `operation` ensures a [`Operation`] has a valid
+    /// `operation` ensures a [`TypesOperation`] has a valid
     /// type, status, and amount.
     pub(crate) fn operation(
         &self,
-        operation: Option<&Operation>,
+        operation: Option<&TypesOperation>,
         index: i64,
         construction: bool,
     ) -> AssertResult<()> {
@@ -184,11 +190,11 @@ impl ResponseAsserter {
         Ok(())
     }
 
-    /// `operations` returns an error if any [`Operation`]
-    /// in a [`Operation`] is invalid.
+    /// `operations` returns an error if any [`TypesOperation`]
+    /// in a [`TypesOperation`] is invalid.
     pub(crate) fn operations(
         &self,
-        operations: &[Operation],
+        operations: &[TypesOperation],
         construction: bool,
     ) -> AssertResult<()> {
         if operations.is_empty() && construction {
@@ -310,7 +316,7 @@ impl ResponseAsserter {
     }
 
     /// `transaction` returns an error if the [`TransactionIdentifier`]
-    /// is invalid, if any [`Operation`] within the [`Transaction`]
+    /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
     pub(crate) fn transaction(&self, transaction: &Transaction) -> AssertResult<()> {
         // TODO if self nil bruh
@@ -325,7 +331,11 @@ impl ResponseAsserter {
                 )
             })?;
 
-        self.related_transactions(transaction.related_transactions.as_ref())
+        transaction
+            .related_transactions
+            .as_ref()
+            .map(|transactions| self.related_transactions(transactions))
+            .transpose()
             .map_err(|err| {
                 format!(
                     "{err} invalid related transaction in transaction {}",
@@ -428,10 +438,6 @@ pub(crate) fn block_identifier(block: &BlockIdentifier) -> AssertResult<()> {
 
     Ok(())
 }
-
-// Transaction returns an error if the types.TransactionIdentifier
-// is invalid, if any types.Operation within the types.Transaction
-// is invalid, or if any operation index is reused within a transaction.
 
 /// `partial_block_identifier` ensures a [`PartialBlockIdentifier`]
 /// is well-formatted.

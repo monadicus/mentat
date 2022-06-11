@@ -1,5 +1,4 @@
 use indexmap::{indexmap, IndexMap};
-use num_bigint_dig::ParseBigIntError;
 use serde_json::{json, Value};
 
 use crate::{
@@ -7,10 +6,7 @@ use crate::{
         account::{account_balance_response, contains_currency, contains_duplicate_currency},
         errors::{AccountBalanceError, AsserterError, BlockError},
     },
-    errors::MentatError,
-    identifiers::{BlockIdentifier, PartialBlockIdentifier},
-    models::{Amount, Currency},
-    responses::AccountBalanceResponse,
+    types::{AccountBalanceResponse, Amount, BlockIdentifier, Currency, PartialBlockIdentifier},
 };
 
 struct ContainsCurrencyTest {

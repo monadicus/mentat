@@ -3,15 +3,17 @@
 use std::collections::HashSet;
 
 use super::{
-    block::{amount, block_identifier},
-    coin::coins,
-    errors::{AccountBalanceError, AssertResult},
-    util::hash,
-};
-use crate::{
-    identifiers::PartialBlockIdentifier,
-    models::{Amount, Currency},
-    responses::{AccountBalanceResponse, AccountCoinsResponse},
+    amount,
+    block_identifier,
+    coins,
+    hash,
+    AccountBalanceError,
+    AccountBalanceResponse,
+    AccountCoinsResponse,
+    Amount,
+    AssertResult,
+    Currency,
+    PartialBlockIdentifier,
 };
 
 /// `contains_duplicate_currency` retruns a boolean indicating

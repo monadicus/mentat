@@ -3,16 +3,28 @@
 use indexmap::IndexSet;
 
 use super::{
-    block::{block_identifier, currency, timestamp},
-    errors::{AssertResult, AsserterError, BlockError, ErrorError, NetworkError},
-    util::{hash, string_array},
-};
-use crate::{
-    errors::MentatError,
-    identifiers::{NetworkIdentifier, SubNetworkIdentifier},
-    misc::{OperationStatus, Peer, SyncStatus, Version},
-    models::{Allow, BalanceExemption},
-    responses::{NetworkListResponse, NetworkOptionsResponse, NetworkStatusResponse},
+    block_identifier,
+    currency,
+    hash,
+    string_array,
+    timestamp,
+    Allow,
+    AssertResult,
+    AsserterError,
+    BalanceExemption,
+    BlockError,
+    ErrorError,
+    MentatError,
+    NetworkError,
+    NetworkIdentifier,
+    NetworkListResponse,
+    NetworkOptionsResponse,
+    NetworkStatusResponse,
+    OperationStatus,
+    Peer,
+    SubNetworkIdentifier,
+    SyncStatus,
+    Version,
 };
 
 /// `sub_network_identifier` asserts a [`SubNetworkIdentifer`] is valid (if not
@@ -243,10 +255,21 @@ pub(crate) fn allow(allowed: &Allow) -> AssertResult<()> {
     operation_statuses(&allowed.operation_statuses)?;
     operation_types(&allowed.operation_types)?;
     errors(&allowed.errors)?;
-    call_methods(&allowed.call_methods)?;
-    balance_exemptions(&allowed.balance_exemptions)?;
+    allowed
+        .call_methods
+        .as_ref()
+        .map(|methods| call_methods(methods))
+        .transpose()?;
+    allowed
+        .balance_exemptions
+        .as_ref()
+        .map(|exemptions| balance_exemptions(exemptions))
+        .transpose()?;
 
-    if !allowed.balance_exemptions.is_empty() && !allowed.historical_balance_lookup {
+    if allowed.balance_exemptions.is_some()
+        && !allowed.balance_exemptions.as_ref().unwrap().is_empty()
+        && !allowed.historical_balance_lookup
+    {
         Err(NetworkError::BalanceExemptionNoHistoricalLookup)?;
     }
 

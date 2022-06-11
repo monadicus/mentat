@@ -1,7 +1,6 @@
 //! Validates that mempool data is correct.
 
-use super::{block::transaction_identifier, errors::AssertResult};
-use crate::identifiers::TransactionIdentifier;
+use super::{transaction_identifier, AssertResult, TransactionIdentifier};
 
 /// mempool_transactions returns an error if any
 /// [`TransactionIdentifier`] returns is missing a hash.

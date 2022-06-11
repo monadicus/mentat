@@ -5,7 +5,7 @@
 use sysinfo::{Pid, ProcessExt, System, SystemExt};
 
 use super::*;
-use crate::{conf::NodePid, errors::MapErrMentat};
+use crate::conf::NodePid;
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.

@@ -6,7 +6,7 @@ use anyhow::anyhow;
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{errors::MentatError, requests::*, responses::*};
+use crate::types::*;
 
 /// The client struct to call a rosetta API.
 pub struct Client {
