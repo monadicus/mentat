@@ -22,7 +22,7 @@ pub struct NetworkStatusResponse {
     /// The timestamp of the block in milliseconds since the Unix Epoch. The
     /// timestamp is stored in milliseconds because some blockchains produce
     /// blocks more often than once a second.
-    pub current_block_timestamp: u64,
+    pub current_block_timestamp: i64,
     /// The `BlockIdentifier` uniquely identifies a block in a particular
     /// network.
     pub genesis_block_identifier: BlockIdentifier,

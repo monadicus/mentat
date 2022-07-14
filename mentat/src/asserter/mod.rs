@@ -34,4 +34,5 @@ use crate::types::*;
 #[path = ""]
 mod tests {
     mod account_test;
+    mod block_test;
 }

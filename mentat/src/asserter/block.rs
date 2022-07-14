@@ -6,23 +6,9 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    coin_change,
-    hash,
-    network_identifier,
-    AccountIdentifier,
-    Amount,
-    AssertResult,
-    Block,
-    BlockError,
-    BlockIdentifier,
-    Currency,
-    Direction,
-    OperationIdentifier,
-    PartialBlockIdentifier,
-    RelatedTransaction,
-    ResponseAsserter,
-    Transaction,
-    TransactionIdentifier,
+    coin_change, hash, network_identifier, AccountIdentifier, Amount, AssertResult, Block,
+    BlockError, BlockIdentifier, Currency, Direction, OperationIdentifier, PartialBlockIdentifier,
+    RelatedTransaction, ResponseAsserter, Transaction, TransactionIdentifier,
 };
 use crate::types::Operation as TypesOperation;
 
@@ -87,7 +73,7 @@ pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertR
     let account = account.ok_or(BlockError::AccountIsNil)?;
 
     if account.address.is_empty() {
-        Err(BlockError::AccountIsNil)?;
+        Err(BlockError::AccountAddrMissing)?;
     }
 
     if account.sub_account.is_none() {
@@ -490,9 +476,9 @@ pub(crate) fn transaction_identifier(ident: &TransactionIdentifier) -> AssertRes
 }
 
 /// The min unix epoch
-static MIN_UNIX_EPOCH: i64 = 946713600000;
+pub(crate) static MIN_UNIX_EPOCH: i64 = 946713600000;
 /// The max unix epoch
-static MAX_UNIX_EPOCH: i64 = 2209017600000;
+pub(crate) static MAX_UNIX_EPOCH: i64 = 2209017600000;
 
 /// `timestamp` returns an error if the timestamp
 /// on a block is less than or equal to 0.

@@ -1513,6 +1513,8 @@ dependencies = [
  "num-integer",
  "num-iter",
  "num-traits",
+ "rand 0.8.5",
+ "serde",
  "smallvec",
 ]
 

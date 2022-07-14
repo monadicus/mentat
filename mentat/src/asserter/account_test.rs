@@ -108,7 +108,7 @@ fn test_contains_currency() {
     );
 
     tests.iter().for_each(|(name, test)| {
-        println!("{name}");
+        println!("test: {name}");
         let exists = contains_currency(&test.currencies, &test.currency);
         assert_eq!(test.contains, exists);
     });
@@ -220,7 +220,7 @@ fn test_contains_duplicate_currency() {
     );
 
     tests.iter().for_each(|(name, test)| {
-        println!("{name}");
+        println!("test: {name}");
         let exists = contains_duplicate_currency(&test.currencies);
         assert_eq!(test.duplicate, exists.is_some());
     });
@@ -334,7 +334,7 @@ fn test_account_balance() {
     );
 
     tests.iter().for_each(|(name, test)| {
-        println!("{name}");
+        println!("test: {name}");
         let resp = account_balance_response(
             test.request_block.as_ref(),
             &AccountBalanceResponse {
