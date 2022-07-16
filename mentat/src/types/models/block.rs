@@ -23,6 +23,7 @@ pub struct Block {
     /// blocks more often than once a second.
     pub timestamp: u64,
     /// The list of `Transaction`s related to the block.
+    // TODO option/skip if none
     pub transactions: Vec<Transaction>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(default)]
