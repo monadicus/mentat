@@ -35,4 +35,12 @@ use crate::types::*;
 mod tests {
     mod account_test;
     mod block_test;
+    mod coin_test;
+    mod construction_test;
+    mod error_test;
+    mod errors_test;
+    mod events_test;
+    mod network_test;
+    mod search_test;
+    mod server_test;
 }

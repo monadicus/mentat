@@ -402,3 +402,30 @@ impl From<String> for AsserterError {
 
 /// The result type for any Asserter module errors.
 pub(crate) type AssertResult<T, E = AsserterError> = std::result::Result<T, E>;
+
+/// `err` takes an error as an argument and returns
+/// whether or not the error is one thrown by the asserter
+/// along with the specific source of the error
+pub(crate) fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
+    if err.is::<AccountBalanceError>() {
+        (true, "account balance error")
+    } else if err.is::<BlockError>() {
+        (true, "block error")
+    } else if err.is::<CoinError>() {
+        (true, "coin error")
+    } else if err.is::<ConstructionError>() {
+        (true, "construction error")
+    } else if err.is::<ErrorError>() {
+        (true, "error error")
+    } else if err.is::<EventError>() {
+        (true, "evet error")
+    } else if err.is::<NetworkError>() {
+        (true, "network error")
+    } else if err.is::<SearchError>() {
+        (true, "search error")
+    } else if err.is::<ServerError>() {
+        (true, "server error")
+    } else {
+        (false, "")
+    }
+}

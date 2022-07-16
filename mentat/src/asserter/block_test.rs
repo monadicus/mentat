@@ -736,15 +736,6 @@ fn test_operation_validations() {
         assert!(asserter.is_err());
 
         // let resp = asserter.unwrap().operations(&test.operations, test.construction);
-
-        // if let Err(err) = resp {
-        //     assert_eq!(
-        //         Some(err.to_string()),
-        //         test.err.as_ref().map(|e| e.to_string()),
-        //     )
-        // } else {
-        //     assert_eq!(None, test.err);
-        // }
     });
 }
 
@@ -1010,16 +1001,7 @@ fn test_operation() {
         );
         assert!(asserter.is_err());
 
-        // let resp = asserter.unwrap().operation(&test.operations, test.construction);
-
-        // if let Err(err) = resp {
-        //     assert_eq!(
-        //         Some(err.to_string()),
-        //         test.err.as_ref().map(|e| e.to_string()),
-        //     )
-        // } else {
-        //     assert_eq!(None, test.err);
-        // }
+        // let resp = asserter.unwrap().operation(&test.operation, test.index, test.construction);
     });
 }
 
@@ -1707,15 +1689,6 @@ fn test_block() {
         assert!(asserter.is_err());
 
         // TODO need to fix asserter.
-        // let resp = asserter.unwrap().block(&test.operations, test.construction);
-
-        // if let Err(err) = resp {
-        //     assert_eq!(
-        //         Some(err.to_string()),
-        //         test.err.as_ref().map(|e| e.to_string()),
-        //     )
-        // } else {
-        //     assert_eq!(None, test.err);
-        // }
+        // let resp = asserter.unwrap().block(&test.block);
     });
 }
