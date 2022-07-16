@@ -107,7 +107,7 @@ fn test_contains_currency() {
         },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
         let exists = contains_currency(&test.currencies, &test.currency);
         assert_eq!(test.contains, exists);
@@ -219,7 +219,7 @@ fn test_contains_duplicate_currency() {
         },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
         let exists = contains_duplicate_currency(&test.currencies);
         assert_eq!(test.duplicate, exists.is_some());
@@ -230,7 +230,7 @@ struct AccountBalanceTest {
     request_block: Option<PartialBlockIdentifier>,
     response_block: BlockIdentifier,
     balances: Vec<Amount>,
-    metadata: IndexMap<String, Value>,
+    _metadata: IndexMap<String, Value>,
     err: Option<AsserterError>,
 }
 
@@ -263,14 +263,14 @@ fn test_account_balance() {
             request_block: None,
             response_block: valid_block.clone(),
             balances: vec![valid_amt.clone()],
-            metadata: Default::default(),
+            _metadata: Default::default(),
             err: None
         },
         "invalid block" => AccountBalanceTest {
             request_block: None,
             response_block: invalid_block,
             balances: vec![valid_amt.clone()],
-            metadata: Default::default(),
+            _metadata: Default::default(),
             err: Some(AsserterError::from(format!("{}: block identifier is invalid", BlockError::BlockIdentifierHashMissing))),
         },
         "duplicate currency" => AccountBalanceTest {
@@ -280,7 +280,7 @@ fn test_account_balance() {
                 valid_amt.clone(),
                 valid_amt.clone(),
             ],
-            metadata: Default::default(),
+            _metadata: Default::default(),
             err: Some(AsserterError::from(format!("currency {:?} used multiple times: balance amounts are invalid", &valid_amt.currency))),
         },
         "valid historical request index" => AccountBalanceTest {
@@ -290,7 +290,7 @@ fn test_account_balance() {
             }),
             response_block: valid_block.clone(),
             balances: vec![valid_amt.clone()],
-            metadata: Default::default(),
+            _metadata: Default::default(),
             err: None
         },
         "valid historical request hash" => AccountBalanceTest {
@@ -300,7 +300,7 @@ fn test_account_balance() {
             }),
             response_block: valid_block.clone(),
             balances: vec![valid_amt.clone()],
-            metadata: Default::default(),
+            _metadata: Default::default(),
             err: None
         },
         "invalid historical request index" => AccountBalanceTest {
@@ -310,7 +310,7 @@ fn test_account_balance() {
             }),
             response_block: valid_block.clone(),
             balances: vec![valid_amt.clone()],
-            metadata: Default::default(),
+            _metadata: Default::default(),
             err: Some(AsserterError::from(format!(
                 "{}: requested block index {invalid_index} but got {}",
                 AccountBalanceError::ReturnedBlockIndexMismatch,
@@ -324,7 +324,7 @@ fn test_account_balance() {
             }),
             response_block: valid_block.clone(),
             balances: vec![valid_amt],
-            metadata: Default::default(),
+            _metadata: Default::default(),
             err: Some(AsserterError::from(format!(
                 "{}: requested block hash {invalid_hash} but got {}",
                 AccountBalanceError::ReturnedBlockHashMismatch,
@@ -333,7 +333,7 @@ fn test_account_balance() {
         },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
         let resp = account_balance_response(
             test.request_block.as_ref(),
@@ -345,10 +345,10 @@ fn test_account_balance() {
         );
 
         if let Err(err) = resp {
-            assert_eq!(
-                Some(err.to_string()),
-                test.err.as_ref().map(|e| e.to_string())
-            );
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }

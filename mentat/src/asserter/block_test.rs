@@ -56,16 +56,16 @@ fn test_block_identifier() {
         }
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
 
         let resp = block_identifier(&test.ident);
 
         if let Err(err) = resp {
-            assert_eq!(
-                Some(err.to_string()),
-                test.err.as_ref().map(|e| e.to_string()),
-            )
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -201,16 +201,16 @@ fn test_amount() {
         // },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
 
         let resp = amount(test.amt.as_ref());
 
         if let Err(err) = resp {
-            assert_eq!(
-                Some(err.to_string()),
-                test.err.as_ref().map(|e| e.to_string()),
-            )
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -271,16 +271,16 @@ fn test_operation_identifier() {
         // },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
 
         let resp = operation_identifier(&test.ident, test.index);
 
         if let Err(err) = resp {
-            assert_eq!(
-                Some(err.to_string()),
-                test.err.as_ref().map(|e| e.to_string()),
-            )
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -335,16 +335,16 @@ fn test_account_identifier() {
         }
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
 
         let resp = account_identifier(test.ident.as_ref());
 
         if let Err(err) = resp {
-            assert_eq!(
-                Some(err.to_string()),
-                test.err.as_ref().map(|e| e.to_string()),
-            )
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -683,7 +683,7 @@ fn test_operation_validations() {
         },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
 
         let asserter = Asserter::new_client_with_responses(
@@ -731,7 +731,7 @@ fn test_operation_validations() {
                     ..Default::default()
                 },
             },
-            test.validation_file_path.clone(),
+            test.validation_file_path,
         );
         assert!(asserter.is_err());
 
@@ -950,7 +950,7 @@ fn test_operation() {
         },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
@@ -1635,7 +1635,7 @@ fn test_block() {
         },
     );
 
-    tests.iter().for_each(|(name, test)| {
+    tests.into_iter().for_each(|(name, test)| {
         println!("test: {name}");
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
