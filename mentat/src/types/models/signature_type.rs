@@ -3,9 +3,10 @@
 use super::*;
 
 /// OperatorSignatureType is the type of a cryptographic signature.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, Default)]
 pub enum SignatureType {
     /// r (32-bytes) + s (32-bytes)
+    #[default]
     #[serde(rename = "ecdsa")]
     Ecdsa,
     /// r (32-bytes) + s (32-bytes) + v (1-byte)

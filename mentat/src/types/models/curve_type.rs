@@ -3,9 +3,10 @@
 use super::*;
 
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub enum CurveType {
     /// <https://secg.org/sec1-v2.pdf#subsubsection.2.3.3>
+    #[default]
     #[serde(rename = "secp256k1")]
     Secp256k1,
     /// <https://secg.org/sec1-v2.pdf#subsubsection.2.3.3>

@@ -90,7 +90,7 @@ impl RequestAsserter {
     /// is well-formatted.
     pub(crate) fn block_transaction_request(
         &self,
-        request: BlockTransactionRequest,
+        request: &BlockTransactionRequest,
     ) -> AssertResult<()> {
         // TODO if self == nil
         // todo if request == nil

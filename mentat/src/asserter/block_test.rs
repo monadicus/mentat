@@ -7,35 +7,16 @@ use crate::{
     asserter::{
         asserter_tools::Asserter,
         block::{
-            account_identifier,
-            amount,
-            block_identifier,
-            operation_identifier,
-            MAX_UNIX_EPOCH,
+            account_identifier, amount, block_identifier, operation_identifier, MAX_UNIX_EPOCH,
             MIN_UNIX_EPOCH,
         },
         errors::{AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        Block,
-        BlockIdentifier,
-        Currency,
-        Direction,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        RelatedTransaction,
-        SubAccountIdentifier,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Allow, Amount, Block, BlockIdentifier, Currency, Direction,
+        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
+        OperationIdentifier, OperationStatus, Peer, RelatedTransaction, SubAccountIdentifier,
+        Transaction, TransactionIdentifier, Version,
     },
 };
 
@@ -82,11 +63,10 @@ fn test_block_identifier() {
         let resp = block_identifier(&test.ident);
 
         if let Err(err) = resp {
-            assert!(
-                test.err
-                    .map(|e| err.to_string().contains(&e.to_string()))
-                    .unwrap_or_default()
-            );
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -228,11 +208,10 @@ fn test_amount() {
         let resp = amount(test.amt.as_ref());
 
         if let Err(err) = resp {
-            assert!(
-                test.err
-                    .map(|e| err.to_string().contains(&e.to_string()))
-                    .unwrap_or_default()
-            );
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -299,11 +278,10 @@ fn test_operation_identifier() {
         let resp = operation_identifier(&test.ident, test.index);
 
         if let Err(err) = resp {
-            assert!(
-                test.err
-                    .map(|e| err.to_string().contains(&e.to_string()))
-                    .unwrap_or_default()
-            );
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -364,11 +342,10 @@ fn test_account_identifier() {
         let resp = account_identifier(test.ident.as_ref());
 
         if let Err(err) = resp {
-            assert!(
-                test.err
-                    .map(|e| err.to_string().contains(&e.to_string()))
-                    .unwrap_or_default()
-            );
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
         } else {
             assert_eq!(None, test.err);
         }
@@ -752,7 +729,7 @@ fn test_operation_validations() {
             },
             test.validation_file_path,
         );
-        assert!(asserter.is_err());
+        assert!(asserter.is_ok());
 
         // let resp = asserter.unwrap().operations(&test.operations,
         // test.construction);
@@ -1015,7 +992,7 @@ fn test_operation() {
             },
             "".into(),
         );
-        assert!(asserter.is_err());
+        assert!(asserter.is_ok());
 
         // let resp = asserter.unwrap().operation(&test.operation, test.index,
         // test.construction);
@@ -1703,7 +1680,7 @@ fn test_block() {
             },
             "".into(),
         );
-        assert!(asserter.is_err());
+        assert!(asserter.is_ok());
 
         // TODO need to fix asserter.
         // let resp = asserter.unwrap().block(&test.block);

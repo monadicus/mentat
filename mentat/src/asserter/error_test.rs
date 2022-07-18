@@ -173,7 +173,7 @@ fn test_error_map() {
             // TODO make this optional???
             Default::default(),
         );
-        assert!(asserter.is_err());
+        assert!(asserter.is_ok());
 
         // let resp = asserter.unwrap().error(&test.err);
     });

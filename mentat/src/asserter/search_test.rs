@@ -7,23 +7,10 @@ use crate::{
         errors::{AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        BlockIdentifier,
-        BlockTransaction,
-        Currency,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        SearchTransactionsResponse,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Allow, Amount, BlockIdentifier, BlockTransaction, Currency,
+        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
+        OperationIdentifier, OperationStatus, Peer, SearchTransactionsResponse, Transaction,
+        TransactionIdentifier, Version,
     },
 };
 
@@ -204,6 +191,6 @@ fn test_search_transactions_response() {
             },
             Default::default(),
         );
-        assert!(asserter.is_err());
+        assert!(asserter.is_ok());
     });
 }

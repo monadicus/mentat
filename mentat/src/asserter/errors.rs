@@ -1,5 +1,7 @@
 //! Errors for the validations in this module.
 
+use std::fmt::Display;
+
 use thiserror::Error;
 
 // AsserterNotInitialized is returned when some call in the asserter
@@ -397,6 +399,12 @@ pub(crate) enum AsserterError {
 impl From<String> for AsserterError {
     fn from(s: String) -> Self {
         Self::StringError(s)
+    }
+}
+
+impl From<&str> for AsserterError {
+    fn from(s: &str) -> Self {
+        Self::StringError(s.into())
     }
 }
 

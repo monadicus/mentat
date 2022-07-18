@@ -70,7 +70,7 @@ pub(crate) fn amount_value(amount: &Amount) -> Result<BigInt, Box<dyn Error>> {
 /// [`AccountIdentifier`].
 pub(crate) fn account_string(account: &AccountIdentifier) -> String {
     let sub_account = if account.sub_account.is_none() {
-        return account.address.clone().into();
+        return account.address.clone();
     } else {
         account.sub_account.as_ref().unwrap()
     };

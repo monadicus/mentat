@@ -7,7 +7,7 @@ use super::*;
 /// the SignatureType. [`PublicKey`] is often times not known during
 /// construction of the signing payloads but may be needed to combine signatures
 /// properly.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 pub struct Signature {
     /// `SigningPayload` is signed by the client with the keypair associated
     /// with an AccountIdentifier using the specified [`SignatureType`].
