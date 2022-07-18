@@ -77,8 +77,8 @@ pub(crate) fn version(version: &Version) -> AssertResult<()> {
         Err(NetworkError::VersionNodeVersionMissing)?;
     }
 
-    if version.middleware_version.is_none()
-        || version.middleware_version.as_ref().unwrap().is_empty()
+    if version.middleware_version.is_some()
+        && version.middleware_version.as_ref().unwrap().is_empty()
     {
         Err(NetworkError::VersionMiddlewareVersionMissing)?;
     }
