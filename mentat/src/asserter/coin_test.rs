@@ -5,7 +5,7 @@ use crate::{
         coin::{coin, coin_change, coins},
         errors::{AsserterError, CoinError},
     },
-    types::{Amount, Coin, CoinChange, CoinIdentifier, Currency, CoinAction},
+    types::{Amount, Coin, CoinAction, CoinChange, CoinIdentifier, Currency},
 };
 
 struct CoinTest {
@@ -72,10 +72,11 @@ fn test_coin() {
 
         let res = coin(&test.coin);
         if let Err(err) = res {
-            assert!(test
-                .err
-                .map(|e| err.to_string().contains(&e.to_string()))
-                .unwrap_or_default());
+            assert!(
+                test.err
+                    .map(|e| err.to_string().contains(&e.to_string()))
+                    .unwrap_or_default()
+            );
         } else {
             assert_eq!(None, test.err);
         }
@@ -138,10 +139,11 @@ fn test_coins() {
 
         let res = coins(&test.coins);
         if let Err(err) = res {
-            assert!(test
-                .err
-                .map(|e| err.to_string().contains(&e.to_string()))
-                .unwrap_or_default());
+            assert!(
+                test.err
+                    .map(|e| err.to_string().contains(&e.to_string()))
+                    .unwrap_or_default()
+            );
         } else {
             assert_eq!(None, test.err);
         }
@@ -189,10 +191,11 @@ fn test_coin_change() {
 
         let res = coin_change(test.change.as_ref());
         if let Err(err) = res {
-            assert!(test
-                .err
-                .map(|e| err.to_string().contains(&e.to_string()))
-                .unwrap_or_default());
+            assert!(
+                test.err
+                    .map(|e| err.to_string().contains(&e.to_string()))
+                    .unwrap_or_default()
+            );
         } else {
             assert_eq!(None, test.err);
         }

@@ -6,9 +6,23 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    coin_change, hash, network_identifier, AccountIdentifier, Amount, AssertResult, Block,
-    BlockError, BlockIdentifier, Currency, Direction, OperationIdentifier, PartialBlockIdentifier,
-    RelatedTransaction, ResponseAsserter, Transaction, TransactionIdentifier,
+    coin_change,
+    hash,
+    network_identifier,
+    AccountIdentifier,
+    Amount,
+    AssertResult,
+    Block,
+    BlockError,
+    BlockIdentifier,
+    Currency,
+    Direction,
+    OperationIdentifier,
+    PartialBlockIdentifier,
+    RelatedTransaction,
+    ResponseAsserter,
+    Transaction,
+    TransactionIdentifier,
 };
 use crate::types::Operation as TypesOperation;
 

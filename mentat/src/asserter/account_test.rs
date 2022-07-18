@@ -345,10 +345,11 @@ fn test_account_balance() {
         );
 
         if let Err(err) = resp {
-            assert!(test
-                .err
-                .map(|e| err.to_string().contains(&e.to_string()))
-                .unwrap_or_default());
+            assert!(
+                test.err
+                    .map(|e| err.to_string().contains(&e.to_string()))
+                    .unwrap_or_default()
+            );
         } else {
             assert_eq!(None, test.err);
         }

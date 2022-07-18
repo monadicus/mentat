@@ -9,7 +9,11 @@ use super::{
     errors::{AssertResult, NetworkError, ServerError},
     network::{network_identifier, operation_statuses, operation_types},
     server::supported_networks,
-    BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse,
+    BlockIdentifier,
+    MentatError,
+    NetworkIdentifier,
+    NetworkOptionsResponse,
+    NetworkStatusResponse,
     OperationStatus,
 };
 

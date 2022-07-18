@@ -3,8 +3,15 @@ use indexmap::{indexmap, IndexMap};
 use crate::{
     asserter::{asserter_tools::Asserter, block::MIN_UNIX_EPOCH, errors::*},
     types::{
-        Allow, BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse,
-        NetworkStatusResponse, OperationStatus, Peer, Version,
+        Allow,
+        BlockIdentifier,
+        MentatError,
+        NetworkIdentifier,
+        NetworkOptionsResponse,
+        NetworkStatusResponse,
+        OperationStatus,
+        Peer,
+        Version,
     },
 };
 
