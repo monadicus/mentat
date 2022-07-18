@@ -25,51 +25,82 @@ server = [
     "tracing-error",
     "tracing-opentelemetry",
     "tracing-subscriber",
-    "tracing-tree"
+    "tracing-tree",
 ]
-types = [
-    "num-bigint-dig",
-    "sha2",
-]
+types = ["num-bigint-dig", "sha2"]
 sdk = ["keys", "types"]
-keys = ["ed25519-dalek", "mina-hasher", "mina-signer", "p256", "p256/ecdsa", "rand", "secp256k1", "secp256k1/bitcoin_hashes", "secp256k1/recovery", "secp256k1/rand-std", "snarkvm-dpc", "snarkvm-algorithms", "snarkvm-utilities"]
+keys = [
+    "ed25519-dalek",
+    "mina-hasher",
+    "mina-signer",
+    "p256",
+    "p256/ecdsa",
+    "rand",
+    "secp256k1",
+    "secp256k1/bitcoin_hashes",
+    "secp256k1/recovery",
+    "secp256k1/rand-std",
+    "snarkvm-dpc",
+    "snarkvm-algorithms",
+    "snarkvm-utilities",
+]
 
 [dependencies]
 anyhow = { version = "1.0.56", optional = true }
-axum = { version = "0.5.1", optional = true, default-features = false, features = ["http1", "json"] }
+axum = { version = "0.5.1", optional = true, default-features = false, features = [
+    "http1",
+    "json",
+] }
 color-backtrace = { version = "0.5.1", optional = true, default-features = false }
 ed25519-dalek = { version = "1.0", optional = true }
 from_tuple = "0.1.2"
 hyper = { version = "0.14.18", optional = true, default-features = false }
-indexmap = { version = "1.8.1", optional = true, default-features = false, features = ["serde"] }
+indexmap = { version = "1.8.1", optional = true, default-features = false, features = [
+    "serde",
+] }
 mentat-macros = { path = "../mentat-macros", optional = true }
 mina-hasher = { git = "https://github.com/o1-labs/proof-systems", optional = true, default-features = false }
 mina-signer = { git = "https://github.com/o1-labs/proof-systems", optional = true, default-features = false }
 num-bigint-dig = { version = "0.8.1", optional = true }
-num_cpus = { version = "1.13.1", optional = true, default-features = false}
-opentelemetry = { version = "0.17.0", optional = true, default-features = false, features = ["rt-tokio"] }
-opentelemetry-jaeger = { version = "0.16.0", optional = true, default-features = false, features = ["rt-tokio"] }
+num_cpus = { version = "1.13.1", optional = true, default-features = false }
+opentelemetry = { version = "0.17.0", optional = true, default-features = false, features = [
+    "rt-tokio",
+] }
+opentelemetry-jaeger = { version = "0.16.0", optional = true, default-features = false, features = [
+    "rt-tokio",
+] }
 p256 = { version = "0.10.1", optional = true, default-features = false }
 secp256k1 = { version = "0.22", optional = true }
-serde = { version = "1.0.136", optional = true, default-features = false, features = ["derive"] }
+serde = { version = "1.0.136", optional = true, default-features = false, features = [
+    "derive",
+] }
 serde_json = { version = "1.0.79", optional = true, default-features = false }
 sha2 = { version = "0.10.2", optional = true }
-snarkvm-algorithms = { version="0.8", optional = true, default-features = false }
-snarkvm-dpc = { version="0.8", optional = true }
-snarkvm-utilities = { version="0.8", optional = true }
+snarkvm-algorithms = { version = "0.8", optional = true, default-features = false }
+snarkvm-dpc = { version = "0.8", optional = true }
+snarkvm-utilities = { version = "0.8", optional = true }
 rand = { version = "0.8.5", optional = true, default-features = false }
-reqwest = { version = "0.11.10", optional = true, default-features = false, features = ["json"] }
+reqwest = { version = "0.11.10", optional = true, default-features = false, features = [
+    "json",
+] }
 toml = { version = "0.5.8", optional = true, default-features = false }
-tokio = { version = "1.17.0", optional = true, default-features = false, features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.17.0", optional = true, default-features = false, features = [
+    "macros",
+    "rt-multi-thread",
+] }
 tower = { version = "0.4.12", optional = true, default-features = false }
-tracing = { version = "0.1.32", optional = true, default-features = false, features = ["attributes"] }
+tracing = { version = "0.1.32", optional = true, default-features = false, features = [
+    "attributes",
+] }
 tracing-error = { version = "0.2.0", optional = true, default-features = false }
 tracing-opentelemetry = { version = "0.17.2", optional = true, default-features = false }
-tracing-subscriber = { version = "0.3.10", optional = true, features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.10", optional = true, features = [
+    "env-filter",
+] }
 tracing-tree = { version = "0.2.0", optional = true, default-features = false }
 sysinfo = { version = "0.23.9", optional = true, default-features = false }
 thiserror = "1.0.31"
 
 [dev-dependencies]
-rand-old = { package = "rand", version = "0.7" }
 array-init = "2.0.0"
+rand-old = { package = "rand", version = "0.7" }

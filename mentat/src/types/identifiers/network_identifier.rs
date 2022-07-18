@@ -1,5 +1,7 @@
 //! The module defines the `NetworkIdentifier`.
 
+use std::borrow::Cow;
+
 #[cfg(feature = "server")]
 use axum::http::Extensions;
 

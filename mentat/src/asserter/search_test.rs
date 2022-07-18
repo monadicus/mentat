@@ -35,14 +35,14 @@ struct SearchTxsRespTest {
 #[test]
 fn test_search_transactions_response() {
     let valid_account = Some(AccountIdentifier {
-        address: "test".to_string(),
+        address: "test".into(),
         sub_account: None,
         metadata: Default::default(),
     });
     let valid_amount = Some(Amount {
-        value: "1000".to_string(),
+        value: "1000".into(),
         currency: Currency {
-            symbol: "BTC".to_string(),
+            symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         },
@@ -50,7 +50,7 @@ fn test_search_transactions_response() {
     });
     let valid_transaction = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![
             Operation {
@@ -58,8 +58,8 @@ fn test_search_transactions_response() {
                     index: 0,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
                 account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
@@ -73,8 +73,8 @@ fn test_search_transactions_response() {
                     index: 0,
                     network_index: None,
                 }]),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
                 account: valid_account,
                 amount: valid_amount,
                 ..Default::default()
@@ -83,7 +83,7 @@ fn test_search_transactions_response() {
         ..Default::default()
     };
     let valid_block_ident = BlockIdentifier {
-        hash: "blah".to_string(),
+        hash: "blah".into(),
         index: 100,
     };
 
@@ -159,46 +159,46 @@ fn test_search_transactions_response() {
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
-                blockchain: "hello".to_string(),
-                network: "world".to_string(),
+                blockchain: "hello".into(),
+                network: "world".into(),
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
                 current_block_identifier: BlockIdentifier {
                     index: 100,
-                    hash: "block 100".to_string(),
+                    hash: "block 100".into(),
                 },
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
                 genesis_block_identifier: BlockIdentifier {
                     index: 0,
-                    hash: "block 0".to_string(),
+                    hash: "block 0".into(),
                 },
                 oldest_block_identifier: None,
                 sync_status: None,
                 peers: vec![Peer {
-                    peer_id: "peer 1".to_string(),
+                    peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 }],
             },
             NetworkOptionsResponse {
                 version: Version {
-                    rosetta_version: "1.4.0".to_string(),
-                    node_version: "1.0".to_string(),
+                    rosetta_version: "1.4.0".into(),
+                    node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 },
                 allow: Allow {
                     operation_statuses: vec![
                         OperationStatus {
-                            status: "SUCCESS".to_string(),
+                            status: "SUCCESS".into(),
                             successful: true,
                         },
                         OperationStatus {
-                            status: "FAILURE".to_string(),
+                            status: "FAILURE".into(),
                             successful: false,
                         },
                     ],
-                    operation_types: vec!["PAYMENT".to_string()],
+                    operation_types: vec!["PAYMENT".into()],
                     ..Default::default()
                 },
             },

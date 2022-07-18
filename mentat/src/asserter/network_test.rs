@@ -3,9 +3,18 @@ use indexmap::{indexmap, IndexMap};
 use crate::{
     asserter::{
         errors::{AsserterError, NetworkError},
-        network::{network_identifier, version},
+        network::{allow, network_identifier, version},
     },
-    types::{NetworkIdentifier, SubNetworkIdentifier, Version},
+    types::{
+        Allow,
+        BalanceExemption,
+        Currency,
+        ExemptionType,
+        NetworkIdentifier,
+        OperationStatus,
+        SubNetworkIdentifier,
+        Version,
+    },
 };
 
 struct NetworkIdentTest {
@@ -18,8 +27,8 @@ fn test_network_identifier() {
     let tests: IndexMap<&str, NetworkIdentTest> = indexmap!(
       "valid network" => NetworkIdentTest {
         network: NetworkIdentifier {
-          blockchain: "bitcoin".to_string(),
-          network: "mainnet".to_string(),
+          blockchain: "bitcoin".into(),
+          network: "mainnet".into(),
           sub_network_identifier: Default::default()
         },
         err: None,
@@ -31,32 +40,32 @@ fn test_network_identifier() {
       // },
       "invalid blockchain" => NetworkIdentTest {
         network: NetworkIdentifier {
-          blockchain: String::new(),
-          network: "mainnet".to_string(),
+          blockchain: Default::default(),
+          network: "mainnet".into(),
           sub_network_identifier: Default::default()
         },
         err: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
       },
       "invalid network" => NetworkIdentTest {
         network: NetworkIdentifier {
-          blockchain: "bitcoin".to_string(),
-          network: String::new(),
+          blockchain: "bitcoin".into(),
+          network: Default::default(),
           sub_network_identifier: Default::default()
         },
         err: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
       },
       "valid sub_network" => NetworkIdentTest {
         network: NetworkIdentifier {
-          blockchain: "bitcoin".to_string(),
-          network: "mainnet".to_string(),
-          sub_network_identifier: Some(SubNetworkIdentifier { network: "shard 1".to_string(), metadata: Default::default() })
+          blockchain: "bitcoin".into(),
+          network: "mainnet".into(),
+          sub_network_identifier: Some(SubNetworkIdentifier { network: "shard 1".into(), metadata: Default::default() })
         },
         err: None,
       },
       "invalid sub_network" => NetworkIdentTest {
         network: NetworkIdentifier {
-          blockchain: "bitcoin".to_string(),
-          network: "mainnet".to_string(),
+          blockchain: "bitcoin".into(),
+          network: "mainnet".into(),
           sub_network_identifier: Some(Default::default())
         },
         err: Some(NetworkError::SubNetworkIdentifierInvalid.into()),
@@ -145,6 +154,55 @@ fn test_version() {
         println!("test: {name}");
 
         let res = version(&test.ver);
+        if let Err(err) = res {
+            assert!(
+                test.err
+                    .map(|e| err.to_string().contains(&e.to_string()))
+                    .unwrap_or_default()
+            );
+        } else {
+            assert_eq!(None, test.err);
+        }
+    });
+}
+
+struct AllowTest {
+    allow: Allow,
+    err: Option<AsserterError>,
+}
+
+#[test]
+fn test_allow() {
+    let operation_statuses = vec![
+        OperationStatus {
+            status: "SUCCESS".to_string(),
+            successful: true,
+        },
+        OperationStatus {
+            status: "FAILURE".to_string(),
+            successful: false,
+        },
+    ];
+    let operation_types = vec!["PAYMENT".to_string()];
+    let call_methods = vec!["call".to_string()];
+    let balance_exmptions = vec![BalanceExemption {
+        sub_account_address: None,
+        currency: Some(Currency {
+            symbol: "BTC".to_string(),
+            decimals: 8,
+            metadata: Default::default(),
+        }),
+        exemption_type: Some(ExemptionType::Dynamic),
+    }];
+    let neg_index = -1;
+    let index = 100;
+
+    let tests: IndexMap<&str, AllowTest> = indexmap!();
+
+    tests.into_iter().for_each(|(name, test)| {
+        println!("test: {name}");
+
+        let res = allow(&test.allow);
         if let Err(err) = res {
             assert!(
                 test.err

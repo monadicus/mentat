@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use indexmap::{indexmap, IndexMap};
 
+use super::server_test::valid_account_identifier;
 use crate::{
     asserter::{
         asserter_tools::Asserter,
@@ -49,7 +50,7 @@ fn test_block_identifier() {
         "valid identifier" => BlockIdentTest {
             ident: BlockIdentifier {
                 index: 1,
-                hash: "block 1".to_string()
+                hash: "block 1".into()
             },
             err: None
         },
@@ -62,7 +63,7 @@ fn test_block_identifier() {
         // "invalid index" => BlockIdentTest {
         //     ident: BlockIdentifier {
         // 		index: -1,
-        // 		hash: "block 1".to_string()
+        // 		hash: "block 1".into()
         // 	},
         //     err: Some(BlockError::BlockIdentifierIndexIsNeg.into())
         // },
@@ -102,9 +103,9 @@ fn test_amount() {
     let tests: IndexMap<&str, AmountTest> = indexmap!(
         "valid amount" => AmountTest {
             amt: Some(Amount {
-                value: "100000".to_string(),
+                value: "100000".into(),
                 currency: Currency {
-                    symbol: "BTC".to_string(),
+                    symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
                 },
@@ -114,9 +115,9 @@ fn test_amount() {
         },
         "valid amount no decimals" => AmountTest {
             amt: Some(Amount {
-                value: "100000".to_string(),
+                value: "100000".into(),
                 currency: Currency {
-                    symbol: "BTC".to_string(),
+                    symbol: "BTC".into(),
                     decimals: Default::default(),
                     metadata: Default::default(),
                 },
@@ -126,9 +127,9 @@ fn test_amount() {
         },
         "valid negative amount" => AmountTest {
             amt: Some(Amount {
-                value: "-100000".to_string(),
+                value: "-100000".into(),
                 currency: Currency {
-                    symbol: "BTC".to_string(),
+                    symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
                 },
@@ -143,7 +144,7 @@ fn test_amount() {
         // Allow None currency
         // "nil currency" => AmountTest {
         // 	amt: Some(Amount {
-        // 		value: "-100000".to_string(),
+        // 		value: "-100000".into(),
         // 		currency: None,
         // 		metadata: Default::default(),
         // 	}),
@@ -151,9 +152,9 @@ fn test_amount() {
         // },
         "invalid non number" => AmountTest {
             amt: Some(Amount {
-                value: "blah".to_string(),
+                value: "blah".into(),
                 currency: Currency {
-                    symbol: "BTC".to_string(),
+                    symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
                 },
@@ -166,9 +167,9 @@ fn test_amount() {
         },
         "invalid integer format" => AmountTest {
             amt: Some(Amount {
-                value: "1.0".to_string(),
+                value: "1.0".into(),
                 currency: Currency {
-                    symbol: "BTC".to_string(),
+                    symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
                 },
@@ -181,9 +182,9 @@ fn test_amount() {
         },
         "invalid non-integer" => AmountTest {
             amt: Some(Amount {
-                value: "1.1".to_string(),
+                value: "1.1".into(),
                 currency: Currency {
-                    symbol: "BTC".to_string(),
+                    symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
                 },
@@ -196,7 +197,7 @@ fn test_amount() {
         },
         "invalid symbol" => AmountTest {
             amt: Some(Amount {
-                value: "11".to_string(),
+                value: "11".into(),
                 currency: Currency {
                     symbol: String::new(),
                     decimals: 1,
@@ -209,9 +210,9 @@ fn test_amount() {
         // TODO make decimals i64
         // "invalid decimals" => AmountTest {
         // 	amt: Amount {
-        // 		value: "1.0".to_string(),
+        // 		value: "1.0".into(),
         // 		currency: Currency {
-        // 			symbol: "BTC".to_string(),
+        // 			symbol: "BTC".into(),
         // 			decimals: -1,
         // 			metadata: Default::default(),
         // 		},
@@ -319,7 +320,7 @@ fn test_account_identifier() {
     let tests: IndexMap<&str, AccountIdentTest> = indexmap!(
         "valid identifier" => AccountIdentTest {
             ident: Some(AccountIdentifier {
-                address: "acct1".to_string(),
+                address: "acct1".into(),
                 sub_account: None,
                 metadata: Default::default()
             }),
@@ -327,7 +328,7 @@ fn test_account_identifier() {
         },
         "invalid identifier" => AccountIdentTest {
             ident: Some(AccountIdentifier {
-                address: String::new(),
+                address: Default::default(),
                 sub_account: None,
                 metadata: Default::default()
             }),
@@ -335,9 +336,9 @@ fn test_account_identifier() {
         },
         "valid identifier with subaccount" => AccountIdentTest {
             ident: Some(AccountIdentifier {
-                address: "acct1".to_string(),
+                address: "acct1".into(),
                 sub_account: Some(SubAccountIdentifier {
-                    address: "acct2".to_string(),
+                    address: "acct2".into(),
                     metadata: Default::default()
                 }),
                 metadata: Default::default()
@@ -346,7 +347,7 @@ fn test_account_identifier() {
         },
         "invalid identifier with subaccount" => AccountIdentTest {
             ident: Some(AccountIdentifier {
-                address: "acct1".to_string(),
+                address: "acct1".into(),
                 sub_account: Some(SubAccountIdentifier {
                     address: String::new(),
                     metadata: Default::default()
@@ -384,44 +385,39 @@ struct OperationValidationsTest {
 #[test]
 fn test_operation_validations() {
     let valid_deposit_amt = Amount {
-        value: "1000".to_string(),
+        value: "1000".into(),
         currency: Currency {
-            symbol: "BTC".to_string(),
+            symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         },
         metadata: Default::default(),
     };
     let valid_withdraw_amt = Amount {
-        value: "-1000".to_string(),
+        value: "-1000".into(),
         currency: Currency {
-            symbol: "BTC".to_string(),
+            symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         },
         metadata: Default::default(),
     };
     let valid_fee_amt = Amount {
-        value: "-100".to_string(),
+        value: "-100".into(),
         currency: Currency {
-            symbol: "BTC".to_string(),
+            symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         },
         metadata: Default::default(),
     };
     let invalid_fee_amt = Amount {
-        value: "100".to_string(),
+        value: "100".into(),
         currency: Currency {
-            symbol: "BTC".to_string(),
+            symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         },
-        metadata: Default::default(),
-    };
-    let valid_account = AccountIdentifier {
-        address: "test".to_string(),
-        sub_account: None,
         metadata: Default::default(),
     };
 
@@ -430,25 +426,25 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_withdraw_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 2, network_index: None },
-                    type_: "FEE".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "FEE".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_fee_amt.clone()),
                     ..Default::default()
                 },
@@ -461,17 +457,17 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_withdraw_amt),
                     ..Default::default()
                 },
@@ -484,17 +480,17 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "FEE".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "FEE".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_fee_amt.clone()),
                     ..Default::default()
                 },
@@ -507,21 +503,21 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(Amount {
-                        value: "-2000".to_string(),
+                        value: "-2000".into(),
                         currency: Currency {
-                            symbol: "BTC".to_string(),
+                            symbol: "BTC".into(),
                             decimals: 8,
                             metadata: Default::default()
                         },
@@ -531,9 +527,9 @@ fn test_operation_validations() {
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 2, network_index: None },
-                    type_: "FEE".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "FEE".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_fee_amt.clone()),
                     ..Default::default()
                 },
@@ -546,21 +542,21 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(Amount {
-                        value: "-2000".to_string(),
+                        value: "-2000".into(),
                         currency: Currency {
-                            symbol: "BTC".to_string(),
+                            symbol: "BTC".into(),
                             decimals: 8,
                             metadata: Default::default()
                         },
@@ -570,9 +566,9 @@ fn test_operation_validations() {
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 2, network_index: None },
-                    type_: "FEE".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "FEE".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_fee_amt.clone()),
                     ..Default::default()
                 },
@@ -585,21 +581,21 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(Amount {
-                        value: "-2000".to_string(),
+                        value: "-2000".into(),
                         currency: Currency {
-                            symbol: "BTC".to_string(),
+                            symbol: "BTC".into(),
                             decimals: 8,
                             metadata: Default::default()
                         },
@@ -609,9 +605,9 @@ fn test_operation_validations() {
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 2, network_index: None },
-                    type_: "FEE".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "FEE".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_fee_amt.clone()),
                     related_operations: Some(vec![
                         OperationIdentifier { index: 0, network_index: None }
@@ -627,21 +623,21 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt.clone()),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(Amount {
-                        value: "-2000".to_string(),
+                        value: "-2000".into(),
                         currency: Currency {
-                            symbol: "BTC".to_string(),
+                            symbol: "BTC".into(),
                             decimals: 8,
                             metadata: Default::default()
                         },
@@ -651,9 +647,9 @@ fn test_operation_validations() {
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 2, network_index: None },
-                    type_: "FEE".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "FEE".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(invalid_fee_amt),
                     ..Default::default()
                 },
@@ -666,21 +662,21 @@ fn test_operation_validations() {
             operations: vec![
                 Operation {
                     operation_identifier: OperationIdentifier { index: 0, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_deposit_amt),
                     ..Default::default()
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 1, network_index: None },
-                    type_: "PAYMENT".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account.clone()),
+                    type_: "PAYMENT".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(Amount {
-                        value: "-2000".to_string(),
+                        value: "-2000".into(),
                         currency: Currency {
-                            symbol: "BTC".to_string(),
+                            symbol: "BTC".into(),
                             decimals: 8,
                             metadata: Default::default()
                         },
@@ -690,9 +686,9 @@ fn test_operation_validations() {
                 },
                 Operation {
                     operation_identifier: OperationIdentifier { index: 2, network_index: None },
-                    type_: "FEE".to_string(),
-                    status: Some("SUCCESS".to_string()),
-                    account: Some(valid_account),
+                    type_: "FEE".into(),
+                    status: Some("SUCCESS".into()),
+                    account: valid_account_identifier(),
                     amount: Some(valid_fee_amt),
                     related_operations: Some(vec![
                         OperationIdentifier { index: 0, network_index: None }
@@ -711,46 +707,46 @@ fn test_operation_validations() {
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
-                blockchain: "hello".to_string(),
-                network: "world".to_string(),
+                blockchain: "hello".into(),
+                network: "world".into(),
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
                 current_block_identifier: BlockIdentifier {
                     index: 100,
-                    hash: "block 100".to_string(),
+                    hash: "block 100".into(),
                 },
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
                 genesis_block_identifier: BlockIdentifier {
                     index: 0,
-                    hash: "block 0".to_string(),
+                    hash: "block 0".into(),
                 },
                 oldest_block_identifier: None,
                 sync_status: None,
                 peers: vec![Peer {
-                    peer_id: "peer 1".to_string(),
+                    peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 }],
             },
             NetworkOptionsResponse {
                 version: Version {
-                    rosetta_version: "1.4.0".to_string(),
-                    node_version: "1.0".to_string(),
+                    rosetta_version: "1.4.0".into(),
+                    node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 },
                 allow: Allow {
                     operation_statuses: vec![
                         OperationStatus {
-                            status: "SUCCESS".to_string(),
+                            status: "SUCCESS".into(),
                             successful: true,
                         },
                         OperationStatus {
-                            status: "FAILURE".to_string(),
+                            status: "FAILURE".into(),
                             successful: false,
                         },
                     ],
-                    operation_types: vec!["PAYMENT".to_string(), "FEE".to_string()],
+                    operation_types: vec!["PAYMENT".into(), "FEE".into()],
                     ..Default::default()
                 },
             },
@@ -774,17 +770,13 @@ struct OperationTest {
 #[test]
 fn test_operation() {
     let valid_amount = Some(Amount {
-        value: "1000".to_string(),
+        value: "1000".into(),
         currency: Currency {
-            symbol: "BTC".to_string(),
+            symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         },
         metadata: Default::default(),
-    });
-    let valid_account = Some(AccountIdentifier {
-        address: "test".to_string(),
-        ..Default::default()
     });
 
     let tests: IndexMap<&str, OperationTest> = indexmap!(
@@ -794,9 +786,9 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -811,8 +803,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -835,8 +827,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -851,8 +843,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
                 account: Some(AccountIdentifier::default()),
                 amount: valid_amount.clone(),
                 ..Default::default()
@@ -868,8 +860,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
                 ..Default::default()
             },
             index: 2,
@@ -883,8 +875,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "STAKE".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "STAKE".into(),
+                status: Some("SUCCESS".into()),
                 ..Default::default()
             },
             index: 1,
@@ -898,8 +890,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("FAILURE".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("FAILURE".into()),
                 ..Default::default()
             },
             index: 1,
@@ -913,8 +905,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("DEFERRED".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("DEFERRED".into()),
                 ..Default::default()
             },
             index: 1,
@@ -928,8 +920,8 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -944,9 +936,9 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
+                type_: "PAYMENT".into(),
                 status: Some(String::new()),
-                account: valid_account.clone(),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -961,9 +953,9 @@ fn test_operation() {
                     index: 1,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account,
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount,
                 ..Default::default()
             },
@@ -978,46 +970,46 @@ fn test_operation() {
         println!("test: {name}");
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
-                blockchain: "hello".to_string(),
-                network: "world".to_string(),
+                blockchain: "hello".into(),
+                network: "world".into(),
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
                 current_block_identifier: BlockIdentifier {
                     index: 100,
-                    hash: "block 100".to_string(),
+                    hash: "block 100".into(),
                 },
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
                 genesis_block_identifier: BlockIdentifier {
                     index: 0,
-                    hash: "block 0".to_string(),
+                    hash: "block 0".into(),
                 },
                 oldest_block_identifier: None,
                 sync_status: None,
                 peers: vec![Peer {
-                    peer_id: "peer 1".to_string(),
+                    peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 }],
             },
             NetworkOptionsResponse {
                 version: Version {
-                    rosetta_version: "1.4.0".to_string(),
-                    node_version: "1.0".to_string(),
+                    rosetta_version: "1.4.0".into(),
+                    node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 },
                 allow: Allow {
                     operation_statuses: vec![
                         OperationStatus {
-                            status: "SUCCESS".to_string(),
+                            status: "SUCCESS".into(),
                             successful: true,
                         },
                         OperationStatus {
-                            status: "FAILURE".to_string(),
+                            status: "FAILURE".into(),
                             successful: false,
                         },
                     ],
-                    operation_types: vec!["PAYMENT".to_string()],
+                    operation_types: vec!["PAYMENT".into()],
                     ..Default::default()
                 },
             },
@@ -1042,33 +1034,33 @@ struct BlockTest {
 #[test]
 fn test_block() {
     let genesis_ident = BlockIdentifier {
-        hash: "gen".to_string(),
+        hash: "gen".into(),
         index: 0,
     };
     let valid_block_ident = BlockIdentifier {
-        hash: "blah".to_string(),
+        hash: "blah".into(),
         index: 100,
     };
     let valid_parent_block_ident = BlockIdentifier {
-        hash: "blah parent".to_string(),
+        hash: "blah parent".into(),
         index: 99,
     };
     let valid_amount = Some(Amount {
-        value: "1000".to_string(),
+        value: "1000".into(),
         currency: Currency {
-            symbol: "BTC".to_string(),
+            symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         },
         metadata: Default::default(),
     });
     let valid_account = Some(AccountIdentifier {
-        address: "test".to_string(),
+        address: "test".into(),
         ..Default::default()
     });
     let valid_transaction = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![
             Operation {
@@ -1076,9 +1068,9 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1091,21 +1083,21 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 }]),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
         ],
         related_transactions: Some(vec![RelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
-                blockchain: "hello".to_string(),
-                network: "world".to_string(),
+                blockchain: "hello".into(),
+                network: "world".into(),
                 sub_network_identifier: None,
             }),
             transaction_identifier: TransactionIdentifier {
-                hash: "blah".to_string(),
+                hash: "blah".into(),
             },
             direction: Direction::Forward,
         }]),
@@ -1113,7 +1105,7 @@ fn test_block() {
     };
     let related_to_self_transaction = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![Operation {
             operation_identifier: OperationIdentifier {
@@ -1124,9 +1116,9 @@ fn test_block() {
                 index: 0,
                 network_index: None,
             }]),
-            type_: "PAYMENT".to_string(),
-            status: Some("SUCCESS".to_string()),
-            account: valid_account.clone(),
+            type_: "PAYMENT".into(),
+            status: Some("SUCCESS".into()),
+            account: valid_account_identifier(),
             amount: valid_amount.clone(),
             ..Default::default()
         }],
@@ -1134,7 +1126,7 @@ fn test_block() {
     };
     let out_of_order_transaction = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![
             Operation {
@@ -1146,9 +1138,9 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 }]),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1157,9 +1149,9 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1168,7 +1160,7 @@ fn test_block() {
     };
     let related_to_later_transaction = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![
             Operation {
@@ -1180,9 +1172,9 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }]),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1195,9 +1187,9 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 }]),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1206,7 +1198,7 @@ fn test_block() {
     };
     let related_duplicate_transaction = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![
             Operation {
@@ -1214,9 +1206,9 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1235,9 +1227,9 @@ fn test_block() {
                         network_index: None,
                     },
                 ]),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1246,7 +1238,7 @@ fn test_block() {
     };
     let related_missing_transaction = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![
             Operation {
@@ -1254,9 +1246,9 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1266,9 +1258,9 @@ fn test_block() {
                     network_index: None,
                 },
                 related_operations: Some(Vec::new()),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1278,9 +1270,9 @@ fn test_block() {
                     network_index: None,
                 },
                 related_operations: Some(Vec::new()),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1290,7 +1282,7 @@ fn test_block() {
     // TODO allow arbitrary directions
     // let invalid_related_transaction = Transaction {
     //     transaction_identifier: TransactionIdentifier {
-    //         hash: "blah".to_string(),
+    //         hash: "blah".into(),
     //     },
     //     operations: vec![
     //         Operation {
@@ -1298,9 +1290,9 @@ fn test_block() {
     //                 index: 0,
     //                 network_index: None,
     //             },
-    //             type_: "PAYMENT".to_string(),
-    //             status: Some("SUCCESS".to_string()),
-    //             account: valid_account.clone(),
+    //             type_: "PAYMENT".into(),
+    //             status: Some("SUCCESS".into()),
+    //             account: valid_account_identifier(),
     //             amount: valid_amount.clone(),
     //             ..Default::default()
     //         },
@@ -1313,21 +1305,21 @@ fn test_block() {
     //                 index: 0,
     //                 network_index: None,
     //             }]),
-    //             type_: "PAYMENT".to_string(),
-    //             status: Some("SUCCESS".to_string()),
-    //             account: valid_account.clone(),
+    //             type_: "PAYMENT".into(),
+    //             status: Some("SUCCESS".into()),
+    //             account: valid_account_identifier(),
     //             amount: valid_amount.clone(),
     //             ..Default::default()
     //         },
     //     ],
     //     related_transactions: Some(vec![RelatedTransaction {
     //         network_identifier: Some(NetworkIdentifier {
-    //             blockchain: "hello".to_string(),
-    //             network: "world".to_string(),
+    //             blockchain: "hello".into(),
+    //             network: "world".into(),
     //             sub_network_identifier: None,
     //         }),
     //         transaction_identifier: TransactionIdentifier {
-    //             hash: "blah".to_string(),
+    //             hash: "blah".into(),
     //         },
     //         direction: "blah",
     //     }]),
@@ -1335,7 +1327,7 @@ fn test_block() {
     // };
     let duplicated_related_transactions = Transaction {
         transaction_identifier: TransactionIdentifier {
-            hash: "blah".to_string(),
+            hash: "blah".into(),
         },
         operations: vec![
             Operation {
@@ -1343,9 +1335,9 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 },
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
-                account: valid_account.clone(),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
+                account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             },
@@ -1358,8 +1350,8 @@ fn test_block() {
                     index: 0,
                     network_index: None,
                 }]),
-                type_: "PAYMENT".to_string(),
-                status: Some("SUCCESS".to_string()),
+                type_: "PAYMENT".into(),
+                status: Some("SUCCESS".into()),
                 account: valid_account,
                 amount: valid_amount,
                 ..Default::default()
@@ -1368,23 +1360,23 @@ fn test_block() {
         related_transactions: Some(vec![
             RelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
-                    blockchain: "hello".to_string(),
-                    network: "world".to_string(),
+                    blockchain: "hello".into(),
+                    network: "world".into(),
                     sub_network_identifier: None,
                 }),
                 transaction_identifier: TransactionIdentifier {
-                    hash: "blah".to_string(),
+                    hash: "blah".into(),
                 },
                 direction: Direction::Forward,
             },
             RelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
-                    blockchain: "hello".to_string(),
-                    network: "world".to_string(),
+                    blockchain: "hello".into(),
+                    network: "world".into(),
                     sub_network_identifier: None,
                 }),
                 transaction_identifier: TransactionIdentifier {
-                    hash: "blah".to_string(),
+                    hash: "blah".into(),
                 },
                 direction: Direction::Forward,
             },
@@ -1664,14 +1656,14 @@ fn test_block() {
         println!("test: {name}");
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
-                blockchain: "hello".to_string(),
-                network: "world".to_string(),
+                blockchain: "hello".into(),
+                network: "world".into(),
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
                 current_block_identifier: BlockIdentifier {
                     index: 100,
-                    hash: "block 100".to_string(),
+                    hash: "block 100".into(),
                 },
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
                 genesis_block_identifier: BlockIdentifier {
@@ -1681,29 +1673,29 @@ fn test_block() {
                 oldest_block_identifier: None,
                 sync_status: None,
                 peers: vec![Peer {
-                    peer_id: "peer 1".to_string(),
+                    peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 }],
             },
             NetworkOptionsResponse {
                 version: Version {
-                    rosetta_version: "1.4.0".to_string(),
-                    node_version: "1.0".to_string(),
+                    rosetta_version: "1.4.0".into(),
+                    node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 },
                 allow: Allow {
                     operation_statuses: vec![
                         OperationStatus {
-                            status: "SUCCESS".to_string(),
+                            status: "SUCCESS".into(),
                             successful: true,
                         },
                         OperationStatus {
-                            status: "FAILURE".to_string(),
+                            status: "FAILURE".into(),
                             successful: false,
                         },
                     ],
-                    operation_types: vec!["PAYMENT".to_string()],
+                    operation_types: vec!["PAYMENT".into()],
                     // TODO need to make this an i64
                     timestamp_start_index: test.start_index.map(|i| i as u64),
                     ..Default::default()

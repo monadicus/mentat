@@ -1,5 +1,7 @@
 //! The module defines the `AccountIdentifier`.
 
+use std::borrow::Cow;
+
 use indexmap::IndexMap;
 
 use super::*;

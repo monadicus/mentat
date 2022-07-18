@@ -109,8 +109,8 @@ fn test_error_map() {
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
-                blockchain: "hello".to_string(),
-                network: "world".to_string(),
+                blockchain: "hello".into(),
+                network: "world".into(),
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
