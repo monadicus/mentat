@@ -9,7 +9,7 @@ use super::*;
 /// different address formats for different networks. `Metadata` is provided in
 /// the request because some blockchains allow for multiple address types (i.e.
 /// different address for validators vs normal accounts).
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionDeriveRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

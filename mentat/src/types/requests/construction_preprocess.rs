@@ -21,7 +21,7 @@ use super::*;
 /// applicable). In the case that the caller provides both a max fee and a
 /// suggested fee multiplier, the max fee will set an upper bound on the
 /// suggested fee (regardless of the multiplier provided).
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionPreprocessRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

@@ -1,7 +1,5 @@
 //! Errors for the validations in this module.
 
-use std::fmt::Display;
-
 use thiserror::Error;
 
 // AsserterNotInitialized is returned when some call in the asserter

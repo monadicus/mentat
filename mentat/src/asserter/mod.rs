@@ -43,4 +43,5 @@ mod tests {
     mod network_test;
     mod search_test;
     mod server_test;
+    mod test_utils;
 }
