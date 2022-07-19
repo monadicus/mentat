@@ -9,7 +9,7 @@ use super::*;
 /// network-wide metadata of interest. Optionally, the request can also include
 /// an array of [`PublicKey`]s associated with the [`AccountIdentifier`]s
 /// returned in [`crate::responses::ConstructionPreprocessResponse`].
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionMetadataRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

@@ -6,13 +6,15 @@ use indexmap::{indexmap, IndexMap};
 use crate::{
     asserter::{
         asserter_tools::{Asserter, RequestAsserter},
-        errors::{AssertResult, AsserterError, BlockError, NetworkError, ServerError},
+        errors::{
+            AssertResult, AsserterError, BlockError, ConstructionError, NetworkError, ServerError,
+        },
         network::network_identifier,
         server::supported_networks,
     },
     types::{
         AccountBalanceRequest, AccountIdentifier, Amount, BlockIdentifier, BlockRequest,
-        BlockTransactionRequest, Currency,
+        BlockTransactionRequest, ConstructionCombineRequest, ConstructionMetadataRequest, Currency,
         CurveType::Secp256k1,
         NetworkIdentifier, Operation, OperationIdentifier, PartialBlockIdentifier, PublicKey,
         Signature,
@@ -676,6 +678,101 @@ fn test_block_transaction_request() {
         println!("test: {name}");
 
         let res = server.block_transaction_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[derive(Default)]
+struct ConstructionMetadataRequestTest {
+    request: ConstructionMetadataRequest,
+    err: Option<AsserterError>,
+}
+
+#[test]
+fn test_construction_metadata_request() {
+    let tests = indexmap!(
+        "valid request" => ConstructionMetadataRequestTest {
+            request: ConstructionMetadataRequest {
+                network_identifier: valid_network_identifier(),
+                options: Some(Default::default()),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "valid request with public keys" => ConstructionMetadataRequestTest {
+            request: ConstructionMetadataRequest {
+                network_identifier: valid_network_identifier(),
+                options: Some(Default::default()),
+                public_keys: Some(vec!(PublicKey {
+                    bytes: "hello".into(),
+                    curve_type: Secp256k1,
+                })),
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ConstructionMetadataRequestTest {
+            request: ConstructionMetadataRequest {
+                network_identifier: wrong_network_identifier(),
+                options: Some(Default::default()),
+                ..Default::default()
+            },
+            err: Some(ServerError::RequestedNetworkNotSupported.into()),
+        },
+        // TODO
+        // "nil request" => ConstructionMetadataRequestTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::ConstructionCombineRequestIsNil.into()),
+        // },
+        "missing network" => ConstructionMetadataRequestTest {
+            request: ConstructionMetadataRequest {
+                options: Some(Default::default()),
+                ..Default::default()
+            },
+            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+        },
+        "missing options" => ConstructionMetadataRequestTest {
+            request: ConstructionMetadataRequest {
+                network_identifier: valid_network_identifier(),
+                options: None,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "invalid request with public keys" => ConstructionMetadataRequestTest {
+            request: ConstructionMetadataRequest {
+                network_identifier: valid_network_identifier(),
+                options: Some(Default::default()),
+                public_keys: Some(vec!(PublicKey {
+                    curve_type: Secp256k1,
+                    ..Default::default()
+                })),
+            },
+            err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+        },
+    );
+
+    let server = RequestAsserter::new_server(
+        vec!["PAYMENT".into()],
+        false,
+        vec![valid_network_identifier()],
+        vec![],
+        false,
+        Path::new(""),
+    )
+    .unwrap();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.construction_metadata_request(&test.request);
 
         if let Err(err) = res {
             assert!(test
