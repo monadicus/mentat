@@ -5,7 +5,7 @@ use super::*;
 /// `ConstructionParseRequest` is the input to the `/construction/parse`
 /// endpoint. It allows the caller to parse either an unsigned or signed
 /// transaction.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionParseRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

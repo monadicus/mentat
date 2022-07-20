@@ -14,13 +14,15 @@ use crate::{
         server::supported_networks,
     },
     types::{
-        AccountBalanceRequest, AccountIdentifier, Amount, BlockIdentifier, BlockRequest,
-        BlockTransactionRequest, ConstructionCombineRequest, ConstructionDeriveRequest,
-        ConstructionMetadataRequest, ConstructionPayloadsRequest, ConstructionPreprocessRequest,
+        AccountBalanceRequest, AccountCoinsRequest, AccountIdentifier, Amount, BlockIdentifier,
+        BlockRequest, BlockTransactionRequest, CallRequest, ConstructionCombineRequest,
+        ConstructionDeriveRequest, ConstructionHashRequest, ConstructionMetadataRequest,
+        ConstructionParseRequest, ConstructionPayloadsRequest, ConstructionPreprocessRequest,
         ConstructionSubmitRequest, Currency,
         CurveType::Secp256k1,
-        MempoolTransactionRequest, MetadataRequest, NetworkIdentifier, NetworkRequest, Operation,
-        OperationIdentifier, PartialBlockIdentifier, PublicKey, Signature,
+        EventsBlocksRequest, MempoolTransactionRequest, MetadataRequest, NetworkIdentifier,
+        NetworkRequest, Operation, OperationIdentifier, PartialBlockIdentifier, PublicKey,
+        Signature,
         SignatureType::{EcdsaRecovery, Ed25519},
         SigningPayload, TransactionIdentifier,
     },
@@ -241,8 +243,8 @@ pub(crate) fn empty_signature() -> Vec<Signature> {
     }]
 }
 
-pub(crate) fn a() -> AssertResult<Asserter> {
-    Asserter::new_server(
+pub(crate) fn request_asserter() -> RequestAsserter {
+    RequestAsserter::new_server(
         vec!["PAYMENT".into()],
         true,
         vec![valid_network_identifier()],
@@ -250,6 +252,7 @@ pub(crate) fn a() -> AssertResult<Asserter> {
         false,
         Path::new(""),
     )
+    .unwrap()
 }
 
 struct NewWithOptionsTest {
@@ -570,15 +573,7 @@ fn test_block_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -650,15 +645,7 @@ fn test_block_transaction_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -739,15 +726,7 @@ fn test_construction_metadata_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -793,15 +772,7 @@ fn test_construction_submit_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -857,15 +828,7 @@ fn test_mempool_transaction_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -894,15 +857,7 @@ fn test_metadata_request() {
         // }
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -948,15 +903,7 @@ fn test_network_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -1020,15 +967,7 @@ fn test_construction_derive_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -1156,15 +1095,7 @@ fn test_construction_preprocess_request() {
         },
     );
 
-    let server = RequestAsserter::new_server(
-        vec!["PAYMENT".into()],
-        false,
-        vec![valid_network_identifier()],
-        vec![],
-        false,
-        Path::new(""),
-    )
-    .unwrap();
+    let server = request_asserter();
 
     for (name, test) in tests {
         println!("test: {name}");
@@ -1185,105 +1116,580 @@ fn test_construction_preprocess_request() {
 #[test]
 fn test_construction_payloads_request() {
     let tests = indexmap!(
-        "" => ServerTest {
+        "valid request" => ServerTest {
             request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
+                network_identifier: valid_network_identifier(),
+                operations: valid_ops(),
+                metadata: indexmap!("test".into() => "hello".into()),
                 ..Default::default()
             },
-            err: todo!(),
             ..Default::default()
         },
-        "" => ServerTest {
+        "valid request with public keys" => ServerTest {
             request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
+                network_identifier: valid_network_identifier(),
+                operations: valid_ops(),
+                metadata: indexmap!("test".into() => "hello".into()),
+                public_keys: Some(vec!(PublicKey {
+                    bytes: "hello".into(),
+                    curve_type: Secp256k1
+                })),
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ServerTest {
+            request: ConstructionPayloadsRequest {
+                network_identifier: wrong_network_identifier(),
                 ..Default::default()
             },
-            err: todo!(),
-            ..Default::default()
+            err: Some(format!(
+                "{}: {:?}",
+                ServerError::RequestedNetworkNotSupported,
+                wrong_network_identifier()
+            ).into()),
         },
-        "" => ServerTest {
+        // TODO
+        // "nil request" => ServerTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
+        // },
+        "nil operations" => ServerTest {
             request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
+                network_identifier: valid_network_identifier(),
                 ..Default::default()
             },
-            err: todo!(),
-            ..Default::default()
+            err: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        "" => ServerTest {
+        "empty operations" => ServerTest {
             request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
+                network_identifier: valid_network_identifier(),
+                operations: vec!(Operation::default()),
                 ..Default::default()
             },
-            err: todo!(),
-            ..Default::default()
+            err: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        "" => ServerTest {
+        "unsupported operation type" => ServerTest {
             request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
+                network_identifier: valid_network_identifier(),
+                operations: unsupported_type_ops(),
                 ..Default::default()
             },
-            err: todo!(),
-            ..Default::default()
+            err: Some(BlockError::OperationTypeInvalid.into()),
         },
-        "" => ServerTest {
+        "invalid operations" => ServerTest {
             request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
+                network_identifier: valid_network_identifier(),
+                operations: invalid_ops(),
                 ..Default::default()
             },
-            err: todo!(),
-            ..Default::default()
+            err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
-        "" => ServerTest {
+        "invalid request with public keys" => ServerTest {
             request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
-                ..Default::default()
+                network_identifier: valid_network_identifier(),
+                operations: valid_ops(),
+                metadata: indexmap!("test".into() => "hello".into()),
+                public_keys: Some(vec!(PublicKey {
+                    curve_type: Secp256k1,
+                    ..Default::default()
+                })),
             },
-            err: todo!(),
-            ..Default::default()
+            err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
-        "" => ServerTest {
-            request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
-                ..Default::default()
-            },
-            err: todo!(),
-            ..Default::default()
-        },
-        "" => ServerTest {
-            request: ConstructionPayloadsRequest {
-                network_identifier: todo!(),
-                operations: todo!(),
-                metadata: todo!(),
-                public_keys: todo!(),
-                ..Default::default()
-            },
-            err: todo!(),
-            ..Default::default()
-        },
+    );
 
+    let server = request_asserter();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.construction_payload_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[test]
+fn test_construction_combine_request() {
+    let tests = indexmap!(
+        "valid request" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                signatures: valid_signatures(),
+            },
+            ..Default::default()
+        },
+        "valid request 2" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                signatures: vec!(Signature {
+                    signing_payload: SigningPayload {
+                        account_identifier: Some(valid_account()),
+                        bytes: "blah".into(),
+                        ..Default::default()
+                    },
+                    public_key: valid_public_key(),
+                    signature_type: Ed25519,
+                    bytes: "blah".into()
+                }),
+            },
+            ..Default::default()
+        },
+        "valid request 3" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                signatures: vec!(Signature {
+                    signing_payload: SigningPayload {
+                        account_identifier: Some(valid_account()),
+                        bytes: "blah".into(),
+                        ..Default::default()
+                    },
+                    public_key: valid_public_key(),
+                    signature_type: Ed25519,
+                    bytes: "hello".into()
+                }),
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: wrong_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(
+                format!("{}: {:?}",
+                ServerError::RequestedNetworkNotSupported,
+                wrong_network_identifier()
+            ).into()),
+        },
+        // TODO
+        // "nil request" => ServerTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::ConstructionCombineRequestIsNil.into()),
+        // },
+        "empty unsigned transaction" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                signatures: valid_signatures(),
+                ..Default::default()
+            },
+            err: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
+        },
+        "nil signatures" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                ..Default::default()
+            },
+            err: Some(ConstructionError::SignaturesEmpty.into()),
+        },
+        "empty signatures" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                signatures: vec!(Signature::default()),
+            },
+            err: Some(ConstructionError::SignaturesEmpty.into()),
+        },
+        "signature type mismatch" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                signatures: signature_type_mismatch(),
+            },
+            err: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
+        },
+        "empty signature" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                signatures: empty_signature(),
+            },
+            err: Some(ConstructionError::SignatureBytesEmpty.into()),
+        },
+        "signature type match" => ServerTest {
+            request: ConstructionCombineRequest {
+                network_identifier: valid_network_identifier(),
+                unsigned_transaction: "blah".into(),
+                signatures: signature_type_match(),
+            },
+            ..Default::default()
+        },
+    );
+
+    let server = request_asserter();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.construction_combine_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[test]
+fn test_construction_hash_request() {
+    let tests = indexmap!(
+        "valid request" => ServerTest {
+            request: ConstructionHashRequest {
+                network_identifier: valid_network_identifier(),
+                signed_transaction: "blah".into(),
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ServerTest {
+            request: ConstructionHashRequest {
+                network_identifier: wrong_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(format!(
+                "{}: {:?}",
+                ServerError::RequestedNetworkNotSupported,
+                wrong_network_identifier()
+            ).into()),
+        },
+        // TODO
+        // "nil request" => ServerTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::ConstructionHashRequestIsNil.into()),
+        // },
+        "empty signed transaction" => ServerTest {
+            request: ConstructionHashRequest {
+                network_identifier: valid_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(ServerError::ConstructionHashRequestSignedTxEmpty.into()),
+        },
+    );
+
+    let server = request_asserter();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.construction_hash_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[test]
+fn test_construction_parse_request() {
+    let tests = indexmap!(
+        "valid request" => ServerTest {
+            request: ConstructionParseRequest {
+                network_identifier: valid_network_identifier(),
+                transaction: "blah".into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ServerTest {
+            request: ConstructionParseRequest {
+                network_identifier: wrong_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(ServerError::RequestedNetworkNotSupported.into()),
+        },
+        // TODO
+        // "nil request" => ServerTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::ConstructionParseRequestIsNil.into()),
+        // },
+        "empty signed transaction" => ServerTest {
+            request: ConstructionParseRequest {
+                network_identifier: valid_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(ServerError::ConstructionParseRequestEmpty.into()),
+        },
+    );
+
+    let server = request_asserter();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.construction_parse_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[test]
+fn test_call_request() {
+    let tests = indexmap!(
+        "valid request" => ServerTest {
+            request: CallRequest {
+                network_identifier: valid_network_identifier(),
+                method: "eth_call".into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "valid request with params" => ServerTest {
+            request: CallRequest {
+                network_identifier: valid_network_identifier(),
+                method: "eth_call".into(),
+                parameters: indexmap!("hello".into() => "test".into()),
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ServerTest {
+            request: CallRequest {
+                network_identifier: wrong_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(format!(
+                "{}: {:?}",
+                ServerError::RequestedNetworkNotSupported,
+                wrong_network_identifier()
+            ).into()),
+        },
+        "unsupported method" => ServerTest {
+            request: CallRequest {
+                network_identifier: valid_network_identifier(),
+                method: "eth_debug".into(),
+                ..Default::default()
+            },
+            err: Some(ServerError::CallMethodUnsupported.into()),
+        },
+        // TODO
+        // "nil request" => ServerTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::CallRequestIsNil.into()),
+        // },
+        "empty method" => ServerTest {
+            request: CallRequest {
+                network_identifier: valid_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(ServerError::CallMethodEmpty.into()),
+        },
+    );
+
+    let server = request_asserter();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.call_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[derive(Default)]
+struct AccountCoinsRequestTest {
+    request: AccountCoinsRequest,
+    allow_mempool: bool,
+    err: Option<AsserterError>,
+}
+
+#[test]
+fn test_account_coins_request() {
+    let tests = indexmap!(
+        "valid request" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                network_identifier: valid_network_identifier(),
+                account_identifier: valid_account_identifier().unwrap(),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "valid request with currencies" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                network_identifier: valid_network_identifier(),
+                account_identifier: valid_account_identifier().unwrap(),
+                currencies: Some(vec!(
+                    Currency {
+                        symbol: "BTC".into(),
+                        decimals: 8,
+                        ..Default::default()
+                    },
+                    Currency {
+                        symbol: "ETH".into(),
+                        decimals: 18,
+                        ..Default::default()
+                    }
+                )),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "valid request with duplicate currencies" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                network_identifier: valid_network_identifier(),
+                account_identifier: valid_account_identifier().unwrap(),
+                currencies: Some(vec!(
+                    Currency {
+                        symbol: "BTC".into(),
+                        decimals: 8,
+                        ..Default::default()
+                    }; 2
+                )),
+                ..Default::default()
+            },
+            err: Some(ServerError::DuplicateCurrency.into()),
+            ..Default::default()
+        },
+        "invalid request wrong network" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                network_identifier: wrong_network_identifier(),
+                account_identifier: valid_account_identifier().unwrap(),
+                ..Default::default()
+            },
+            err: Some(ServerError::RequestedNetworkNotSupported.into()),
+            ..Default::default()
+        },
+        // TODO
+        // "nil request" => AccountCoinsRequestTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::AccountBalanceRequestIsNil.into()),
+        //     ..Default::default()
+        // },
+        "missing network" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                account_identifier: valid_account_identifier().unwrap(),
+                ..Default::default()
+            },
+            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            ..Default::default()
+        },
+        "missing account" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                network_identifier: valid_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(BlockError::AccountIsNil.into()),
+            ..Default::default()
+        },
+        "valid mempool lookup request" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                network_identifier: wrong_network_identifier(),
+                account_identifier: valid_account_identifier().unwrap(),
+                ..Default::default()
+            },
+            allow_mempool: true,
+            ..Default::default()
+        },
+        "valid mempool lookup request when not enabled" => AccountCoinsRequestTest {
+            request: AccountCoinsRequest {
+                network_identifier: wrong_network_identifier(),
+                account_identifier: valid_account_identifier().unwrap(),
+                include_mempool: true,
+                ..Default::default()
+            },
+            err: Some(ServerError::MempoolCoinsNotSupported.into()),
+            ..Default::default()
+        },
+    );
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let asserter = RequestAsserter::new_server(
+            vec!["PAYMENT".into()],
+            true,
+            vec![valid_network_identifier()],
+            vec![],
+            test.allow_mempool,
+            Path::new(""),
+        )
+        .unwrap();
+
+        let res = asserter.account_coins_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[test]
+fn test_event_blocks_request() {
+    let tests = indexmap!(
+        "valid request" => ServerTest {
+            request: EventsBlocksRequest {
+                network_identifier: valid_network_identifier(),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ServerTest {
+            request: EventsBlocksRequest {
+                network_identifier: wrong_network_identifier(),
+                ..Default::default()
+            },
+            err: Some(
+                format!("{}: {:?}",
+                ServerError::RequestedNetworkNotSupported,
+                wrong_network_identifier()
+            ).into()),
+        },
+        "nil request" => ServerTest {
+            request: todo!(),
+            err: Some(ServerError::EventsBlocksRequestIsNil.into()),
+        },
+        "negative offset" => ServerTest {
+            request: EventsBlocksRequest {
+                network_identifier: valid_network_identifier(),
+                offset: todo!(), // Some(-1),
+                ..Default::default()
+            },
+            err: Some(ServerError::OffsetIsNegative.into()),
+        },
+        "negative limit" => ServerTest {
+            request: EventsBlocksRequest {
+                network_identifier: valid_network_identifier(),
+                limit: todo!(), // Some(-1),
+                ..Default::default()
+            },
+            err: Some(ServerError::LimitIsNegative.into()),
+        },
     );
 }
