@@ -21,8 +21,8 @@ use crate::{
         ConstructionSubmitRequest, Currency,
         CurveType::Secp256k1,
         EventsBlocksRequest, MempoolTransactionRequest, MetadataRequest, NetworkIdentifier,
-        NetworkRequest, Operation, OperationIdentifier, PartialBlockIdentifier, PublicKey,
-        Signature,
+        NetworkRequest, Operation, OperationIdentifier, Operator, PartialBlockIdentifier,
+        PublicKey, SearchTransactionsRequest, Signature,
         SignatureType::{EcdsaRecovery, Ed25519},
         SigningPayload, TransactionIdentifier,
     },
@@ -1671,25 +1671,139 @@ fn test_event_blocks_request() {
                 wrong_network_identifier()
             ).into()),
         },
-        "nil request" => ServerTest {
-            request: todo!(),
-            err: Some(ServerError::EventsBlocksRequestIsNil.into()),
-        },
-        "negative offset" => ServerTest {
-            request: EventsBlocksRequest {
-                network_identifier: valid_network_identifier(),
-                offset: todo!(), // Some(-1),
-                ..Default::default()
-            },
-            err: Some(ServerError::OffsetIsNegative.into()),
-        },
-        "negative limit" => ServerTest {
-            request: EventsBlocksRequest {
-                network_identifier: valid_network_identifier(),
-                limit: todo!(), // Some(-1),
-                ..Default::default()
-            },
-            err: Some(ServerError::LimitIsNegative.into()),
-        },
+        // TODO
+        // "nil request" => ServerTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::EventsBlocksRequestIsNil.into()),
+        // },
+        // TODO
+        // "negative offset" => ServerTest {
+        //     request: EventsBlocksRequest {
+        //         network_identifier: valid_network_identifier(),
+        //         offset: todo!(), // Some(-1),
+        //         ..Default::default()
+        //     },
+        //     err: Some(ServerError::OffsetIsNegative.into()),
+        // },
+        // TODO
+        // "negative limit" => ServerTest {
+        //     request: EventsBlocksRequest {
+        //         network_identifier: valid_network_identifier(),
+        //         limit: todo!(), // Some(-1),
+        //         ..Default::default()
+        //     },
+        //     err: Some(ServerError::LimitIsNegative.into()),
+        // },
     );
+
+    let server = request_asserter();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.events_block_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
+}
+
+#[test]
+fn test_search_transactions_request() {
+    let tests = indexmap!(
+        "valid request no operator" => ServerTest {
+            request: SearchTransactionsRequest {
+                network_identifier: valid_network_identifier(),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "valid request" => ServerTest {
+            request: SearchTransactionsRequest {
+                network_identifier: valid_network_identifier(),
+                operator: Some(Operator::And),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        "invalid request wrong network" => ServerTest {
+            request: SearchTransactionsRequest {
+                network_identifier: wrong_network_identifier(),
+                operator: Some(Operator::Or),
+                ..Default::default()
+            },
+            err: Some(format!(
+                "{}: {:?}",
+                ServerError::RequestedNetworkNotSupported,
+                wrong_network_identifier()
+            ).into())
+        },
+        // TODO
+        // "nil request" => ServerTest {
+        //     request: todo!(),
+        //     err: Some(ServerError::SearchTransactionsRequestIsNil.into()),
+        // },
+        // TODO
+        // "negative max block" => ServerTest {
+        //     request: SearchTransactionsRequest {
+        //         network_identifier: valid_network_identifier(),
+        //         operator: Some(Operator::Or),
+        //         max_block: todo!(), // Some(-1),
+        //         ..Default::default()
+        //     },
+        //     err: Some(ServerError::MaxBlockInvalid.into()),
+        // },
+        // TODO
+        // "negative offset" => ServerTest {
+        //     request: SearchTransactionsRequest {
+        //         network_identifier: valid_network_identifier(),
+        //         operator: Some(Operator::Or),
+        //         offset: Some(-1),
+        //         ..Default::default()
+        //     },
+        //     err: Some(ServerError::OffsetIsNegative.into()),
+        // },
+        // TODO
+        // "negative limit" => ServerTest {
+        //         request: SearchTransactionsRequest {
+        //         network_identifier: valid_network_identifier(),
+        //         operator: Some(Operator::Or),
+        //         limit: Some(-1),
+        //         ..Default::default()
+        //     },
+        //     err: Some(ServerError::LimitIsNegative.into()),
+        // },
+        // TODO
+        // "invalid operator" => ServerTest {
+        //     request: SearchTransactionsRequest {
+        //         network_identifier: valid_network_identifier(),
+        //         operator: Some(Operator::Nor),
+        //         ..Default::default()
+        //     },
+        //     err: Some(ServerError::OperatorInvalid.into()),
+        // },
+    );
+
+    let server = request_asserter();
+
+    for (name, test) in tests {
+        println!("test: {name}");
+
+        let res = server.search_transactions_request(&test.request);
+
+        if let Err(err) = res {
+            assert!(test
+                .err
+                .map(|e| err.to_string().contains(&e.to_string()))
+                .unwrap_or_default());
+        } else {
+            assert_eq!(None, test.err);
+        }
+    }
 }

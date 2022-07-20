@@ -4,7 +4,7 @@ use super::*;
 
 /// `SearchTransactionsRequest` is used to search for transactions matching a
 /// set of provided conditions in canonical blocks.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct SearchTransactionsRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
