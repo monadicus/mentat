@@ -23,6 +23,7 @@ impl Display for Blah {
 
 impl Error for Blah {}
 
+// TODO move this over to new test system
 #[test]
 fn test_err() {
     let tests: IndexMap<&str, ErrTest> = indexmap!(

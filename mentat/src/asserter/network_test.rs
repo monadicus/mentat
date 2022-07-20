@@ -1,6 +1,6 @@
 use indexmap::indexmap;
 
-use super::test_utils::{non_asserter_tests, AsserterTest};
+use super::test_utils::AsserterTest;
 use crate::{
     asserter::{
         errors::{AsserterError, ErrorError, NetworkError},
@@ -70,7 +70,7 @@ fn test_network_identifier() {
         },
     ];
 
-    non_asserter_tests(&tests, network_identifier);
+    AsserterTest::non_asserter_tests(&tests, network_identifier);
 }
 
 #[test]
@@ -135,7 +135,7 @@ fn test_version() {
         },
     ];
 
-    non_asserter_tests(&tests, version);
+    AsserterTest::non_asserter_tests(&tests, version);
 }
 
 #[test]
@@ -277,7 +277,7 @@ fn test_allow() {
         },
     ];
 
-    non_asserter_tests(&tests, allow);
+    AsserterTest::non_asserter_tests(&tests, allow);
 }
 
 #[test]
@@ -317,7 +317,7 @@ fn test_error() {
         },
     ];
 
-    non_asserter_tests(&tests, error);
+    AsserterTest::non_asserter_tests(&tests, error);
 }
 
 #[test]
@@ -376,7 +376,7 @@ fn test_errors() {
         },
     ];
 
-    non_asserter_tests(&tests, |data| errors(data.as_slice()));
+    AsserterTest::non_asserter_tests(&tests, |data| errors(data.as_slice()));
 }
 
 #[test]
@@ -432,5 +432,5 @@ fn test_network_list_response() {
         },
     ];
 
-    non_asserter_tests(&tests, network_list_response);
+    AsserterTest::non_asserter_tests(&tests, network_list_response);
 }

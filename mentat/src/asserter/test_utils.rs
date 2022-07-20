@@ -1,51 +1,11 @@
+use std::fmt;
+
 use crate::asserter::{
     asserter_tools::RequestAsserter,
     errors::{AssertResult, AsserterError},
 };
 
 use super::server_test::request_asserter;
-
-pub(crate) trait AsserterTester {
-    type P;
-    type E;
-    fn name(&self) -> &'static str;
-    fn payload(&self) -> &Self::P;
-    fn error(&self) -> Option<&AsserterError>;
-    fn print(&self) {
-        println!("test: {}", self.name())
-    }
-    fn extras(&self) -> &Self::E {
-        unimplemented!()
-    }
-    fn assert_correct<T>(&self, res: &Result<T, AsserterError>) {
-        match (res, self.error()) {
-            (Ok(_), Some(exp)) => {
-                panic!("test passed when it shouldnt have. expected error: `{exp}`")
-            }
-            (Err(err), Some(exp)) if !err.to_string().contains(&exp.to_string()) => {
-                panic!("expected text fragment `{exp}` not found in error: `{err}`")
-            }
-            (Err(err), None) => panic!("test failed when it shouldnt have. returned error: `{err}`"),
-            _ => {}
-        }
-    }
-}
-
-macro_rules! tester_impl {
-    () => {
-        fn name(&self) -> &'static str {
-            self.name
-        }
-
-        fn payload(&self) -> &Self::P {
-            &self.payload
-        }
-
-        fn error(&self) -> Option<&AsserterError> {
-            self.err.as_ref()
-        }
-    };
-}
 
 #[derive(Default)]
 pub(crate) struct AsserterTest<P: Default> {
@@ -54,11 +14,63 @@ pub(crate) struct AsserterTest<P: Default> {
     pub err: Option<AsserterError>,
 }
 
-impl<P: Default> AsserterTester for AsserterTest<P> {
-    type P = P;
-    type E = ();
+impl<P: Default> AsserterTest<P> {
+    pub(crate) fn non_asserter_tests<F, O>(tests: &[Self], mut func: F)
+    where
+        F: FnMut(&P) -> AssertResult<O>,
+    {
+        for test in tests {
+            println!("{test}");
+            let res = func(&test.payload);
+            assert_correct(&test.err, &res);
+        }
+    }
 
-    tester_impl!();
+    pub(crate) fn default_request_asserter_tests<F, O>(tests: &[Self], mut func: F)
+    where
+        F: FnMut(&RequestAsserter, &P) -> AssertResult<O>,
+    {
+        let server = request_asserter();
+
+        for test in tests {
+            println!("{test}");
+            let res = func(&server, &test.payload);
+            assert_correct(&test.err, &res);
+        }
+    }
+}
+
+impl<P: Default> fmt::Display for AsserterTest<P> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "test: {}", self.name)
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct AsserterEqualityTest<P: Default, R: Default> {
+    pub name: &'static str,
+    pub payload: P,
+    pub res: R,
+}
+
+impl<P: Default, R: Default> AsserterEqualityTest<P, R> {
+    pub(crate) fn non_asserter_equality_tests<F>(tests: &[Self], mut func: F)
+    where
+        R: Eq + fmt::Debug,
+        F: FnMut(&P) -> R,
+    {
+        for test in tests {
+            println!("{test}");
+            let res = func(&test.payload);
+            assert_eq!(test.res, res)
+        }
+    }
+}
+
+impl<P: Default, R: Default> fmt::Display for AsserterEqualityTest<P, R> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "test: {}", self.name)
+    }
 }
 
 #[derive(Default)]
@@ -69,53 +81,38 @@ pub(crate) struct CustomAsserterTest<P: Default, E: Default> {
     pub err: Option<AsserterError>,
 }
 
-impl<P: Default, E: Default> AsserterTester for CustomAsserterTest<P, E> {
-    type P = P;
-    type E = E;
-
-    tester_impl!();
-
-    fn extras(&self) -> &Self::E {
-        &self.extras
+impl<P: Default, E: Default> CustomAsserterTest<P, E> {
+    pub(crate) fn custom_request_asserter_tests<A, F>(tests: &[Self], asserter: A, mut func: F)
+    where
+        A: Fn(&E) -> RequestAsserter,
+        F: FnMut(&RequestAsserter, &P) -> AssertResult<()>,
+    {
+        for test in tests {
+            println!("{test}");
+            let server = asserter(&test.extras);
+            let res = func(&server, &test.payload);
+            assert_correct(&test.err, &res);
+        }
     }
 }
 
-pub(crate) fn non_asserter_tests<T, F, O>(tests: &[T], mut func: F)
-where
-    T: AsserterTester,
-    F: FnMut(&T::P) -> AssertResult<O>,
-{
-    for test in tests {
-        test.print();
-        let res = func(test.payload());
-        test.assert_correct(&res)
+impl<P: Default, E: Default> fmt::Display for CustomAsserterTest<P, E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "test: {}", self.name)
     }
 }
 
-pub(crate) fn default_request_asserter_tests<T, F>(tests: &[T], mut func: F)
-where
-    T: AsserterTester,
-    F: FnMut(&RequestAsserter, &T::P) -> AssertResult<()>,
-{
-    let server = request_asserter();
-
-    for test in tests {
-        test.print();
-        let res = func(&server, test.payload());
-        test.assert_correct(&res);
-    }
-}
-
-pub(crate) fn custom_request_asserter_tests<A, T, F>(asserter: A, tests: &[T], mut func: F)
-where
-    A: Fn(&T::E) -> RequestAsserter,
-    T: AsserterTester,
-    F: FnMut(&RequestAsserter, &T::P) -> AssertResult<()>,
-{
-    for test in tests {
-        test.print();
-        let server = asserter(test.extras());
-        let res = func(&server, test.payload());
-        test.assert_correct(&res);
+fn assert_correct<T>(err: &Option<AsserterError>, res: &Result<T, AsserterError>) {
+    match (res, err) {
+        (Err(err), Some(exp)) if !err.to_string().contains(&exp.to_string()) => {
+            panic!("expected text fragment `{exp}` not found in error: `{err}`")
+        }
+        (Err(err), None) => {
+            panic!("test failed when it shouldnt have. returned error: `{err}`")
+        }
+        (Ok(_), Some(exp)) => {
+            panic!("test passed when it shouldnt have. expected error: `{exp}`")
+        }
+        _ => {}
     }
 }

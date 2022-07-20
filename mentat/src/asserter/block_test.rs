@@ -1,9 +1,6 @@
 use std::path::PathBuf;
 
-use super::{
-    server_test::valid_account_identifier,
-    test_utils::{non_asserter_tests, AsserterTest},
-};
+use super::{server_test::valid_account_identifier, test_utils::AsserterTest};
 use crate::{
     asserter::{
         asserter_tools::Asserter,
@@ -12,7 +9,6 @@ use crate::{
             MIN_UNIX_EPOCH,
         },
         errors::{AsserterError, BlockError},
-        tests::test_utils::AsserterTester,
     },
     types::{
         AccountIdentifier, Allow, Amount, Block, BlockIdentifier, Currency, Direction,
@@ -56,7 +52,7 @@ fn test_block_identifier() {
         },
     ];
 
-    non_asserter_tests(&tests, block_identifier);
+    AsserterTest::non_asserter_tests(&tests, block_identifier);
 }
 
 #[test]
@@ -191,7 +187,7 @@ fn test_amount() {
         // },
     ];
 
-    non_asserter_tests(&tests, |data| amount(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, |data| amount(data.as_ref()));
 }
 
 #[derive(Default)]
@@ -259,7 +255,9 @@ fn test_operation_identifier() {
         // },
     ];
 
-    non_asserter_tests(&tests, |data| operation_identifier(&data.ident, data.index));
+    AsserterTest::non_asserter_tests(&tests, |data| {
+        operation_identifier(&data.ident, data.index)
+    });
 }
 
 #[test]
@@ -309,7 +307,7 @@ fn test_account_identifier() {
         },
     ];
 
-    non_asserter_tests(&tests, |data| account_identifier(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, |data| account_identifier(data.as_ref()));
 }
 
 #[derive(Default)]
@@ -749,7 +747,7 @@ fn test_operation_validations() {
 
     // TODO Asserter tester
     tests.into_iter().for_each(|test| {
-        test.print();
+        println!("test: {}", test.name);
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
@@ -1049,7 +1047,7 @@ fn test_operation() {
     ];
 
     tests.into_iter().for_each(|test| {
-        test.print();
+        println!("{test}");
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
@@ -1802,7 +1800,7 @@ fn test_block() {
     ];
 
     tests.into_iter().for_each(|test| {
-        test.print();
+        println!("{test}");
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {

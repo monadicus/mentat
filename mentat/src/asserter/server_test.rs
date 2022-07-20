@@ -2,14 +2,11 @@ use std::path::Path;
 
 use indexmap::indexmap;
 
-use super::test_utils::{
-    custom_request_asserter_tests, default_request_asserter_tests, non_asserter_tests,
-    AsserterTest, CustomAsserterTest,
-};
+use super::test_utils::{AsserterTest, CustomAsserterTest};
 use crate::{
     asserter::{
         asserter_tools::RequestAsserter,
-        errors::{BlockError, ConstructionError, NetworkError, ServerError},
+        errors::{AssertResult, BlockError, ConstructionError, NetworkError, ServerError},
         server::supported_networks,
     },
     types::{
@@ -260,6 +257,19 @@ struct NewWithOptionsTest {
     call_methods: Vec<String>,
 }
 
+impl NewWithOptionsTest {
+    fn run(&self) -> AssertResult<RequestAsserter> {
+        RequestAsserter::new_server(
+            self.supported_operation_types.clone(),
+            true,
+            self.supported_networks.clone(),
+            self.call_methods.clone(),
+            false,
+            Path::new(""),
+        )
+    }
+}
+
 impl Default for NewWithOptionsTest {
     fn default() -> Self {
         Self {
@@ -312,7 +322,7 @@ fn test_new_with_options() {
         // TODO
         // "nil network identifier"=> ServerTest {
         //     supported_networks: vec!(valid_network_identifier(), todo!()),
-        //     err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+        //     res: Some(NetworkError::NetworkIdentifierIsNil.into()),
         //     ..Default::default()
         // },
         AsserterTest {
@@ -325,18 +335,7 @@ fn test_new_with_options() {
         },
     ];
 
-    let asserter = |test: &NewWithOptionsTest| {
-        RequestAsserter::new_server(
-            test.supported_operation_types.clone(),
-            true,
-            test.supported_networks.clone(),
-            test.call_methods.clone(),
-            false,
-            Path::new(""),
-        )
-    };
-
-    non_asserter_tests(&tests, asserter);
+    AsserterTest::non_asserter_tests(&tests, NewWithOptionsTest::run);
 }
 
 #[test]
@@ -345,12 +344,12 @@ fn test_supported_networks() {
         AsserterTest {
             name: "valid networks",
             payload: vec![valid_network_identifier(), wrong_network_identifier()],
-            err: None,
+            ..Default::default()
         },
         AsserterTest {
             name: "no valid networks",
-            payload: vec![],
             err: Some(ServerError::NoSupportedNetworks.into()),
+            ..Default::default()
         },
         AsserterTest {
             name: "invalid networks",
@@ -359,7 +358,7 @@ fn test_supported_networks() {
                 network: "".into(),
                 sub_network_identifier: None,
             }],
-            err: None,
+            ..Default::default()
         },
         AsserterTest {
             name: "duplicate networks",
@@ -375,7 +374,7 @@ fn test_supported_networks() {
         },
     ];
 
-    non_asserter_tests(&tests, |test| supported_networks(test.as_slice()));
+    AsserterTest::non_asserter_tests(&tests, |test| supported_networks(test.as_slice()));
 }
 
 #[test]
@@ -446,7 +445,7 @@ fn test_account_balance_request() {
         // TODO
         // "nil request" => AccountBalanceRequestTest {
         //     request: todo!(),
-        //     err: Some(ServerError::AccountBalanceRequestIsNil.into()),
+        //     res: Some(ServerError::AccountBalanceRequestIsNil.into()),
         //     ..Default::default()
         // },
         CustomAsserterTest {
@@ -514,7 +513,11 @@ fn test_account_balance_request() {
         .unwrap()
     };
 
-    custom_request_asserter_tests(asserter, &tests, RequestAsserter::account_balance_request);
+    CustomAsserterTest::custom_request_asserter_tests(
+        &tests,
+        asserter,
+        RequestAsserter::account_balance_request,
+    );
 }
 
 #[test]
@@ -571,7 +574,7 @@ fn test_block_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::block_request);
+    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::block_request);
 }
 
 #[test]
@@ -605,7 +608,7 @@ fn test_block_transaction_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::BlockTransactionRequestIsNil.into()),
+        //     res: Some(ServerError::BlockTransactionRequestIsNil.into()),
         // },
         AsserterTest {
             name: "missing network",
@@ -636,7 +639,10 @@ fn test_block_transaction_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::block_transaction_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::block_transaction_request,
+    );
 }
 
 #[test]
@@ -675,7 +681,7 @@ fn test_construction_metadata_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionCombineRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionCombineRequestIsNil.into()),
         // },
         AsserterTest {
             name: "missing network",
@@ -708,7 +714,10 @@ fn test_construction_metadata_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_metadata_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_metadata_request,
+    );
 }
 
 #[test]
@@ -733,7 +742,7 @@ fn test_construction_submit_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionSubmitRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionSubmitRequestIsNil.into()),
         // },
         AsserterTest {
             name: "empty tx",
@@ -742,7 +751,10 @@ fn test_construction_submit_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_submit_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_submit_request,
+    );
 }
 
 #[test]
@@ -774,7 +786,7 @@ fn test_mempool_transaction_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::MempoolTransactionRequestIsNil.into()),
+        //     res: Some(ServerError::MempoolTransactionRequestIsNil.into()),
         // },
         AsserterTest {
             name: "missing network",
@@ -794,7 +806,10 @@ fn test_mempool_transaction_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::mempool_transaction_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::mempool_transaction_request,
+    );
 }
 
 #[test]
@@ -806,11 +821,11 @@ fn test_metadata_request() {
         }, // TODO
            // "nil request" => ServerTest {
            //     request: todo!(),
-           //     err: Some(ServerError::MetadataRequestIsNil.into()),
+           //     res: Some(ServerError::MetadataRequestIsNil.into()),
            // }
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::metadata_request);
+    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::metadata_request);
 }
 
 #[test]
@@ -842,7 +857,7 @@ fn test_network_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::NetworkRequestIsNil.into()),
+        //     res: Some(ServerError::NetworkRequestIsNil.into()),
         // },
         AsserterTest {
             name: "missing network",
@@ -851,7 +866,7 @@ fn test_network_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::network_request);
+    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::network_request);
 }
 
 #[test]
@@ -884,7 +899,7 @@ fn test_construction_derive_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionDeriveRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionDeriveRequestIsNil.into()),
         // },
         AsserterTest {
             name: "nil public key",
@@ -908,7 +923,10 @@ fn test_construction_derive_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_derive_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_derive_request,
+    );
 }
 
 #[test]
@@ -973,7 +991,7 @@ fn test_construction_preprocess_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionPreprocessRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionPreprocessRequestIsNil.into()),
         // },
         AsserterTest {
             name: "nil operations",
@@ -1038,7 +1056,10 @@ fn test_construction_preprocess_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_preprocess_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_preprocess_request,
+    );
 }
 
 #[test]
@@ -1085,7 +1106,7 @@ fn test_construction_payloads_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
         // },
         AsserterTest {
             name: "nil operations",
@@ -1137,7 +1158,10 @@ fn test_construction_payloads_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_payload_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_payload_request,
+    );
 }
 
 #[test]
@@ -1206,7 +1230,7 @@ fn test_construction_combine_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionCombineRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionCombineRequestIsNil.into()),
         // },
         AsserterTest {
             name: "empty unsigned transaction",
@@ -1264,7 +1288,10 @@ fn test_construction_combine_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_combine_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_combine_request,
+    );
 }
 
 #[test]
@@ -1296,7 +1323,7 @@ fn test_construction_hash_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionHashRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionHashRequestIsNil.into()),
         // },
         AsserterTest {
             name: "empty signed transaction",
@@ -1308,7 +1335,10 @@ fn test_construction_hash_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_hash_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_hash_request,
+    );
 }
 
 #[test]
@@ -1334,7 +1364,7 @@ fn test_construction_parse_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::ConstructionParseRequestIsNil.into()),
+        //     res: Some(ServerError::ConstructionParseRequestIsNil.into()),
         // },
         AsserterTest {
             name: "empty signed transaction",
@@ -1346,7 +1376,10 @@ fn test_construction_parse_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::construction_parse_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::construction_parse_request,
+    );
 }
 
 #[test]
@@ -1397,7 +1430,7 @@ fn test_call_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::CallRequestIsNil.into()),
+        //     res: Some(ServerError::CallRequestIsNil.into()),
         // },
         AsserterTest {
             name: "empty method",
@@ -1409,7 +1442,7 @@ fn test_call_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::call_request);
+    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::call_request);
 }
 
 #[test]
@@ -1476,7 +1509,7 @@ fn test_account_coins_request() {
         // TODO
         // "nil request" => AccountCoinsRequestTest {
         //     request: todo!(),
-        //     err: Some(ServerError::AccountBalanceRequestIsNil.into()),
+        //     res: Some(ServerError::AccountBalanceRequestIsNil.into()),
         //     ..Default::default()
         // },
         CustomAsserterTest {
@@ -1532,7 +1565,11 @@ fn test_account_coins_request() {
         .unwrap()
     };
 
-    custom_request_asserter_tests(asserter, &tests, RequestAsserter::account_coins_request);
+    CustomAsserterTest::custom_request_asserter_tests(
+        &tests,
+        asserter,
+        RequestAsserter::account_coins_request,
+    );
 }
 
 #[test]
@@ -1564,7 +1601,7 @@ fn test_event_blocks_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::EventsBlocksRequestIsNil.into()),
+        //     res: Some(ServerError::EventsBlocksRequestIsNil.into()),
         // },
         AsserterTest {
             name: "negative offset",
@@ -1586,7 +1623,7 @@ fn test_event_blocks_request() {
         },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::events_block_request);
+    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::events_block_request);
 }
 
 #[test]
@@ -1628,7 +1665,7 @@ fn test_search_transactions_request() {
         // TODO
         // "nil request" => ServerTest {
         //     request: todo!(),
-        //     err: Some(ServerError::SearchTransactionsRequestIsNil.into()),
+        //     res: Some(ServerError::SearchTransactionsRequestIsNil.into()),
         // },
         AsserterTest {
             name: "negative max block",
@@ -1667,9 +1704,12 @@ fn test_search_transactions_request() {
         //         operator: Some(Operator::Nor),
         //         ..Default::default()
         //     },
-        //     err: Some(ServerError::OperatorInvalid.into()),
+        //     res: Some(ServerError::OperatorInvalid.into()),
         // },
     ];
 
-    default_request_asserter_tests(&tests, RequestAsserter::search_transactions_request);
+    AsserterTest::default_request_asserter_tests(
+        &tests,
+        RequestAsserter::search_transactions_request,
+    );
 }

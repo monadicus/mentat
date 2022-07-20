@@ -1,111 +1,106 @@
-use indexmap::{indexmap, IndexMap};
+use indexmap::indexmap;
 
 use crate::{
     asserter::{asserter_tools::Asserter, block::MIN_UNIX_EPOCH, errors::*},
     types::{
-        Allow,
-        BlockIdentifier,
-        MentatError,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        OperationStatus,
-        Peer,
-        Version,
+        Allow, BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse,
+        NetworkStatusResponse, OperationStatus, Peer, Version,
     },
 };
 
-struct ErrMapTest {
-    err: MentatError,
-    expected_err: Option<ErrorError>,
-}
+use super::test_utils::AsserterEqualityTest;
 
 #[test]
 fn test_error_map() {
-    let tests: IndexMap<&str, ErrMapTest> = indexmap!(
-      "matching error" => ErrMapTest {
-        err: MentatError {
-          status_code: 0,
-          code: 10,
-          message: "error 10".to_string(),
-          description: None,
-          retriable: true,
-          details: indexmap!(
-            "hello".to_string() => "goodbye".into()
-          )
+    let tests = [
+        AsserterEqualityTest {
+            name: "matching error",
+            payload: MentatError {
+                status_code: 0,
+                code: 10,
+                message: "error 10".to_string(),
+                description: None,
+                retriable: true,
+                details: indexmap!(
+                  "hello".to_string() => "goodbye".into()
+                ),
+            },
+            res: None,
         },
-        expected_err: None
-      },
-      "empty description" => ErrMapTest {
-        err: MentatError {
-          status_code: 0,
-          code: 10,
-          message: "error 10".to_string(),
-          description: Some(String::new()),
-          retriable: true,
-          details: indexmap!(
-            "hello".to_string() => "goodbye".into()
-          )
+        AsserterEqualityTest {
+            name: "empty description",
+            payload: MentatError {
+                status_code: 0,
+                code: 10,
+                message: "error 10".to_string(),
+                description: Some(String::new()),
+                retriable: true,
+                details: indexmap!(
+                  "hello".to_string() => "goodbye".into()
+                ),
+            },
+            res: Some(ErrorError::DescriptionEmpty),
         },
-        expected_err: Some(ErrorError::DescriptionEmpty),
-      },
-      // TODO make code an i32
-      // "negative error" => ErrMapTest {
-      //   err: MentatError {
-      //     status_code: 0,
-      //     code: -1,
-      //     message: "error 10".to_string(),
-      //     description: None,
-      //     retriable: true,
-      //     details: indexmap!(
-      //       "hello".to_string() => "goodbye".into()
-      //     )
-      //   },
-      //   expected_err: Some(ErrorError::CodeIsNeg),
-      // },
-      "retriable error" => ErrMapTest {
-        err: MentatError {
-          status_code: 0,
-          code: 10,
-          message: "error 10".to_string(),
-          description: None,
-          retriable: false,
-          details: indexmap!(
-            "hello".to_string() => "goodbye".into()
-          )
+        // TODO make code an i32
+        // "negative error" => ErrMapTest {
+        //   err: MentatError {
+        //     status_code: 0,
+        //     code: -1,
+        //     message: "error 10".to_string(),
+        //     description: None,
+        //     retriable: true,
+        //     details: indexmap!(
+        //       "hello".to_string() => "goodbye".into()
+        //     )
+        //   },
+        //   expected_err: Some(ErrorError::CodeIsNeg),
+        // },
+        AsserterEqualityTest {
+            name: "retriable error",
+            payload: MentatError {
+                status_code: 0,
+                code: 10,
+                message: "error 10".to_string(),
+                description: None,
+                retriable: false,
+                details: indexmap!(
+                  "hello".to_string() => "goodbye".into()
+                ),
+            },
+            res: Some(ErrorError::RetriableMismatch),
         },
-        expected_err: Some(ErrorError::RetriableMismatch),
-      },
-      "code mismatch" => ErrMapTest {
-        err: MentatError {
-          status_code: 0,
-          code: 20,
-          message: "error 20".to_string(),
-          description: None,
-          retriable: false,
-          details: indexmap!(
-            "hello".to_string() => "goodbye".into()
-          )
+        AsserterEqualityTest {
+            name: "code mismatch",
+            payload: MentatError {
+                status_code: 0,
+                code: 20,
+                message: "error 20".to_string(),
+                description: None,
+                retriable: false,
+                details: indexmap!(
+                  "hello".to_string() => "goodbye".into()
+                ),
+            },
+            res: Some(ErrorError::UnexpectedCode),
         },
-        expected_err: Some(ErrorError::UnexpectedCode),
-      },
-      "code mismatch" => ErrMapTest {
-        err: MentatError {
-          status_code: 0,
-          code: 10,
-          message: "error 11".to_string(),
-          description: None,
-          retriable: true,
-          details: indexmap!(
-            "hello".to_string() => "goodbye".into()
-          )
+        AsserterEqualityTest {
+            name: "code mismatch",
+            payload: MentatError {
+                status_code: 0,
+                code: 10,
+                message: "error 11".to_string(),
+                description: None,
+                retriable: true,
+                details: indexmap!(
+                  "hello".to_string() => "goodbye".into()
+                ),
+            },
+            res: Some(ErrorError::MessageMismatch),
         },
-        expected_err: Some(ErrorError::MessageMismatch),
-      },
-    );
+    ];
 
-    tests.into_iter().for_each(|(name, test)| {
-        println!("test: {name}");
+    tests.into_iter().for_each(|test| {
+        println!("test: {test}");
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
@@ -172,9 +167,10 @@ fn test_error_map() {
             },
             // TODO make this optional???
             Default::default(),
-        );
-        assert!(asserter.is_ok());
+        )
+        .unwrap();
 
         // let resp = asserter.unwrap().error(&test.err);
+        todo!()
     });
 }

@@ -7,30 +7,14 @@ use crate::{
         errors::{AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        BlockIdentifier,
-        BlockTransaction,
-        Currency,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        SearchTransactionsResponse,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Allow, Amount, BlockIdentifier, BlockTransaction, Currency,
+        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
+        OperationIdentifier, OperationStatus, Peer, SearchTransactionsResponse, Transaction,
+        TransactionIdentifier, Version,
     },
 };
 
-struct SearchTxsRespTest {
-    resp: SearchTransactionsResponse,
-    err: Option<AsserterError>,
-}
+use super::test_utils::AsserterTest;
 
 #[test]
 fn test_search_transactions_response() {
@@ -87,75 +71,84 @@ fn test_search_transactions_response() {
         index: 100,
     };
 
-    let tests: IndexMap<&str, SearchTxsRespTest> = indexmap!(
-      "no transactions" => SearchTxsRespTest {
-        resp: Default::default(),
-        err: None,
-      },
-      "valid next" => SearchTxsRespTest {
-        resp: SearchTransactionsResponse {
-          next_offset: Some(1),
-          ..Default::default()
+    let tests = [
+        AsserterTest {
+            name: "no transactions",
+            payload: Default::default(),
+            err: None,
         },
-        err: None,
-      },
-      // TODO make next offset a i64
-      // "invalid next" => SearchTxsRespTest {
-      //   resp: SearchTransactionsResponse {
-      //     next_offset: Some(-1),
-      //     ..Default::default()
-      //   },
-      //   err: Some(SearchError::NextOffsetInvalid.into()),
-      // },
-      "valid count" => SearchTxsRespTest {
-        resp: SearchTransactionsResponse {
-          total_count: 0,
-          ..Default::default()
+        AsserterTest {
+            name: "valid next",
+            payload: SearchTransactionsResponse {
+                next_offset: Some(1),
+                ..Default::default()
+            },
+            err: None,
         },
-        err: None,
-      },
-      // TODO make total count an i64
-      // "invalid count" => SearchTxsRespTest {
-      //   resp: SearchTransactionsResponse {
-      //     total_count: -1,
-      //     ..Default::default()
-      //   },
-      //   err: Some(SearchError::TotalCountInvalid.into()),
-      // },
-      "valid next + transaction" => SearchTxsRespTest {
-        resp: SearchTransactionsResponse {
-          next_offset: Some(1),
-          transactions: vec![
-            BlockTransaction { block_identifier: valid_block_ident.clone(), transaction: valid_transaction.clone() },
-          ],
-          ..Default::default()
+        // TODO make next offset a i64
+        // "invalid next" => SearchTxsRespTest {
+        //   resp: SearchTransactionsResponse {
+        //     next_offset: Some(-1),
+        //     ..Default::default()
+        //   },
+        //   err: Some(SearchError::NextOffsetInvalid.into()),
+        // },
+        AsserterTest {
+            name: "valid count",
+            payload: SearchTransactionsResponse {
+                total_count: 0,
+                ..Default::default()
+            },
+            err: None,
         },
-        err: None,
-      },
-      "valid next + invalid blockIdentifier" => SearchTxsRespTest {
-        resp: SearchTransactionsResponse {
-          next_offset: Some(1),
-          transactions: vec![
-            BlockTransaction { block_identifier: Default::default(), transaction: valid_transaction },
-          ],
-          ..Default::default()
+        // TODO make total count an i64
+        // "invalid count" => SearchTxsRespTest {
+        //   resp: SearchTransactionsResponse {
+        //     total_count: -1,
+        //     ..Default::default()
+        //   },
+        //   err: Some(SearchError::TotalCountInvalid.into()),
+        // },
+        AsserterTest {
+            name: "valid next + transaction",
+            payload: SearchTransactionsResponse {
+                next_offset: Some(1),
+                transactions: vec![BlockTransaction {
+                    block_identifier: valid_block_ident.clone(),
+                    transaction: valid_transaction.clone(),
+                }],
+                ..Default::default()
+            },
+            err: None,
         },
-        err: Some(BlockError::BlockIdentifierHashMissing.into()),
-      },
-      "valid next + invalid transaction" => SearchTxsRespTest {
-        resp: SearchTransactionsResponse {
-          next_offset: Some(1),
-          transactions: vec![
-            BlockTransaction { block_identifier: valid_block_ident, transaction: Default::default() },
-          ],
-          ..Default::default()
+        AsserterTest {
+            name: "valid next + invalid blockIdentifier",
+            payload: SearchTransactionsResponse {
+                next_offset: Some(1),
+                transactions: vec![BlockTransaction {
+                    block_identifier: Default::default(),
+                    transaction: valid_transaction,
+                }],
+                ..Default::default()
+            },
+            err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
-        err: Some(BlockError::BlockIdentifierHashMissing.into()),
-      },
-    );
+        AsserterTest {
+            name: "valid next + invalid transaction",
+            payload: SearchTransactionsResponse {
+                next_offset: Some(1),
+                transactions: vec![BlockTransaction {
+                    block_identifier: valid_block_ident,
+                    transaction: Default::default(),
+                }],
+                ..Default::default()
+            },
+            err: Some(BlockError::BlockIdentifierHashMissing.into()),
+        },
+    ];
 
-    tests.into_iter().for_each(|(name, test)| {
-        println!("test: {name}");
+    tests.into_iter().for_each(|test| {
+        println!("test: {test}");
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
@@ -203,7 +196,9 @@ fn test_search_transactions_response() {
                 },
             },
             Default::default(),
-        );
-        assert!(asserter.is_ok());
+        )
+        .unwrap();
+
+        todo!()
     });
 }
