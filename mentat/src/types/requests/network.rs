@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// A [`NetworkRequest`] is utilized to retrieve some data specific exclusively to
-/// a [`NetworkIdentifier`].
+/// A [`NetworkRequest`] is utilized to retrieve some data specific exclusively
+/// to a [`NetworkIdentifier`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct NetworkRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is

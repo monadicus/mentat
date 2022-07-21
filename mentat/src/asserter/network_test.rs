@@ -7,8 +7,16 @@ use crate::{
         network::{allow, error, errors, network_identifier, network_list_response, version},
     },
     types::{
-        Allow, BalanceExemption, Currency, ExemptionType, MentatError, NetworkIdentifier,
-        NetworkListResponse, OperationStatus, SubNetworkIdentifier, Version,
+        Allow,
+        BalanceExemption,
+        Currency,
+        ExemptionType,
+        MentatError,
+        NetworkIdentifier,
+        NetworkListResponse,
+        OperationStatus,
+        SubNetworkIdentifier,
+        Version,
     },
 };
 

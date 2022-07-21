@@ -2,11 +2,11 @@
 
 use super::*;
 
-/// [`SyncStatus`] is used to provide additional context about an implementation's
-/// sync status. This object is often used by implementations to indicate
-/// healthiness when block data cannot be queried until some sync phase
-/// completes or cannot be determined by comparing the timestamp of the most
-/// recent block with the current time.
+/// [`SyncStatus`] is used to provide additional context about an
+/// implementation's sync status. This object is often used by implementations
+/// to indicate healthiness when block data cannot be queried until some sync
+/// phase completes or cannot be determined by comparing the timestamp of the
+/// most recent block with the current time.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct SyncStatus {
     /// `CurrentIndex` is the index of the last synced block in the current

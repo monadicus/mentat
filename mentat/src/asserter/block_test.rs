@@ -5,16 +5,35 @@ use crate::{
     asserter::{
         asserter_tools::Asserter,
         block::{
-            account_identifier, amount, block_identifier, operation_identifier, MAX_UNIX_EPOCH,
+            account_identifier,
+            amount,
+            block_identifier,
+            operation_identifier,
+            MAX_UNIX_EPOCH,
             MIN_UNIX_EPOCH,
         },
         errors::{AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier, Allow, Amount, Block, BlockIdentifier, Currency, Direction,
-        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
-        OperationIdentifier, OperationStatus, Peer, RelatedTransaction, SubAccountIdentifier,
-        Transaction, TransactionIdentifier, Version,
+        AccountIdentifier,
+        Allow,
+        Amount,
+        Block,
+        BlockIdentifier,
+        Currency,
+        Direction,
+        NetworkIdentifier,
+        NetworkOptionsResponse,
+        NetworkStatusResponse,
+        Operation,
+        OperationIdentifier,
+        OperationStatus,
+        Peer,
+        RelatedTransaction,
+        SubAccountIdentifier,
+        Transaction,
+        TransactionIdentifier,
+        Version,
     },
 };
 
@@ -255,9 +274,7 @@ fn test_operation_identifier() {
         // },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| {
-        operation_identifier(&data.ident, data.index)
-    });
+    AsserterTest::non_asserter_tests(&tests, |data| operation_identifier(&data.ident, data.index));
 }
 
 #[test]

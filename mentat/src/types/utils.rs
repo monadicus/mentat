@@ -7,7 +7,12 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier, Amount, BlockIdentifier, Currency, PartialBlockIdentifier, Sortable,
+    AccountIdentifier,
+    Amount,
+    BlockIdentifier,
+    Currency,
+    PartialBlockIdentifier,
+    Sortable,
 };
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided
@@ -142,7 +147,7 @@ pub(crate) fn negative_value(val: &str) -> Result<String, Box<dyn Error>> {
 
 /// `extract_amount` returns the Amount from a slice of Balance
 /// pertaining to an AccountAndCurrency.
-pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -> Option<Amount> {
+pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -> Amount {
     balances
         .iter()
         .find(|amt| {
@@ -153,5 +158,10 @@ pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -
             }
         })
         .cloned()
-        .unwrap_or(None)
+        .flatten()
+        .unwrap_or(Amount {
+            value: "0".to_string(),
+            currency: Some(currency.clone()),
+            ..Default::default()
+        })
 }

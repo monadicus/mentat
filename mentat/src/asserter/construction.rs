@@ -1,10 +1,13 @@
 //! Validates that construction data is correct.
 
+use tracing_subscriber::fmt::format;
+
 use super::{
     account_array,
     account_identifier,
     assert_unique_amounts,
     bytes_array_zero,
+    errors::AsserterError,
     AssertResult,
     ConstructionDeriveResponse,
     ConstructionError,
@@ -19,6 +22,7 @@ use super::{
     SignatureType,
     SigningPayload,
 };
+use crate::types::{ECDSA, ECDSA_RECOVERY, ED25519, SCHNORR_1, SCHNORR_POSEIDON};
 
 /// the request public keys are not valid AccountIdentifiers.
 pub(crate) fn construction_preprocess_response(
@@ -258,7 +262,14 @@ pub(crate) fn signatures(signatures: &[Signature]) -> AssertResult<()> {
 
 /// signature_type returns an error if
 /// signature is not a valid [`SignatureType`].
-pub(crate) fn signature_type(_: &SignatureType) -> AssertResult<()> {
-    // TODO impossible since ours is enum
-    Ok(())
+pub(crate) fn signature_type(st: &SignatureType) -> AssertResult<()> {
+    if !st.valid() {
+        Err(AsserterError::from(format!(
+            "{}: {}",
+            ConstructionError::SignatureTypeNotSupported,
+            st.0
+        )))
+    } else {
+        Ok(())
+    }
 }

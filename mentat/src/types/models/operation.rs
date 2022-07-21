@@ -4,12 +4,12 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// [`Operation`]s contain all balance-changing information within a transaction.
-/// They are always one-sided (only affect 1 [`AccountIdentifier`]) and can
-/// succeed or fail independently from a [`Transaction`]. `Operation`s are used
-/// both to represent on-chain data (Data API) and to construct new transactions
-/// (Construction API), creating a standard interface for reading and writing to
-/// blockchains.
+/// [`Operation`]s contain all balance-changing information within a
+/// transaction. They are always one-sided (only affect 1 [`AccountIdentifier`])
+/// and can succeed or fail independently from a [`Transaction`]. `Operation`s
+/// are used both to represent on-chain data (Data API) and to construct new
+/// transactions (Construction API), creating a standard interface for reading
+/// and writing to blockchains.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Operation {
     /// The [`OperationIdentifier`] uniquely identifies an operation within a

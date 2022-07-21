@@ -1,6 +1,7 @@
 use indexmap::{indexmap, IndexMap};
 use serde_json::{json, Value};
 
+use super::test_utils::{AsserterEqualityTest, AsserterTest};
 use crate::{
     asserter::{
         account::{account_balance_response, contains_currency, contains_duplicate_currency},
@@ -8,8 +9,6 @@ use crate::{
     },
     types::{AccountBalanceResponse, Amount, BlockIdentifier, Currency, PartialBlockIdentifier},
 };
-
-use super::test_utils::{AsserterEqualityTest, AsserterTest};
 
 #[derive(Default)]
 struct ContainsCurrencyTest {

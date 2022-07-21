@@ -9,8 +9,8 @@ use super::*;
 /// in the mempool (ex: fee paid).
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MempoolTransactionResponse {
-    /// [`Transaction`]s contain an array of [`Operation`]s that are attributable
-    /// to the same [`TransactionIdentifier`].
+    /// [`Transaction`]s contain an array of [`Operation`]s that are
+    /// attributable to the same [`TransactionIdentifier`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction: Option<Transaction>,
     #[allow(clippy::missing_docs_in_private_items)]

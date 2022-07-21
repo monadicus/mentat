@@ -1,11 +1,10 @@
 use std::fmt;
 
+use super::server_test::request_asserter;
 use crate::asserter::{
     asserter_tools::RequestAsserter,
     errors::{AssertResult, AsserterError},
 };
-
-use super::server_test::request_asserter;
 
 #[derive(Default)]
 pub(crate) struct AsserterTest<P: Default> {

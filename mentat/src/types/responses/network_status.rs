@@ -3,9 +3,9 @@
 use super::*;
 use crate::types::{Peer, SyncStatus};
 
-/// [`NetworkStatusResponse`] contains basic information about the node's view of
-/// a blockchain network. It is assumed that any [`BlockIdentifier.Index`] less
-/// than or equal to CurrentBlockIdentifier. Index can be queried. If a
+/// [`NetworkStatusResponse`] contains basic information about the node's view
+/// of a blockchain network. It is assumed that any [`BlockIdentifier.Index`]
+/// less than or equal to CurrentBlockIdentifier. Index can be queried. If a
 /// Rosetta implementation prunes historical state, it should populate the
 /// optional `oldest_block_identifier` field with the oldest block available to
 /// query. If this is not populated, it is assumed that the

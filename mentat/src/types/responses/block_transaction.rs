@@ -2,7 +2,8 @@
 
 use super::*;
 
-/// A [`BlockTransactionResponse`] contains information about a block transaction.
+/// A [`BlockTransactionResponse`] contains information about a block
+/// transaction.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct BlockTransactionResponse {
     /// [`Transaction`]

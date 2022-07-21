@@ -1,5 +1,6 @@
 use indexmap::{indexmap, IndexMap};
 
+use super::test_utils::AsserterTest;
 use crate::{
     asserter::{
         asserter_tools::Asserter,
@@ -7,14 +8,25 @@ use crate::{
         errors::{AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier, Allow, Amount, BlockIdentifier, BlockTransaction, Currency,
-        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
-        OperationIdentifier, OperationStatus, Peer, SearchTransactionsResponse, Transaction,
-        TransactionIdentifier, Version,
+        AccountIdentifier,
+        Allow,
+        Amount,
+        BlockIdentifier,
+        BlockTransaction,
+        Currency,
+        NetworkIdentifier,
+        NetworkOptionsResponse,
+        NetworkStatusResponse,
+        Operation,
+        OperationIdentifier,
+        OperationStatus,
+        Peer,
+        SearchTransactionsResponse,
+        Transaction,
+        TransactionIdentifier,
+        Version,
     },
 };
-
-use super::test_utils::AsserterTest;
 
 #[test]
 fn test_search_transactions_response() {

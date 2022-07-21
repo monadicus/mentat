@@ -10,8 +10,8 @@ pub struct BlockTransaction {
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_identifier: Option<BlockIdentifier>,
-    /// [`Transaction`]s contain an array of [`Operation`]s that are attributable to
-    /// the same [`TransactionIdentifier`].
+    /// [`Transaction`]s contain an array of [`Operation`]s that are
+    /// attributable to the same [`TransactionIdentifier`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction: Option<Transaction>,
 }

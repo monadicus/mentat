@@ -6,19 +6,26 @@ use super::*;
 /// subject to a `BalanceExemption` could increase above, decrease below, or
 /// equal the computed balance.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub enum ExemptionType {
-    /// The live balance may increase above or equal the computed balance. This
-    /// typically occurs with staking rewards that accrue on each block.
-    #[serde(rename = "greater_or_equal")]
-    GreaterOrEqual,
-    /// The live balance may decrease below or equal the computed balance. This
-    /// typically occurs as balance moves from locked to spendable on a vesting
-    /// account.
-    #[serde(rename = "less_or_equal")]
-    LessOrEqual,
+#[serde(transparent)]
+pub struct ExemptionType(pub String);
+
+impl ExemptionType {
     /// The live balance may increase above, decrease below, or equal the
     /// computed balance. This typically occurs with tokens that have a dynamic
     /// supply.
-    #[serde(rename = "dynamic")]
-    Dynamic,
+    pub const DYNAMIC: &'static str = "dynamic";
+    /// The live balance may increase above or equal the computed balance. This
+    /// typically occurs with staking rewards that accrue on each block.
+    pub const GREATER_OR_EQUAL: &'static str = "greater_or_equal";
+    /// The live balance may decrease below or equal the computed balance. This
+    /// typically occurs as balance moves from locked to spendable on a vesting
+    /// account.
+    pub const LESS_OR_EQUAL: &'static str = "less_or_equal";
+
+    pub fn valid(&self) -> bool {
+        match self.0.as_str() {
+            Self::GREATER_OR_EQUAL | Self::LESS_OR_EQUAL | Self::DYNAMIC => true,
+            _ => false,
+        }
+    }
 }

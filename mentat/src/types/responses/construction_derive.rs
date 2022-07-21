@@ -12,9 +12,10 @@ pub struct ConstructionDeriveResponse {
     /// network-specific format.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub address: Option<String>,
-    /// The [`AccountIdentifier`] uniquely identifies an account within a network.
-    /// All fields in the `account_identifier` are utilized to determine this
-    /// uniqueness (including the metadata field, if populated).
+    /// The [`AccountIdentifier`] uniquely identifies an account within a
+    /// network. All fields in the `account_identifier` are utilized to
+    /// determine this uniqueness (including the metadata field, if
+    /// populated).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_identifier: Option<AccountIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]

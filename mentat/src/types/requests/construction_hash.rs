@@ -2,7 +2,8 @@
 
 use super::*;
 
-/// [`ConstructionHashRequest`] is the input to the `/construction/hash` endpoint.
+/// [`ConstructionHashRequest`] is the input to the `/construction/hash`
+/// endpoint.
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionHashRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is

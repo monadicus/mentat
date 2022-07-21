@@ -4,10 +4,10 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// [`ConstructionPayloadsRequest`] is the request to `/construction/payloads`. It
-/// contains the network, a slice of operations, and arbitrary metadata that was
-/// returned by the call to `/construction/metadata`. Optionally, the request
-/// can also include an array of [`PublicKey`]s associated with the
+/// [`ConstructionPayloadsRequest`] is the request to `/construction/payloads`.
+/// It contains the network, a slice of operations, and arbitrary metadata that
+/// was returned by the call to `/construction/metadata`. Optionally, the
+/// request can also include an array of [`PublicKey`]s associated with the
 /// [`AccountIdentifier`]s returned in
 /// [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]

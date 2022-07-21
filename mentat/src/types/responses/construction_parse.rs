@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// [`ConstructionParseResponse`] contains an array of operations that occur in a
-/// transaction blob. This should match the array of operations provided to
+/// [`ConstructionParseResponse`] contains an array of operations that occur in
+/// a transaction blob. This should match the array of operations provided to
 /// `/construction/preprocess` and `/construction/payloads`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct ConstructionParseResponse {

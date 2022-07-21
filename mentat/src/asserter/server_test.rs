@@ -10,17 +10,38 @@ use crate::{
         server::supported_networks,
     },
     types::{
-        AccountBalanceRequest, AccountCoinsRequest, AccountIdentifier, Amount, BlockIdentifier,
-        BlockRequest, BlockTransactionRequest, CallRequest, ConstructionCombineRequest,
-        ConstructionDeriveRequest, ConstructionHashRequest, ConstructionMetadataRequest,
-        ConstructionParseRequest, ConstructionPayloadsRequest, ConstructionPreprocessRequest,
-        ConstructionSubmitRequest, Currency,
+        AccountBalanceRequest,
+        AccountCoinsRequest,
+        AccountIdentifier,
+        Amount,
+        BlockIdentifier,
+        BlockRequest,
+        BlockTransactionRequest,
+        CallRequest,
+        ConstructionCombineRequest,
+        ConstructionDeriveRequest,
+        ConstructionHashRequest,
+        ConstructionMetadataRequest,
+        ConstructionParseRequest,
+        ConstructionPayloadsRequest,
+        ConstructionPreprocessRequest,
+        ConstructionSubmitRequest,
+        Currency,
         CurveType::Secp256k1,
-        EventsBlocksRequest, MempoolTransactionRequest, NetworkIdentifier, NetworkRequest,
-        Operation, OperationIdentifier, Operator, PartialBlockIdentifier, PublicKey,
-        SearchTransactionsRequest, Signature,
+        EventsBlocksRequest,
+        MempoolTransactionRequest,
+        NetworkIdentifier,
+        NetworkRequest,
+        Operation,
+        OperationIdentifier,
+        Operator,
+        PartialBlockIdentifier,
+        PublicKey,
+        SearchTransactionsRequest,
+        Signature,
         SignatureType::{EcdsaRecovery, Ed25519},
-        SigningPayload, TransactionIdentifier,
+        SigningPayload,
+        TransactionIdentifier,
     },
 };
 
@@ -818,11 +839,11 @@ fn test_metadata_request() {
         AsserterTest {
             name: "valid request",
             ..Default::default()
-        }, // TODO
-           // "nil request" => ServerTest {
-           //     request: todo!(),
-           //     res: Some(ServerError::MetadataRequestIsNil.into()),
-           // }
+        }, /* TODO
+            * "nil request" => ServerTest {
+            *     request: todo!(),
+            *     res: Some(ServerError::MetadataRequestIsNil.into()),
+            * } */
     ];
 
     AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::metadata_request);

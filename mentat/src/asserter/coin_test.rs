@@ -1,3 +1,4 @@
+use super::test_utils::AsserterTest;
 use crate::{
     asserter::{
         coin::{coin, coin_change, coins},
@@ -5,8 +6,6 @@ use crate::{
     },
     types::{Amount, Coin, CoinAction, CoinChange, CoinIdentifier, Currency},
 };
-
-use super::test_utils::AsserterTest;
 
 #[test]
 fn test_coin() {
