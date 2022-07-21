@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// The `Version` object is utilized to inform the client of the versions of
+/// The [`Version`] object is utilized to inform the client of the versions of
 /// different components of the Rosetta implementation.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Version {

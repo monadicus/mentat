@@ -11,14 +11,14 @@ use super::*;
 pub struct PartialBlockIdentifier {
     /// This is also known as the block height.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub index: Option<u64>,
+    pub index: Option<i64>,
     /// The block hash.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hash: Option<String>,
 }
 
-impl From<u64> for PartialBlockIdentifier {
-    fn from(index: u64) -> Self {
+impl From<i64> for PartialBlockIdentifier {
+    fn from(index: i64) -> Self {
         Self {
             index: Some(index),
             ..Default::default()

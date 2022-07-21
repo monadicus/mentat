@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// `CallResponse` contains the result of a `/call` invocation.
+/// [`CallResponse`] contains the result of a `/call` invocation.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct CallResponse {
     /// Result contains the result of the `/call` invocation. This result will

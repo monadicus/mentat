@@ -2,9 +2,10 @@
 
 use super::*;
 
-/// A `BlockTransactionResponse` contains information about a block transaction.
+/// A [`BlockTransactionResponse`] contains information about a block transaction.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct BlockTransactionResponse {
-    /// `Transaction`
-    pub transaction: Transaction,
+    /// [`Transaction`]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction: Option<Transaction>,
 }

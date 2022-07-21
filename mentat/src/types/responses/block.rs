@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// A `BlockResponse` includes a fully-populated block or a partially-populated
+/// A [`BlockResponse`] includes a fully-populated block or a partially-populated
 /// block with a list of other transactions to fetch (`other_transactions`). As
 /// a result of the consensus algorithm of some blockchains, blocks can be
 /// omitted (i.e. certain block indices can be skipped). If a query for one of
@@ -27,5 +27,5 @@ pub struct BlockResponse {
     /// block, this can be very useful as consumers can concurrently fetch all
     /// transactions returned.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub other_transactions: Option<Vec<TransactionIdentifier>>,
+    pub other_transactions: Option<Vec<Option<TransactionIdentifier>>>,
 }

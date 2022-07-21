@@ -2,14 +2,16 @@
 
 use super::*;
 
-/// `BlockTransaction` contains a populated [`Transaction`] and the
+/// [`BlockTransaction`] contains a populated [`Transaction`] and the
 /// [`BlockIdentifier`] that contains it.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct BlockTransaction {
-    /// The `BlockIdentifier` uniquely identifies a block in a particular
+    /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
-    pub block_identifier: BlockIdentifier,
-    /// `Transaction`s contain an array of `Operation`s that are attributable to
-    /// the same `TransactionIdentifier`.
-    pub transaction: Transaction,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_identifier: Option<BlockIdentifier>,
+    /// [`Transaction`]s contain an array of [`Operation`]s that are attributable to
+    /// the same [`TransactionIdentifier`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction: Option<Transaction>,
 }

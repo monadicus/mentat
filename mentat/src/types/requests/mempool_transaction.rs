@@ -10,8 +10,10 @@ pub struct MempoolTransactionRequest {
     /// [`EventsBlocksRequest`] is utilized to fetch a sequence of
     /// [`BlockEvent`]s indicating which blocks were added and removed from
     /// storage to reach the current state.
-    pub network_identifier: NetworkIdentifier,
-    /// The `transaction_identifier` uniquely identifies a transaction in a
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_identifier: Option<NetworkIdentifier>,
+    /// The [`TransactionIdentifier`] uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
-    pub transaction_identifier: TransactionIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction_identifier: Option<TransactionIdentifier>,
 }

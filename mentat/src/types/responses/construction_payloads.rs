@@ -11,5 +11,6 @@ pub struct ConstructionPayloadsResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     pub unsigned_transaction: String,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub payloads: Vec<SigningPayload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payloads: Option<Vec<Option<SigningPayload>>>,
 }

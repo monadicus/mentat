@@ -2,14 +2,15 @@
 
 use super::*;
 
-/// `ConstructionParseRequest` is the input to the `/construction/parse`
+/// [`ConstructionParseRequest`] is the input to the `/construction/parse`
 /// endpoint. It allows the caller to parse either an unsigned or signed
 /// transaction.
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionParseRequest {
-    /// The `NetworkIdentifier` specifies which network a particular object is
+    /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
-    pub network_identifier: NetworkIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_identifier: Option<NetworkIdentifier>,
     /// Signed is a boolean indicating whether the transaction is signed.
     pub signed: bool,
     /// This must be either the unsigned transaction blob returned by

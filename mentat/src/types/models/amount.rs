@@ -15,7 +15,8 @@ pub struct Amount {
     /// `Currency` is composed of a canonical Symbol and Decimals. This
     /// Decimals value is used to convert an Amount.Value from atomic units
     /// (Satoshis) to standard units (Bitcoins).
-    pub currency: Currency,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub currency: Option<Currency>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     #[serde(default)]

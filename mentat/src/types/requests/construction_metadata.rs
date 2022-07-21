@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// A `ConstructionMetadataRequest` is utilized to get information required to
+/// A [`ConstructionMetadataRequest`] is utilized to get information required to
 /// construct a transaction. The `Options` object used to specify which metadata
 /// to return is left purposely unstructured to allow flexibility for
 /// implementers. `Options` is not required in the case that there is
@@ -11,9 +11,10 @@ use super::*;
 /// returned in [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionMetadataRequest {
-    /// The `NetworkIdentifier` specifies which network a particular object is
+    /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
-    pub network_identifier: NetworkIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_identifier: Option<NetworkIdentifier>,
     /// Some blockchains require different metadata for different types of
     /// transaction construction (ex: delegation versus a transfer). Instead of
     /// requiring a blockchain node to return all possible types of metadata for

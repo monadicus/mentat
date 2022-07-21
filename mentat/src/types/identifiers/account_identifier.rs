@@ -1,13 +1,11 @@
 //! The module defines the `AccountIdentifier`.
 
-use std::borrow::Cow;
-
 use indexmap::IndexMap;
 
 use super::*;
 use crate::types::Sortable;
 
-/// The `account_identifier` uniquely identifies an account within a network.
+/// The [`AccountIdentifier`] uniquely identifies an account within a network.
 /// All fields in the `account_identifier` are utilized to determine this
 /// uniqueness (including the metadata field, if populated).
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

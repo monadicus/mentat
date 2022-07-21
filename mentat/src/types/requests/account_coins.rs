@@ -8,12 +8,14 @@ use super::*;
 pub struct AccountCoinsRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
-    pub network_identifier: NetworkIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_identifier: Option<NetworkIdentifier>,
     /// The `AccountIdentifier` uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the `metadata` field, if
     /// populated).
-    pub account_identifier: AccountIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub account_identifier: Option<AccountIdentifier>,
     /// Include state from the mempool when looking up an account's unspent
     /// coins. Note, using this functionality breaks any guarantee of
     /// idempotency.

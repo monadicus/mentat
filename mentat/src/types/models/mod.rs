@@ -5,6 +5,12 @@ use serde_json::Value;
 
 use crate::types::*;
 
+mod account_coin;
+pub use account_coin::*;
+
+mod account_currency;
+pub use account_currency::*;
+
 mod allow;
 pub use allow::*;
 

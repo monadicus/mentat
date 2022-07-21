@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// `ConstructionPreprocessRequest` is passed to the `/construction/preprocess`
+/// [`ConstructionPreprocessRequest`] is passed to the `/construction/preprocess`
 /// endpoint so that a Rosetta implementation can determine which metadata it
 /// needs to request for construction. `Metadata` provided in this object should
 /// NEVER be a product of live data (i.e. the caller must follow some
@@ -23,17 +23,19 @@ use super::*;
 /// suggested fee (regardless of the multiplier provided).
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionPreprocessRequest {
-    /// The `NetworkIdentifier` specifies which network a particular object is
+    /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
-    pub network_identifier: NetworkIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_identifier: Option<NetworkIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub operations: Vec<Operation>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operations: Option<Vec<Option<Operation>>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_fee: Option<Vec<Amount>>,
+    pub max_fee: Option<Vec<Option<Amount>>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_fee_multiplier: Option<f64>,

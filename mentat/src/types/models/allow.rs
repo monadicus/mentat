@@ -12,15 +12,18 @@ pub struct Allow {
     /// All `OperationStatus` this implementation supports. Any status that is
     /// returned during parsing that is not listed here will cause client
     /// validation to error.
-    pub operation_statuses: Vec<OperationStatus>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation_statuses: Option<Vec<Option<OperationStatus>>>,
     /// All Operation Type this implementation supports. Any type that is
     /// returned during parsing that is not listed here will cause client
     /// validation to error.
-    pub operation_types: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation_types: Option<Vec<String>>,
     /// All `ApiError` that this implementation could return. Any error that
     /// is returned during parsing that is not listed here will cause client
     /// validation to error.
-    pub errors: Vec<MentatError>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub errors: Option<Vec<MentatError>>,
     /// Any Rosetta implementation that supports querying the balance of an
     /// account at any height in the past should set this to true.
     pub historical_balance_lookup: bool,
@@ -31,7 +34,7 @@ pub struct Allow {
     /// populated, block timestamps are assumed to be valid for all available
     /// blocks.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp_start_index: Option<u64>,
+    pub timestamp_start_index: Option<i64>,
     /// All methods that are supported by the `/call` endpoint. Communicating
     /// which parameters should be provided to `/call` is the responsibility of
     /// the implementer (this is en lieu of defining an entire type system and
@@ -46,7 +49,7 @@ pub struct Allow {
     /// `BalanceExemption`s, you MUST implement historical balance lookup (the
     /// ability to query an account balance at any [`BlockIdentifier`]).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub balance_exemptions: Option<Vec<BalanceExemption>>,
+    pub balance_exemptions: Option<Vec<Option<BalanceExemption>>>,
     /// Any Rosetta implementation that can update an [`AccountIdentifier`]'s
     /// unspent coins based on the contents of the mempool should populate this
     /// field as true. If false, requests to `/account/coins` that set

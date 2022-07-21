@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// `BalanceExemption` indicates that the balance for an exempt account could
+/// [`BalanceExemption`] indicates that the balance for an exempt account could
 /// change without a corresponding [`Operation`]. This typically occurs with
 /// staking rewards, vesting balances, and Currencies with a dynamic supply.
 /// Currently, it is possible to exempt an account from strict reconciliation by

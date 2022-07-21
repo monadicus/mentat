@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// `CoinAction`s are different state changes that a Coin can undergo. It is
+/// [`CoinAction`]s are different state changes that a Coin can undergo. It is
 /// assumed that a single Coin cannot be created or spent more than once.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum CoinAction {

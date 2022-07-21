@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// A Peer is a representation of a node's peer.
+/// A [`Peer`] is a representation of a node's peer.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Peer {
     /// The id of the peer.

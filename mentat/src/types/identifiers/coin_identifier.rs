@@ -4,7 +4,7 @@ use from_tuple::FromTuple;
 
 use super::*;
 
-/// `CoinIdentifier` uniquely identifies a Coin.
+/// [`CoinIdentifier`] uniquely identifies a Coin.
 #[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize)]
 pub struct CoinIdentifier {
     /// Identifier should be populated with a globally unique identifier of a

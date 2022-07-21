@@ -7,9 +7,10 @@ use super::*;
 /// `CallRequest` is the input to the `/call` endpoint.
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct CallRequest {
-    /// The `NetworkIdentifier` specifies which network a particular object is
+    /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
-    pub network_identifier: NetworkIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_identifier: Option<NetworkIdentifier>,
     /// Method is some network-specific procedure call. This method could map to
     /// a network-specific RPC endpoint, a method in an SDK generated from a
     /// smart contract, or some hybrid of the two. The implementation must

@@ -1,7 +1,5 @@
 //! The module defines the `NetworkIdentifier`.
 
-use std::borrow::Cow;
-
 #[cfg(feature = "server")]
 use axum::http::Extensions;
 
@@ -13,7 +11,7 @@ use crate::{
     server::ServerType,
 };
 
-/// The `network_identifier` specifies which network a particular object is
+/// The [`NetworkIdentifier`] specifies which network a particular object is
 /// associated with.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct NetworkIdentifier {
@@ -60,8 +58,8 @@ impl From<(String, String, Option<String>)> for NetworkIdentifier {
     }
 }
 
-impl From<NetworkIdentifier> for NetworkRequest {
-    fn from(net: NetworkIdentifier) -> Self {
+impl From<Option<NetworkIdentifier>> for NetworkRequest {
+    fn from(net: Option<NetworkIdentifier>) -> Self {
         Self {
             network_identifier: net,
             ..Default::default()

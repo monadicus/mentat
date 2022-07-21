@@ -10,10 +10,11 @@ use crate::types::BlockIdentifier;
 pub struct BlockEvent {
     /// Sequence is the unique identifier of a BlockEvent within the context of
     /// a [`NetworkIdentifier`].
-    pub sequence: u64,
+    pub sequence: i64,
     /// The `BlockIdentifier` uniquely identifies a block in a particular
     /// network.
-    pub block_identifier: BlockIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_identifier: Option<BlockIdentifier>,
     /// `BlockEventType` determines if a `BlockEvent` represents the addition or
     /// removal of a block.
     #[serde(rename = "type")]

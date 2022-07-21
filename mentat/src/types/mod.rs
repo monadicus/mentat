@@ -15,8 +15,10 @@ pub use responses::*;
 mod utils;
 pub(crate) use utils::*;
 
-/// NEEDS DOCS
+/// TODO NEEDS DOCS
 pub trait Sortable {
-    /// NEEDS DOCS
+    /// TODO NEEDS DOCS
     fn sort(&self) -> Self;
 }
+
+const ROSETTA_API_VERSION: &str = "1.4.12";

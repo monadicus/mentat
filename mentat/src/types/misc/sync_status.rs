@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// `SyncStatus` is used to provide additional context about an implementation's
+/// [`SyncStatus`] is used to provide additional context about an implementation's
 /// sync status. This object is often used by implementations to indicate
 /// healthiness when block data cannot be queried until some sync phase
 /// completes or cannot be determined by comparing the timestamp of the most
@@ -19,11 +19,11 @@ pub struct SyncStatus {
     /// the `/block` endpoint (excluding indices less than
     /// `oldest_block_identifier`).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub current_index: Option<u64>,
+    pub current_index: Option<i64>,
     /// `TargetIndex` is the index of the block that the implementation is
     /// attempting to sync to in the current stage.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub target_index: Option<u64>,
+    pub target_index: Option<i64>,
     /// Stage is the phase of the sync process.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stage: Option<String>,

@@ -2,13 +2,14 @@
 
 use super::*;
 
-/// `SearchTransactionsRequest` is used to search for transactions matching a
+/// [`SearchTransactionsRequest`] is used to search for transactions matching a
 /// set of provided conditions in canonical blocks.
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct SearchTransactionsRequest {
-    /// The `NetworkIdentifier` specifies which network a particular object is
+    /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
-    pub network_identifier: NetworkIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_identifier: Option<NetworkIdentifier>,
     /// `Operator` is used by query-related endpoints to determine how to apply
     /// conditions. If this field is not populated, the default and value will
     /// be used.

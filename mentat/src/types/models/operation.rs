@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// `Operation`s contain all balance-changing information within a transaction.
+/// [`Operation`]s contain all balance-changing information within a transaction.
 /// They are always one-sided (only affect 1 [`AccountIdentifier`]) and can
 /// succeed or fail independently from a [`Transaction`]. `Operation`s are used
 /// both to represent on-chain data (Data API) and to construct new transactions
@@ -12,16 +12,17 @@ use super::*;
 /// blockchains.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Operation {
-    /// The `OperationIdentifier` uniquely identifies an operation within a
+    /// The [`OperationIdentifier`] uniquely identifies an operation within a
     /// transaction.
-    pub operation_identifier: OperationIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation_identifier: Option<OperationIdentifier>,
     /// Restrict referenced related_operations to identifier indices " the
-    /// current `OperationIdentifier.index`. This ensures there exists a clear
+    /// current [`OperationIdentifier`].index. This ensures there exists a clear
     /// DAG-structure of relations. Since operations are one-sided, one could
     /// imagine relating operations in a single transfer or linking operations
     /// in a call tree.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub related_operations: Option<Vec<OperationIdentifier>>,
+    pub related_operations: Option<Vec<Option<OperationIdentifier>>>,
     /// Type is the network-specific type of the operation. Ensure that any type
     /// that can be returned here is also specified in the
     /// [`crate::responses::NetworkOptionsResponse`]. This can be very useful to
@@ -42,13 +43,13 @@ pub struct Operation {
     /// failed).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
-    /// The `AccountIdentifier` uniquely identifies an account within a
+    /// The [`AccountIdentifier`] uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account: Option<AccountIdentifier>,
-    /// `Amount` is some Value of a [`Currency`]. It is considered invalid to
+    /// [`Amount`] is some Value of a [`Currency`]. It is considered invalid to
     /// specify a Value without a [`Currency`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub amount: Option<Amount>,

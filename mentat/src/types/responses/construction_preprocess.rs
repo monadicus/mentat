@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// `ConstructionPreprocessResponse` contains options that will be sent
+/// [`ConstructionPreprocessResponse`] contains options that will be sent
 /// unmodified to `/construction/metadata`. If it is not necessary to make a
 /// request to `/construction/metadata`, options should be omitted. Some
 /// blockchains require the [`PublicKey`] of particular [`AccountIdentifier`]s
@@ -21,5 +21,5 @@ pub struct ConstructionPreprocessResponse {
     pub options: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_public_keys: Option<Vec<AccountIdentifier>>,
+    pub required_public_keys: Option<Vec<Option<AccountIdentifier>>>,
 }

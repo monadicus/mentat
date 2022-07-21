@@ -7,10 +7,11 @@ use super::*;
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct EventsBlocksResponse {
     /// `max_sequence` is the maximum available sequence number to fetch.
-    pub max_sequence: u64,
-    /// events is an array of `BlockEvents` indicating the order to add and
+    pub max_sequence: i64,
+    /// events is an array of [`BlockEvent`]s indicating the order to add and
     /// remove blocks to maintain a canonical view of blockchain state.
     /// Lightweight clients can use this event stream to update state
     /// without implementing their own block syncing logic.
-    pub events: Vec<BlockEvent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub events: Option<Vec<Option<BlockEvent>>>,
 }

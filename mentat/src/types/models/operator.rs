@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// `Operator` is used by query-related endpoints to determine how to apply
+/// [`Operator`] is used by query-related endpoints to determine how to apply
 /// conditions.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Operator {

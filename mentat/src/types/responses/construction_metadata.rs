@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use super::*;
 
-/// The `ConstructionMetadataResponse` returns network-specific metadata used
+/// The [`ConstructionMetadataResponse`] returns network-specific metadata used
 /// for transaction construction. Optionally, the implementer can return the
 /// suggested fee associated with the transaction being constructed. The caller
 /// may use this info to adjust the intent of the transaction or to create a
@@ -17,5 +17,5 @@ pub struct ConstructionMetadataResponse {
     pub metadata: IndexMap<String, Value>,
     /// The optional suggested fees for the response.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub suggested_fee: Option<Vec<Amount>>,
+    pub suggested_fee: Option<Vec<Option<Amount>>>,
 }

@@ -2,10 +2,11 @@
 
 use super::*;
 
-/// A `MempoolResponse` contains all transaction identifiers in the mempool for
+/// A [`MempoolResponse`] contains all transaction identifiers in the mempool for
 /// a particular `network_identifier`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MempoolResponse {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub transaction_identifiers: Vec<TransactionIdentifier>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction_identifiers: Option<Vec<Option<TransactionIdentifier>>>,
 }

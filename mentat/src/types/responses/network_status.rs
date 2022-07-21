@@ -3,7 +3,7 @@
 use super::*;
 use crate::types::{Peer, SyncStatus};
 
-/// `NetworkStatusResponse` contains basic information about the node's view of
+/// [`NetworkStatusResponse`] contains basic information about the node's view of
 /// a blockchain network. It is assumed that any [`BlockIdentifier.Index`] less
 /// than or equal to CurrentBlockIdentifier. Index can be queried. If a
 /// Rosetta implementation prunes historical state, it should populate the
@@ -16,17 +16,19 @@ use crate::types::{Peer, SyncStatus};
 /// stuck syncing and needs to be terminated.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct NetworkStatusResponse {
-    /// The `BlockIdentifier` uniquely identifies a block in a particular
+    /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
-    pub current_block_identifier: BlockIdentifier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub current_block_identifier: Option<BlockIdentifier>,
     /// The timestamp of the block in milliseconds since the Unix Epoch. The
     /// timestamp is stored in milliseconds because some blockchains produce
     /// blocks more often than once a second.
     pub current_block_timestamp: i64,
-    /// The `BlockIdentifier` uniquely identifies a block in a particular
+    /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
-    pub genesis_block_identifier: BlockIdentifier,
-    /// The `BlockIdentifier` uniquely identifies a block in a particular
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub genesis_block_identifier: Option<BlockIdentifier>,
+    /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub oldest_block_identifier: Option<BlockIdentifier>,
@@ -38,5 +40,6 @@ pub struct NetworkStatusResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sync_status: Option<SyncStatus>,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub peers: Vec<Peer>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub peers: Option<Vec<Option<Peer>>>,
 }
