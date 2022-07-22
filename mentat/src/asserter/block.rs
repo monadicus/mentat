@@ -212,44 +212,45 @@ impl ResponseAsserter {
             // Ensure an operation's related_operations are only
             // operations with an index less than the operation
             // and that there are no duplicates.
+            let operation_identifier_index = op.operation_identifier.unwrap().index;
             let mut related_indexes = IndexSet::new();
 
-            for related_op in op.related_operations.iter().flatten() {
+            for related_op in op
+                .related_operations
+                .iter()
+                .flatten()
+                .flat_map(|i| i.as_ref())
+            {
                 related_ops_exist = true;
 
-                // TODO: go code doesnt check these fields for null
-                let related_op_index = related_op.unwrap().index;
-                let operation_identifier_index = op.operation_identifier.unwrap().index;
-
-                if related_op_index >= operation_identifier_index {
+                if related_op.index >= operation_identifier_index {
                     Err(format!(
                         "{}: related operation index {} >= operation index {}",
                         BlockError::RelatedOperationIndexOutOfOrder,
-                        related_op_index,
+                        related_op.index,
                         operation_identifier_index
                     ))?;
                 }
 
-                if related_indexes.contains(&related_op_index) {
+                if related_indexes.contains(&related_op.index) {
                     Err(format!(
                         "{}: related operation index {} found for operation index {}",
                         BlockError::RelatedOperationIndexDuplicate,
-                        related_op_index,
+                        related_op.index,
                         operation_identifier_index
                     ))?;
                 }
 
-                related_indexes.insert(related_op_index);
+                related_indexes.insert(related_op.index);
             }
         }
 
         // throw an error if relatedOps is not implemented and relatedOps is supported
         if !related_ops_exist && self.validations.enabled && self.validations.related_ops_exists {
             Err(BlockError::RelatedOperationMissing)?;
-        }
-
-        // only account based validation
-        if self.validations.enabled && self.validations.chain_type == super::asserter_tools::ACCOUNT
+        } else if self.validations.enabled
+            // only account based validation
+            && self.validations.chain_type == super::asserter_tools::ACCOUNT
         {
             self.validate_payment_and_fee(payment_total, payment_count, fee_total, fee_count)?;
         }
@@ -269,24 +270,18 @@ impl ResponseAsserter {
         if self.validations.payment.operation.count != -1
             && self.validations.payment.operation.count != payment_count
         {
-            Err(BlockError::PaymentCountMismatch)?;
-        }
-
-        if self.validations.payment.operation.should_balance && payment_total != zero {
-            Err(BlockError::PaymentAmountNotBalancing)?;
-        }
-
-        if self.validations.fee.operation.count != -1
+            Err(BlockError::PaymentCountMismatch)?
+        } else if self.validations.payment.operation.should_balance && payment_total != zero {
+            Err(BlockError::PaymentAmountNotBalancing)?
+        } else if self.validations.fee.operation.count != -1
             && self.validations.payment.operation.count != fee_count
         {
-            Err(BlockError::FeeCountMismatch)?;
+            Err(BlockError::FeeCountMismatch)?
+        } else if self.validations.fee.operation.should_balance && fee_total != zero {
+            Err(BlockError::FeeAmountNotBalancing)?
+        } else {
+            Ok(())
         }
-
-        if self.validations.fee.operation.should_balance && fee_total != zero {
-            Err(BlockError::FeeAmountNotBalancing)?;
-        }
-
-        Ok(())
     }
 
     /// `transaction` returns an error if the [`TransactionIdentifier`]
@@ -340,7 +335,11 @@ impl ResponseAsserter {
             ))?;
         }
 
-        for (index, related) in related_transactions.iter().enumerate() {
+        for (index, related) in related_transactions
+            .iter()
+            .filter_map(|i| i.as_ref())
+            .enumerate()
+        {
             if let Some(network_ident) = related.network_identifier.as_ref() {
                 network_identifier(network_ident).map_err(|err| {
                     format!(
@@ -349,7 +348,7 @@ impl ResponseAsserter {
                 })?;
             }
 
-            transaction_identifier(related.transaction_identifier).map_err(|err| {
+            transaction_identifier(related.transaction_identifier.as_ref()).map_err(|err| {
                 format!(
                     "{err} invalid transaction identifier in related transaction at index {index}"
                 )
@@ -370,45 +369,43 @@ impl ResponseAsserter {
     }
 
     /// `block` runs a basic set of assertions for each returned [`Block`].
-    pub(crate) fn block(&self, block: &Block) -> AssertResult<()> {
-        // TODO if self nil bruh
-        // TODO if block nil
-        block_identifier(&block.block_identifier)?;
-        block_identifier(&block.parent_block_identifier)?;
+    pub(crate) fn block(&self, block: Option<&Block>) -> AssertResult<()> {
+        // TODO if self nil
+        let block = block.ok_or(BlockError::BlockIsNil)?;
+
+        block_identifier(block.block_identifier.as_ref())?;
+        block_identifier(block.parent_block_identifier.as_ref())?;
+        let block_identifier = block.block_identifier.unwrap();
+        let parent_block_identifier = block.parent_block_identifier.unwrap();
 
         // Only apply duplicate hash and index checks if the block index is not the
         // genesis index.
-        if self.genesis_block.index != block.block_identifier.index {
-            if block.block_identifier.hash == block.parent_block_identifier.hash {
+        if self.genesis_block.index != block_identifier.index {
+            if block_identifier.hash == parent_block_identifier.hash {
                 Err(BlockError::BlockHashEqualsParentBlockHash)?;
-            }
-
-            if block.block_identifier.index <= block.parent_block_identifier.index {
+            } else if block_identifier.index <= parent_block_identifier.index {
                 Err(BlockError::BlockIndexPrecedesParentBlockIndex)?;
             }
         }
 
         // Only check for timestamp validity if timestamp start index is <=
         // the current block index.
-        if self.timestamp_start_index <= block.block_identifier.index as i64 {
+        if self.timestamp_start_index <= block_identifier.index as i64 {
             timestamp(block.timestamp as i64)?;
         }
 
         block
             .transactions
             .iter()
-            .try_for_each(|transaction| self.transaction(transaction))
+            .flatten()
+            .try_for_each(|transaction| self.transaction(transaction.as_ref()))
     }
 }
 
 /// `block_identifier` ensures a [`BlockIdentifier`]
 /// is well-formatted.
 pub(crate) fn block_identifier(block: Option<&BlockIdentifier>) -> AssertResult<()> {
-    if block.is_none() {
-        todo!("null");
-    }
-
-    let block = block.unwrap();
+    let block = block.ok_or(BlockError::BlockIdentifierIsNil)?;
     if block.hash.is_empty() {
         Err(BlockError::BlockIdentifierHashMissing)?
     } else if block.index < 0 {
@@ -423,11 +420,9 @@ pub(crate) fn block_identifier(block: Option<&BlockIdentifier>) -> AssertResult<
 pub(crate) fn partial_block_identifier(
     block_identifier: Option<&PartialBlockIdentifier>,
 ) -> AssertResult<()> {
-    if block_identifier.is_none() {
-        Err(BlockError::BlockIdentifierIsNil.into())
-    } else if (block_identifier.hash.is_some()
-        && !block_identifier.hash.as_ref().unwrap().is_empty())
-        || (block_identifier.index.is_some() && block_identifier.index.unwrap() >= 0)
+    let block_identifier = block_identifier.ok_or(BlockError::PartialBlockIdentifierIsNil)?;
+    if matches!(block_identifier.hash, Some(hash) if !hash.is_empty())
+        || matches!(block_identifier.index, Some(index) if index >= 0)
     {
         Ok(())
     } else {
@@ -442,7 +437,7 @@ pub(crate) fn duplicate_related_transaction(
 ) -> Option<&RelatedTransaction> {
     let mut seen = IndexSet::new();
 
-    for item in items.iter().filter_map(|i| i) {
+    for item in items.iter().filter_map(|i| i.as_ref()) {
         let key = hash(item);
 
         if seen.contains(&key) {
