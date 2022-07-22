@@ -21,4 +21,5 @@ pub trait Sortable {
     fn sort(&self) -> Self;
 }
 
+/// the current rosetta api version
 const ROSETTA_API_VERSION: &str = "1.4.12";

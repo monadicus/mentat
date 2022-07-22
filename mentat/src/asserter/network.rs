@@ -241,9 +241,9 @@ pub(crate) fn call_methods(methods: &[String]) -> AssertResult<()> {
 pub(crate) fn allow(allowed: Option<&Allow>) -> AssertResult<()> {
     let allowed = allowed.ok_or(NetworkError::AllowIsNil)?;
 
-    operation_statuses(&allowed.operation_statuses.as_ref().unwrap_or(&Vec::new()))?;
-    operation_types(&allowed.operation_types.as_ref().unwrap_or(&Vec::new()))?;
-    errors(&allowed.errors.as_ref().unwrap_or(&Vec::new()))?;
+    operation_statuses(allowed.operation_statuses.as_ref().unwrap_or(&Vec::new()))?;
+    operation_types(allowed.operation_types.as_ref().unwrap_or(&Vec::new()))?;
+    errors(allowed.errors.as_ref().unwrap_or(&Vec::new()))?;
 
     allowed
         .call_methods

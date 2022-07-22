@@ -65,7 +65,7 @@ impl ResponseAsserter {
     /// a *types.ConstructionParseResponse does
     /// not have a valid set of operations or
     /// if the signers is empty.
-    pub(crate) fn ConstructionParseResponse(
+    pub(crate) fn construction_parse_response(
         &self,
         resp: Option<&ConstructionParseResponse>,
         signed: bool,
@@ -81,7 +81,7 @@ impl ResponseAsserter {
             Err(ConstructionError::ConstructionParseResponseOperationsEmpty)?;
         }
 
-        self.operations(&resp.operations.as_ref().unwrap(), true)
+        self.operations(resp.operations.as_ref().unwrap(), true)
             .map_err(|err| format!("{err} unable to parse operations"))?;
 
         if signed
@@ -118,7 +118,7 @@ impl ResponseAsserter {
         {
             account_array(
                 "signers",
-                &resp.account_identifier_signers.as_ref().unwrap(),
+                resp.account_identifier_signers.as_ref().unwrap(),
             )?;
         }
 

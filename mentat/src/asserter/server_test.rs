@@ -262,7 +262,7 @@ impl NewWithOptionsTest {
             self.supported_networks
                 .clone()
                 .into_iter()
-                .filter_map(|i| i)
+                .flatten()
                 .collect(),
             self.call_methods.clone(),
             false,
@@ -376,7 +376,7 @@ fn test_supported_networks() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |test| supported_networks(&test.unwrap()));
+    AsserterTest::non_asserter_tests(&tests, |test| supported_networks(test.unwrap()));
 }
 
 #[test]

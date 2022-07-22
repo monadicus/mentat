@@ -19,11 +19,12 @@ impl CurveType {
     /// <https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys>
     pub const TWEEDLE: &'static str = "tweedle";
 
+    /// returns true if the `CurveType` is a valid type
     pub fn valid(&self) -> bool {
-        match self.0.as_str() {
-            Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE => true,
-            _ => false,
-        }
+        matches!(
+            self.0.as_str(),
+            Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE
+        )
     }
 }
 

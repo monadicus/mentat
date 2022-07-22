@@ -100,7 +100,6 @@ impl RequestAsserter {
         request: Option<&BlockTransactionRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
         let request = request.ok_or(ServerError::BlockTransactionRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         block_identifier(request.block_identifier.as_ref())?;
@@ -157,7 +156,7 @@ impl RequestAsserter {
     /// is well-formatted.
     pub(crate) fn metadata_request(&self, request: Option<&MetadataRequest>) -> AssertResult<()> {
         // TODO if self == nil
-        let request = request.ok_or(ServerError::MetadataRequestIsNil)?;
+        let _request = request.ok_or(ServerError::MetadataRequestIsNil)?;
         Ok(())
     }
 
@@ -382,12 +381,12 @@ impl RequestAsserter {
             currency(request.currency.as_ref())?;
         }
 
-        if let Some(s) = &request.status {
+        if let Some(_s) = &request.status {
             todo!();
             // self.operation_status(s, false)?;
         }
 
-        if let Some(t) = &request.type_ {
+        if let Some(_t) = &request.type_ {
             todo!();
             // self.operation_type(t, false)?;
         }

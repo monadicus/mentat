@@ -21,17 +21,19 @@ impl SignatureType {
     /// r (32-bytes) + s (32-bytes) where s = Hash(1st pk + 2nd pk + r)
     pub const SCHNORR_POSEIDON: &'static str = "schnorr_poseidon";
 
+    /// returns true if the `SignatureType` is a valid type
     pub fn valid(&self) -> bool {
-        match self.0.as_str() {
+        matches!(
+            self.0.as_str(),
             Self::ECDSA
-            | Self::ECDSA_RECOVERY
-            | Self::ED25519
-            | Self::SCHNORR_1
-            | Self::SCHNORR_POSEIDON => true,
-            _ => false,
-        }
+                | Self::ECDSA_RECOVERY
+                | Self::ED25519
+                | Self::SCHNORR_1
+                | Self::SCHNORR_POSEIDON
+        )
     }
 
+    /// returns true if `SignatureType` contains an empty string
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

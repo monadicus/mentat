@@ -24,11 +24,12 @@ impl ExemptionType {
     /// account.
     pub const LESS_OR_EQUAL: &'static str = "less_or_equal";
 
+    /// returns true if the `ExemptionType` is a valid type
     pub fn valid(&self) -> bool {
-        match self.0.as_str() {
-            Self::GREATER_OR_EQUAL | Self::LESS_OR_EQUAL | Self::DYNAMIC => true,
-            _ => false,
-        }
+        matches!(
+            self.0.as_str(),
+            Self::GREATER_OR_EQUAL | Self::LESS_OR_EQUAL | Self::DYNAMIC
+        )
     }
 }
 

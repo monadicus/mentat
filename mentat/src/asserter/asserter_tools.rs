@@ -48,7 +48,7 @@ pub(crate) struct Validations {
 
 impl Validations {
     /// Creates a new `Validations` struct given a config file.
-    pub(crate) fn get_validation_config(validation_file_path: &Path) -> Result<Self, String> {
+    pub(crate) fn get_validation_config(_validation_file_path: &Path) -> Result<Self, String> {
         todo!()
     }
 }
@@ -98,7 +98,7 @@ impl ResponseAsserter {
         genesis_block: BlockIdentifier,
         operation_types_: Vec<String>,
         operation_stats: Vec<OperationStatus>,
-        errors: Vec<String>,
+        _errors: Vec<String>,
         timestamp_start_index: i64,
         validations: Validations,
     ) -> AssertResult<Self> {
@@ -108,7 +108,7 @@ impl ResponseAsserter {
             &operation_stats
                 .iter()
                 .cloned()
-                .map(|t| Some(t))
+                .map(Some)
                 .collect::<Vec<_>>(),
         )?;
         operation_types(&operation_types_)?;
@@ -172,7 +172,7 @@ impl RequestAsserter {
             &supp_networks
                 .iter()
                 .cloned()
-                .map(|i| Some(i))
+                .map(Some)
                 .collect::<Vec<_>>(),
         )?;
 
@@ -235,9 +235,9 @@ impl Asserter {
     /// NetworkOptionsResponse.
     pub(crate) fn new_client_with_responses(
         network: NetworkIdentifier,
-        status: NetworkStatusResponse,
-        options: NetworkOptionsResponse,
-        validation_file_path: PathBuf,
+        _status: NetworkStatusResponse,
+        _options: NetworkOptionsResponse,
+        _validation_file_path: PathBuf,
     ) -> AssertResult<Self> {
         network_identifier(Some(&network))?;
 
@@ -247,12 +247,12 @@ impl Asserter {
 
     /// Creates a new `Asserter` struct given the settings and a `Validations`
     /// config file.
-    pub(crate) fn new_with_file(file_path: String) -> AssertResult<Self> {
+    pub(crate) fn new_with_file(_file_path: String) -> AssertResult<Self> {
         todo!()
     }
 
     /// Says whether a given operation was successful or not.
-    pub(crate) fn operation_successful(&self, operation: &Operation) -> AssertResult<bool> {
+    pub(crate) fn operation_successful(&self, _operation: &Operation) -> AssertResult<bool> {
         todo!()
     }
 }

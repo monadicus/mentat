@@ -87,18 +87,22 @@ impl ResponseAsserter {
         // TODO if self nil
 
         if status.is_none() || status.unwrap().is_empty() {
-            if construction {
+            return if construction {
                 Ok(())
             } else {
                 Err(BlockError::OperationStatusMissing)?
             }
-        } else if construction {
+        }
+
+        let status = status.unwrap();
+
+        if construction {
             Err(BlockError::OperationStatusNotEmptyForConstruction)?
-        } else if !self.operation_status_map[status.unwrap()] {
+        } else if !self.operation_status_map[status] {
             Err(format!(
                 "{}: {}",
                 BlockError::OperationStatusInvalid,
-                status.unwrap()
+                status
             ))?
         } else {
             Ok(())

@@ -18,11 +18,9 @@ impl Direction {
     /// Direction indicating a transaction relation is from parent to child.
     pub const FORWARD: &'static str = "forward";
 
+    /// returns true if the `Direction` is a valid type
     pub fn valid(&self) -> bool {
-        match self.0.as_str() {
-            Self::FORWARD | Self::BACKWARD => true,
-            _ => false,
-        }
+        matches!(self.0.as_str(), Self::FORWARD | Self::BACKWARD)
     }
 }
 

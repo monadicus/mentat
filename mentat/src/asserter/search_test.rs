@@ -147,7 +147,7 @@ fn test_search_transactions_response() {
     tests.into_iter().for_each(|test| {
         println!("test: {test}");
 
-        let asserter = Asserter::new_client_with_responses(
+        let _asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),

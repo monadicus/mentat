@@ -16,11 +16,9 @@ impl CoinAction {
     /// `CoinAction` indicating a Coin was spent.
     pub const COIN_SPENT: &'static str = "coin_spent";
 
+    /// returns true if the `CoinAction` is a valid type
     pub fn valid(&self) -> bool {
-        match self.0.as_str() {
-            Self::COIN_CREATED | Self::COIN_SPENT => true,
-            _ => false,
-        }
+        matches!(self.0.as_str(), Self::COIN_CREATED | Self::COIN_SPENT)
     }
 }
 

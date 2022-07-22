@@ -376,7 +376,7 @@ fn test_errors() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |t| errors(&t.unwrap()));
+    AsserterTest::non_asserter_tests(&tests, |t| errors(t.unwrap()));
 }
 
 #[test]

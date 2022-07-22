@@ -16,11 +16,9 @@ impl Operator {
     /// If any condition is satisfied, it is considered a match.
     pub const OR: &'static str = "or";
 
+    /// returns true if the `Operator` is a valid type
     pub fn valid(&self) -> bool {
-        match self.0.as_str() {
-            Self::OR | Self::AND => true,
-            _ => false,
-        }
+        matches!(self.0.as_str(), Self::OR | Self::AND)
     }
 }
 

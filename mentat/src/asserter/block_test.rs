@@ -755,7 +755,7 @@ fn test_operation_validations() {
     tests.into_iter().for_each(|test| {
         println!("test: {}", test.name);
 
-        let asserter = Asserter::new_client_with_responses(
+        let _asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -1055,7 +1055,7 @@ fn test_operation() {
     tests.into_iter().for_each(|test| {
         println!("{test}");
 
-        let asserter = Asserter::new_client_with_responses(
+        let _asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -1808,7 +1808,7 @@ fn test_block() {
 
         let payload = test.payload.unwrap();
 
-        let asserter = Asserter::new_client_with_responses(
+        let _asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -1851,7 +1851,7 @@ fn test_block() {
                     ]),
                     operation_types: Some(vec!["PAYMENT".into()]),
                     // TODO need to make this an i64
-                    timestamp_start_index: payload.start_index.map(|i| i),
+                    timestamp_start_index: payload.start_index,
                     ..Default::default()
                 }),
             },

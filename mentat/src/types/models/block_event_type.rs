@@ -16,11 +16,9 @@ impl BlockEventType {
     /// A block was removed from the canonical chain in a reorg.
     pub const BLOCK_REMOVED: &'static str = "block_removed";
 
+    /// returns true if the `BlockEventType` is a valid type
     pub fn valid(&self) -> bool {
-        match self.0.as_str() {
-            Self::BLOCK_ADDED | Self::BLOCK_REMOVED => true,
-            _ => false,
-        }
+        matches!(self.0.as_str(), Self::BLOCK_ADDED | Self::BLOCK_REMOVED)
     }
 }
 
