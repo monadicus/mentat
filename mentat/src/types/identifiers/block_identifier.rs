@@ -6,6 +6,7 @@ use super::*;
 
 /// The [`BlockIdentifier`] uniquely identifies a block in a particular network.
 #[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize)]
+#[serde(default)]
 pub struct BlockIdentifier {
     /// This is also known as the block height.
     pub index: i64,

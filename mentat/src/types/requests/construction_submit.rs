@@ -4,6 +4,7 @@ use super::*;
 
 /// The transaction submission request includes a signed transaction.
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct ConstructionSubmitRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

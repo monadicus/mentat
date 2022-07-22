@@ -19,7 +19,7 @@ fn test_events_block_response() {
             name: "invalid max",
             payload: Some(EventsBlocksResponse {
                 max_sequence: -1,
-                events: Some(Vec::new()),
+                events: Vec::new(),
             }),
             err: Some(EventError::MaxSequenceInvalid.into()),
         },
@@ -27,7 +27,7 @@ fn test_events_block_response() {
             name: "valid event",
             payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
-                events: Some(vec![
+                events: vec![
                     Some(BlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
@@ -44,7 +44,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
-                ]),
+                ],
             }),
             err: None,
         },
@@ -52,7 +52,7 @@ fn test_events_block_response() {
             name: "invalid identifier",
             payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
-                events: Some(vec![
+                events: vec![
                     Some(BlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
@@ -69,7 +69,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
-                ]),
+                ],
             }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
@@ -77,7 +77,7 @@ fn test_events_block_response() {
             name: "invalid event type",
             payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
-                events: Some(vec![
+                events: vec![
                     Some(BlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
@@ -94,7 +94,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
-                ]),
+                ],
             }),
             err: Some(EventError::BlockEventTypeInvalid.into()),
         },
@@ -102,7 +102,7 @@ fn test_events_block_response() {
             name: "gap events",
             payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
-                events: Some(vec![
+                events: vec![
                     Some(BlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
@@ -119,7 +119,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
-                ]),
+                ],
             }),
             err: Some(EventError::SequenceOutOfOrder.into()),
         },
@@ -127,7 +127,7 @@ fn test_events_block_response() {
             name: "gap events",
             payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
-                events: Some(vec![
+                events: vec![
                     Some(BlockEvent {
                         sequence: -1,
                         block_identifier: Some(BlockIdentifier {
@@ -144,7 +144,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
-                ]),
+                ],
             }),
             err: Some(EventError::SequenceInvalid.into()),
         },

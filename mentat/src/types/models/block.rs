@@ -11,6 +11,7 @@ use super::*;
 /// all future calls for that same [`BlockIdentifier`] must return the same
 /// block contents.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct Block {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
@@ -25,9 +26,11 @@ pub struct Block {
     /// blocks more often than once a second.
     pub timestamp: i64,
     /// The list of [`Transaction`]s related to the block.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transactions: Option<Vec<Option<Transaction>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub transactions: Vec<Option<Transaction>>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

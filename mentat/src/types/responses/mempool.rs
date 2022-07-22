@@ -5,8 +5,12 @@ use super::*;
 /// A [`MempoolResponse`] contains all transaction identifiers in the mempool
 /// for a particular `network_identifier`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct MempoolResponse {
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction_identifiers: Option<Vec<Option<TransactionIdentifier>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub transaction_identifiers: Vec<Option<TransactionIdentifier>>,
 }

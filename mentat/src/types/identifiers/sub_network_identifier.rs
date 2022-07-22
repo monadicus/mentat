@@ -9,11 +9,11 @@ use crate::types::Sortable;
 /// query some object on a specific shard. This identifier is optional for all
 /// non-sharded blockchains.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct SubNetworkIdentifier {
     /// The network string
     pub network: String,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(default)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

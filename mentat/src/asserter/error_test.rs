@@ -126,10 +126,10 @@ fn test_error_map() {
                 }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: Some(vec![Some(Peer {
+                peers: vec![Some(Peer {
                     peer_id: "peer 1".to_string(),
                     metadata: Default::default(),
-                })]),
+                })],
             },
             NetworkOptionsResponse {
                 version: Some(Version {
@@ -139,7 +139,7 @@ fn test_error_map() {
                     metadata: Default::default(),
                 }),
                 allow: Some(Allow {
-                    errors: Some(vec![
+                    errors: vec![
                         Some(MentatError {
                             status_code: 0,
                             code: 10,
@@ -156,8 +156,8 @@ fn test_error_map() {
                             retriable: false,
                             details: Default::default(),
                         }),
-                    ]),
-                    operation_statuses: Some(vec![
+                    ],
+                    operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".to_string(),
                             successful: true,
@@ -166,8 +166,8 @@ fn test_error_map() {
                             status: "FAILURE".to_string(),
                             successful: false,
                         }),
-                    ]),
-                    operation_types: Some(vec!["PAYMENT".to_string()]),
+                    ],
+                    operation_types: vec!["PAYMENT".to_string()],
                     ..Default::default()
                 }),
             },

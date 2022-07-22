@@ -4,6 +4,7 @@ use super::*;
 
 /// Struct for the `Operation` Status.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct OperationStatus {
     /// The status of the operation.
     pub status: String,

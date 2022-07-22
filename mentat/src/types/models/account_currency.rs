@@ -6,6 +6,7 @@ use super::*;
 /// an [`AccountIdentifier`] and [`Currency`]. This can
 /// be useful for looking up balances.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct AccountCurrency {
     /// the identifier for the [`Account`]
     #[serde(skip_serializing_if = "Option::is_none")]

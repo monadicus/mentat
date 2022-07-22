@@ -12,6 +12,7 @@ use super::*;
 /// a unique index. In other words, the [`PartialBlockIdentifier`] of a block
 /// after an omitted block should reference the last non-omitted block.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct BlockResponse {
     /// `Block`s contain an array of [`Transaction`]s that occurred at a
     /// particular [`BlockIdentifier`]. A hard requirement for blocks
@@ -26,6 +27,9 @@ pub struct BlockResponse {
     /// transaction hashes). For blockchains with a lot of transactions in each
     /// block, this can be very useful as consumers can concurrently fetch all
     /// transactions returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub other_transactions: Option<Vec<Option<TransactionIdentifier>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub other_transactions: Vec<Option<TransactionIdentifier>>,
 }

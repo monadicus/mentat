@@ -6,6 +6,7 @@ use super::*;
 
 /// The transaction submission request includes a signed transaction.
 #[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize)]
+#[serde(default)]
 pub struct MempoolTransactionRequest {
     /// [`EventsBlocksRequest`] is utilized to fetch a sequence of
     /// [`BlockEvent`]s indicating which blocks were added and removed from

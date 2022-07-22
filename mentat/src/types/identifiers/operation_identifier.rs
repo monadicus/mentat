@@ -5,6 +5,7 @@ use super::*;
 /// The [`OperationIdentifier`] uniquely identifies an operation within a
 /// transaction.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct OperationIdentifier {
     /// The operation index is used to ensure each operation has a unique
     /// identifier within a transaction. This index is only relative to the

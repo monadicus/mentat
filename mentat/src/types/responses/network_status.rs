@@ -15,6 +15,7 @@ use crate::types::{Peer, SyncStatus};
 /// healthiness. Without this field, it may appear that the implementation is
 /// stuck syncing and needs to be terminated.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct NetworkStatusResponse {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
@@ -40,6 +41,9 @@ pub struct NetworkStatusResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sync_status: Option<SyncStatus>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub peers: Option<Vec<Option<Peer>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub peers: Vec<Option<Peer>>,
 }

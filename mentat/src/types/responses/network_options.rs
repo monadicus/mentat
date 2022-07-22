@@ -6,6 +6,7 @@ use crate::types::Version;
 /// [`NetworkOptionsResponse`] contains information about the versioning of the
 /// node and the allowed operation statuses, operation types, and errors.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct NetworkOptionsResponse {
     /// The [`Version`] object is utilized to inform the client of the versions
     /// of different components of the Rosetta implementation.

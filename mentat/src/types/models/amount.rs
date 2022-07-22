@@ -7,6 +7,7 @@ use super::*;
 /// Amount is some Value of a [`Currency`]. It is considered invalid to specify
 /// a Value without a [`Currency`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct Amount {
     /// Value of the transaction in atomic units represented as an
     /// arbitrary-sized signed integer. For example, 1 BTC would be represented
@@ -19,6 +20,5 @@ pub struct Amount {
     pub currency: Option<Currency>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

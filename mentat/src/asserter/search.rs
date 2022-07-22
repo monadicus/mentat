@@ -1,7 +1,10 @@
 //! Validates that search data is correct.
 
 use super::{
-    block_identifier, errors::SearchError, AssertResult, ResponseAsserter,
+    block_identifier,
+    errors::SearchError,
+    AssertResult,
+    ResponseAsserter,
     SearchTransactionsResponse,
 };
 
@@ -19,7 +22,7 @@ impl ResponseAsserter {
             Err(SearchError::TotalCountInvalid)?;
         }
 
-        response.transactions.iter().flatten().try_for_each(|t| {
+        response.transactions.iter().try_for_each(|t| {
             // TODO: coinbase never checks for nil here
             let t = t.as_ref().unwrap();
             block_identifier(t.block_identifier.as_ref())?;

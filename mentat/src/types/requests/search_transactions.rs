@@ -5,6 +5,7 @@ use super::*;
 /// [`SearchTransactionsRequest`] is used to search for transactions matching a
 /// set of provided conditions in canonical blocks.
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct SearchTransactionsRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
@@ -13,7 +14,6 @@ pub struct SearchTransactionsRequest {
     /// `Operator` is used by query-related endpoints to determine how to apply
     /// conditions. If this field is not populated, the default and value will
     /// be used.
-    #[serde(default)]
     pub operator: Operator,
     /// `max_block` is the largest block index to consider when searching for
     /// transactions. If this field is not populated, the current block is

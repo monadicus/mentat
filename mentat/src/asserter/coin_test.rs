@@ -109,7 +109,7 @@ fn test_coins() {
         },
         AsserterTest {
             name: "nil",
-            payload: None,
+            payload: Some(Vec::new()),
             err: None,
         },
         AsserterTest {
@@ -132,9 +132,8 @@ fn test_coins() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |test| {
-        coins(test.as_ref().map(|inner| inner.as_slice()))
-    });
+    // TODO: remove use of Some
+    AsserterTest::non_asserter_tests(&tests, |test| coins(test.unwrap()));
 }
 
 #[test]

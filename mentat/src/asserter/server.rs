@@ -70,7 +70,6 @@ impl RequestAsserter {
             &request
                 .currencies
                 .iter()
-                .flatten()
                 .map(|i| i.as_ref())
                 .collect::<Vec<_>>(),
         ) {
@@ -120,7 +119,6 @@ impl RequestAsserter {
         request
             .public_keys
             .iter()
-            .flatten()
             .try_for_each(|k| public_key(k.as_ref()))
     }
 
@@ -189,8 +187,9 @@ impl RequestAsserter {
         // TODO if self == nil
         let request = request.ok_or(ServerError::ConstructionPreprocessRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        // self.operations(&request.operations, true)?;
-        assert_unique_amounts(request.max_fee.as_ref().unwrap_or(&Vec::new()))
+        todo!();
+        // TODO self.operations(&request.operations, true)?;
+        assert_unique_amounts(&request.max_fee)
             .map_err(|e| format!("{e}: duplicate max fee currency found"))?;
         if matches!(request.suggested_fee_multiplier, Some(i) if i < 0.0) {
             Err(format!(
@@ -212,11 +211,11 @@ impl RequestAsserter {
         // TODO if self == nil
         let request = request.ok_or(ServerError::ConstructionPayloadsRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        // self.operations(&request.operations, true)?;
+        todo!();
+        // TODO self.operations(&request.operations, true)?;
         request
             .public_keys
             .iter()
-            .flatten()
             .try_for_each(|k| public_key(k.as_ref()))
     }
 
@@ -236,7 +235,6 @@ impl RequestAsserter {
                 &request
                     .signatures
                     .iter()
-                    .flatten()
                     .map(|i| i.as_ref())
                     .collect::<Vec<_>>(),
             )
@@ -314,7 +312,6 @@ impl RequestAsserter {
             &request
                 .currencies
                 .iter()
-                .flatten()
                 .map(|i| i.as_ref())
                 .collect::<Vec<_>>(),
         ) {
@@ -383,12 +380,12 @@ impl RequestAsserter {
 
         if let Some(_s) = &request.status {
             todo!();
-            // self.operation_status(s, false)?;
+            // TODO self.operation_status(s, false)?;
         }
 
         if let Some(_t) = &request.type_ {
             todo!();
-            // self.operation_type(t, false)?;
+            // TODO self.operation_type(t, false)?;
         }
 
         if matches!(&request.address, Some(a) if a.is_empty()) {

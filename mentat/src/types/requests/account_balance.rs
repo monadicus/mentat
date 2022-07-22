@@ -6,6 +6,7 @@ use super::*;
 /// `/account/balance` endpoint. If the `block_identifier` is populated, a
 /// historical balance query should be performed.
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct AccountBalanceRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
@@ -26,6 +27,9 @@ pub struct AccountBalanceRequest {
     /// balances for an [`AccountIdentifier`]. If the currencies field is
     /// populated, only balances for the specified currencies will be
     /// returned. If not populated, all available balances will be returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub currencies: Option<Vec<Option<Currency>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub currencies: Vec<Option<Currency>>,
 }

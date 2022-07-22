@@ -6,9 +6,23 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    coin_change, hash, network_identifier, AccountIdentifier, Amount, AssertResult, Block,
-    BlockError, BlockIdentifier, Currency, Direction, OperationIdentifier, PartialBlockIdentifier,
-    RelatedTransaction, ResponseAsserter, Transaction, TransactionIdentifier,
+    coin_change,
+    hash,
+    network_identifier,
+    AccountIdentifier,
+    Amount,
+    AssertResult,
+    Block,
+    BlockError,
+    BlockIdentifier,
+    Currency,
+    Direction,
+    OperationIdentifier,
+    PartialBlockIdentifier,
+    RelatedTransaction,
+    ResponseAsserter,
+    Transaction,
+    TransactionIdentifier,
 };
 use crate::types::Operation as TypesOperation;
 
@@ -91,7 +105,7 @@ impl ResponseAsserter {
                 Ok(())
             } else {
                 Err(BlockError::OperationStatusMissing)?
-            }
+            };
         }
 
         let status = status.unwrap();
@@ -191,7 +205,7 @@ impl ResponseAsserter {
                 }
 
                 if op.type_ == self.validations.fee.name {
-                    if op.related_operations.is_some() {
+                    if !op.related_operations.is_empty() {
                         Err(format!(
                             "{}: operation index {index}",
                             BlockError::RelatedOperationInFeeNotAllowed
@@ -219,12 +233,7 @@ impl ResponseAsserter {
             let operation_identifier_index = op.operation_identifier.as_ref().unwrap().index;
             let mut related_indexes = IndexSet::new();
 
-            for related_op in op
-                .related_operations
-                .iter()
-                .flatten()
-                .flat_map(|i| i.as_ref())
-            {
+            for related_op in op.related_operations.iter().flat_map(|i| i.as_ref()) {
                 related_ops_exist = true;
 
                 if related_op.index >= operation_identifier_index {
@@ -253,9 +262,9 @@ impl ResponseAsserter {
         if !related_ops_exist && self.validations.enabled && self.validations.related_ops_exists {
             Err(BlockError::RelatedOperationMissing)?;
         } else if self.validations.enabled
-            // only account based validation
             && self.validations.chain_type == super::asserter_tools::ACCOUNT
         {
+            // only account based validation
             self.validate_payment_and_fee(payment_total, payment_count, fee_total, fee_count)?;
         }
 
@@ -300,22 +309,15 @@ impl ResponseAsserter {
         transaction_identifier(transaction.transaction_identifier.as_ref())?;
         let transaction_identifier = transaction.transaction_identifier.as_ref().unwrap();
 
-        self.operations(
-            transaction.operations.as_ref().unwrap_or(&Vec::new()),
-            false,
-        )
-        .map_err(|err| {
-            format!(
-                "{err} invalid operation in transaction {}",
-                transaction_identifier.hash
-            )
-        })?;
+        self.operations(&transaction.operations, false)
+            .map_err(|err| {
+                format!(
+                    "{err} invalid operation in transaction {}",
+                    transaction_identifier.hash
+                )
+            })?;
 
-        transaction
-            .related_transactions
-            .as_ref()
-            .map(|transactions| self.related_transactions(transactions))
-            .transpose()
+        self.related_transactions(&transaction.related_transactions)
             .map_err(|err| {
                 format!(
                     "{err} invalid related transaction in transaction {}",
@@ -403,7 +405,6 @@ impl ResponseAsserter {
         block
             .transactions
             .iter()
-            .flatten()
             .try_for_each(|transaction| self.transaction(transaction.as_ref()))
     }
 }

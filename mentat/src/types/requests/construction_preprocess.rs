@@ -22,20 +22,27 @@ use super::*;
 /// both a max fee and a suggested fee multiplier, the max fee will set an upper
 /// bound on the suggested fee (regardless of the multiplier provided).
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct ConstructionPreprocessRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network_identifier: Option<NetworkIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub operations: Option<Vec<Option<Operation>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub operations: Vec<Option<Operation>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_fee: Option<Vec<Option<Amount>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub max_fee: Vec<Option<Amount>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_fee_multiplier: Option<f64>,

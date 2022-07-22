@@ -10,14 +10,38 @@ use crate::{
         server::supported_networks,
     },
     types::{
-        AccountBalanceRequest, AccountCoinsRequest, AccountIdentifier, Amount, BlockIdentifier,
-        BlockRequest, BlockTransactionRequest, CallRequest, ConstructionCombineRequest,
-        ConstructionDeriveRequest, ConstructionHashRequest, ConstructionMetadataRequest,
-        ConstructionParseRequest, ConstructionPayloadsRequest, ConstructionPreprocessRequest,
-        ConstructionSubmitRequest, Currency, CurveType, EventsBlocksRequest,
-        MempoolTransactionRequest, NetworkIdentifier, NetworkRequest, Operation,
-        OperationIdentifier, Operator, PartialBlockIdentifier, PublicKey,
-        SearchTransactionsRequest, Signature, SignatureType, SigningPayload, TransactionIdentifier,
+        AccountBalanceRequest,
+        AccountCoinsRequest,
+        AccountIdentifier,
+        Amount,
+        BlockIdentifier,
+        BlockRequest,
+        BlockTransactionRequest,
+        CallRequest,
+        ConstructionCombineRequest,
+        ConstructionDeriveRequest,
+        ConstructionHashRequest,
+        ConstructionMetadataRequest,
+        ConstructionParseRequest,
+        ConstructionPayloadsRequest,
+        ConstructionPreprocessRequest,
+        ConstructionSubmitRequest,
+        Currency,
+        CurveType,
+        EventsBlocksRequest,
+        MempoolTransactionRequest,
+        NetworkIdentifier,
+        NetworkRequest,
+        Operation,
+        OperationIdentifier,
+        Operator,
+        PartialBlockIdentifier,
+        PublicKey,
+        SearchTransactionsRequest,
+        Signature,
+        SignatureType,
+        SigningPayload,
+        TransactionIdentifier,
     },
 };
 
@@ -96,8 +120,8 @@ pub(crate) fn valid_account() -> AccountIdentifier {
     }
 }
 
-pub(crate) fn valid_ops() -> Option<Vec<Option<Operation>>> {
-    Some(vec![
+pub(crate) fn valid_ops() -> Vec<Option<Operation>> {
+    vec![
         Some(Operation {
             operation_identifier: Some(OperationIdentifier {
                 index: 0,
@@ -118,11 +142,11 @@ pub(crate) fn valid_ops() -> Option<Vec<Option<Operation>>> {
             amount: Some(valid_amount()),
             ..Default::default()
         }),
-    ])
+    ]
 }
 
-pub(crate) fn unsupported_type_ops() -> Option<Vec<Option<Operation>>> {
-    Some(vec![
+pub(crate) fn unsupported_type_ops() -> Vec<Option<Operation>> {
+    vec![
         Some(Operation {
             operation_identifier: Some(OperationIdentifier {
                 index: 0,
@@ -138,20 +162,20 @@ pub(crate) fn unsupported_type_ops() -> Option<Vec<Option<Operation>>> {
                 index: 1,
                 ..Default::default()
             }),
-            related_operations: Some(vec![Some(OperationIdentifier {
+            related_operations: vec![Some(OperationIdentifier {
                 index: 0,
                 ..Default::default()
-            })]),
+            })],
             type_: "PAYMENT".into(),
             account: Some(valid_account()),
             amount: Some(valid_amount()),
             ..Default::default()
         }),
-    ])
+    ]
 }
 
-pub(crate) fn invalid_ops() -> Option<Vec<Option<Operation>>> {
-    Some(vec![
+pub(crate) fn invalid_ops() -> Vec<Option<Operation>> {
+    vec![
         Some(Operation {
             operation_identifier: Some(OperationIdentifier {
                 index: 0,
@@ -168,21 +192,21 @@ pub(crate) fn invalid_ops() -> Option<Vec<Option<Operation>>> {
                 index: 1,
                 ..Default::default()
             }),
-            related_operations: Some(vec![Some(OperationIdentifier {
+            related_operations: vec![Some(OperationIdentifier {
                 index: 0,
                 ..Default::default()
-            })]),
+            })],
             type_: "PAYMENT".into(),
             status: Some("SUCCESS".into()),
             account: Some(valid_account()),
             amount: Some(valid_amount()),
             ..Default::default()
         }),
-    ])
+    ]
 }
 
-pub(crate) fn valid_signatures() -> Option<Vec<Option<Signature>>> {
-    Some(vec![Some(Signature {
+pub(crate) fn valid_signatures() -> Vec<Option<Signature>> {
+    vec![Some(Signature {
         signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
@@ -191,11 +215,11 @@ pub(crate) fn valid_signatures() -> Option<Vec<Option<Signature>>> {
         public_key: Some(valid_public_key()),
         signature_type: SignatureType::ED25519.into(),
         bytes: "hello".into(),
-    })])
+    })]
 }
 
-pub(crate) fn signature_type_mismatch() -> Option<Vec<Option<Signature>>> {
-    Some(vec![Some(Signature {
+pub(crate) fn signature_type_mismatch() -> Vec<Option<Signature>> {
+    vec![Some(Signature {
         signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
@@ -205,11 +229,11 @@ pub(crate) fn signature_type_mismatch() -> Option<Vec<Option<Signature>>> {
         public_key: Some(valid_public_key()),
         signature_type: SignatureType::ED25519.into(),
         bytes: "hello".into(),
-    })])
+    })]
 }
 
-pub(crate) fn signature_type_match() -> Option<Vec<Option<Signature>>> {
-    Some(vec![Some(Signature {
+pub(crate) fn signature_type_match() -> Vec<Option<Signature>> {
+    vec![Some(Signature {
         signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
@@ -219,11 +243,11 @@ pub(crate) fn signature_type_match() -> Option<Vec<Option<Signature>>> {
         public_key: Some(valid_public_key()),
         signature_type: SignatureType::ED25519.into(),
         ..Default::default()
-    })])
+    })]
 }
 
-pub(crate) fn empty_signature() -> Option<Vec<Option<Signature>>> {
-    Some(vec![Some(Signature {
+pub(crate) fn empty_signature() -> Vec<Option<Signature>> {
+    vec![Some(Signature {
         signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
@@ -233,7 +257,7 @@ pub(crate) fn empty_signature() -> Option<Vec<Option<Signature>>> {
         public_key: Some(valid_public_key()),
         signature_type: SignatureType::ED25519.into(),
         ..Default::default()
-    })])
+    })]
 }
 
 pub(crate) fn request_asserter() -> RequestAsserter {
@@ -320,13 +344,14 @@ fn test_new_with_options() {
             }),
             err: Some(ServerError::SupportedNetworksDuplicate.into()),
         },
-        // TODO
-        // AsserterTest {
-        //     name: "nil network identifier",
-        //     supported_networks: vec!(valid_network_identifier(), todo!()),
-        //     res: Some(NetworkError::NetworkIdentifierIsNil.into()),
-        //     ..Default::default()
-        // },
+        AsserterTest {
+            name: "nil network identifier",
+            payload: Some(NewWithOptionsTest {
+                supported_networks: vec![valid_network_identifier(), None],
+                ..Default::default()
+            }),
+            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+        },
         AsserterTest {
             name: "no supported networks",
             payload: Some(NewWithOptionsTest {
@@ -396,7 +421,7 @@ fn test_account_balance_request() {
             payload: Some(AccountBalanceRequest {
                 network_identifier: valid_network_identifier(),
                 account_identifier: valid_account_identifier(),
-                currencies: Some(vec![
+                currencies: vec![
                     Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
@@ -407,7 +432,7 @@ fn test_account_balance_request() {
                         decimals: 18,
                         ..Default::default()
                     }),
-                ]),
+                ],
                 ..Default::default()
             }),
             ..Default::default()
@@ -417,7 +442,7 @@ fn test_account_balance_request() {
             payload: Some(AccountBalanceRequest {
                 network_identifier: valid_network_identifier(),
                 account_identifier: valid_account_identifier(),
-                currencies: Some(vec![
+                currencies: vec![
                     Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
@@ -428,7 +453,7 @@ fn test_account_balance_request() {
                         decimals: 8,
                         ..Default::default()
                     }),
-                ]),
+                ],
                 ..Default::default()
             }),
             err: Some(ServerError::DuplicateCurrency.into()),
@@ -663,10 +688,10 @@ fn test_construction_metadata_request() {
             payload: Some(ConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
                 options: Some(Default::default()),
-                public_keys: Some(vec![Some(PublicKey {
+                public_keys: vec![Some(PublicKey {
                     bytes: "hello".into(),
                     curve_type: CurveType::SECP256K1.into(),
-                })]),
+                })],
             }),
             ..Default::default()
         },
@@ -706,10 +731,10 @@ fn test_construction_metadata_request() {
             payload: Some(ConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
                 options: Some(Default::default()),
-                public_keys: Some(vec![Some(PublicKey {
+                public_keys: vec![Some(PublicKey {
                     curve_type: CurveType::SECP256K1.into(),
                     ..Default::default()
-                })]),
+                })],
             }),
             err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
@@ -969,7 +994,7 @@ fn test_construction_preprocess_request() {
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: valid_ops(),
-                max_fee: Some(vec![Some(valid_amount())]),
+                max_fee: vec![Some(valid_amount())],
                 suggested_fee_multiplier: positive_fee_multiplier,
                 ..Default::default()
             }),
@@ -1051,7 +1076,7 @@ fn test_construction_preprocess_request() {
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: valid_ops(),
-                max_fee: Some(vec![Some(valid_amount()), Some(valid_amount())]),
+                max_fee: vec![Some(valid_amount()), Some(valid_amount())],
                 ..Default::default()
             }),
             err: Some(format!("currency {:?} used multiple times", valid_amount().currency).into()),
@@ -1083,10 +1108,10 @@ fn test_construction_payloads_request() {
                 network_identifier: valid_network_identifier(),
                 operations: valid_ops(),
                 metadata: indexmap!("test".into() => "hello".into()),
-                public_keys: Some(vec![Some(PublicKey {
+                public_keys: vec![Some(PublicKey {
                     bytes: "hello".into(),
                     curve_type: CurveType::SECP256K1.into(),
-                })]),
+                })],
             }),
             ..Default::default()
         },
@@ -1122,7 +1147,7 @@ fn test_construction_payloads_request() {
             name: "empty operations",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
-                operations: Some(vec![Some(Operation::default())]),
+                operations: vec![Some(Operation::default())],
                 ..Default::default()
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
@@ -1151,10 +1176,10 @@ fn test_construction_payloads_request() {
                 network_identifier: valid_network_identifier(),
                 operations: valid_ops(),
                 metadata: indexmap!("test".into() => "hello".into()),
-                public_keys: Some(vec![Some(PublicKey {
+                public_keys: vec![Some(PublicKey {
                     curve_type: CurveType::SECP256K1.into(),
                     ..Default::default()
-                })]),
+                })],
             }),
             err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
@@ -1183,7 +1208,7 @@ fn test_construction_combine_request() {
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
-                signatures: Some(vec![Some(Signature {
+                signatures: vec![Some(Signature {
                     signing_payload: Some(SigningPayload {
                         account_identifier: Some(valid_account()),
                         bytes: "blah".into(),
@@ -1192,7 +1217,7 @@ fn test_construction_combine_request() {
                     public_key: Some(valid_public_key()),
                     signature_type: SignatureType::ED25519.into(),
                     bytes: "blah".into(),
-                })]),
+                })],
             }),
             ..Default::default()
         },
@@ -1201,7 +1226,7 @@ fn test_construction_combine_request() {
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
-                signatures: Some(vec![Some(Signature {
+                signatures: vec![Some(Signature {
                     signing_payload: Some(SigningPayload {
                         account_identifier: Some(valid_account()),
                         bytes: "blah".into(),
@@ -1210,7 +1235,7 @@ fn test_construction_combine_request() {
                     public_key: Some(valid_public_key()),
                     signature_type: SignatureType::ED25519.into(),
                     bytes: "hello".into(),
-                })]),
+                })],
             }),
             ..Default::default()
         },
@@ -1257,7 +1282,7 @@ fn test_construction_combine_request() {
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
-                signatures: Some(vec![Some(Signature::default())]),
+                signatures: vec![Some(Signature::default())],
             }),
             err: Some(ConstructionError::SignaturesEmpty.into()),
         },
@@ -1464,7 +1489,7 @@ fn test_account_coins_request() {
             payload: Some(AccountCoinsRequest {
                 network_identifier: valid_network_identifier(),
                 account_identifier: valid_account_identifier(),
-                currencies: Some(vec![
+                currencies: vec![
                     Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
@@ -1475,7 +1500,7 @@ fn test_account_coins_request() {
                         decimals: 18,
                         ..Default::default()
                     }),
-                ]),
+                ],
                 ..Default::default()
             }),
             ..Default::default()
@@ -1485,14 +1510,14 @@ fn test_account_coins_request() {
             payload: Some(AccountCoinsRequest {
                 network_identifier: valid_network_identifier(),
                 account_identifier: valid_account_identifier(),
-                currencies: Some(vec![
+                currencies: vec![
                     Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
                         ..Default::default()
                     });
                     2
-                ]),
+                ],
                 ..Default::default()
             }),
             err: Some(ServerError::DuplicateCurrency.into()),

@@ -2,8 +2,9 @@
 
 use std::{error::Error, fmt::Debug, str::FromStr};
 
+use hex::FromHex;
 use num_bigint_dig::*;
-use serde::Serialize;
+use serde::{Deserialize, Deserializer, Serialize};
 use sha2::{Digest, Sha256};
 
 use super::{
@@ -163,4 +164,27 @@ pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -
             currency: Some(currency.clone()),
             ..Default::default()
         })
+}
+
+/// custom deserializer that replaces `null` values with default ones
+pub(crate) fn null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    T: Default + Deserialize<'de>,
+    D: Deserializer<'de>,
+{
+    let opt = Option::deserialize(deserializer)?;
+    Ok(opt.unwrap_or_default())
+}
+
+/// test
+pub(crate) fn null_default_bytes_to_hex<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt: Option<String> = Option::deserialize(deserializer)?;
+    if let Some(hex_str) = opt {
+        <Vec<u8>>::from_hex(hex_str).map_err(serde::de::Error::custom)
+    } else {
+        Ok(Vec::new())
+    }
 }

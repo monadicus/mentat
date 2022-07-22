@@ -8,6 +8,7 @@ use super::*;
 /// construction of the signing payloads but may be needed to combine signatures
 /// properly.
 #[derive(Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct Signature {
     /// [`SigningPayload`] is signed by the client with the keypair associated
     /// with an AccountIdentifier using the specified [`SignatureType`].
@@ -24,8 +25,9 @@ pub struct Signature {
     pub signature_type: SignatureType,
     /// The hex bytes for the `Signature`.
     #[serde(
+        skip_serializing_if = "Vec::is_empty",
         serialize_with = "hex::serialize",
-        deserialize_with = "hex::deserialize"
+        deserialize_with = "null_default_bytes_to_hex"
     )]
     pub bytes: Vec<u8>,
 }

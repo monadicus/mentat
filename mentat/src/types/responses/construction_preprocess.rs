@@ -13,13 +13,16 @@ use super::*;
 /// desired [`PublicKey`]s. If it is not necessary to retrieve any
 /// [`PublicKey`]s for construction, `required_public_keys` should be omitted.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ConstructionPreprocessResponse {
     /// The options that will be sent directly to `/construction/metadata` by
     /// the caller.
-    #[serde(default)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub options: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required_public_keys: Option<Vec<Option<AccountIdentifier>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub required_public_keys: Vec<Option<AccountIdentifier>>,
 }

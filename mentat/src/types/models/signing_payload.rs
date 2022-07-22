@@ -7,6 +7,7 @@ use super::*;
 /// [`SignatureType`] can be optionally populated if there is a restriction on
 /// the signature scheme that can be used to sign the payload.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct SigningPayload {
     /// [DEPRECATED by account_identifier in v1.4.4] The network-specific
     /// address of the account that should sign the payload.
@@ -20,11 +21,11 @@ pub struct SigningPayload {
     pub account_identifier: Option<AccountIdentifier>,
     /// The hex bytes of the Signing Payload.
     #[serde(
+        skip_serializing_if = "Vec::is_empty",
         serialize_with = "hex::serialize",
-        deserialize_with = "hex::deserialize"
+        deserialize_with = "null_default_bytes_to_hex"
     )]
     pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
-    #[serde(default)]
     pub signature_type: SignatureType,
 }

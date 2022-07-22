@@ -8,22 +8,32 @@ use super::*;
 /// that these clients will error if they receive some response that contains
 /// any of the above information that is not specified here.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct Allow {
     /// All `OperationStatus` this implementation supports. Any status that is
     /// returned during parsing that is not listed here will cause client
     /// validation to error.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub operation_statuses: Option<Vec<Option<OperationStatus>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub operation_statuses: Vec<Option<OperationStatus>>,
     /// All Operation Type this implementation supports. Any type that is
     /// returned during parsing that is not listed here will cause client
     /// validation to error.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub operation_types: Option<Vec<String>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub operation_types: Vec<String>,
     /// All `ApiError` that this implementation could return. Any error that
     /// is returned during parsing that is not listed here will cause client
     /// validation to error.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<Option<MentatError>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub errors: Vec<Option<MentatError>>,
     /// Any Rosetta implementation that supports querying the balance of an
     /// account at any height in the past should set this to true.
     pub historical_balance_lookup: bool,
@@ -39,8 +49,11 @@ pub struct Allow {
     /// which parameters should be provided to `/call` is the responsibility of
     /// the implementer (this is en lieu of defining an entire type system and
     /// requiring the implementer to define that in `Allow`).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub call_methods: Option<Vec<String>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub call_methods: Vec<String>,
     /// `BalanceExemption`s is an array of `BalanceExemption` indicating which
     /// account balances could change without a corresponding Operation.
     /// `BalanceExemption`s should be used sparingly as they may introduce
@@ -48,8 +61,11 @@ pub struct Allow {
     /// account balance changes. If your implementation relies on any
     /// `BalanceExemption`s, you MUST implement historical balance lookup (the
     /// ability to query an account balance at any [`BlockIdentifier`]).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub balance_exemptions: Option<Vec<Option<BalanceExemption>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub balance_exemptions: Vec<Option<BalanceExemption>>,
     /// Any Rosetta implementation that can update an [`AccountIdentifier`]'s
     /// unspent coins based on the contents of the mempool should populate this
     /// field as true. If false, requests to `/account/coins` that set

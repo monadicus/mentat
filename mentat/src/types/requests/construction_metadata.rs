@@ -7,7 +7,8 @@ use super::*;
 /// to return is left purposely unstructured to allow flexibility for
 /// implementers. `Options` is not required in the case that there is
 /// network-wide metadata of interest. Optionally, the request can also include
-/// an array of [`PublicKey`]s associated with the [`AccountIdentifier`]s
+/// an array of [`PublicKey`]s associated with the [`Account
+/// #[serde(default)]Identifier`]s
 /// returned in [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ConstructionMetadataRequest {
@@ -24,6 +25,9 @@ pub struct ConstructionMetadataRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Value>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub public_keys: Option<Vec<Option<PublicKey>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub public_keys: Vec<Option<PublicKey>>,
 }

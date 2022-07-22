@@ -10,6 +10,7 @@ use super::*;
 /// the request because some blockchains allow for multiple address types (i.e.
 /// different address for validators vs normal accounts).
 #[derive(Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct ConstructionDeriveRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
@@ -21,6 +22,5 @@ pub struct ConstructionDeriveRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub public_key: Option<PublicKey>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

@@ -7,6 +7,7 @@ use super::*;
 /// `/construction/payloads` and all required signatures to create a network
 /// transaction.
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ConstructionCombineRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
@@ -15,6 +16,9 @@ pub struct ConstructionCombineRequest {
     #[allow(clippy::missing_docs_in_private_items)]
     pub unsigned_transaction: String,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub signatures: Option<Vec<Option<Signature>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub signatures: Vec<Option<Signature>>,
 }

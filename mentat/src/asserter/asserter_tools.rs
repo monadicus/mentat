@@ -9,7 +9,11 @@ use super::{
     errors::{AssertResult, NetworkError, ServerError},
     network::{network_identifier, operation_statuses, operation_types},
     server::supported_networks,
-    BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse,
+    BlockIdentifier,
+    MentatError,
+    NetworkIdentifier,
+    NetworkOptionsResponse,
+    NetworkStatusResponse,
     OperationStatus,
 };
 
@@ -168,13 +172,7 @@ impl RequestAsserter {
         validation_file_path: &Path,
     ) -> AssertResult<Self> {
         operation_types(&supported_operation_types)?;
-        supported_networks(
-            &supp_networks
-                .iter()
-                .cloned()
-                .map(Some)
-                .collect::<Vec<_>>(),
-        )?;
+        supported_networks(&supp_networks.iter().cloned().map(Some).collect::<Vec<_>>())?;
 
         let validations = Validations::get_validation_config(validation_file_path)?;
         let mut call_map: IndexSet<String> = IndexSet::new();

@@ -3,8 +3,17 @@
 use std::collections::HashSet;
 
 use super::{
-    amount, block_identifier, coins, hash, AccountBalanceError, AccountBalanceResponse,
-    AccountCoinsResponse, Amount, AssertResult, Currency, PartialBlockIdentifier,
+    amount,
+    block_identifier,
+    coins,
+    hash,
+    AccountBalanceError,
+    AccountBalanceResponse,
+    AccountCoinsResponse,
+    Amount,
+    AssertResult,
+    Currency,
+    PartialBlockIdentifier,
 };
 
 /// `contains_duplicate_currency` returns a boolean indicating
@@ -101,6 +110,6 @@ pub(crate) fn account_balance_response(
 pub(crate) fn account_coins(response: &AccountCoinsResponse) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
-    coins(response.coins.as_deref()).map_err(|e| format!("{e}: coins are invalid"))?;
+    coins(&response.coins).map_err(|e| format!("{e}: coins are invalid"))?;
     Ok(())
 }

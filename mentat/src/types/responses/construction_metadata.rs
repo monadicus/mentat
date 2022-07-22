@@ -12,10 +12,14 @@ use super::*;
 /// Suggested fee is an array in case fee payment must occur in multiple
 /// currencies.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ConstructionMetadataResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,
     /// The optional suggested fees for the response.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub suggested_fee: Option<Vec<Option<Amount>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub suggested_fee: Vec<Option<Amount>>,
 }

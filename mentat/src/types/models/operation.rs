@@ -11,6 +11,7 @@ use super::*;
 /// transactions (Construction API), creating a standard interface for reading
 /// and writing to blockchains.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct Operation {
     /// The [`OperationIdentifier`] uniquely identifies an operation within a
     /// transaction.
@@ -21,8 +22,11 @@ pub struct Operation {
     /// DAG-structure of relations. Since operations are one-sided, one could
     /// imagine relating operations in a single transfer or linking operations
     /// in a call tree.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub related_operations: Option<Vec<Option<OperationIdentifier>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub related_operations: Vec<Option<OperationIdentifier>>,
     /// Type is the network-specific type of the operation. Ensure that any type
     /// that can be returned here is also specified in the
     /// [`crate::responses::NetworkOptionsResponse`]. This can be very useful to
@@ -66,6 +70,5 @@ pub struct Operation {
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }

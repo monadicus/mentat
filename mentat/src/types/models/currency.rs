@@ -8,6 +8,7 @@ use super::*;
 /// value is used to convert an Amount.Value from atomic units (Satoshis) to
 /// standard units (Bitcoins).
 #[derive(Clone, Debug, Default, Eq, Deserialize, PartialEq, Serialize)]
+#[serde(default)]
 pub struct Currency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,
@@ -20,7 +21,6 @@ pub struct Currency {
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }
 

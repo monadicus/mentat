@@ -6,10 +6,23 @@ use crate::{
         errors::{BlockError, SearchError},
     },
     types::{
-        AccountIdentifier, Allow, Amount, BlockIdentifier, BlockTransaction, Currency,
-        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
-        OperationIdentifier, OperationStatus, Peer, SearchTransactionsResponse, Transaction,
-        TransactionIdentifier, Version,
+        AccountIdentifier,
+        Allow,
+        Amount,
+        BlockIdentifier,
+        BlockTransaction,
+        Currency,
+        NetworkIdentifier,
+        NetworkOptionsResponse,
+        NetworkStatusResponse,
+        Operation,
+        OperationIdentifier,
+        OperationStatus,
+        Peer,
+        SearchTransactionsResponse,
+        Transaction,
+        TransactionIdentifier,
+        Version,
     },
 };
 
@@ -33,7 +46,7 @@ fn test_search_transactions_response() {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
@@ -50,17 +63,17 @@ fn test_search_transactions_response() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(vec![Some(OperationIdentifier {
+                related_operations: vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                })]),
+                })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account,
                 amount: valid_amount,
                 ..Default::default()
             }),
-        ]),
+        ],
         ..Default::default()
     };
     let valid_block_ident = BlockIdentifier {
@@ -110,10 +123,10 @@ fn test_search_transactions_response() {
             name: "valid next + transaction",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: Some(vec![Some(BlockTransaction {
+                transactions: vec![Some(BlockTransaction {
                     block_identifier: Some(valid_block_ident.clone()),
                     transaction: Some(valid_transaction.clone()),
-                })]),
+                })],
                 ..Default::default()
             }),
             err: None,
@@ -122,10 +135,10 @@ fn test_search_transactions_response() {
             name: "valid next + invalid blockIdentifier",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: Some(vec![Some(BlockTransaction {
+                transactions: vec![Some(BlockTransaction {
                     block_identifier: Default::default(),
                     transaction: Some(valid_transaction),
-                })]),
+                })],
                 ..Default::default()
             }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
@@ -134,10 +147,10 @@ fn test_search_transactions_response() {
             name: "valid next + invalid transaction",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: Some(vec![Some(BlockTransaction {
+                transactions: vec![Some(BlockTransaction {
                     block_identifier: Some(valid_block_ident),
                     transaction: Default::default(),
-                })]),
+                })],
                 ..Default::default()
             }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
@@ -165,10 +178,10 @@ fn test_search_transactions_response() {
                 }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: Some(vec![Some(Peer {
+                peers: vec![Some(Peer {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
-                })]),
+                })],
             },
             NetworkOptionsResponse {
                 version: Some(Version {
@@ -178,7 +191,7 @@ fn test_search_transactions_response() {
                     metadata: Default::default(),
                 }),
                 allow: Some(Allow {
-                    operation_statuses: Some(vec![
+                    operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
                             successful: true,
@@ -187,8 +200,8 @@ fn test_search_transactions_response() {
                             status: "FAILURE".into(),
                             successful: false,
                         }),
-                    ]),
-                    operation_types: Some(vec!["PAYMENT".into()]),
+                    ],
+                    operation_types: vec!["PAYMENT".into()],
                     ..Default::default()
                 }),
             },

@@ -6,6 +6,7 @@ use super::*;
 /// network payload will be sent directly to the `/construction/submit`
 /// endpoint.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ConstructionCombineResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     pub signed_transaction: String,

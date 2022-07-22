@@ -6,6 +6,7 @@ use super::*;
 
 /// `CallRequest` is the input to the `/call` endpoint.
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct CallRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

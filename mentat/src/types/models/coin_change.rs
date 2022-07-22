@@ -9,6 +9,7 @@ use super::*;
 /// UTXO-based transfers on the same blockchain (when a transfer is
 /// account-based, don't populate this model).
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct CoinChange {
     /// [`CoinIdentifier`] uniquely identifies a Coin.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -17,6 +18,5 @@ pub struct CoinChange {
     /// When a [`Coin`] is created, it is coin_created. When a [`Coin`] is
     /// spent, it is coin_spent. It is assumed that a single [`Coin'] cannot
     /// be created or spent more than once.
-    #[serde(default)]
     pub coin_action: CoinAction,
 }

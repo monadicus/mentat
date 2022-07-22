@@ -6,7 +6,8 @@ use crate::types::BlockIdentifier;
 /// `BlockEvent` represents the addition or removal of a [`BlockIdentifier`]
 /// from storage. Streaming `BlockEvent`s allows lightweight clients to update
 /// their own state without needing to implement their own syncing logic.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct BlockEvent {
     /// Sequence is the unique identifier of a BlockEvent within the context of
     /// a [`NetworkIdentifier`].
@@ -17,7 +18,6 @@ pub struct BlockEvent {
     pub block_identifier: Option<BlockIdentifier>,
     /// `BlockEventType` determines if a `BlockEvent` represents the addition or
     /// removal of a block.
-    #[serde(default)]
     #[serde(rename = "type")]
     pub type_: BlockEventType,
 }

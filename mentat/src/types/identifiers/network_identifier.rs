@@ -14,6 +14,7 @@ use crate::{
 /// The [`NetworkIdentifier`] specifies which network a particular object is
 /// associated with.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct NetworkIdentifier {
     /// The name of the blockchain.
     pub blockchain: String,

@@ -1,7 +1,11 @@
 //! Validates that event data is correct.
 
 use super::{
-    block::block_identifier, errors::AssertResult, BlockEvent, EventError, EventsBlocksResponse,
+    block::block_identifier,
+    errors::AssertResult,
+    BlockEvent,
+    EventError,
+    EventsBlocksResponse,
 };
 
 /// [`BlockEvent`] ensures a *types.BlockEvent
@@ -33,7 +37,7 @@ pub(crate) fn events_blocks_response(response: Option<&EventsBlocksResponse>) ->
         Err(EventError::MaxSequenceInvalid)?;
     }
     let mut seq = -1;
-    for (i, event) in response.events.iter().flatten().enumerate() {
+    for (i, event) in response.events.iter().enumerate() {
         block_event(event.as_ref())?;
         let event = event.as_ref().unwrap();
 

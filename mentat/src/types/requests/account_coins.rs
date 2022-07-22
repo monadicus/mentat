@@ -5,6 +5,7 @@ use super::*;
 /// `AccountCoinsRequest` is utilized to make a request on the `/account/coins`
 /// endpoint.
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct AccountCoinsRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
@@ -24,6 +25,9 @@ pub struct AccountCoinsRequest {
     /// balances for an [`AccountIdentifier`]. If the `currencies` field is
     /// populated, only balances for the specified currencies will be
     /// returned. If not populated, all available balances will be returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub currencies: Option<Vec<Option<Currency>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub currencies: Vec<Option<Currency>>,
 }

@@ -1,11 +1,24 @@
 //! Validates that construction data is correct.
 
 use super::{
-    account_array, account_identifier, assert_unique_amounts, bytes_array_zero,
-    errors::AsserterError, AssertResult, ConstructionDeriveResponse, ConstructionError,
-    ConstructionMetadataResponse, ConstructionParseResponse, ConstructionPayloadsResponse,
-    ConstructionPreprocessResponse, CurveType, PublicKey, ResponseAsserter, Signature,
-    SignatureType, SigningPayload,
+    account_array,
+    account_identifier,
+    assert_unique_amounts,
+    bytes_array_zero,
+    errors::AsserterError,
+    AssertResult,
+    ConstructionDeriveResponse,
+    ConstructionError,
+    ConstructionMetadataResponse,
+    ConstructionParseResponse,
+    ConstructionPayloadsResponse,
+    ConstructionPreprocessResponse,
+    CurveType,
+    PublicKey,
+    ResponseAsserter,
+    Signature,
+    SignatureType,
+    SigningPayload,
 };
 
 /// the request public keys are not valid AccountIdentifiers.
@@ -16,7 +29,6 @@ pub(crate) fn construction_preprocess_response(
 
     resp.required_public_keys
         .iter()
-        .flatten()
         .try_for_each(|pub_key| account_identifier(pub_key.as_ref()))?;
 
     Ok(())
@@ -33,10 +45,7 @@ pub(crate) fn construction_metadata_response(
         Err(ConstructionError::ConstructionMetadataResponseMetadataMissing)?;
     }
 
-    resp.suggested_fee
-        .as_ref()
-        .map(|fee| assert_unique_amounts(fee))
-        .transpose()
+    assert_unique_amounts(&resp.suggested_fee)
         .map_err(|err| format!("{err}: duplicate suggested fee currency found"))?;
 
     Ok(())
@@ -73,53 +82,30 @@ impl ResponseAsserter {
         // if self nil
         let resp = resp.ok_or(ConstructionError::ConstructionParseResponseIsNil)?;
 
-        if resp
-            .operations
-            .as_ref()
-            .map_or_else(|| true, |v| v.is_empty())
-        {
+        if resp.operations.is_empty() {
             Err(ConstructionError::ConstructionParseResponseOperationsEmpty)?;
         }
 
-        self.operations(resp.operations.as_ref().unwrap(), true)
+        self.operations(&resp.operations, true)
             .map_err(|err| format!("{err} unable to parse operations"))?;
 
-        if signed
-            && resp
-                .account_identifier_signers
-                .as_ref()
-                .map_or_else(|| true, |v| v.is_empty())
-        {
+        if signed && resp.account_identifier_signers.is_empty() {
             Err(ConstructionError::ConstructionParseResponseIsNil)?;
         }
 
-        if !signed
-            && resp
-                .account_identifier_signers
-                .as_ref()
-                .map_or_else(|| true, |v| v.is_empty())
-        {
+        if !signed && resp.account_identifier_signers.is_empty() {
             Err(ConstructionError::ConstructionParseResponseSignersNonEmptyOnUnsignedTx)?;
         }
 
         resp.account_identifier_signers
-            .as_ref()
-            .unwrap()
             .iter()
             .enumerate()
             .try_for_each(|(index, ident)| {
                 account_identifier(ident.as_ref()).map_err(|err| format!("{err} at index {index}"))
             })?;
 
-        if resp
-            .account_identifier_signers
-            .as_ref()
-            .map_or_else(|| false, |v| !v.is_empty())
-        {
-            account_array(
-                "signers",
-                resp.account_identifier_signers.as_ref().unwrap(),
-            )?;
+        if !resp.account_identifier_signers.is_empty() {
+            account_array("signers", &resp.account_identifier_signers)?;
         }
 
         Ok(())
@@ -139,17 +125,12 @@ pub(crate) fn construction_payloads_response(
         Err(ConstructionError::ConstructionPayloadsResponseUnsignedTxEmpty)?;
     }
 
-    if resp
-        .payloads
-        .as_ref()
-        .map_or_else(|| true, |v| v.is_empty())
-    {
+    if resp.payloads.is_empty() {
         Err(ConstructionError::ConstructionPayloadsResponsePayloadsEmpty)?;
     }
 
     resp.payloads
         .iter()
-        .flatten()
         .enumerate()
         .try_for_each(|(index, payload)| {
             signing_payload(payload.as_ref())

@@ -5,6 +5,7 @@ use super::*;
 /// A [`BlockRequest`] is utilized to make a block request on the `/block`
 /// endpoint.
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct BlockRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

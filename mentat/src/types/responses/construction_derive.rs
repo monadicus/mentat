@@ -7,6 +7,7 @@ use super::*;
 /// [`ConstructionDeriveResponse`] is returned by the `/construction/derive`
 /// endpoint.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ConstructionDeriveResponse {
     /// [DEPRECATED by `account_identifier` in v1.4.4] Address in
     /// network-specific format.
@@ -19,7 +20,6 @@ pub struct ConstructionDeriveResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_identifier: Option<AccountIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(default)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

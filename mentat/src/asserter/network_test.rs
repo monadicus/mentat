@@ -7,8 +7,16 @@ use crate::{
         network::{allow, error, errors, network_identifier, network_list_response, version},
     },
     types::{
-        Allow, BalanceExemption, Currency, ExemptionType, MentatError, NetworkIdentifier,
-        NetworkListResponse, OperationStatus, SubNetworkIdentifier, Version,
+        Allow,
+        BalanceExemption,
+        Currency,
+        ExemptionType,
+        MentatError,
+        NetworkIdentifier,
+        NetworkListResponse,
+        OperationStatus,
+        SubNetworkIdentifier,
+        Version,
     },
 };
 
@@ -140,7 +148,7 @@ fn test_version() {
 
 #[test]
 fn test_allow() {
-    let operation_statuses = Some(vec![
+    let operation_statuses = vec![
         Some(OperationStatus {
             status: "SUCCESS".to_string(),
             successful: true,
@@ -149,10 +157,10 @@ fn test_allow() {
             status: "FAILURE".to_string(),
             successful: false,
         }),
-    ]);
-    let operation_types = Some(vec!["PAYMENT".to_string()]);
-    let call_methods = Some(vec!["call".to_string()]);
-    let balance_exemptions = Some(vec![Some(BalanceExemption {
+    ];
+    let operation_types = vec!["PAYMENT".to_string()];
+    let call_methods = vec!["call".to_string()];
+    let balance_exemptions = vec![Some(BalanceExemption {
         sub_account_address: None,
         currency: Some(Currency {
             symbol: "BTC".to_string(),
@@ -160,7 +168,7 @@ fn test_allow() {
             metadata: Default::default(),
         }),
         exemption_type: ExemptionType::DYNAMIC.into(),
-    })]);
+    })];
     let neg_index = Some(-1);
     let index = Some(100);
 
@@ -224,7 +232,7 @@ fn test_allow() {
         AsserterTest {
             name: "no successful OperationStatuses",
             payload: Some(Allow {
-                operation_statuses: Some(vec![operation_statuses.as_ref().unwrap()[1].clone()]),
+                operation_statuses: vec![operation_statuses[1].clone()],
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
@@ -245,7 +253,7 @@ fn test_allow() {
             payload: Some(Allow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
-                call_methods: Some(vec!["call".into(), "call".into()]),
+                call_methods: vec!["call".into(), "call".into()],
                 balance_exemptions,
                 ..Default::default()
             }),
@@ -258,8 +266,8 @@ fn test_allow() {
             payload: Some(Allow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
-                call_methods: Some(vec!["call".into()]),
-                balance_exemptions: Some(Vec::new()),
+                call_methods: vec!["call".into()],
+                balance_exemptions: Vec::new(),
                 ..Default::default()
             }),
             err: Some(NetworkError::BalanceExemptionMissingSubject.into()),
@@ -269,8 +277,8 @@ fn test_allow() {
             payload: Some(Allow {
                 operation_statuses,
                 operation_types,
-                call_methods: Some(vec!["call".into()]),
-                balance_exemptions: Some(Vec::new()),
+                call_methods: vec!["call".into()],
+                balance_exemptions: Vec::new(),
                 ..Default::default()
             }),
             err: Some(NetworkError::NoAllowedOperationStatuses.into()),
@@ -407,7 +415,7 @@ fn test_network_list_response() {
         AsserterTest {
             name: "valid network list",
             payload: Some(NetworkListResponse {
-                network_identifiers: Some(vec![network_1, network_1_sub.clone(), network_2]),
+                network_identifiers: vec![network_1, network_1_sub.clone(), network_2],
             }),
             err: None,
         },
@@ -419,14 +427,14 @@ fn test_network_list_response() {
         AsserterTest {
             name: "network list duplicate",
             payload: Some(NetworkListResponse {
-                network_identifiers: Some(vec![network_1_sub.clone(), network_1_sub.clone()]),
+                network_identifiers: vec![network_1_sub.clone(), network_1_sub.clone()],
             }),
             err: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
         },
         AsserterTest {
             name: "network list duplicate",
             payload: Some(NetworkListResponse {
-                network_identifiers: Some(vec![network_1_sub, network_3]),
+                network_identifiers: vec![network_1_sub, network_3],
             }),
             err: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
         },

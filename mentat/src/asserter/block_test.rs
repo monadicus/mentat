@@ -5,16 +5,34 @@ use crate::{
     asserter::{
         asserter_tools::Asserter,
         block::{
-            account_identifier, amount, block_identifier, operation_identifier, MAX_UNIX_EPOCH,
+            account_identifier,
+            amount,
+            block_identifier,
+            operation_identifier,
+            MAX_UNIX_EPOCH,
             MIN_UNIX_EPOCH,
         },
         errors::{AssertResult, AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier, Allow, Amount, Block, BlockIdentifier, Currency, NetworkIdentifier,
-        NetworkOptionsResponse, NetworkStatusResponse, Operation, OperationIdentifier,
-        OperationStatus, Peer, RelatedTransaction, SubAccountIdentifier, Transaction,
-        TransactionIdentifier, Version,
+        AccountIdentifier,
+        Allow,
+        Amount,
+        Block,
+        BlockIdentifier,
+        Currency,
+        NetworkIdentifier,
+        NetworkOptionsResponse,
+        NetworkStatusResponse,
+        Operation,
+        OperationIdentifier,
+        OperationStatus,
+        Peer,
+        RelatedTransaction,
+        SubAccountIdentifier,
+        Transaction,
+        TransactionIdentifier,
+        Version,
     },
 };
 
@@ -625,10 +643,10 @@ fn test_operation_validations() {
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(valid_fee_amt.clone()),
-                        related_operations: Some(vec![Some(OperationIdentifier {
+                        related_operations: vec![Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        })]),
+                        })],
                         ..Default::default()
                     },
                 ],
@@ -735,10 +753,10 @@ fn test_operation_validations() {
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(valid_fee_amt),
-                        related_operations: Some(vec![Some(OperationIdentifier {
+                        related_operations: vec![Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        })]),
+                        })],
                         ..Default::default()
                     },
                 ],
@@ -773,10 +791,10 @@ fn test_operation_validations() {
                 }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: Some(vec![Some(Peer {
+                peers: vec![Some(Peer {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
-                })]),
+                })],
             },
             NetworkOptionsResponse {
                 version: Some(Version {
@@ -786,7 +804,7 @@ fn test_operation_validations() {
                     metadata: Default::default(),
                 }),
                 allow: Some(Allow {
-                    operation_statuses: Some(vec![
+                    operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
                             successful: true,
@@ -795,8 +813,8 @@ fn test_operation_validations() {
                             status: "FAILURE".into(),
                             successful: false,
                         }),
-                    ]),
-                    operation_types: Some(vec!["PAYMENT".into(), "FEE".into()]),
+                    ],
+                    operation_types: vec!["PAYMENT".into(), "FEE".into()],
                     ..Default::default()
                 }),
             },
@@ -1073,10 +1091,10 @@ fn test_operation() {
                 }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: Some(vec![Some(Peer {
+                peers: vec![Some(Peer {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
-                })]),
+                })],
             },
             NetworkOptionsResponse {
                 version: Some(Version {
@@ -1086,7 +1104,7 @@ fn test_operation() {
                     metadata: Default::default(),
                 }),
                 allow: Some(Allow {
-                    operation_statuses: Some(vec![
+                    operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
                             successful: true,
@@ -1095,8 +1113,8 @@ fn test_operation() {
                             status: "FAILURE".into(),
                             successful: false,
                         }),
-                    ]),
-                    operation_types: Some(vec!["PAYMENT".into()]),
+                    ],
+                    operation_types: vec!["PAYMENT".into()],
                     ..Default::default()
                 }),
             },
@@ -1149,7 +1167,7 @@ fn test_block() {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
@@ -1166,18 +1184,18 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(vec![Some(OperationIdentifier {
+                related_operations: vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                })]),
+                })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-        ]),
-        related_transactions: Some(vec![Some(RelatedTransaction {
+        ],
+        related_transactions: vec![Some(RelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -1187,44 +1205,44 @@ fn test_block() {
                 hash: "blah".into(),
             }),
             direction: "Forward".into(),
-        })]),
+        })],
         metadata: Default::default(),
     };
     let related_to_self_transaction = Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![Some(Operation {
+        operations: vec![Some(Operation {
             operation_identifier: Some(OperationIdentifier {
                 index: 0,
                 network_index: None,
             }),
-            related_operations: Some(vec![Some(OperationIdentifier {
+            related_operations: vec![Some(OperationIdentifier {
                 index: 0,
                 network_index: None,
-            })]),
+            })],
             type_: "PAYMENT".into(),
             status: Some("SUCCESS".into()),
             account: valid_account_identifier(),
             amount: valid_amount.clone(),
             ..Default::default()
-        })]),
+        })],
         ..Default::default()
     };
     let out_of_order_transaction = Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(vec![Some(OperationIdentifier {
+                related_operations: vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                })]),
+                })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
@@ -1242,23 +1260,23 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-        ]),
+        ],
         ..Default::default()
     };
     let related_to_later_transaction = Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
-                related_operations: Some(vec![Some(OperationIdentifier {
+                related_operations: vec![Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                })]),
+                })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
@@ -1270,24 +1288,24 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(vec![Some(OperationIdentifier {
+                related_operations: vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                })]),
+                })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-        ]),
+        ],
         ..Default::default()
     };
     let related_duplicate_transaction = Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
@@ -1304,7 +1322,7 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(vec![
+                related_operations: vec![
                     Some(OperationIdentifier {
                         index: 0,
                         network_index: None,
@@ -1313,21 +1331,21 @@ fn test_block() {
                         index: 0,
                         network_index: None,
                     }),
-                ]),
+                ],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-        ]),
+        ],
         ..Default::default()
     };
     let related_missing_transaction = Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
@@ -1344,7 +1362,6 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(Vec::new()),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
@@ -1356,21 +1373,20 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(Vec::new()),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-        ]),
+        ],
         ..Default::default()
     };
     let invalid_related_transaction = Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
@@ -1387,18 +1403,18 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(vec![Some(OperationIdentifier {
+                related_operations: vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                })]),
+                })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-        ]),
-        related_transactions: Some(vec![Some(RelatedTransaction {
+        ],
+        related_transactions: vec![Some(RelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -1408,14 +1424,14 @@ fn test_block() {
                 hash: "blah".into(),
             }),
             direction: "blah".into(),
-        })]),
+        })],
         ..Default::default()
     };
     let duplicated_related_transactions = Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: Some(vec![
+        operations: vec![
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
@@ -1432,18 +1448,18 @@ fn test_block() {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: Some(vec![Some(OperationIdentifier {
+                related_operations: vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                })]),
+                })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account,
                 amount: valid_amount,
                 ..Default::default()
             }),
-        ]),
-        related_transactions: Some(vec![
+        ],
+        related_transactions: vec![
             Some(RelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
                     blockchain: "hello".into(),
@@ -1466,7 +1482,7 @@ fn test_block() {
                 }),
                 direction: "Forward".into(),
             }),
-        ]),
+        ],
         ..Default::default()
     };
 
@@ -1478,7 +1494,7 @@ fn test_block() {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     metadata: Default::default(),
                 }),
                 validation_file_path: Default::default(),
@@ -1493,7 +1509,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1508,7 +1524,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1523,7 +1539,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident.clone()),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1538,7 +1554,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident.clone()),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1554,7 +1570,7 @@ fn test_block() {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(out_of_order_transaction)]),
+                    transactions: vec![Some(out_of_order_transaction)],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1570,7 +1586,7 @@ fn test_block() {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(related_to_self_transaction)]),
+                    transactions: vec![Some(related_to_self_transaction)],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1586,7 +1602,7 @@ fn test_block() {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(related_to_later_transaction)]),
+                    transactions: vec![Some(related_to_later_transaction)],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1602,7 +1618,7 @@ fn test_block() {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(related_duplicate_transaction)]),
+                    transactions: vec![Some(related_duplicate_transaction)],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1618,7 +1634,7 @@ fn test_block() {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(related_missing_transaction)]),
+                    transactions: vec![Some(related_missing_transaction)],
                     ..Default::default()
                 }),
                 validation_file_path: PathBuf::from("data/validation_balanced_related_ops.json"),
@@ -1644,7 +1660,7 @@ fn test_block() {
                     block_identifier: None,
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1659,7 +1675,7 @@ fn test_block() {
                 block: Some(Block {
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1674,7 +1690,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1693,7 +1709,7 @@ fn test_block() {
                         hash: valid_parent_block_ident.hash.clone(),
                     }),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1712,7 +1728,7 @@ fn test_block() {
                         hash: valid_block_ident.hash.clone(),
                     }),
                     timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1727,7 +1743,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: Some(vec![Some(valid_transaction.clone())]),
+                    transactions: vec![Some(valid_transaction.clone())],
                     ..Default::default()
                 }),
                 validation_file_path: Default::default(),
@@ -1742,7 +1758,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: Some(vec![Some(valid_transaction)]),
+                    transactions: vec![Some(valid_transaction)],
                     timestamp: (MAX_UNIX_EPOCH + 1),
                     ..Default::default()
                 }),
@@ -1758,7 +1774,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: Some(vec![Default::default()]),
+                    transactions: vec![Default::default()],
                     timestamp: (MIN_UNIX_EPOCH + 1),
                     ..Default::default()
                 }),
@@ -1775,7 +1791,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: Some(vec![Some(invalid_related_transaction)]),
+                    transactions: vec![Some(invalid_related_transaction)],
                     timestamp: (MIN_UNIX_EPOCH + 1),
                     ..Default::default()
                 }),
@@ -1791,7 +1807,7 @@ fn test_block() {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident),
                     parent_block_identifier: Some(valid_parent_block_ident),
-                    transactions: Some(vec![Some(duplicated_related_transactions)]),
+                    transactions: vec![Some(duplicated_related_transactions)],
                     timestamp: (MIN_UNIX_EPOCH + 1),
                     ..Default::default()
                 }),
@@ -1826,10 +1842,10 @@ fn test_block() {
                 }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: Some(vec![Some(Peer {
+                peers: vec![Some(Peer {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
-                })]),
+                })],
             },
             NetworkOptionsResponse {
                 version: Some(Version {
@@ -1839,7 +1855,7 @@ fn test_block() {
                     metadata: Default::default(),
                 }),
                 allow: Some(Allow {
-                    operation_statuses: Some(vec![
+                    operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
                             successful: true,
@@ -1848,8 +1864,8 @@ fn test_block() {
                             status: "FAILURE".into(),
                             successful: false,
                         }),
-                    ]),
-                    operation_types: Some(vec!["PAYMENT".into()]),
+                    ],
+                    operation_types: vec!["PAYMENT".into()],
                     // TODO need to make this an i64
                     timestamp_start_index: payload.start_index,
                     ..Default::default()

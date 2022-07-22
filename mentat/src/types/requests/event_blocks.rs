@@ -4,6 +4,7 @@ use super::*;
 
 /// The transaction submission request includes a signed transaction.
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct EventsBlocksRequest {
     /// [`EventsBlocksRequest`] is utilized to fetch a sequence of
     /// [`BlockEvent`]s indicating which blocks were added and removed from

@@ -2,7 +2,7 @@
 
 #![allow(clippy::absurd_extreme_comparisons)]
 // TODO this is temporary to help find relevant warnings faster
-#![allow(unused, clippy::todo)]
+#![allow(unused)]
 
 mod account;
 use account::*;

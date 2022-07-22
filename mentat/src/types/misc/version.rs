@@ -7,6 +7,7 @@ use super::*;
 /// The [`Version`] object is utilized to inform the client of the versions of
 /// different components of the Rosetta implementation.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct Version {
     /// The `rosetta_version` is the version of the Rosetta interface the
     /// implementation adheres to. This can be useful for clients looking to
@@ -21,7 +22,6 @@ pub struct Version {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub middleware_version: Option<String>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(default)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }

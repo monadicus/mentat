@@ -11,19 +11,25 @@ use super::*;
 /// [`AccountIdentifier`]s returned in
 /// [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(default)]
 pub struct ConstructionPayloadsRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network_identifier: Option<NetworkIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub operations: Option<Vec<Option<Operation>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub operations: Vec<Option<Operation>>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(default)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub public_keys: Option<Vec<Option<PublicKey>>>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "null_default"
+    )]
+    pub public_keys: Vec<Option<PublicKey>>,
 }

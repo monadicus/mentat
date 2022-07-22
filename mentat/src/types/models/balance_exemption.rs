@@ -15,6 +15,7 @@ use super::*;
 /// you MUST implement historical balance lookup (the ability to query an
 /// account balance at any [`BlockIdentifier`]).
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct BalanceExemption {
     /// SubAccountAddress is the [`SubAccountIdentifier`]. Address that the
     /// BalanceExemption applies to (regardless of the value of
@@ -36,6 +37,5 @@ pub struct BalanceExemption {
     /// to spendable on a vesting account. * dynamic: The live balance may
     /// increase above, decrease below, or equal the computed balance. This
     /// typically occurs with tokens that have a dynamic supply.
-    #[serde(default)]
     pub exemption_type: ExemptionType,
 }

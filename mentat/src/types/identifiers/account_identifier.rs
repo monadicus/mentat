@@ -9,6 +9,7 @@ use crate::types::Sortable;
 /// All fields in the `account_identifier` are utilized to determine this
 /// uniqueness (including the metadata field, if populated).
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
 pub struct AccountIdentifier {
     /// The address may be a cryptographic public key (or some encoding of it)
     /// or a provided username.
@@ -22,7 +23,6 @@ pub struct AccountIdentifier {
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    #[serde(default)]
     pub metadata: IndexMap<String, Value>,
 }
 

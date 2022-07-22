@@ -3,13 +3,31 @@
 use indexmap::IndexSet;
 
 use super::{
-    block_identifier, currency, hash, string_array, timestamp, Allow, AssertResult, AsserterError,
-    BalanceExemption, BlockError, ErrorError, MentatError, NetworkError, NetworkIdentifier,
-    NetworkListResponse, NetworkOptionsResponse, NetworkStatusResponse, OperationStatus, Peer,
-    SubNetworkIdentifier, SyncStatus, Version,
+    block_identifier,
+    currency,
+    hash,
+    string_array,
+    timestamp,
+    Allow,
+    AssertResult,
+    AsserterError,
+    BalanceExemption,
+    BlockError,
+    ErrorError,
+    MentatError,
+    NetworkError,
+    NetworkIdentifier,
+    NetworkListResponse,
+    NetworkOptionsResponse,
+    NetworkStatusResponse,
+    OperationStatus,
+    Peer,
+    SubNetworkIdentifier,
+    SyncStatus,
+    Version,
 };
 
-/// `sub_network_identifier` asserts a [`SubNetworkIdentifer`] is valid (if not
+/// `sub_network_identifier` asserts a [`SubNetworkIdentifier`] is valid (if not
 /// nil).
 pub(crate) fn sub_network_identifier(
     sub_network_identifier: Option<&SubNetworkIdentifier>,
@@ -103,14 +121,13 @@ pub(crate) fn network_status_response(resp: Option<&NetworkStatusResponse>) -> A
     block_identifier(resp.genesis_block_identifier.as_ref())?;
     resp.peers
         .iter()
-        .flatten()
         .map(|p| peer(p.as_ref()))
         .collect::<AssertResult<Vec<_>>>()?;
     sync_status(resp.sync_status.as_ref())
 }
 
-/// `operation_statuses` ensures all [OperationStatus``] in
-/// Options.Allow.OperationStatuses are valid and that there exists at least 1
+/// `operation_statuses` ensures all [`OperationStatus`] in
+/// [`OperationStatuses`] are valid and that there exists at least 1
 /// successful status.
 pub(crate) fn operation_statuses(stats: &[Option<OperationStatus>]) -> AssertResult<()> {
     if stats.is_empty() {
@@ -241,25 +258,13 @@ pub(crate) fn call_methods(methods: &[String]) -> AssertResult<()> {
 pub(crate) fn allow(allowed: Option<&Allow>) -> AssertResult<()> {
     let allowed = allowed.ok_or(NetworkError::AllowIsNil)?;
 
-    operation_statuses(allowed.operation_statuses.as_ref().unwrap_or(&Vec::new()))?;
-    operation_types(allowed.operation_types.as_ref().unwrap_or(&Vec::new()))?;
-    errors(allowed.errors.as_ref().unwrap_or(&Vec::new()))?;
+    operation_statuses(&allowed.operation_statuses)?;
+    operation_types(&allowed.operation_types)?;
+    errors(&allowed.errors)?;
+    call_methods(&allowed.call_methods)?;
+    balance_exemptions(&allowed.balance_exemptions)?;
 
-    allowed
-        .call_methods
-        .as_ref()
-        .map(|methods| call_methods(methods))
-        .transpose()?;
-    allowed
-        .balance_exemptions
-        .as_ref()
-        .map(|exemptions| balance_exemptions(exemptions))
-        .transpose()?;
-
-    if allowed.balance_exemptions.is_some()
-        && !allowed.balance_exemptions.as_ref().unwrap().is_empty()
-        && !allowed.historical_balance_lookup
-    {
+    if !allowed.balance_exemptions.is_empty() && !allowed.historical_balance_lookup {
         Err(NetworkError::BalanceExemptionNoHistoricalLookup)?;
     }
 
@@ -302,7 +307,7 @@ pub(crate) fn contains_network_identifier(
 pub(crate) fn network_list_response(resp: Option<&NetworkListResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkListResponseIsNil)?;
     let mut seen = Vec::new();
-    for network in resp.network_identifiers.iter().flatten() {
+    for network in &resp.network_identifiers {
         network_identifier(network.as_ref())?;
         if contains_network_identifier(&seen, network.as_ref()) {
             Err(NetworkError::NetworkListResponseNetworksContainsDuplicates)?;
