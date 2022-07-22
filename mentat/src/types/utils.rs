@@ -7,12 +7,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier,
-    Amount,
-    BlockIdentifier,
-    Currency,
-    PartialBlockIdentifier,
-    Sortable,
+    AccountIdentifier, Amount, BlockIdentifier, Currency, PartialBlockIdentifier, Sortable,
 };
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided
@@ -155,8 +150,8 @@ pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -
     balances
         .iter()
         .find(|amt| {
-            if amt.is_some() && amt.unwrap().currency.is_some() {
-                hash(&amt.unwrap().currency.unwrap()) == hash(currency)
+            if amt.is_some() && amt.as_ref().unwrap().currency.is_some() {
+                hash(amt.as_ref().unwrap().currency.as_ref()) == hash(Some(currency))
             } else {
                 false
             }

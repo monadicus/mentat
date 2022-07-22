@@ -9,11 +9,7 @@ use super::{
     errors::{AssertResult, NetworkError, ServerError},
     network::{network_identifier, operation_statuses, operation_types},
     server::supported_networks,
-    BlockIdentifier,
-    MentatError,
-    NetworkIdentifier,
-    NetworkOptionsResponse,
-    NetworkStatusResponse,
+    BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse,
     OperationStatus,
 };
 
@@ -106,9 +102,15 @@ impl ResponseAsserter {
         timestamp_start_index: i64,
         validations: Validations,
     ) -> AssertResult<Self> {
-        network_identifier(&network)?;
-        block_identifier(&genesis_block)?;
-        operation_statuses(&operation_stats)?;
+        network_identifier(Some(&network))?;
+        block_identifier(Some(&genesis_block))?;
+        operation_statuses(
+            &operation_stats
+                .iter()
+                .cloned()
+                .map(|t| Some(t))
+                .collect::<Vec<_>>(),
+        )?;
         operation_types(&operation_types_)?;
 
         // TimestampStartIndex defaults to genesisIndex + 1 (this
@@ -160,13 +162,19 @@ impl RequestAsserter {
     pub(crate) fn new_server(
         supported_operation_types: Vec<String>,
         historical_balance_lookup: bool,
-        supp_networks: Vec<Option<NetworkIdentifier>>,
+        supp_networks: Vec<NetworkIdentifier>,
         call_methods: Vec<String>,
         mempool_coins: bool,
         validation_file_path: &Path,
     ) -> AssertResult<Self> {
         operation_types(&supported_operation_types)?;
-        supported_networks(&supp_networks)?;
+        supported_networks(
+            &supp_networks
+                .iter()
+                .cloned()
+                .map(|i| Some(i))
+                .collect::<Vec<_>>(),
+        )?;
 
         let validations = Validations::get_validation_config(validation_file_path)?;
         let mut call_map: IndexSet<String> = IndexSet::new();
@@ -231,7 +239,7 @@ impl Asserter {
         options: NetworkOptionsResponse,
         validation_file_path: PathBuf,
     ) -> AssertResult<Self> {
-        network_identifier(&network)?;
+        network_identifier(Some(&network))?;
 
         todo!()
         // Self::new_client_with_options

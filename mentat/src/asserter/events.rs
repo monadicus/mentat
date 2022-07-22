@@ -1,11 +1,7 @@
 //! Validates that event data is correct.
 
 use super::{
-    block::block_identifier,
-    errors::AssertResult,
-    BlockEvent,
-    EventError,
-    EventsBlocksResponse,
+    block::block_identifier, errors::AssertResult, BlockEvent, EventError, EventsBlocksResponse,
 };
 
 /// [`BlockEvent`] ensures a *types.BlockEvent
@@ -29,14 +25,17 @@ pub(crate) fn block_event(event: Option<&BlockEvent>) -> AssertResult<()> {
 
 /// events_blocks_response ensures a [`EventsBlocksResponse`]
 /// is valid.
-pub(crate) fn events_blocks_response(response: &EventsBlocksResponse) -> AssertResult<()> {
+pub(crate) fn events_blocks_response(response: Option<&EventsBlocksResponse>) -> AssertResult<()> {
+    // TODO: coinbase never checks for nil
+    let response = response.unwrap();
+
     if response.max_sequence < 0 {
         Err(EventError::MaxSequenceInvalid)?;
     }
     let mut seq = -1;
     for (i, event) in response.events.iter().flatten().enumerate() {
         block_event(event.as_ref())?;
-        let event = event.unwrap();
+        let event = event.as_ref().unwrap();
 
         if seq == -1 {
             seq = event.sequence as i64

@@ -1,24 +1,11 @@
 //! Validates that construction data is correct.
 
 use super::{
-    account_array,
-    account_identifier,
-    assert_unique_amounts,
-    bytes_array_zero,
-    errors::AsserterError,
-    AssertResult,
-    ConstructionDeriveResponse,
-    ConstructionError,
-    ConstructionMetadataResponse,
-    ConstructionParseResponse,
-    ConstructionPayloadsResponse,
-    ConstructionPreprocessResponse,
-    CurveType,
-    PublicKey,
-    ResponseAsserter,
-    Signature,
-    SignatureType,
-    SigningPayload,
+    account_array, account_identifier, assert_unique_amounts, bytes_array_zero,
+    errors::AsserterError, AssertResult, ConstructionDeriveResponse, ConstructionError,
+    ConstructionMetadataResponse, ConstructionParseResponse, ConstructionPayloadsResponse,
+    ConstructionPreprocessResponse, CurveType, PublicKey, ResponseAsserter, Signature,
+    SignatureType, SigningPayload,
 };
 
 /// the request public keys are not valid AccountIdentifiers.
@@ -86,18 +73,22 @@ impl ResponseAsserter {
         // if self nil
         let resp = resp.ok_or(ConstructionError::ConstructionParseResponseIsNil)?;
 
-        if resp.operations.unwrap_or_default().is_empty() {
+        if resp
+            .operations
+            .as_ref()
+            .map_or_else(|| true, |v| v.is_empty())
+        {
             Err(ConstructionError::ConstructionParseResponseOperationsEmpty)?;
         }
 
-        self.operations(&resp.operations.unwrap(), true)
+        self.operations(&resp.operations.as_ref().unwrap(), true)
             .map_err(|err| format!("{err} unable to parse operations"))?;
 
         if signed
             && resp
                 .account_identifier_signers
-                .unwrap_or_default()
-                .is_empty()
+                .as_ref()
+                .map_or_else(|| true, |v| v.is_empty())
         {
             Err(ConstructionError::ConstructionParseResponseIsNil)?;
         }
@@ -105,8 +96,8 @@ impl ResponseAsserter {
         if !signed
             && resp
                 .account_identifier_signers
-                .unwrap_or_default()
-                .is_empty()
+                .as_ref()
+                .map_or_else(|| true, |v| v.is_empty())
         {
             Err(ConstructionError::ConstructionParseResponseSignersNonEmptyOnUnsignedTx)?;
         }
@@ -122,10 +113,13 @@ impl ResponseAsserter {
 
         if resp
             .account_identifier_signers
-            .unwrap_or_default()
-            .is_empty()
+            .as_ref()
+            .map_or_else(|| false, |v| !v.is_empty())
         {
-            account_array("signers", &resp.account_identifier_signers.unwrap())?;
+            account_array(
+                "signers",
+                &resp.account_identifier_signers.as_ref().unwrap(),
+            )?;
         }
 
         Ok(())
@@ -145,7 +139,11 @@ pub(crate) fn construction_payloads_response(
         Err(ConstructionError::ConstructionPayloadsResponseUnsignedTxEmpty)?;
     }
 
-    if resp.payloads.unwrap_or_default().is_empty() {
+    if resp
+        .payloads
+        .as_ref()
+        .map_or_else(|| true, |v| v.is_empty())
+    {
         Err(ConstructionError::ConstructionPayloadsResponsePayloadsEmpty)?;
     }
 
@@ -226,7 +224,7 @@ pub(crate) fn signing_payload(payload: Option<&SigningPayload>) -> AssertResult<
 
 /// `signatures` returns an error if any
 /// [Signature] is invalid.
-pub(crate) fn signatures(signatures: &[Option<Signature>]) -> AssertResult<()> {
+pub(crate) fn signatures(signatures: &[Option<&Signature>]) -> AssertResult<()> {
     if signatures.is_empty() {
         Err(ConstructionError::SignaturesEmpty)?;
     }
@@ -245,8 +243,8 @@ pub(crate) fn signatures(signatures: &[Option<Signature>]) -> AssertResult<()> {
 
         // Return an error if the requested signature type does not match the
         // signature type in the returned signature.
-        let sig_type = sig.signing_payload.unwrap().signature_type;
-        if !sig_type.is_empty() && sig_type != sig.signature_type {
+        let sig_type = &sig.signing_payload.as_ref().unwrap().signature_type;
+        if !sig_type.is_empty() && *sig_type != sig.signature_type {
             Err(ConstructionError::SignaturesReturnedSigMismatch)?;
         } else if sig.bytes.is_empty() {
             Err(format!(

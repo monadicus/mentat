@@ -37,7 +37,7 @@ pub(crate) fn account_array(arr_name: &str, arr: &[Option<AccountIdentifier>]) -
     for s in arr {
         account_identifier(s.as_ref())
             .map_err(|e| format!("{arr_name} has an invalid account identifier"))?;
-        let key = hash(&s.unwrap_or_default());
+        let key = hash(s.as_ref());
         if parsed.contains(&key) {
             Err(format!("{arr_name} contains a duplicate {s:?}"))?;
         }

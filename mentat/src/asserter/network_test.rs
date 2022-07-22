@@ -7,16 +7,8 @@ use crate::{
         network::{allow, error, errors, network_identifier, network_list_response, version},
     },
     types::{
-        Allow,
-        BalanceExemption,
-        Currency,
-        ExemptionType,
-        MentatError,
-        NetworkIdentifier,
-        NetworkListResponse,
-        OperationStatus,
-        SubNetworkIdentifier,
-        Version,
+        Allow, BalanceExemption, Currency, ExemptionType, MentatError, NetworkIdentifier,
+        NetworkListResponse, OperationStatus, SubNetworkIdentifier, Version,
     },
 };
 
@@ -78,7 +70,7 @@ fn test_network_identifier() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| network_identifier(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, network_identifier);
 }
 
 #[test]
@@ -143,7 +135,7 @@ fn test_version() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| version(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, version);
 }
 
 #[test]
@@ -232,7 +224,7 @@ fn test_allow() {
         AsserterTest {
             name: "no successful OperationStatuses",
             payload: Some(Allow {
-                operation_statuses: Some(vec![operation_statuses.clone().unwrap()[1]]),
+                operation_statuses: Some(vec![operation_statuses.as_ref().unwrap()[1].clone()]),
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
@@ -285,7 +277,7 @@ fn test_allow() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| allow(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, allow);
 }
 
 #[test]
@@ -325,7 +317,7 @@ fn test_error() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| error(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, error);
 }
 
 #[test]
@@ -333,7 +325,7 @@ fn test_errors() {
     let tests = [
         AsserterTest {
             name: "valid errors",
-            payload: vec![
+            payload: Some(vec![
                 Some(MentatError {
                     code: 0,
                     message: "error 1".into(),
@@ -344,12 +336,12 @@ fn test_errors() {
                     message: "error 2".into(),
                     ..Default::default()
                 }),
-            ],
+            ]),
             err: None,
         },
         AsserterTest {
             name: "details populated",
-            payload: vec![
+            payload: Some(vec![
                 Some(MentatError {
                     code: 0,
                     message: "error 1".into(),
@@ -363,12 +355,12 @@ fn test_errors() {
                     message: "error 2".into(),
                     ..Default::default()
                 }),
-            ],
+            ]),
             err: Some(NetworkError::ErrorDetailsPopulated.into()),
         },
         AsserterTest {
             name: "duplicate error codes",
-            payload: vec![
+            payload: Some(vec![
                 Some(MentatError {
                     code: 0,
                     message: "error 1".into(),
@@ -379,12 +371,12 @@ fn test_errors() {
                     message: "error 2".into(),
                     ..Default::default()
                 }),
-            ],
+            ]),
             err: Some(NetworkError::ErrorCodeUsedMultipleTimes.into()),
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| errors(data.as_slice()));
+    AsserterTest::non_asserter_tests(&tests, |t| errors(&t.unwrap()));
 }
 
 #[test]
@@ -440,5 +432,5 @@ fn test_network_list_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| network_list_response(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, network_list_response);
 }

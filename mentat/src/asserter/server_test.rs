@@ -10,38 +10,14 @@ use crate::{
         server::supported_networks,
     },
     types::{
-        AccountBalanceRequest,
-        AccountCoinsRequest,
-        AccountIdentifier,
-        Amount,
-        BlockIdentifier,
-        BlockRequest,
-        BlockTransactionRequest,
-        CallRequest,
-        ConstructionCombineRequest,
-        ConstructionDeriveRequest,
-        ConstructionHashRequest,
-        ConstructionMetadataRequest,
-        ConstructionParseRequest,
-        ConstructionPayloadsRequest,
-        ConstructionPreprocessRequest,
-        ConstructionSubmitRequest,
-        Currency,
-        CurveType,
-        EventsBlocksRequest,
-        MempoolTransactionRequest,
-        NetworkIdentifier,
-        NetworkRequest,
-        Operation,
-        OperationIdentifier,
-        Operator,
-        PartialBlockIdentifier,
-        PublicKey,
-        SearchTransactionsRequest,
-        Signature,
-        SignatureType,
-        SigningPayload,
-        TransactionIdentifier,
+        AccountBalanceRequest, AccountCoinsRequest, AccountIdentifier, Amount, BlockIdentifier,
+        BlockRequest, BlockTransactionRequest, CallRequest, ConstructionCombineRequest,
+        ConstructionDeriveRequest, ConstructionHashRequest, ConstructionMetadataRequest,
+        ConstructionParseRequest, ConstructionPayloadsRequest, ConstructionPreprocessRequest,
+        ConstructionSubmitRequest, Currency, CurveType, EventsBlocksRequest,
+        MempoolTransactionRequest, NetworkIdentifier, NetworkRequest, Operation,
+        OperationIdentifier, Operator, PartialBlockIdentifier, PublicKey,
+        SearchTransactionsRequest, Signature, SignatureType, SigningPayload, TransactionIdentifier,
     },
 };
 
@@ -264,7 +240,7 @@ pub(crate) fn request_asserter() -> RequestAsserter {
     RequestAsserter::new_server(
         vec!["PAYMENT".into()],
         true,
-        vec![valid_network_identifier()],
+        vec![valid_network_identifier().unwrap()],
         vec!["eth_call".into()],
         false,
         Path::new(""),
@@ -283,7 +259,11 @@ impl NewWithOptionsTest {
         RequestAsserter::new_server(
             self.supported_operation_types.clone(),
             true,
-            self.supported_networks.clone(),
+            self.supported_networks
+                .clone()
+                .into_iter()
+                .filter_map(|i| i)
+                .collect(),
             self.call_methods.clone(),
             false,
             Path::new(""),
@@ -310,34 +290,34 @@ fn test_new_with_options() {
         },
         AsserterTest {
             name: "no call methods",
-            payload: NewWithOptionsTest {
+            payload: Some(NewWithOptionsTest {
                 call_methods: vec![],
                 ..Default::default()
-            },
+            }),
             ..Default::default()
         },
         AsserterTest {
             name: "duplicate operation types",
-            payload: NewWithOptionsTest {
+            payload: Some(NewWithOptionsTest {
                 supported_operation_types: vec!["PAYMENT".into(), "PAYMENT".into()],
                 ..Default::default()
-            },
+            }),
             err: Some("Allow.OperationTypes contains a duplicate PAYMENT".into()),
         },
         AsserterTest {
             name: "empty operation type",
-            payload: NewWithOptionsTest {
+            payload: Some(NewWithOptionsTest {
                 supported_operation_types: vec!["PAYMENT".into(), "".into()],
                 ..Default::default()
-            },
+            }),
             err: Some("Allow.OperationTypes has an empty string".into()),
         },
         AsserterTest {
             name: "duplicate network identifier",
-            payload: NewWithOptionsTest {
+            payload: Some(NewWithOptionsTest {
                 supported_networks: vec![valid_network_identifier(), valid_network_identifier()],
                 ..Default::default()
-            },
+            }),
             err: Some(ServerError::SupportedNetworksDuplicate.into()),
         },
         // TODO
@@ -349,15 +329,15 @@ fn test_new_with_options() {
         // },
         AsserterTest {
             name: "no supported networks",
-            payload: NewWithOptionsTest {
+            payload: Some(NewWithOptionsTest {
                 supported_networks: vec![],
                 ..Default::default()
-            },
+            }),
             err: Some(ServerError::NoSupportedNetworks.into()),
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, NewWithOptionsTest::run);
+    AsserterTest::non_asserter_tests(&tests, |t| t.unwrap().run());
 }
 
 #[test]
@@ -365,7 +345,7 @@ fn test_supported_networks() {
     let tests = [
         AsserterTest {
             name: "valid networks",
-            payload: vec![valid_network_identifier(), wrong_network_identifier()],
+            payload: Some(vec![valid_network_identifier(), wrong_network_identifier()]),
             ..Default::default()
         },
         AsserterTest {
@@ -375,16 +355,16 @@ fn test_supported_networks() {
         },
         AsserterTest {
             name: "invalid networks",
-            payload: vec![Some(NetworkIdentifier {
+            payload: Some(vec![Some(NetworkIdentifier {
                 blockchain: "blah".into(),
                 network: "".into(),
                 sub_network_identifier: None,
-            })],
+            })]),
             ..Default::default()
         },
         AsserterTest {
             name: "duplicate networks",
-            payload: vec![valid_network_identifier(), valid_network_identifier()],
+            payload: Some(vec![valid_network_identifier(), valid_network_identifier()]),
             err: Some(
                 format!(
                     "{}: {:?}",
@@ -396,7 +376,7 @@ fn test_supported_networks() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |test| supported_networks(test.as_slice()));
+    AsserterTest::non_asserter_tests(&tests, |test| supported_networks(&test.unwrap()));
 }
 
 #[test]
@@ -527,7 +507,7 @@ fn test_account_balance_request() {
         RequestAsserter::new_server(
             vec!["PAYMENT".into()],
             *allow_historical,
-            vec![valid_network_identifier()],
+            vec![valid_network_identifier().unwrap()],
             vec![],
             false,
             Path::new(""),
@@ -535,9 +515,11 @@ fn test_account_balance_request() {
         .unwrap()
     };
 
-    CustomAsserterTest::custom_request_asserter_tests(&tests, asserter, |asserter, data| {
-        asserter.account_balance_request(data.as_ref())
-    });
+    CustomAsserterTest::custom_request_asserter_tests(
+        &tests,
+        asserter,
+        RequestAsserter::account_balance_request,
+    );
 }
 
 #[test]
@@ -1042,7 +1024,7 @@ fn test_construction_preprocess_request() {
             name: "invalid operations",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
-                operations: Some(invalid_ops()),
+                operations: invalid_ops(),
                 ..Default::default()
             }),
             err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
@@ -1140,7 +1122,7 @@ fn test_construction_payloads_request() {
             name: "empty operations",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
-                operations: vec![Operation::default()],
+                operations: Some(vec![Some(Operation::default())]),
                 ..Default::default()
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
@@ -1158,7 +1140,7 @@ fn test_construction_payloads_request() {
             name: "invalid operations",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
-                operations: Some(invalid_ops()),
+                operations: invalid_ops(),
                 ..Default::default()
             }),
             err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
@@ -1201,7 +1183,7 @@ fn test_construction_combine_request() {
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
-                signatures: vec![Signature {
+                signatures: Some(vec![Some(Signature {
                     signing_payload: Some(SigningPayload {
                         account_identifier: Some(valid_account()),
                         bytes: "blah".into(),
@@ -1210,7 +1192,7 @@ fn test_construction_combine_request() {
                     public_key: Some(valid_public_key()),
                     signature_type: SignatureType::ED25519.into(),
                     bytes: "blah".into(),
-                }],
+                })]),
             }),
             ..Default::default()
         },
@@ -1219,7 +1201,7 @@ fn test_construction_combine_request() {
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
-                signatures: vec![Signature {
+                signatures: Some(vec![Some(Signature {
                     signing_payload: Some(SigningPayload {
                         account_identifier: Some(valid_account()),
                         bytes: "blah".into(),
@@ -1228,7 +1210,7 @@ fn test_construction_combine_request() {
                     public_key: Some(valid_public_key()),
                     signature_type: SignatureType::ED25519.into(),
                     bytes: "hello".into(),
-                }],
+                })]),
             }),
             ..Default::default()
         },
@@ -1256,7 +1238,7 @@ fn test_construction_combine_request() {
             name: "empty unsigned transaction",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
-                signatures: Some(valid_signatures()),
+                signatures: valid_signatures(),
                 ..Default::default()
             }),
             err: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
@@ -1275,7 +1257,7 @@ fn test_construction_combine_request() {
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
-                signatures: vec![Signature::default()],
+                signatures: Some(vec![Some(Signature::default())]),
             }),
             err: Some(ConstructionError::SignaturesEmpty.into()),
         },
@@ -1483,16 +1465,16 @@ fn test_account_coins_request() {
                 network_identifier: valid_network_identifier(),
                 account_identifier: valid_account_identifier(),
                 currencies: Some(vec![
-                    Currency {
+                    Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
                         ..Default::default()
-                    },
-                    Currency {
+                    }),
+                    Some(Currency {
                         symbol: "ETH".into(),
                         decimals: 18,
                         ..Default::default()
-                    },
+                    }),
                 ]),
                 ..Default::default()
             }),
@@ -1504,11 +1486,11 @@ fn test_account_coins_request() {
                 network_identifier: valid_network_identifier(),
                 account_identifier: valid_account_identifier(),
                 currencies: Some(vec![
-                    Currency {
+                    Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
                         ..Default::default()
-                    };
+                    });
                     2
                 ]),
                 ..Default::default()
@@ -1577,7 +1559,7 @@ fn test_account_coins_request() {
         RequestAsserter::new_server(
             vec!["PAYMENT".into()],
             true,
-            vec![valid_network_identifier()],
+            vec![valid_network_identifier().unwrap()],
             vec![],
             *allow_mempool,
             Path::new(""),
@@ -1661,7 +1643,7 @@ fn test_search_transactions_request() {
             name: "valid request",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Some(Operator::And),
+                operator: Operator::AND.into(),
                 ..Default::default()
             }),
             ..Default::default()

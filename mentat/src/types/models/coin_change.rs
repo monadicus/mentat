@@ -8,7 +8,7 @@ use super::*;
 /// abstraction of UTXOs allows for supporting both account-based transfers and
 /// UTXO-based transfers on the same blockchain (when a transfer is
 /// account-based, don't populate this model).
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct CoinChange {
     /// [`CoinIdentifier`] uniquely identifies a Coin.
     #[serde(skip_serializing_if = "Option::is_none")]

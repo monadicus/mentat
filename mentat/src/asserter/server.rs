@@ -12,15 +12,14 @@ pub(crate) fn supported_networks(networks: &[Option<NetworkIdentifier>]) -> Asse
     let mut parsed = Vec::new();
     for network in networks {
         network_identifier(network.as_ref())?;
-        let network = network.unwrap();
 
-        if contains_network_identifier(&parsed, &network) {
+        if contains_network_identifier(&parsed, network.as_ref()) {
             Err(format!(
                 "{}: {network:?}",
                 ServerError::SupportedNetworksDuplicate
             ))?;
         }
-        parsed.push(network);
+        parsed.push(network.clone().unwrap());
     }
 
     Ok(())
@@ -32,7 +31,7 @@ impl RequestAsserter {
     /// [`NetworkIdentifier`] is asserted.
     pub(crate) fn supported_network(
         &self,
-        request_network: &NetworkIdentifier,
+        request_network: Option<&NetworkIdentifier>,
     ) -> AssertResult<()> {
         // TODO if self == nil
         if !contains_network_identifier(&self.supported_networks, request_network) {
@@ -52,7 +51,7 @@ impl RequestAsserter {
         request_network: Option<&NetworkIdentifier>,
     ) -> AssertResult<()> {
         network_identifier(request_network)?;
-        self.supported_network(&request_network.unwrap())
+        self.supported_network(request_network)
     }
 
     /// [`account_balance_request`] ensures that a [`AccountBalanceRequest`]
@@ -67,9 +66,14 @@ impl RequestAsserter {
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
         account_identifier(request.account_identifier.as_ref())?;
-        if let Some(c) =
-            contains_duplicate_currency(request.currencies.as_ref().unwrap_or(&Vec::new()))
-        {
+        if let Some(c) = contains_duplicate_currency(
+            &request
+                .currencies
+                .iter()
+                .flatten()
+                .map(|i| i.as_ref())
+                .collect::<Vec<_>>(),
+        ) {
             Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
         } else if request.block_identifier.is_none() {
             Ok(())
@@ -229,7 +233,14 @@ impl RequestAsserter {
         if request.unsigned_transaction.is_empty() {
             Err(ServerError::ConstructionCombineRequestUnsignedTxEmpty)?
         } else {
-            signatures(&request.signatures.unwrap_or_default())
+            signatures(
+                &request
+                    .signatures
+                    .iter()
+                    .flatten()
+                    .map(|i| i.as_ref())
+                    .collect::<Vec<_>>(),
+            )
         }
     }
 
@@ -300,8 +311,14 @@ impl RequestAsserter {
         account_identifier(request.account_identifier.as_ref())?;
         if request.include_mempool && !self.mempool_coins {
             Err(ServerError::MempoolCoinsNotSupported)?
-        } else if let Some(c) = contains_duplicate_currency(&request.currencies.unwrap_or_default())
-        {
+        } else if let Some(c) = contains_duplicate_currency(
+            &request
+                .currencies
+                .iter()
+                .flatten()
+                .map(|i| i.as_ref())
+                .collect::<Vec<_>>(),
+        ) {
             Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
         } else {
             Ok(())
@@ -375,7 +392,7 @@ impl RequestAsserter {
             // self.operation_type(t, false)?;
         }
 
-        if matches!(request.address, Some(a) if a.is_empty()) {
+        if matches!(&request.address, Some(a) if a.is_empty()) {
             Err(BlockError::AccountAddrMissing)?
         } else {
             Ok(())

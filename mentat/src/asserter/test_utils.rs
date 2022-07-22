@@ -9,20 +9,20 @@ use crate::asserter::{
 #[derive(Default)]
 pub(crate) struct AsserterTest<P: Default> {
     pub name: &'static str,
-    pub payload: P,
+    pub payload: Option<P>,
     pub err: Option<AsserterError>,
 }
 
 impl<P: Default> AsserterTest<P> {
     pub(crate) fn non_asserter_tests<F, O>(tests: &[Self], mut func: F)
     where
-        F: FnMut(&P) -> AssertResult<O>,
+        F: FnMut(Option<&P>) -> AssertResult<O>,
     {
         let failed = tests
             .iter()
             .map(|test| {
                 print!("{test}: ");
-                let res = func(&test.payload);
+                let res = func(test.payload.as_ref());
                 assert_correct(&test.err, &res)
             })
             .filter(|t| !t)
@@ -33,7 +33,7 @@ impl<P: Default> AsserterTest<P> {
 
     pub(crate) fn default_request_asserter_tests<F, O>(tests: &[Self], mut func: F)
     where
-        F: FnMut(&RequestAsserter, &P) -> AssertResult<O>,
+        F: FnMut(&RequestAsserter, Option<&P>) -> AssertResult<O>,
     {
         let server = request_asserter();
 
@@ -41,7 +41,7 @@ impl<P: Default> AsserterTest<P> {
             .iter()
             .map(|test| {
                 print!("{test}: ");
-                let res = func(&server, &test.payload);
+                let res = func(&server, test.payload.as_ref());
                 assert_correct(&test.err, &res)
             })
             .filter(|t| !t)
@@ -98,7 +98,7 @@ impl<P: Default, R: Default> fmt::Display for AsserterEqualityTest<P, R> {
 #[derive(Default)]
 pub(crate) struct CustomAsserterTest<P: Default, E: Default> {
     pub name: &'static str,
-    pub payload: P,
+    pub payload: Option<P>,
     pub extras: E,
     pub err: Option<AsserterError>,
 }
@@ -107,14 +107,14 @@ impl<P: Default, E: Default> CustomAsserterTest<P, E> {
     pub(crate) fn custom_request_asserter_tests<A, F>(tests: &[Self], asserter: A, mut func: F)
     where
         A: Fn(&E) -> RequestAsserter,
-        F: FnMut(&RequestAsserter, &P) -> AssertResult<()>,
+        F: FnMut(&RequestAsserter, Option<&P>) -> AssertResult<()>,
     {
         let failed = tests
             .iter()
             .map(|test| {
                 print!("{test}: ");
                 let server = asserter(&test.extras);
-                let res = func(&server, &test.payload);
+                let res = func(&server, test.payload.as_ref());
                 assert_correct(&test.err, &res)
             })
             .filter(|t| !t)

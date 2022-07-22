@@ -73,7 +73,7 @@ fn test_coin() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| coin(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, coin);
 }
 
 #[test]
@@ -177,5 +177,5 @@ fn test_coin_change() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |test| coin_change(test.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, coin_change);
 }

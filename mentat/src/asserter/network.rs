@@ -3,28 +3,10 @@
 use indexmap::IndexSet;
 
 use super::{
-    block_identifier,
-    currency,
-    hash,
-    string_array,
-    timestamp,
-    Allow,
-    AssertResult,
-    AsserterError,
-    BalanceExemption,
-    BlockError,
-    ErrorError,
-    MentatError,
-    NetworkError,
-    NetworkIdentifier,
-    NetworkListResponse,
-    NetworkOptionsResponse,
-    NetworkStatusResponse,
-    OperationStatus,
-    Peer,
-    SubNetworkIdentifier,
-    SyncStatus,
-    Version,
+    block_identifier, currency, hash, string_array, timestamp, Allow, AssertResult, AsserterError,
+    BalanceExemption, BlockError, ErrorError, MentatError, NetworkError, NetworkIdentifier,
+    NetworkListResponse, NetworkOptionsResponse, NetworkStatusResponse, OperationStatus, Peer,
+    SubNetworkIdentifier, SyncStatus, Version,
 };
 
 /// `sub_network_identifier` asserts a [`SubNetworkIdentifer`] is valid (if not
@@ -139,7 +121,7 @@ pub(crate) fn operation_statuses(stats: &[Option<OperationStatus>]) -> AssertRes
     let mut found_success = false;
     for status in stats {
         // TODO coinbase never checks for nil here
-        let status = status.unwrap();
+        let status = status.as_ref().unwrap();
 
         if status.status.is_empty() {
             Err(BlockError::OperationStatusMissing)?;
@@ -187,7 +169,7 @@ pub(crate) fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
 
     for err in errors {
         error(err.as_ref())?;
-        let err = err.unwrap();
+        let err = err.as_ref().unwrap();
 
         if !err.details.is_empty() {
             Err(NetworkError::ErrorDetailsPopulated)?;
@@ -206,7 +188,7 @@ pub(crate) fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
 /// `balance_exemptions` ensures [`BalanceExemption`]] in a slice is valid.
 pub(crate) fn balance_exemptions(exemptions: &[Option<BalanceExemption>]) -> AssertResult<()> {
     for (index, exemption) in exemptions.iter().enumerate() {
-        let exemption = exemption.ok_or(format!(
+        let exemption = exemption.as_ref().ok_or(format!(
             "{} (index {})",
             NetworkError::BalanceExemptionIsNil,
             index
@@ -259,9 +241,9 @@ pub(crate) fn call_methods(methods: &[String]) -> AssertResult<()> {
 pub(crate) fn allow(allowed: Option<&Allow>) -> AssertResult<()> {
     let allowed = allowed.ok_or(NetworkError::AllowIsNil)?;
 
-    operation_statuses(&allowed.operation_statuses.unwrap_or_default())?;
-    operation_types(&allowed.operation_types.unwrap_or_default())?;
-    errors(&allowed.errors.unwrap_or_default())?;
+    operation_statuses(&allowed.operation_statuses.as_ref().unwrap_or(&Vec::new()))?;
+    operation_types(&allowed.operation_types.as_ref().unwrap_or(&Vec::new()))?;
+    errors(&allowed.errors.as_ref().unwrap_or(&Vec::new()))?;
 
     allowed
         .call_methods
@@ -308,10 +290,12 @@ pub(crate) fn network_options_response(
 /// into account everything within the NetworkIdentifier
 /// struct (including currency.Metadata).
 pub(crate) fn contains_network_identifier(
-    networks: &[Option<&NetworkIdentifier>],
+    networks: &[NetworkIdentifier],
     network: Option<&NetworkIdentifier>,
 ) -> bool {
-    networks.iter().any(|other| hash(*other) == hash(network))
+    networks
+        .iter()
+        .any(|other| hash(Some(other)) == hash(network))
 }
 
 /// `network_list_response` ensures a [`NetworkListResponse`] object is valid.
@@ -323,7 +307,7 @@ pub(crate) fn network_list_response(resp: Option<&NetworkListResponse>) -> Asser
         if contains_network_identifier(&seen, network.as_ref()) {
             Err(NetworkError::NetworkListResponseNetworksContainsDuplicates)?;
         }
-        seen.push(network);
+        seen.push(network.clone().unwrap());
     }
     Ok(())
 }

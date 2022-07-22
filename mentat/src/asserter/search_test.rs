@@ -6,23 +6,10 @@ use crate::{
         errors::{BlockError, SearchError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        BlockIdentifier,
-        BlockTransaction,
-        Currency,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        SearchTransactionsResponse,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Allow, Amount, BlockIdentifier, BlockTransaction, Currency,
+        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
+        OperationIdentifier, OperationStatus, Peer, SearchTransactionsResponse, Transaction,
+        TransactionIdentifier, Version,
     },
 };
 
@@ -89,70 +76,70 @@ fn test_search_transactions_response() {
         },
         AsserterTest {
             name: "valid next",
-            payload: SearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 ..Default::default()
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "invalid next",
-            payload: SearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(-1),
                 ..Default::default()
-            },
+            }),
             err: Some(SearchError::NextOffsetInvalid.into()),
         },
         AsserterTest {
             name: "valid count",
-            payload: SearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 total_count: 0,
                 ..Default::default()
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "invalid count",
-            payload: SearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 total_count: -1,
                 ..Default::default()
-            },
+            }),
             err: Some(SearchError::TotalCountInvalid.into()),
         },
         AsserterTest {
             name: "valid next + transaction",
-            payload: SearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: Some(vec![Some(BlockTransaction {
                     block_identifier: Some(valid_block_ident.clone()),
                     transaction: Some(valid_transaction.clone()),
                 })]),
                 ..Default::default()
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "valid next + invalid blockIdentifier",
-            payload: SearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: Some(vec![Some(BlockTransaction {
                     block_identifier: Default::default(),
                     transaction: Some(valid_transaction),
                 })]),
                 ..Default::default()
-            },
+            }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         AsserterTest {
             name: "valid next + invalid transaction",
-            payload: SearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: Some(vec![Some(BlockTransaction {
                     block_identifier: Some(valid_block_ident),
                     transaction: Default::default(),
                 })]),
                 ..Default::default()
-            },
+            }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
     ];

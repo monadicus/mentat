@@ -17,15 +17,15 @@ fn test_events_block_response() {
         },
         AsserterTest {
             name: "invalid max",
-            payload: EventsBlocksResponse {
+            payload: Some(EventsBlocksResponse {
                 max_sequence: -1,
                 events: Some(Vec::new()),
-            },
+            }),
             err: Some(EventError::MaxSequenceInvalid.into()),
         },
         AsserterTest {
             name: "valid event",
-            payload: EventsBlocksResponse {
+            payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
                 events: Some(vec![
                     Some(BlockEvent {
@@ -45,12 +45,12 @@ fn test_events_block_response() {
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ]),
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "invalid identifier",
-            payload: EventsBlocksResponse {
+            payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
                 events: Some(vec![
                     Some(BlockEvent {
@@ -70,12 +70,12 @@ fn test_events_block_response() {
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ]),
-            },
+            }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         AsserterTest {
             name: "invalid event type",
-            payload: EventsBlocksResponse {
+            payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
                 events: Some(vec![
                     Some(BlockEvent {
@@ -95,12 +95,12 @@ fn test_events_block_response() {
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ]),
-            },
+            }),
             err: Some(EventError::BlockEventTypeInvalid.into()),
         },
         AsserterTest {
             name: "gap events",
-            payload: EventsBlocksResponse {
+            payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
                 events: Some(vec![
                     Some(BlockEvent {
@@ -120,12 +120,12 @@ fn test_events_block_response() {
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ]),
-            },
+            }),
             err: Some(EventError::SequenceOutOfOrder.into()),
         },
         AsserterTest {
             name: "gap events",
-            payload: EventsBlocksResponse {
+            payload: Some(EventsBlocksResponse {
                 max_sequence: 100,
                 events: Some(vec![
                     Some(BlockEvent {
@@ -145,7 +145,7 @@ fn test_events_block_response() {
                         type_: BlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ]),
-            },
+            }),
             err: Some(EventError::SequenceInvalid.into()),
         },
     ];

@@ -5,34 +5,16 @@ use crate::{
     asserter::{
         asserter_tools::Asserter,
         block::{
-            account_identifier,
-            amount,
-            block_identifier,
-            operation_identifier,
-            MAX_UNIX_EPOCH,
+            account_identifier, amount, block_identifier, operation_identifier, MAX_UNIX_EPOCH,
             MIN_UNIX_EPOCH,
         },
-        errors::{AsserterError, BlockError},
+        errors::{AssertResult, AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        Block,
-        BlockIdentifier,
-        Currency,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        RelatedTransaction,
-        SubAccountIdentifier,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Allow, Amount, Block, BlockIdentifier, Currency, NetworkIdentifier,
+        NetworkOptionsResponse, NetworkStatusResponse, Operation, OperationIdentifier,
+        OperationStatus, Peer, RelatedTransaction, SubAccountIdentifier, Transaction,
+        TransactionIdentifier, Version,
     },
 };
 
@@ -70,7 +52,7 @@ fn test_block_identifier() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| block_identifier(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, block_identifier);
 }
 
 #[test]
@@ -206,13 +188,19 @@ fn test_amount() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| amount(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, amount);
 }
 
 #[derive(Default)]
 struct OperationIdentTest {
     ident: Option<OperationIdentifier>,
     index: i64,
+}
+
+impl OperationIdentTest {
+    fn run(&self) -> AssertResult<()> {
+        operation_identifier(self.ident.as_ref(), self.index)
+    }
 }
 
 #[test]
@@ -223,61 +211,59 @@ fn test_operation_identifier() {
     let tests = [
         AsserterTest {
             name: "valid identifier",
-            payload: OperationIdentTest {
+            payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
                 index: 0,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "nil identifier",
-            payload: OperationIdentTest {
+            payload: Some(OperationIdentTest {
                 ident: None,
                 index: 0,
-            },
+            }),
             err: Some(BlockError::OperationIdentifierIndexIsNil.into()),
         },
         AsserterTest {
             name: "out-of-order index",
-            payload: OperationIdentTest {
+            payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
                 index: 1,
-            },
+            }),
             err: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         AsserterTest {
             name: "valid identifier with network index",
-            payload: OperationIdentTest {
+            payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
                     index: 0,
                     network_index: Some(valid_network_index),
                 }),
                 index: 0,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "invalid identifier with network index",
-            payload: OperationIdentTest {
+            payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
                     index: 0,
                     network_index: Some(invalid_network_index),
                 }),
                 index: 0,
-            },
+            }),
             err: Some(BlockError::OperationIdentifierNetworkIndexInvalid.into()),
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| {
-        operation_identifier(data.ident.as_ref(), data.index)
-    });
+    AsserterTest::non_asserter_tests(&tests, |t| t.unwrap().run());
 }
 
 #[test]
@@ -327,7 +313,7 @@ fn test_account_identifier() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| account_identifier(data.as_ref()));
+    AsserterTest::non_asserter_tests(&tests, account_identifier);
 }
 
 #[derive(Default)]
@@ -379,7 +365,7 @@ fn test_operation_validations() {
     let tests = [
         AsserterTest {
             name: "valid operations based on validation file",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -419,12 +405,12 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_balanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "throw error on missing fee operation",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -453,12 +439,12 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_balanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: Some(BlockError::FeeCountMismatch.into()),
         },
         AsserterTest {
             name: "throw error on missing payment operation",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -487,12 +473,12 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_balanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: Some(BlockError::PaymentCountMismatch.into()),
         },
         AsserterTest {
             name: "throw error on payment amount not balancing",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -540,12 +526,12 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_balanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: Some(BlockError::PaymentAmountNotBalancing.into()),
         },
         AsserterTest {
             name: "valid operations based on validation file - unbalanced",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -593,12 +579,12 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_unbalanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "fee operation shouldn't contain related_operation key",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -650,12 +636,12 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_unbalanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: Some(BlockError::RelatedOperationInFeeNotAllowed.into()),
         },
         AsserterTest {
             name: "fee amount is non-negative",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -703,12 +689,12 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_unbalanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: Some(BlockError::FeeAmountNotNegative.into()),
         },
         AsserterTest {
             name: "fee amount is negative as expected",
-            payload: OperationValidationsTest {
+            payload: Some(OperationValidationsTest {
                 operations: vec![
                     Operation {
                         operation_identifier: Some(OperationIdentifier {
@@ -760,7 +746,7 @@ fn test_operation_validations() {
                     "data/validation_fee_and_payment_unbalanced.json",
                 ),
                 construction: false,
-            },
+            }),
             err: None,
         },
     ];
@@ -814,7 +800,7 @@ fn test_operation_validations() {
                     ..Default::default()
                 }),
             },
-            test.payload.validation_file_path,
+            test.payload.unwrap().validation_file_path,
         )
         .unwrap();
 
@@ -847,7 +833,7 @@ fn test_operation() {
     let tests = [
         AsserterTest {
             name: "valid operation",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -862,12 +848,12 @@ fn test_operation() {
                 index: 1,
                 successful: true,
                 construction: false,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "valid operation no account",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -881,22 +867,22 @@ fn test_operation() {
                 index: 1,
                 successful: true,
                 construction: false,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "nil operation",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: None,
                 index: 1,
                 successful: false,
                 construction: false,
-            },
+            }),
             err: Some(BlockError::OperationIsNil.into()),
         },
         AsserterTest {
             name: "invalid operation no account",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -910,12 +896,12 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: false,
-            },
+            }),
             err: Some(BlockError::OperationIsNil.into()),
         },
         AsserterTest {
             name: "invalid operation empty account",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -930,12 +916,12 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: false,
-            },
+            }),
             err: Some(BlockError::AccountAddrMissing.into()),
         },
         AsserterTest {
             name: "invalid operation invalid index",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -948,12 +934,12 @@ fn test_operation() {
                 index: 2,
                 successful: false,
                 construction: false,
-            },
+            }),
             err: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         AsserterTest {
             name: "invalid operation invalid type",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -966,12 +952,12 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: false,
-            },
+            }),
             err: Some(BlockError::OperationTypeInvalid.into()),
         },
         AsserterTest {
             name: "unsuccessful operation",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -984,12 +970,12 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: false,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "invalid operation invalid status",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -1002,12 +988,12 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: false,
-            },
+            }),
             err: Some(BlockError::OperationStatusInvalid.into()),
         },
         AsserterTest {
             name: "valid construction operation",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -1021,12 +1007,12 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: true,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "valid construction operation (empty status)",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -1041,12 +1027,12 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: true,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "invalid construction operation",
-            payload: OperationTest {
+            payload: Some(OperationTest {
                 operation: Some(Operation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
@@ -1061,7 +1047,7 @@ fn test_operation() {
                 index: 1,
                 successful: false,
                 construction: true,
-            },
+            }),
             err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
     ];
@@ -1487,7 +1473,7 @@ fn test_block() {
     let tests = [
         AsserterTest {
             name: "valid block",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1498,12 +1484,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "valid block (before start index)",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1513,12 +1499,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: Some(valid_block_ident.index + 1),
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "genesis block (without start index)",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1528,12 +1514,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: valid_block_ident.index,
                 start_index: None,
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "genesis block (with start index)",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident.clone()),
@@ -1543,12 +1529,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: genesis_ident.index,
                 start_index: Some(genesis_ident.index + 1),
-            },
+            }),
             err: None,
         },
         AsserterTest {
             name: "invalid genesis block (with start index)",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident.clone()),
@@ -1558,12 +1544,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: genesis_ident.index,
                 start_index: Some(genesis_ident.index),
-            },
+            }),
             err: Some(BlockError::TimestampBeforeMin.into()),
         },
         AsserterTest {
             name: "out of order transaction operations",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1574,12 +1560,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         AsserterTest {
             name: "related to self transaction operations",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1590,12 +1576,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
         },
         AsserterTest {
             name: "related to later transaction operations",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1606,12 +1592,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
         },
         AsserterTest {
             name: "duplicate related transaction operations",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1622,12 +1608,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::RelatedOperationIndexDuplicate.into()),
         },
         AsserterTest {
             name: "missing related transaction operations",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1638,22 +1624,22 @@ fn test_block() {
                 validation_file_path: PathBuf::from("data/validation_balanced_related_ops.json"),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::RelatedOperationMissing.into()),
         },
         AsserterTest {
             name: "nil block",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: None,
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::BlockIsNil.into()),
         },
         AsserterTest {
             name: "nil block hash",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: None,
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1664,12 +1650,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::BlockIdentifierIsNil.into()),
         },
         AsserterTest {
             name: "invalid block hash",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1679,12 +1665,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         AsserterTest {
             name: "block previous hash missing",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1694,12 +1680,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         AsserterTest {
             name: "invalid parent block index",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(BlockIdentifier {
@@ -1713,12 +1699,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::BlockIndexPrecedesParentBlockIndex.into()),
         },
         AsserterTest {
             name: "invalid parent block hash",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(BlockIdentifier {
@@ -1732,12 +1718,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::BlockHashEqualsParentBlockHash.into()),
         },
         AsserterTest {
             name: "invalid block timestamp less than MinUnixEpoch",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1747,12 +1733,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::TimestampBeforeMin.into()),
         },
         AsserterTest {
             name: "invalid block timestamp greater than MaxUnixEpoch",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1763,12 +1749,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::TimestampAfterMax.into()),
         },
         AsserterTest {
             name: "invalid block transaction",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1779,13 +1765,13 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::TxIdentifierIsNil.into()),
         },
         // TODO see invalid_related_transaction defined above
         AsserterTest {
             name: "invalid related transaction",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
@@ -1796,12 +1782,12 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::InvalidDirection.into()),
         },
         AsserterTest {
             name: "duplicate related transaction",
-            payload: BlockTest {
+            payload: Some(BlockTest {
                 block: Some(Block {
                     block_identifier: Some(valid_block_ident),
                     parent_block_identifier: Some(valid_parent_block_ident),
@@ -1812,13 +1798,15 @@ fn test_block() {
                 validation_file_path: Default::default(),
                 genesis_index: 0,
                 start_index: None,
-            },
+            }),
             err: Some(BlockError::DuplicateRelatedTransaction.into()),
         },
     ];
 
     tests.into_iter().for_each(|test| {
         println!("{test}");
+
+        let payload = test.payload.unwrap();
 
         let asserter = Asserter::new_client_with_responses(
             NetworkIdentifier {
@@ -1833,8 +1821,8 @@ fn test_block() {
                 }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
                 genesis_block_identifier: Some(BlockIdentifier {
-                    index: test.payload.genesis_index,
-                    hash: format!("block {}", test.payload.genesis_index),
+                    index: payload.genesis_index,
+                    hash: format!("block {}", payload.genesis_index),
                 }),
                 oldest_block_identifier: None,
                 sync_status: None,
@@ -1863,7 +1851,7 @@ fn test_block() {
                     ]),
                     operation_types: Some(vec!["PAYMENT".into()]),
                     // TODO need to make this an i64
-                    timestamp_start_index: test.payload.start_index.map(|i| i),
+                    timestamp_start_index: payload.start_index.map(|i| i),
                     ..Default::default()
                 }),
             },

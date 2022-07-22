@@ -6,23 +6,9 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    coin_change,
-    hash,
-    network_identifier,
-    AccountIdentifier,
-    Amount,
-    AssertResult,
-    Block,
-    BlockError,
-    BlockIdentifier,
-    Currency,
-    Direction,
-    OperationIdentifier,
-    PartialBlockIdentifier,
-    RelatedTransaction,
-    ResponseAsserter,
-    Transaction,
-    TransactionIdentifier,
+    coin_change, hash, network_identifier, AccountIdentifier, Amount, AssertResult, Block,
+    BlockError, BlockIdentifier, Currency, Direction, OperationIdentifier, PartialBlockIdentifier,
+    RelatedTransaction, ResponseAsserter, Transaction, TransactionIdentifier,
 };
 use crate::types::Operation as TypesOperation;
 
@@ -83,7 +69,7 @@ pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertR
         Err(BlockError::AccountAddrMissing)?
     } else if account.sub_account.is_none() {
         Ok(())
-    } else if matches!(account.sub_account, Some(acct) if acct.address.is_empty()) {
+    } else if matches!(&account.sub_account, Some(acct) if acct.address.is_empty()) {
         Err(BlockError::AccountSubAccountAddrMissing)?
     } else {
         Ok(())
@@ -192,7 +178,7 @@ impl ResponseAsserter {
 
         for (index, op) in operations.iter().enumerate() {
             self.operation(op.as_ref(), index as i64, construction)?;
-            let op = op.unwrap();
+            let op = op.as_ref().unwrap();
             if self.validations.enabled {
                 if op.type_ == self.validations.payment.name {
                     let val = BigInt::from_str(&op.amount.as_ref().unwrap().value).unwrap();
@@ -226,7 +212,7 @@ impl ResponseAsserter {
             // Ensure an operation's related_operations are only
             // operations with an index less than the operation
             // and that there are no duplicates.
-            let operation_identifier_index = op.operation_identifier.unwrap().index;
+            let operation_identifier_index = op.operation_identifier.as_ref().unwrap().index;
             let mut related_indexes = IndexSet::new();
 
             for related_op in op
@@ -308,15 +294,18 @@ impl ResponseAsserter {
         let transaction = transaction.ok_or(BlockError::TxIsNil)?;
 
         transaction_identifier(transaction.transaction_identifier.as_ref())?;
-        let transaction_identifier = transaction.transaction_identifier.unwrap();
+        let transaction_identifier = transaction.transaction_identifier.as_ref().unwrap();
 
-        self.operations(&transaction.operations.unwrap_or_default(), false)
-            .map_err(|err| {
-                format!(
-                    "{err} invalid operation in transaction {}",
-                    transaction_identifier.hash
-                )
-            })?;
+        self.operations(
+            transaction.operations.as_ref().unwrap_or(&Vec::new()),
+            false,
+        )
+        .map_err(|err| {
+            format!(
+                "{err} invalid operation in transaction {}",
+                transaction_identifier.hash
+            )
+        })?;
 
         transaction
             .related_transactions
@@ -388,8 +377,8 @@ impl ResponseAsserter {
 
         block_identifier(block.block_identifier.as_ref())?;
         block_identifier(block.parent_block_identifier.as_ref())?;
-        let block_identifier = block.block_identifier.unwrap();
-        let parent_block_identifier = block.parent_block_identifier.unwrap();
+        let block_identifier = block.block_identifier.as_ref().unwrap();
+        let parent_block_identifier = block.parent_block_identifier.as_ref().unwrap();
 
         // Only apply duplicate hash and index checks if the block index is not the
         // genesis index.
@@ -434,7 +423,7 @@ pub(crate) fn partial_block_identifier(
     block_identifier: Option<&PartialBlockIdentifier>,
 ) -> AssertResult<()> {
     let block_identifier = block_identifier.ok_or(BlockError::PartialBlockIdentifierIsNil)?;
-    if matches!(block_identifier.hash, Some(hash) if !hash.is_empty())
+    if matches!(&block_identifier.hash, Some(hash) if !hash.is_empty())
         || matches!(block_identifier.index, Some(index) if index >= 0)
     {
         Ok(())
@@ -450,12 +439,11 @@ pub(crate) fn duplicate_related_transaction(
 ) -> Option<&RelatedTransaction> {
     let mut seen = IndexSet::new();
 
-    // TODO check item for null
     for item in items {
         let key = hash(item.as_ref());
 
         if seen.contains(&key) {
-            return item;
+            return item.as_ref();
         }
 
         seen.insert(key);

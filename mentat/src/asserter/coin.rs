@@ -3,13 +3,7 @@
 use indexmap::IndexSet;
 
 use super::{
-    amount,
-    errors::AsserterError,
-    AssertResult,
-    Coin,
-    CoinAction,
-    CoinChange,
-    CoinError,
+    amount, errors::AsserterError, AssertResult, Coin, CoinAction, CoinChange, CoinError,
     CoinIdentifier,
 };
 
@@ -30,8 +24,8 @@ pub(crate) fn coins(coins: Option<&[Option<Coin>]>) -> AssertResult<()> {
     let mut ids = IndexSet::new();
     for c in coins.unwrap_or_default().iter() {
         coin(c.as_ref()).map_err(|err| format!("{err}: coin is invalid"))?;
-        let c = c.unwrap();
-        let c_ident = c.coin_identifier.unwrap();
+        let c = c.as_ref().unwrap();
+        let c_ident = c.coin_identifier.as_ref().unwrap();
         if ids.contains(&c_ident.identifier) {
             Err(format!("{}: {}", CoinError::Duplicate, c_ident.identifier))?;
         }
