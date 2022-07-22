@@ -73,7 +73,7 @@ impl RequestAsserter {
         } else if !self.historical_balance_lookup {
             Err(ServerError::AccountBalanceRequestHistoricalBalanceLookupNotSupported)?
         } else {
-            partial_block_identifier(request.block_identifier.as_ref().unwrap())
+            partial_block_identifier(Some(request.block_identifier.as_ref().unwrap()))
         }
     }
 

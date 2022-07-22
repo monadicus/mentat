@@ -20,7 +20,7 @@ impl ResponseAsserter {
         // }
 
         response.transactions.iter().try_for_each(|t| {
-            block_identifier(&t.block_identifier)?;
+            block_identifier(Some(&t.block_identifier))?;
             self.transaction(&t.transaction)
         })
     }

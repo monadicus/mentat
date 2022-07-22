@@ -1,30 +1,11 @@
-use indexmap::{indexmap, IndexMap};
-
 use super::test_utils::AsserterTest;
 use crate::{
-    asserter::{
-        asserter_tools::Asserter,
-        block::MIN_UNIX_EPOCH,
-        errors::{AsserterError, BlockError},
-    },
+    asserter::{asserter_tools::Asserter, block::MIN_UNIX_EPOCH, errors::BlockError},
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        BlockIdentifier,
-        BlockTransaction,
-        Currency,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        SearchTransactionsResponse,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Allow, Amount, BlockIdentifier, BlockTransaction, Currency,
+        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
+        OperationIdentifier, OperationStatus, Peer, SearchTransactionsResponse, Transaction,
+        TransactionIdentifier, Version,
     },
 };
 
@@ -37,23 +18,23 @@ fn test_search_transactions_response() {
     });
     let valid_amount = Some(Amount {
         value: "1000".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     });
     let valid_transaction = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
+        }),
         operations: vec![
             Operation {
-                operation_identifier: OperationIdentifier {
+                operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                },
+                }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account.clone(),
@@ -61,14 +42,14 @@ fn test_search_transactions_response() {
                 ..Default::default()
             },
             Operation {
-                operation_identifier: OperationIdentifier {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
-                related_operations: Some(vec![OperationIdentifier {
+                }),
+                related_operations: Some(vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                }]),
+                })]),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account,
@@ -126,8 +107,8 @@ fn test_search_transactions_response() {
             payload: SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![BlockTransaction {
-                    block_identifier: valid_block_ident.clone(),
-                    transaction: valid_transaction.clone(),
+                    block_identifier: Some(valid_block_ident.clone()),
+                    transaction: Some(valid_transaction.clone()),
                 }],
                 ..Default::default()
             },
@@ -139,7 +120,7 @@ fn test_search_transactions_response() {
                 next_offset: Some(1),
                 transactions: vec![BlockTransaction {
                     block_identifier: Default::default(),
-                    transaction: valid_transaction,
+                    transaction: Some(valid_transaction),
                 }],
                 ..Default::default()
             },
@@ -150,7 +131,7 @@ fn test_search_transactions_response() {
             payload: SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![BlockTransaction {
-                    block_identifier: valid_block_ident,
+                    block_identifier: Some(valid_block_ident),
                     transaction: Default::default(),
                 }],
                 ..Default::default()
@@ -169,15 +150,15 @@ fn test_search_transactions_response() {
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
-                current_block_identifier: BlockIdentifier {
+                current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
-                },
+                }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: BlockIdentifier {
+                genesis_block_identifier: Some(BlockIdentifier {
                     index: 0,
                     hash: "block 0".into(),
-                },
+                }),
                 oldest_block_identifier: None,
                 sync_status: None,
                 peers: vec![Peer {
@@ -186,13 +167,13 @@ fn test_search_transactions_response() {
                 }],
             },
             NetworkOptionsResponse {
-                version: Version {
+                version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
-                },
-                allow: Allow {
+                }),
+                allow: Some(Allow {
                     operation_statuses: vec![
                         OperationStatus {
                             status: "SUCCESS".into(),
@@ -203,9 +184,9 @@ fn test_search_transactions_response() {
                             successful: false,
                         },
                     ],
-                    operation_types: vec!["PAYMENT".into()],
+                    operation_types: Some(vec!["PAYMENT".into()]),
                     ..Default::default()
-                },
+                }),
             },
             Default::default(),
         )

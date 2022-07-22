@@ -10,38 +10,14 @@ use crate::{
         server::supported_networks,
     },
     types::{
-        AccountBalanceRequest,
-        AccountCoinsRequest,
-        AccountIdentifier,
-        Amount,
-        BlockIdentifier,
-        BlockRequest,
-        BlockTransactionRequest,
-        CallRequest,
-        ConstructionCombineRequest,
-        ConstructionDeriveRequest,
-        ConstructionHashRequest,
-        ConstructionMetadataRequest,
-        ConstructionParseRequest,
-        ConstructionPayloadsRequest,
-        ConstructionPreprocessRequest,
-        ConstructionSubmitRequest,
-        Currency,
-        CurveType::Secp256k1,
-        EventsBlocksRequest,
-        MempoolTransactionRequest,
-        NetworkIdentifier,
-        NetworkRequest,
-        Operation,
-        OperationIdentifier,
-        Operator,
-        PartialBlockIdentifier,
-        PublicKey,
-        SearchTransactionsRequest,
-        Signature,
-        SignatureType::{EcdsaRecovery, Ed25519},
-        SigningPayload,
-        TransactionIdentifier,
+        AccountBalanceRequest, AccountCoinsRequest, AccountIdentifier, Amount, BlockIdentifier,
+        BlockRequest, BlockTransactionRequest, CallRequest, ConstructionCombineRequest,
+        ConstructionDeriveRequest, ConstructionHashRequest, ConstructionMetadataRequest,
+        ConstructionParseRequest, ConstructionPayloadsRequest, ConstructionPreprocessRequest,
+        ConstructionSubmitRequest, Currency, CurveType, EventsBlocksRequest,
+        MempoolTransactionRequest, NetworkIdentifier, NetworkRequest, Operation,
+        OperationIdentifier, Operator, PartialBlockIdentifier, PublicKey,
+        SearchTransactionsRequest, Signature, SignatureType, SigningPayload, TransactionIdentifier,
     },
 };
 
@@ -68,11 +44,11 @@ pub(crate) fn valid_account_identifier() -> Option<AccountIdentifier> {
     })
 }
 
-pub(crate) const fn genesis_block_index() -> u64 {
+pub(crate) const fn genesis_block_index() -> i64 {
     0
 }
 
-pub(crate) const fn valid_block_index() -> u64 {
+pub(crate) const fn valid_block_index() -> i64 {
     1000
 }
 
@@ -97,18 +73,18 @@ pub(crate) fn valid_transaction_identifier() -> TransactionIdentifier {
 pub(crate) fn valid_public_key() -> PublicKey {
     PublicKey {
         bytes: "hello".into(),
-        curve_type: Secp256k1,
+        curve_type: CurveType("Secp256k1".into()),
     }
 }
 
 pub(crate) fn valid_amount() -> Amount {
     Amount {
         value: "1000".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             ..Default::default()
-        },
+        }),
         ..Default::default()
     }
 }
@@ -123,20 +99,20 @@ pub(crate) fn valid_account() -> AccountIdentifier {
 pub(crate) fn valid_ops() -> Vec<Operation> {
     vec![
         Operation {
-            operation_identifier: OperationIdentifier {
+            operation_identifier: Some(OperationIdentifier {
                 index: 0,
                 ..Default::default()
-            },
+            }),
             type_: "PAYMENT".into(),
             account: Some(valid_account()),
             amount: Some(valid_amount()),
             ..Default::default()
         },
         Operation {
-            operation_identifier: OperationIdentifier {
+            operation_identifier: Some(OperationIdentifier {
                 index: 1,
                 ..Default::default()
-            },
+            }),
             type_: "PAYMENT".into(),
             account: Some(valid_account()),
             amount: Some(valid_amount()),
@@ -148,24 +124,24 @@ pub(crate) fn valid_ops() -> Vec<Operation> {
 pub(crate) fn unsupported_type_ops() -> Vec<Operation> {
     vec![
         Operation {
-            operation_identifier: OperationIdentifier {
+            operation_identifier: Some(OperationIdentifier {
                 index: 0,
                 ..Default::default()
-            },
+            }),
             type_: "STAKE".into(),
             account: Some(valid_account()),
             amount: Some(valid_amount()),
             ..Default::default()
         },
         Operation {
-            operation_identifier: OperationIdentifier {
+            operation_identifier: Some(OperationIdentifier {
                 index: 1,
                 ..Default::default()
-            },
-            related_operations: Some(vec![OperationIdentifier {
+            }),
+            related_operations: Some(vec![Some(OperationIdentifier {
                 index: 0,
                 ..Default::default()
-            }]),
+            })]),
             type_: "PAYMENT".into(),
             account: Some(valid_account()),
             amount: Some(valid_amount()),
@@ -177,10 +153,10 @@ pub(crate) fn unsupported_type_ops() -> Vec<Operation> {
 pub(crate) fn invalid_ops() -> Vec<Operation> {
     vec![
         Operation {
-            operation_identifier: OperationIdentifier {
+            operation_identifier: Some(OperationIdentifier {
                 index: 0,
                 ..Default::default()
-            },
+            }),
             type_: "PAYMENT".into(),
             status: Some("SUCCESS".into()),
             account: Some(valid_account()),
@@ -188,14 +164,14 @@ pub(crate) fn invalid_ops() -> Vec<Operation> {
             ..Default::default()
         },
         Operation {
-            operation_identifier: OperationIdentifier {
+            operation_identifier: Some(OperationIdentifier {
                 index: 1,
                 ..Default::default()
-            },
-            related_operations: Some(vec![OperationIdentifier {
+            }),
+            related_operations: Some(vec![Some(OperationIdentifier {
                 index: 0,
                 ..Default::default()
-            }]),
+            })]),
             type_: "PAYMENT".into(),
             status: Some("SUCCESS".into()),
             account: Some(valid_account()),
@@ -207,55 +183,55 @@ pub(crate) fn invalid_ops() -> Vec<Operation> {
 
 pub(crate) fn valid_signatures() -> Vec<Signature> {
     vec![Signature {
-        signing_payload: SigningPayload {
+        signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
             ..Default::default()
-        },
-        public_key: valid_public_key(),
-        signature_type: Ed25519,
+        }),
+        public_key: Some(valid_public_key()),
+        signature_type: SignatureType("Ed25519".into()),
         bytes: "hello".into(),
     }]
 }
 
 pub(crate) fn signature_type_mismatch() -> Vec<Signature> {
     vec![Signature {
-        signing_payload: SigningPayload {
+        signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
-            signature_type: Some(EcdsaRecovery),
+            signature_type: Some(SignatureType("EcdsaRecovery".into())),
             ..Default::default()
-        },
-        public_key: valid_public_key(),
-        signature_type: Ed25519,
+        }),
+        public_key: Some(valid_public_key()),
+        signature_type: SignatureType("Ed25519".into()),
         bytes: "hello".into(),
     }]
 }
 
 pub(crate) fn signature_type_match() -> Vec<Signature> {
     vec![Signature {
-        signing_payload: SigningPayload {
+        signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
-            signature_type: Some(Ed25519),
+            signature_type: Some(SignatureType("Ed25519".into())),
             ..Default::default()
-        },
-        public_key: valid_public_key(),
-        signature_type: Ed25519,
+        }),
+        public_key: Some(valid_public_key()),
+        signature_type: SignatureType("Ed25519".into()),
         ..Default::default()
     }]
 }
 
 pub(crate) fn empty_signature() -> Vec<Signature> {
     vec![Signature {
-        signing_payload: SigningPayload {
+        signing_payload: Some(SigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
-            signature_type: Some(Ed25519),
+            signature_type: Some(SignatureType("Ed25519".into())),
             ..Default::default()
-        },
-        public_key: valid_public_key(),
-        signature_type: Ed25519,
+        }),
+        public_key: Some(valid_public_key()),
+        signature_type: SignatureType("Ed25519".into()),
         ..Default::default()
     }]
 }
@@ -404,8 +380,8 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "valid request",
             payload: AccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 ..Default::default()
             },
             ..Default::default()
@@ -413,19 +389,19 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "valid request with currencies",
             payload: AccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 currencies: Some(vec![
-                    Currency {
+                    Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
                         ..Default::default()
-                    },
-                    Currency {
+                    }),
+                    Some(Currency {
                         symbol: "ETH".into(),
                         decimals: 18,
                         ..Default::default()
-                    },
+                    }),
                 ]),
                 ..Default::default()
             },
@@ -434,19 +410,19 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "valid request with duplicate currencies",
             payload: AccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 currencies: Some(vec![
-                    Currency {
+                    Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
                         ..Default::default()
-                    },
-                    Currency {
+                    }),
+                    Some(Currency {
                         symbol: "BTC".into(),
                         decimals: 8,
                         ..Default::default()
-                    },
+                    }),
                 ]),
                 ..Default::default()
             },
@@ -456,8 +432,8 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "invalid request wrong network",
             payload: AccountBalanceRequest {
-                network_identifier: wrong_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(wrong_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 ..Default::default()
             },
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
@@ -472,7 +448,7 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "missing network",
             payload: AccountBalanceRequest {
-                account_identifier: valid_account_identifier().unwrap(),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 ..Default::default()
             },
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
@@ -481,7 +457,7 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "missing account",
             payload: AccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::AccountIsNil.into()),
@@ -490,8 +466,8 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "valid historical request",
             payload: AccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 block_identifier: Some(valid_partial_block_identifier()),
                 ..Default::default()
             },
@@ -501,8 +477,8 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "invalid historical request",
             payload: AccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 block_identifier: Some(PartialBlockIdentifier::default()),
                 ..Default::default()
             },
@@ -512,8 +488,8 @@ fn test_account_balance_request() {
         CustomAsserterTest {
             name: "valid historical request when not enabled",
             payload: AccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 block_identifier: Some(valid_partial_block_identifier()),
                 ..Default::default()
             },
@@ -547,19 +523,19 @@ fn test_block_request() {
         AsserterTest {
             name: "valid request",
             payload: BlockRequest {
-                network_identifier: valid_network_identifier(),
-                block_identifier: valid_partial_block_identifier(),
+                network_identifier: Some(valid_network_identifier()),
+                block_identifier: Some(valid_partial_block_identifier()),
             },
             ..Default::default()
         },
         AsserterTest {
             name: "valid request for block 0",
             payload: BlockRequest {
-                network_identifier: valid_network_identifier(),
-                block_identifier: PartialBlockIdentifier {
+                network_identifier: Some(valid_network_identifier()),
+                block_identifier: Some(PartialBlockIdentifier {
                     index: Some(genesis_block_index()),
                     ..Default::default()
-                },
+                }),
             },
             ..Default::default()
         },
@@ -572,7 +548,7 @@ fn test_block_request() {
         AsserterTest {
             name: "missing network",
             payload: BlockRequest {
-                block_identifier: valid_partial_block_identifier(),
+                block_identifier: Some(valid_partial_block_identifier()),
                 ..Default::default()
             },
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
@@ -580,7 +556,7 @@ fn test_block_request() {
         AsserterTest {
             name: "missing block identifier",
             payload: BlockRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::PartialBlockIdentifierIsNil.into()),
@@ -588,8 +564,8 @@ fn test_block_request() {
         AsserterTest {
             name: "invalid PartialBlockIdentifier request",
             payload: BlockRequest {
-                network_identifier: valid_network_identifier(),
-                block_identifier: PartialBlockIdentifier::default(),
+                network_identifier: Some(valid_network_identifier()),
+                block_identifier: Some(PartialBlockIdentifier::default()),
             },
             err: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
         },
@@ -604,18 +580,18 @@ fn test_block_transaction_request() {
         AsserterTest {
             name: "valid request",
             payload: BlockTransactionRequest {
-                network_identifier: valid_network_identifier(),
-                block_identifier: valid_block_identifier(),
-                transaction_identifier: valid_transaction_identifier(),
+                network_identifier: Some(valid_network_identifier()),
+                block_identifier: Some(valid_block_identifier()),
+                transaction_identifier: Some(valid_transaction_identifier()),
             },
             ..Default::default()
         },
         AsserterTest {
             name: "invalid request wrong network",
             payload: BlockTransactionRequest {
-                network_identifier: wrong_network_identifier(),
-                block_identifier: valid_block_identifier(),
-                transaction_identifier: valid_transaction_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
+                block_identifier: Some(valid_block_identifier()),
+                transaction_identifier: Some(valid_transaction_identifier()),
             },
             err: Some(
                 format!(
@@ -634,8 +610,8 @@ fn test_block_transaction_request() {
         AsserterTest {
             name: "missing network",
             payload: BlockTransactionRequest {
-                network_identifier: valid_network_identifier(),
-                transaction_identifier: valid_transaction_identifier(),
+                network_identifier: Some(valid_network_identifier()),
+                transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             },
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
@@ -643,8 +619,8 @@ fn test_block_transaction_request() {
         AsserterTest {
             name: "missing block identifier",
             payload: BlockTransactionRequest {
-                network_identifier: valid_network_identifier(),
-                transaction_identifier: valid_transaction_identifier(),
+                network_identifier: Some(valid_network_identifier()),
+                transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::BlockIdentifierIsNil.into()),
@@ -652,8 +628,8 @@ fn test_block_transaction_request() {
         AsserterTest {
             name: "invalid BlockIdentifier request",
             payload: BlockTransactionRequest {
-                network_identifier: valid_network_identifier(),
-                block_identifier: BlockIdentifier::default(),
+                network_identifier: Some(valid_network_identifier()),
+                block_identifier: Some(BlockIdentifier::default()),
                 ..Default::default()
             },
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
@@ -672,7 +648,7 @@ fn test_construction_metadata_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionMetadataRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 options: Some(Default::default()),
                 ..Default::default()
             },
@@ -681,11 +657,11 @@ fn test_construction_metadata_request() {
         AsserterTest {
             name: "valid request with public keys",
             payload: ConstructionMetadataRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 options: Some(Default::default()),
                 public_keys: Some(vec![PublicKey {
                     bytes: "hello".into(),
-                    curve_type: Secp256k1,
+                    curve_type: CurveType("Secp256k1".into()),
                 }]),
             },
             ..Default::default()
@@ -693,7 +669,7 @@ fn test_construction_metadata_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionMetadataRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 options: Some(Default::default()),
                 ..Default::default()
             },
@@ -715,7 +691,7 @@ fn test_construction_metadata_request() {
         AsserterTest {
             name: "missing options",
             payload: ConstructionMetadataRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 options: None,
                 ..Default::default()
             },
@@ -724,10 +700,10 @@ fn test_construction_metadata_request() {
         AsserterTest {
             name: "invalid request with public keys",
             payload: ConstructionMetadataRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 options: Some(Default::default()),
                 public_keys: Some(vec![PublicKey {
-                    curve_type: Secp256k1,
+                    curve_type: CurveType("Secp256k1".into()),
                     ..Default::default()
                 }]),
             },
@@ -747,7 +723,7 @@ fn test_construction_submit_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionSubmitRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 signed_transaction: "tx".into(),
             },
             ..Default::default()
@@ -755,7 +731,7 @@ fn test_construction_submit_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionSubmitRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 signed_transaction: "tx".into(),
             },
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
@@ -784,16 +760,16 @@ fn test_mempool_transaction_request() {
         AsserterTest {
             name: "valid request",
             payload: MempoolTransactionRequest {
-                network_identifier: valid_network_identifier(),
-                transaction_identifier: valid_transaction_identifier(),
+                network_identifier: Some(valid_network_identifier()),
+                transaction_identifier: Some(valid_transaction_identifier()),
             },
             ..Default::default()
         },
         AsserterTest {
             name: "invalid request wrong network",
             payload: MempoolTransactionRequest {
-                network_identifier: wrong_network_identifier(),
-                transaction_identifier: valid_transaction_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
+                transaction_identifier: Some(valid_transaction_identifier()),
             },
             err: Some(
                 format!(
@@ -812,7 +788,7 @@ fn test_mempool_transaction_request() {
         AsserterTest {
             name: "missing network",
             payload: MempoolTransactionRequest {
-                transaction_identifier: valid_transaction_identifier(),
+                transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             },
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
@@ -820,7 +796,7 @@ fn test_mempool_transaction_request() {
         AsserterTest {
             name: "invalid TransactionIdentifier request",
             payload: MempoolTransactionRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::TxIdentifierHashMissing.into()),
@@ -855,7 +831,7 @@ fn test_network_request() {
         AsserterTest {
             name: "valid request",
             payload: NetworkRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             ..Default::default()
@@ -863,7 +839,7 @@ fn test_network_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: NetworkRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -896,8 +872,8 @@ fn test_construction_derive_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionDeriveRequest {
-                network_identifier: valid_network_identifier(),
-                public_key: valid_public_key(),
+                network_identifier: Some(valid_network_identifier()),
+                public_key: Some(valid_public_key()),
                 ..Default::default()
             },
             ..Default::default()
@@ -905,7 +881,7 @@ fn test_construction_derive_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionDeriveRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -925,7 +901,7 @@ fn test_construction_derive_request() {
         AsserterTest {
             name: "nil public key",
             payload: ConstructionDeriveRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(ServerError::ConstructionCombineRequestIsNil.into()),
@@ -933,11 +909,11 @@ fn test_construction_derive_request() {
         AsserterTest {
             name: "empty public key bytes",
             payload: ConstructionDeriveRequest {
-                network_identifier: valid_network_identifier(),
-                public_key: PublicKey {
-                    curve_type: Secp256k1,
+                network_identifier: Some(valid_network_identifier()),
+                public_key: Some(PublicKey {
+                    curve_type: CurveType("Secp256k1".into()),
                     ..Default::default()
-                },
+                }),
                 ..Default::default()
             },
             err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
@@ -959,7 +935,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
                 ..Default::default()
             },
@@ -968,7 +944,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "valid request with suggested fee multiplier",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
                 ..Default::default()
             },
@@ -977,7 +953,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "valid request with max fee",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
                 ..Default::default()
             },
@@ -986,9 +962,9 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "valid request with suggested fee multiplier and max fee",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
-                max_fee: Some(vec![valid_amount()]),
+                max_fee: Some(vec![Some(valid_amount())]),
                 suggested_fee_multiplier: positive_fee_multiplier,
                 ..Default::default()
             },
@@ -997,7 +973,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionPreprocessRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -1017,7 +993,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "nil operations",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::NoOperationsForConstruction.into()),
@@ -1025,7 +1001,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "empty operations",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::NoOperationsForConstruction.into()),
@@ -1033,7 +1009,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "unsupported operation type",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: unsupported_type_ops(),
                 ..Default::default()
             },
@@ -1042,8 +1018,8 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "invalid operations",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
-                operations: invalid_ops(),
+                network_identifier: Some(valid_network_identifier()),
+                operations: Some(invalid_ops()),
                 ..Default::default()
             },
             err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
@@ -1051,7 +1027,7 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "negative suggested fee multiplier",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
                 suggested_fee_multiplier: negative_fee_multiplier,
                 ..Default::default()
@@ -1068,9 +1044,9 @@ fn test_construction_preprocess_request() {
         AsserterTest {
             name: "max fee with duplicate currency",
             payload: ConstructionPreprocessRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
-                max_fee: Some(vec![valid_amount(), valid_amount()]),
+                max_fee: Some(vec![Some(valid_amount()), Some(valid_amount())]),
                 ..Default::default()
             },
             err: Some(format!("currency {:?} used multiple times", valid_amount().currency).into()),
@@ -1089,7 +1065,7 @@ fn test_construction_payloads_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionPayloadsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
                 metadata: indexmap!("test".into() => "hello".into()),
                 ..Default::default()
@@ -1099,20 +1075,20 @@ fn test_construction_payloads_request() {
         AsserterTest {
             name: "valid request with public keys",
             payload: ConstructionPayloadsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
                 metadata: indexmap!("test".into() => "hello".into()),
-                public_keys: Some(vec![PublicKey {
+                public_keys: Some(vec![Some(PublicKey {
                     bytes: "hello".into(),
-                    curve_type: Secp256k1,
-                }]),
+                    curve_type: CurveType("Secp256k1".into()),
+                })]),
             },
             ..Default::default()
         },
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionPayloadsRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -1132,7 +1108,7 @@ fn test_construction_payloads_request() {
         AsserterTest {
             name: "nil operations",
             payload: ConstructionPayloadsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::NoOperationsForConstruction.into()),
@@ -1140,7 +1116,7 @@ fn test_construction_payloads_request() {
         AsserterTest {
             name: "empty operations",
             payload: ConstructionPayloadsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: vec![Operation::default()],
                 ..Default::default()
             },
@@ -1149,7 +1125,7 @@ fn test_construction_payloads_request() {
         AsserterTest {
             name: "unsupported operation type",
             payload: ConstructionPayloadsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: unsupported_type_ops(),
                 ..Default::default()
             },
@@ -1158,8 +1134,8 @@ fn test_construction_payloads_request() {
         AsserterTest {
             name: "invalid operations",
             payload: ConstructionPayloadsRequest {
-                network_identifier: valid_network_identifier(),
-                operations: invalid_ops(),
+                network_identifier: Some(valid_network_identifier()),
+                operations: Some(invalid_ops()),
                 ..Default::default()
             },
             err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
@@ -1167,13 +1143,13 @@ fn test_construction_payloads_request() {
         AsserterTest {
             name: "invalid request with public keys",
             payload: ConstructionPayloadsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operations: valid_ops(),
                 metadata: indexmap!("test".into() => "hello".into()),
-                public_keys: Some(vec![PublicKey {
-                    curve_type: Secp256k1,
+                public_keys: Some(vec![Some(PublicKey {
+                    curve_type: CurveType("Secp256k1".into()),
                     ..Default::default()
-                }]),
+                })]),
             },
             err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
@@ -1191,7 +1167,7 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 signatures: valid_signatures(),
             },
@@ -1200,16 +1176,16 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "valid request 2",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 signatures: vec![Signature {
-                    signing_payload: SigningPayload {
+                    signing_payload: Some(SigningPayload {
                         account_identifier: Some(valid_account()),
                         bytes: "blah".into(),
                         ..Default::default()
-                    },
-                    public_key: valid_public_key(),
-                    signature_type: Ed25519,
+                    }),
+                    public_key: Some(valid_public_key()),
+                    signature_type: SignatureType("Ed25519".into()),
                     bytes: "blah".into(),
                 }],
             },
@@ -1218,16 +1194,16 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "valid request 3",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 signatures: vec![Signature {
-                    signing_payload: SigningPayload {
+                    signing_payload: Some(SigningPayload {
                         account_identifier: Some(valid_account()),
                         bytes: "blah".into(),
                         ..Default::default()
-                    },
-                    public_key: valid_public_key(),
-                    signature_type: Ed25519,
+                    }),
+                    public_key: Some(valid_public_key()),
+                    signature_type: SignatureType("Ed25519".into()),
                     bytes: "hello".into(),
                 }],
             },
@@ -1236,7 +1212,7 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionCombineRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -1256,8 +1232,8 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "empty unsigned transaction",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
-                signatures: valid_signatures(),
+                network_identifier: Some(valid_network_identifier()),
+                signatures: Some(valid_signatures()),
                 ..Default::default()
             },
             err: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
@@ -1265,7 +1241,7 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "nil signatures",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 ..Default::default()
             },
@@ -1274,7 +1250,7 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "empty signatures",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 signatures: vec![Signature::default()],
             },
@@ -1283,7 +1259,7 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "signature type mismatch",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 signatures: signature_type_mismatch(),
             },
@@ -1292,7 +1268,7 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "empty signature",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 signatures: empty_signature(),
             },
@@ -1301,7 +1277,7 @@ fn test_construction_combine_request() {
         AsserterTest {
             name: "signature type match",
             payload: ConstructionCombineRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 unsigned_transaction: "blah".into(),
                 signatures: signature_type_match(),
             },
@@ -1321,7 +1297,7 @@ fn test_construction_hash_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionHashRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 signed_transaction: "blah".into(),
             },
             ..Default::default()
@@ -1329,7 +1305,7 @@ fn test_construction_hash_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionHashRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -1349,7 +1325,7 @@ fn test_construction_hash_request() {
         AsserterTest {
             name: "empty signed transaction",
             payload: ConstructionHashRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(ServerError::ConstructionHashRequestSignedTxEmpty.into()),
@@ -1368,7 +1344,7 @@ fn test_construction_parse_request() {
         AsserterTest {
             name: "valid request",
             payload: ConstructionParseRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 transaction: "blah".into(),
                 ..Default::default()
             },
@@ -1377,7 +1353,7 @@ fn test_construction_parse_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: ConstructionParseRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
@@ -1390,7 +1366,7 @@ fn test_construction_parse_request() {
         AsserterTest {
             name: "empty signed transaction",
             payload: ConstructionParseRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(ServerError::ConstructionParseRequestEmpty.into()),
@@ -1409,7 +1385,7 @@ fn test_call_request() {
         AsserterTest {
             name: "valid request",
             payload: CallRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 method: "eth_call".into(),
                 ..Default::default()
             },
@@ -1418,7 +1394,7 @@ fn test_call_request() {
         AsserterTest {
             name: "valid request with params",
             payload: CallRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 method: "eth_call".into(),
                 parameters: indexmap!("hello".into() => "test".into()),
             },
@@ -1427,7 +1403,7 @@ fn test_call_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: CallRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -1442,7 +1418,7 @@ fn test_call_request() {
         AsserterTest {
             name: "unsupported method",
             payload: CallRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 method: "eth_debug".into(),
                 ..Default::default()
             },
@@ -1456,7 +1432,7 @@ fn test_call_request() {
         AsserterTest {
             name: "empty method",
             payload: CallRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(ServerError::CallMethodEmpty.into()),
@@ -1472,8 +1448,8 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "valid request",
             payload: AccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 ..Default::default()
             },
             ..Default::default()
@@ -1481,8 +1457,8 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "valid request with currencies",
             payload: AccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 currencies: Some(vec![
                     Currency {
                         symbol: "BTC".into(),
@@ -1502,8 +1478,8 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "valid request with duplicate currencies",
             payload: AccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(valid_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 currencies: Some(vec![
                     Currency {
                         symbol: "BTC".into(),
@@ -1520,8 +1496,8 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "invalid request wrong network",
             payload: AccountCoinsRequest {
-                network_identifier: wrong_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(wrong_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 ..Default::default()
             },
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
@@ -1536,7 +1512,7 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "missing network",
             payload: AccountCoinsRequest {
-                account_identifier: valid_account_identifier().unwrap(),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 ..Default::default()
             },
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
@@ -1545,7 +1521,7 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "missing account",
             payload: AccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             err: Some(BlockError::AccountIsNil.into()),
@@ -1554,8 +1530,8 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "valid mempool lookup request",
             payload: AccountCoinsRequest {
-                network_identifier: wrong_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(wrong_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 ..Default::default()
             },
             extras: true,
@@ -1564,8 +1540,8 @@ fn test_account_coins_request() {
         CustomAsserterTest {
             name: "valid mempool lookup request when not enabled",
             payload: AccountCoinsRequest {
-                network_identifier: wrong_network_identifier(),
-                account_identifier: valid_account_identifier().unwrap(),
+                network_identifier: Some(wrong_network_identifier()),
+                account_identifier: Some(valid_account_identifier().unwrap()),
                 include_mempool: true,
                 ..Default::default()
             },
@@ -1599,7 +1575,7 @@ fn test_event_blocks_request() {
         AsserterTest {
             name: "valid request",
             payload: EventsBlocksRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             ..Default::default()
@@ -1607,7 +1583,7 @@ fn test_event_blocks_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: EventsBlocksRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 ..Default::default()
             },
             err: Some(
@@ -1627,7 +1603,7 @@ fn test_event_blocks_request() {
         AsserterTest {
             name: "negative offset",
             payload: EventsBlocksRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 offset: Some(-1),
                 ..Default::default()
             },
@@ -1636,7 +1612,7 @@ fn test_event_blocks_request() {
         AsserterTest {
             name: "negative limit",
             payload: EventsBlocksRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 limit: Some(-1),
                 ..Default::default()
             },
@@ -1653,7 +1629,7 @@ fn test_search_transactions_request() {
         AsserterTest {
             name: "valid request no operator",
             payload: SearchTransactionsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 ..Default::default()
             },
             ..Default::default()
@@ -1661,7 +1637,7 @@ fn test_search_transactions_request() {
         AsserterTest {
             name: "valid request",
             payload: SearchTransactionsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operator: Some(Operator::And),
                 ..Default::default()
             },
@@ -1670,7 +1646,7 @@ fn test_search_transactions_request() {
         AsserterTest {
             name: "invalid request wrong network",
             payload: SearchTransactionsRequest {
-                network_identifier: wrong_network_identifier(),
+                network_identifier: Some(wrong_network_identifier()),
                 operator: Some(Operator::Or),
                 ..Default::default()
             },
@@ -1691,7 +1667,7 @@ fn test_search_transactions_request() {
         AsserterTest {
             name: "negative max block",
             payload: SearchTransactionsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operator: Some(Operator::Or),
                 max_block: Some(-1),
                 ..Default::default()
@@ -1701,7 +1677,7 @@ fn test_search_transactions_request() {
         AsserterTest {
             name: "negative offset",
             payload: SearchTransactionsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operator: Some(Operator::Or),
                 offset: Some(-1),
                 ..Default::default()
@@ -1711,7 +1687,7 @@ fn test_search_transactions_request() {
         AsserterTest {
             name: "negative limit",
             payload: SearchTransactionsRequest {
-                network_identifier: valid_network_identifier(),
+                network_identifier: Some(valid_network_identifier()),
                 operator: Some(Operator::Or),
                 limit: Some(-1),
                 ..Default::default()

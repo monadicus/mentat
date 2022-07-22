@@ -6,104 +6,74 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    coin_change,
-    hash,
-    network_identifier,
-    AccountIdentifier,
-    Amount,
-    AssertResult,
-    Block,
-    BlockError,
-    BlockIdentifier,
-    Currency,
-    Direction,
-    OperationIdentifier,
-    PartialBlockIdentifier,
-    RelatedTransaction,
-    ResponseAsserter,
-    Transaction,
-    TransactionIdentifier,
+    coin_change, hash, network_identifier, AccountIdentifier, Amount, AssertResult, Block,
+    BlockError, BlockIdentifier, Currency, Direction, OperationIdentifier, PartialBlockIdentifier,
+    RelatedTransaction, ResponseAsserter, Transaction, TransactionIdentifier,
 };
 use crate::types::Operation as TypesOperation;
 
 /// `currency` ensures a [`Currency`] is valid.
-pub(crate) fn currency(currency: &Currency) -> AssertResult<()> {
-    //TODO if currency nil
+pub(crate) fn currency(currency: Option<&Currency>) -> AssertResult<()> {
+    let currency = currency.ok_or(BlockError::AmountCurrencyIsNil)?;
     if currency.symbol.is_empty() {
-        Err(BlockError::AmountCurrencySymbolEmpty)?;
+        Err(BlockError::AmountCurrencySymbolEmpty)?
+    } else if currency.decimals < 0 {
+        Err(BlockError::AmountCurrencyHasNegDecimals)?
+    } else {
+        Ok(())
     }
-
-    // todo!("impossible case");
-    if currency.decimals < 0 {
-        Err(BlockError::AmountCurrencyHasNegDecimals)?;
-    }
-
-    Ok(())
 }
 
 /// `amount` ensures a [`Amount`] has an
 /// integer value, specified precision, and symbol.
 pub(crate) fn amount(amount: Option<&Amount>) -> AssertResult<()> {
-    // TODO or if currency nil
     let amount = amount.ok_or(BlockError::AmountValueMissing)?;
 
     if amount.value.is_empty() {
-        Err(BlockError::AmountValueMissing)?;
+        Err(BlockError::AmountValueMissing)?
+    } else if BigInt::from_str(&amount.value).is_err() {
+        Err(format!("{}: {}", BlockError::AmountIsNotInt, amount.value))?
+    } else {
+        currency(amount.currency.as_ref())
     }
-
-    if BigInt::from_str(&amount.value).is_err() {
-        Err(format!("{}: {}", BlockError::AmountIsNotInt, amount.value))?;
-    }
-
-    currency(&amount.currency)
 }
 
 /// `operation_identifier` returns an error if index of the
 /// [`OperationIdentifier`] is out-of-order or if the NetworkIndex is
 /// invalid.
-pub(crate) fn operation_identifier(ident: &OperationIdentifier, index: i64) -> AssertResult<()> {
-    // TODO ident == nil
+pub(crate) fn operation_identifier(
+    ident: Option<&OperationIdentifier>,
+    index: i64,
+) -> AssertResult<()> {
+    let ident = ident.ok_or(BlockError::OperationIdentifierIndexIsNil)?;
+
     if ident.index as i64 != index {
         Err(format!(
             "{}: expected {index} but got {}",
             BlockError::OperationIdentifierIndexOutOfOrder,
             ident.index
         ))?
+    } else if matches!(ident.network_index, Some(i) if i < 0) {
+        Err(BlockError::OperationIdentifierNetworkIndexInvalid)?
+    } else {
+        Ok(())
     }
-
-    todo!("impossible case");
-    if ident.network_index.is_some() {
-        // && ident.network_index.unwrap() < 0 {
-        Err(BlockError::OperationIdentifierNetworkIndexInvalid)?;
-    }
-
-    Ok(())
 }
 
 /// `account_identifier` returns an error if a [`AccountIdentifier`]
 /// is missing an address or a provided SubAccount is missing an identifier.
 pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertResult<()> {
-    // TODO account == nil
     let account = account.ok_or(BlockError::AccountIsNil)?;
 
     if account.address.is_empty() {
-        Err(BlockError::AccountAddrMissing)?;
+        Err(BlockError::AccountAddrMissing)?
+    } else if account.sub_account.is_none() {
+        Ok(())
+    } else if matches!(account.sub_account, Some(acct) if acct.address.is_empty()) {
+        Err(BlockError::AccountSubAccountAddrMissing)?
+    } else {
+        Ok(())
     }
-
-    if account.sub_account.is_none() {
-        return Ok(());
-    }
-
-    if account.sub_account.as_ref().unwrap().address.is_empty() {
-        Err(BlockError::AccountSubAccountAddrMissing)?;
-    }
-    Ok(())
-}
-
-/// `contains` checks if a value is contained in a slice
-/// of strings.
-pub(crate) fn contains<T: Eq>(valid: &[T], value: &T) -> bool {
-    valid.iter().any(|v| v == value)
 }
 
 impl ResponseAsserter {
@@ -114,39 +84,37 @@ impl ResponseAsserter {
         status: Option<&String>,
         construction: bool,
     ) -> AssertResult<()> {
-        // TODO if self nil bruh
+        // TODO if self nil
+
         if status.is_none() || status.unwrap().is_empty() {
             if construction {
-                return Ok(());
+                Ok(())
+            } else {
+                Err(BlockError::OperationStatusMissing)?
             }
-
-            Err(BlockError::OperationStatusMissing)?;
-        }
-
-        if construction {
-            Err(BlockError::OperationStatusNotEmptyForConstruction)?;
-        }
-
-        if !self.operation_status_map[status.unwrap()] {
+        } else if construction {
+            Err(BlockError::OperationStatusNotEmptyForConstruction)?
+        } else if !self.operation_status_map[status.unwrap()] {
             Err(format!(
                 "{}: {}",
                 BlockError::OperationStatusInvalid,
                 status.unwrap()
             ))?
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// `operation_type` returns an error if an operation.Type
     /// is not valid.
     pub(crate) fn operation_type(&self, t: String) -> AssertResult<()> {
-        // TODO if self nil bruh
-        if t.is_empty() || contains(&self.operation_types, &t) {
-            Err(format!("{}: {t}", BlockError::OperationTypeInvalid))?;
-        }
+        // TODO if self nil
 
-        Ok(())
+        if t.is_empty() || self.operation_types.contains(&t) {
+            Err(format!("{}: {t}", BlockError::OperationTypeInvalid))?
+        } else {
+            Ok(())
+        }
     }
 
     /// `operation` ensures a [`TypesOperation`] has a valid
@@ -157,10 +125,11 @@ impl ResponseAsserter {
         index: i64,
         construction: bool,
     ) -> AssertResult<()> {
-        // TODO if self nil bruh
+        // TODO if self nil
+
         let operation = operation.ok_or(BlockError::OperationIsNil)?;
 
-        operation_identifier(&operation.operation_identifier, index).map_err(|err| {
+        operation_identifier(operation.operation_identifier.as_ref(), index).map_err(|err| {
             format!("{err}: Operation identifier is invalid in operation {index}")
         })?;
 
@@ -194,7 +163,7 @@ impl ResponseAsserter {
     /// in a [`TypesOperation`] is invalid.
     pub(crate) fn operations(
         &self,
-        operations: &[TypesOperation],
+        operations: &[Option<TypesOperation>],
         construction: bool,
     ) -> AssertResult<()> {
         if operations.is_empty() && construction {
@@ -208,7 +177,8 @@ impl ResponseAsserter {
         let mut related_ops_exist = false;
 
         for (index, op) in operations.iter().enumerate() {
-            self.operation(Some(op), index as i64, construction)?;
+            self.operation(op.as_ref(), index as i64, construction)?;
+            let op = op.unwrap();
             if self.validations.enabled {
                 if op.type_ == self.validations.payment.name {
                     let val = BigInt::from_str(&op.amount.as_ref().unwrap().value).unwrap();
@@ -247,25 +217,29 @@ impl ResponseAsserter {
             for related_op in op.related_operations.iter().flatten() {
                 related_ops_exist = true;
 
-                if related_op.index >= op.operation_identifier.index {
+                // TODO: go code doesnt check these fields for null
+                let related_op_index = related_op.unwrap().index;
+                let operation_identifier_index = op.operation_identifier.unwrap().index;
+
+                if related_op_index >= operation_identifier_index {
                     Err(format!(
                         "{}: related operation index {} >= operation index {}",
                         BlockError::RelatedOperationIndexOutOfOrder,
-                        related_op.index,
-                        op.operation_identifier.index
+                        related_op_index,
+                        operation_identifier_index
                     ))?;
                 }
 
-                if related_indexes.contains(&related_op.index) {
+                if related_indexes.contains(&related_op_index) {
                     Err(format!(
                         "{}: related operation index {} found for operation index {}",
                         BlockError::RelatedOperationIndexDuplicate,
-                        related_op.index,
-                        op.operation_identifier.index
+                        related_op_index,
+                        operation_identifier_index
                     ))?;
                 }
 
-                related_indexes.insert(related_op.index);
+                related_indexes.insert(related_op_index);
             }
         }
 
@@ -318,16 +292,20 @@ impl ResponseAsserter {
     /// `transaction` returns an error if the [`TransactionIdentifier`]
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
-    pub(crate) fn transaction(&self, transaction: &Transaction) -> AssertResult<()> {
-        // TODO if self nil bruh
-        // TODO if transaction nil
-        transaction_identifier(&transaction.transaction_identifier)?;
+    pub(crate) fn transaction(&self, transaction: Option<&Transaction>) -> AssertResult<()> {
+        // TODO if self nil
 
-        self.operations(&transaction.operations, false)
+        let transaction = transaction.ok_or(BlockError::TxIsNil)?;
+
+        transaction_identifier(transaction.transaction_identifier.as_ref())?;
+        let transaction_identifier = transaction.transaction_identifier.unwrap();
+
+        // TODO go code never checks nil here
+        self.operations(&transaction.operations.unwrap(), false)
             .map_err(|err| {
                 format!(
                     "{err} invalid operation in transaction {}",
-                    transaction.transaction_identifier.hash
+                    transaction_identifier.hash
                 )
             })?;
 
@@ -339,7 +317,7 @@ impl ResponseAsserter {
             .map_err(|err| {
                 format!(
                     "{err} invalid related transaction in transaction {}",
-                    transaction.transaction_identifier.hash
+                    transaction_identifier.hash
                 )
             })?;
 
@@ -353,7 +331,7 @@ impl ResponseAsserter {
     /// defined by the enum.
     pub(crate) fn related_transactions(
         &self,
-        related_transactions: &[RelatedTransaction],
+        related_transactions: &[Option<RelatedTransaction>],
     ) -> AssertResult<()> {
         if let Some(dup) = duplicate_related_transaction(related_transactions) {
             Err(format!(
@@ -371,7 +349,7 @@ impl ResponseAsserter {
                 })?;
             }
 
-            transaction_identifier(&related.transaction_identifier).map_err(|err| {
+            transaction_identifier(related.transaction_identifier).map_err(|err| {
                 format!(
                     "{err} invalid transaction identifier in related transaction at index {index}"
                 )
@@ -425,47 +403,46 @@ impl ResponseAsserter {
 
 /// `block_identifier` ensures a [`BlockIdentifier`]
 /// is well-formatted.
-pub(crate) fn block_identifier(block: &BlockIdentifier) -> AssertResult<()> {
-    // TODO if block nil
+pub(crate) fn block_identifier(block: Option<&BlockIdentifier>) -> AssertResult<()> {
+    if block.is_none() {
+        todo!("null");
+    }
+
+    let block = block.unwrap();
     if block.hash.is_empty() {
-        Err(BlockError::BlockIdentifierHashMissing)?;
+        Err(BlockError::BlockIdentifierHashMissing)?
+    } else if block.index < 0 {
+        Err(BlockError::BlockIdentifierIndexIsNeg)?
+    } else {
+        Ok(())
     }
-
-    // todo!("impossible case");
-    if block.index < 0 {
-        Err(BlockError::BlockIdentifierIndexIsNeg)?;
-    }
-
-    Ok(())
 }
 
 /// `partial_block_identifier` ensures a [`PartialBlockIdentifier`]
 /// is well-formatted.
 pub(crate) fn partial_block_identifier(
-    block_identifier: &PartialBlockIdentifier,
+    block_identifier: Option<&PartialBlockIdentifier>,
 ) -> AssertResult<()> {
-    // TODO if block_identifier nil
-    if block_identifier.hash.is_some() && !block_identifier.hash.as_ref().unwrap().is_empty() {
-        return Ok(());
+    if block_identifier.is_none() {
+        Err(BlockError::BlockIdentifierIsNil.into())
+    } else if (block_identifier.hash.is_some()
+        && !block_identifier.hash.as_ref().unwrap().is_empty())
+        || (block_identifier.index.is_some() && block_identifier.index.unwrap() >= 0)
+    {
+        Ok(())
+    } else {
+        Err(BlockError::PartialBlockIdentifierFieldsNotSet.into())
     }
-
-    todo!("impossible case");
-    if block_identifier.index.is_some() {
-        // && block_identifier.index.unwrap() >= 0 {
-        return Ok(());
-    }
-
-    Err(BlockError::PartialBlockIdentifierFieldsNotSet)?
 }
 
 /// `duplicate_related_transaction` returns nil if no duplicates are found in
 /// the array and returns the first duplicated item found otherwise.
 pub(crate) fn duplicate_related_transaction(
-    items: &[RelatedTransaction],
+    items: &[Option<RelatedTransaction>],
 ) -> Option<&RelatedTransaction> {
     let mut seen = IndexSet::new();
 
-    for item in items {
+    for item in items.iter().filter_map(|i| i) {
         let key = hash(item);
 
         if seen.contains(&key) {
@@ -480,13 +457,14 @@ pub(crate) fn duplicate_related_transaction(
 
 /// `transaction_identifier` returns an error if a
 /// [`TransactionIdentifier`] has an invalid hash.
-pub(crate) fn transaction_identifier(ident: &TransactionIdentifier) -> AssertResult<()> {
+pub(crate) fn transaction_identifier(ident: Option<&TransactionIdentifier>) -> AssertResult<()> {
     // TODO if ident nil
+    let ident = ident.ok_or(BlockError::TxIdentifierIsNil)?;
     if ident.hash.is_empty() {
-        Err(BlockError::TxIdentifierHashMissing)?;
+        Err(BlockError::TxIdentifierHashMissing.into())
+    } else {
+        Ok(())
     }
-
-    Ok(())
 }
 
 /// The min unix epoch

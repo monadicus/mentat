@@ -7,16 +7,8 @@ use crate::{
         network::{allow, error, errors, network_identifier, network_list_response, version},
     },
     types::{
-        Allow,
-        BalanceExemption,
-        Currency,
-        ExemptionType,
-        MentatError,
-        NetworkIdentifier,
-        NetworkListResponse,
-        OperationStatus,
-        SubNetworkIdentifier,
-        Version,
+        Allow, BalanceExemption, Currency, ExemptionType, MentatError, NetworkIdentifier,
+        NetworkListResponse, OperationStatus, SubNetworkIdentifier, Version,
     },
 };
 
@@ -177,7 +169,7 @@ fn test_allow() {
             name: "valid Allow",
             payload: Allow {
                 operation_statuses: operation_statuses.clone(),
-                operation_types: operation_types.clone(),
+                operation_types: Some(operation_types.clone()),
                 ..Default::default()
             },
             err: None,
@@ -186,7 +178,7 @@ fn test_allow() {
             name: "valid Allow with call methods and exemptions",
             payload: Allow {
                 operation_statuses: operation_statuses.clone(),
-                operation_types: operation_types.clone(),
+                operation_types: Some(operation_types.clone()),
                 call_methods: call_methods.clone(),
                 balance_exemptions: balance_exemptions.clone(),
                 historical_balance_lookup: true,
@@ -199,7 +191,7 @@ fn test_allow() {
             name: "valid Allow with exemptions and no historical",
             payload: Allow {
                 operation_statuses: operation_statuses.clone(),
-                operation_types: operation_types.clone(),
+                operation_types: Some(operation_types.clone()),
                 call_methods,
                 balance_exemptions: balance_exemptions.clone(),
                 ..Default::default()
@@ -224,7 +216,7 @@ fn test_allow() {
         AsserterTest {
             name: "no OperationStatuses",
             payload: Allow {
-                operation_types: operation_types.clone(),
+                operation_types: Some(operation_types.clone()),
                 ..Default::default()
             },
             err: Some(NetworkError::NoAllowedOperationStatuses.into()),
@@ -233,7 +225,7 @@ fn test_allow() {
             name: "no successful OperationStatuses",
             payload: Allow {
                 operation_statuses: vec![operation_statuses[1].clone()],
-                operation_types: operation_types.clone(),
+                operation_types: Some(operation_types.clone()),
                 ..Default::default()
             },
             err: Some(NetworkError::NoSuccessfulAllowedOperationStatuses.into()),
@@ -252,7 +244,7 @@ fn test_allow() {
             name: "duplicate call methods",
             payload: Allow {
                 operation_statuses: operation_statuses.clone(),
-                operation_types: operation_types.clone(),
+                operation_types: Some(operation_types.clone()),
                 call_methods: Some(vec!["call".into(), "call".into()]),
                 balance_exemptions,
                 ..Default::default()
@@ -265,7 +257,7 @@ fn test_allow() {
             name: "empty exemption",
             payload: Allow {
                 operation_statuses: operation_statuses.clone(),
-                operation_types: operation_types.clone(),
+                operation_types: Some(operation_types.clone()),
                 call_methods: Some(vec!["call".into()]),
                 balance_exemptions: Some(Vec::new()),
                 ..Default::default()
@@ -276,7 +268,7 @@ fn test_allow() {
             name: "empty exemption",
             payload: Allow {
                 operation_statuses,
-                operation_types,
+                operation_types: Some(operation_types),
                 call_methods: Some(vec!["call".into()]),
                 balance_exemptions: Some(Vec::new()),
                 ..Default::default()

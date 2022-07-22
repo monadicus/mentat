@@ -5,35 +5,16 @@ use crate::{
     asserter::{
         asserter_tools::Asserter,
         block::{
-            account_identifier,
-            amount,
-            block_identifier,
-            operation_identifier,
-            MAX_UNIX_EPOCH,
+            account_identifier, amount, block_identifier, operation_identifier, MAX_UNIX_EPOCH,
             MIN_UNIX_EPOCH,
         },
         errors::{AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        Block,
-        BlockIdentifier,
-        Currency,
-        Direction,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        RelatedTransaction,
-        SubAccountIdentifier,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Allow, Amount, Block, BlockIdentifier, Currency, Direction,
+        NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse, Operation,
+        OperationIdentifier, OperationStatus, Peer, RelatedTransaction, SubAccountIdentifier,
+        Transaction, TransactionIdentifier, Version,
     },
 };
 
@@ -81,11 +62,11 @@ fn test_amount() {
             name: "valid amount",
             payload: Some(Amount {
                 value: "100000".into(),
-                currency: Currency {
+                currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
-                },
+                }),
                 metadata: Default::default(),
             }),
             err: None,
@@ -94,11 +75,11 @@ fn test_amount() {
             name: "valid amount no decimals",
             payload: Some(Amount {
                 value: "100000".into(),
-                currency: Currency {
+                currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: Default::default(),
                     metadata: Default::default(),
-                },
+                }),
                 metadata: Default::default(),
             }),
             err: None,
@@ -107,11 +88,11 @@ fn test_amount() {
             name: "valid negative amount",
             payload: Some(Amount {
                 value: "-100000".into(),
-                currency: Currency {
+                currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
-                },
+                }),
                 metadata: Default::default(),
             }),
             err: None,
@@ -134,11 +115,11 @@ fn test_amount() {
             name: "invalid non number",
             payload: Some(Amount {
                 value: "blah".into(),
-                currency: Currency {
+                currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
-                },
+                }),
                 metadata: Default::default(),
             }),
             err: Some(AsserterError::from(format!(
@@ -150,11 +131,11 @@ fn test_amount() {
             name: "invalid integer format",
             payload: Some(Amount {
                 value: "1.0".into(),
-                currency: Currency {
+                currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
-                },
+                }),
                 metadata: Default::default(),
             }),
             err: Some(AsserterError::from(format!(
@@ -166,11 +147,11 @@ fn test_amount() {
             name: "invalid non-integer",
             payload: Some(Amount {
                 value: "1.1".into(),
-                currency: Currency {
+                currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
-                },
+                }),
                 metadata: Default::default(),
             }),
             err: Some(AsserterError::from(format!(
@@ -182,11 +163,11 @@ fn test_amount() {
             name: "invalid symbol",
             payload: Some(Amount {
                 value: "11".into(),
-                currency: Currency {
+                currency: Some(Currency {
                     symbol: String::new(),
                     decimals: 1,
                     metadata: Default::default(),
-                },
+                }),
                 metadata: Default::default(),
             }),
             err: Some(BlockError::AmountCurrencySymbolEmpty.into()),
@@ -233,7 +214,7 @@ fn test_operation_identifier() {
             },
             err: None,
         },
-        // TODO allow None OperationIdentifier
+        // TODO allow None Some(OperationIdentifier)
         // "nil identifier" => OperationIdentTest {
         // 	request: None,
         // 	index: 0,
@@ -264,7 +245,7 @@ fn test_operation_identifier() {
         // TODO see invalid_network_index defined above
         // "invalid identifier with network index" => OperationIdentTest {
         // 	request: OperationIdentTest {
-        // ident: OperationIdentifier {
+        // ident: Some(OperationIdentifier) {
         // 		index: 0,
         // 		network_index: Some(invalid_network_index),
         // 	},
@@ -274,7 +255,9 @@ fn test_operation_identifier() {
         // },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |data| operation_identifier(&data.ident, data.index));
+    AsserterTest::non_asserter_tests(&tests, |data| {
+        operation_identifier(Some(&data.ident), data.index)
+    });
 }
 
 #[test]
@@ -338,38 +321,38 @@ struct OperationValidationsTest {
 fn test_operation_validations() {
     let valid_deposit_amt = Amount {
         value: "1000".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     };
     let valid_withdraw_amt = Amount {
         value: "-1000".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     };
     let valid_fee_amt = Amount {
         value: "-100".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     };
     let invalid_fee_amt = Amount {
         value: "100".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     };
 
@@ -379,10 +362,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -390,10 +373,10 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -401,10 +384,10 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
-                        },
+                        }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -424,10 +407,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -435,10 +418,10 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -458,10 +441,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -469,10 +452,10 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -492,10 +475,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -503,29 +486,29 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(Amount {
                             value: "-2000".into(),
-                            currency: Currency {
+                            currency: Some(Currency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
-                            },
+                            }),
                             metadata: Default::default(),
                         }),
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
-                        },
+                        }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -545,10 +528,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -556,29 +539,29 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(Amount {
                             value: "-2000".into(),
-                            currency: Currency {
+                            currency: Some(Currency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
-                            },
+                            }),
                             metadata: Default::default(),
                         }),
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
-                        },
+                        }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -598,10 +581,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -609,37 +592,37 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(Amount {
                             value: "-2000".into(),
-                            currency: Currency {
+                            currency: Some(Currency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
-                            },
+                            }),
                             metadata: Default::default(),
                         }),
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
-                        },
+                        }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(valid_fee_amt.clone()),
-                        related_operations: Some(vec![OperationIdentifier {
+                        related_operations: Some(vec![Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        }]),
+                        })]),
                         ..Default::default()
                     },
                 ],
@@ -655,10 +638,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -666,29 +649,29 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(Amount {
                             value: "-2000".into(),
-                            currency: Currency {
+                            currency: Some(Currency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
-                            },
+                            }),
                             metadata: Default::default(),
                         }),
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
-                        },
+                        }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -708,10 +691,10 @@ fn test_operation_validations() {
             payload: OperationValidationsTest {
                 operations: vec![
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
@@ -719,37 +702,37 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
-                        },
+                        }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(Amount {
                             value: "-2000".into(),
-                            currency: Currency {
+                            currency: Some(Currency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
-                            },
+                            }),
                             metadata: Default::default(),
                         }),
                         ..Default::default()
                     },
                     Operation {
-                        operation_identifier: OperationIdentifier {
+                        operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
-                        },
+                        }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
                         amount: Some(valid_fee_amt),
-                        related_operations: Some(vec![OperationIdentifier {
+                        related_operations: Some(vec![Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
-                        }]),
+                        })]),
                         ..Default::default()
                     },
                 ],
@@ -773,43 +756,43 @@ fn test_operation_validations() {
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
-                current_block_identifier: BlockIdentifier {
+                current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
-                },
+                }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: BlockIdentifier {
+                genesis_block_identifier: Some(BlockIdentifier {
                     index: 0,
                     hash: "block 0".into(),
-                },
+                }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: vec![Peer {
+                peers: Some(vec![Some(Peer {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
-                }],
+                })]),
             },
             NetworkOptionsResponse {
-                version: Version {
+                version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
-                },
-                allow: Allow {
-                    operation_statuses: vec![
-                        OperationStatus {
+                }),
+                allow: Some(Allow {
+                    operation_statuses: Some(vec![
+                        Some(OperationStatus {
                             status: "SUCCESS".into(),
                             successful: true,
-                        },
-                        OperationStatus {
+                        }),
+                        Some(OperationStatus {
                             status: "FAILURE".into(),
                             successful: false,
-                        },
-                    ],
-                    operation_types: vec!["PAYMENT".into(), "FEE".into()],
+                        }),
+                    ]),
+                    operation_types: Some(vec!["PAYMENT".into(), "FEE".into()]),
                     ..Default::default()
-                },
+                }),
             },
             test.payload.validation_file_path,
         )
@@ -833,11 +816,11 @@ struct OperationTest {
 fn test_operation() {
     let valid_amount = Some(Amount {
         value: "1000".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     });
 
@@ -846,10 +829,10 @@ fn test_operation() {
             name: "valid operation",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
                     account: valid_account_identifier(),
@@ -866,10 +849,10 @@ fn test_operation() {
             name: "valid operation no account",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
                     amount: valid_amount.clone(),
@@ -895,10 +878,10 @@ fn test_operation() {
             name: "invalid operation no account",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
                     amount: valid_amount.clone(),
@@ -914,10 +897,10 @@ fn test_operation() {
             name: "invalid operation empty account",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
                     account: Some(AccountIdentifier::default()),
@@ -934,10 +917,10 @@ fn test_operation() {
             name: "invalid operation invalid index",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
                     ..Default::default()
@@ -952,10 +935,10 @@ fn test_operation() {
             name: "invalid operation invalid type",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "STAKE".into(),
                     status: Some("SUCCESS".into()),
                     ..Default::default()
@@ -970,10 +953,10 @@ fn test_operation() {
             name: "unsuccessful operation",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("FAILURE".into()),
                     ..Default::default()
@@ -988,10 +971,10 @@ fn test_operation() {
             name: "invalid operation invalid status",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("DEFERRED".into()),
                     ..Default::default()
@@ -1006,10 +989,10 @@ fn test_operation() {
             name: "valid construction operation",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     account: valid_account_identifier(),
                     amount: valid_amount.clone(),
@@ -1025,10 +1008,10 @@ fn test_operation() {
             name: "valid construction operation (empty status)",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some(String::new()),
                     account: valid_account_identifier(),
@@ -1045,10 +1028,10 @@ fn test_operation() {
             name: "invalid construction operation",
             payload: OperationTest {
                 operation: Operation {
-                    operation_identifier: OperationIdentifier {
+                    operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
-                    },
+                    }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
                     account: valid_account_identifier(),
@@ -1073,43 +1056,43 @@ fn test_operation() {
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
-                current_block_identifier: BlockIdentifier {
+                current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
-                },
+                }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: BlockIdentifier {
+                genesis_block_identifier: Some(BlockIdentifier {
                     index: 0,
                     hash: "block 0".into(),
-                },
+                }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: vec![Peer {
+                peers: Some(vec![Some(Peer {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
-                }],
+                })]),
             },
             NetworkOptionsResponse {
-                version: Version {
+                version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
-                },
-                allow: Allow {
-                    operation_statuses: vec![
-                        OperationStatus {
+                }),
+                allow: Some(Allow {
+                    operation_statuses: Some(vec![
+                        Some(OperationStatus {
                             status: "SUCCESS".into(),
                             successful: true,
-                        },
-                        OperationStatus {
+                        }),
+                        Some(OperationStatus {
                             status: "FAILURE".into(),
                             successful: false,
-                        },
-                    ],
-                    operation_types: vec!["PAYMENT".into()],
+                        }),
+                    ]),
+                    operation_types: Some(vec!["PAYMENT".into()]),
                     ..Default::default()
-                },
+                }),
             },
             "".into(),
         )
@@ -1145,11 +1128,11 @@ fn test_block() {
     };
     let valid_amount = Some(Amount {
         value: "1000".into(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     });
     let valid_account = Some(AccountIdentifier {
@@ -1157,224 +1140,224 @@ fn test_block() {
         ..Default::default()
     });
     let valid_transaction = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
-        operations: vec![
-            Operation {
-                operation_identifier: OperationIdentifier {
+        }),
+        operations: Some(vec![
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                },
+                }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-            Operation {
-                operation_identifier: OperationIdentifier {
+            }),
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
-                related_operations: Some(vec![OperationIdentifier {
+                }),
+                related_operations: Some(vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                }]),
+                })]),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-        ],
-        related_transactions: Some(vec![RelatedTransaction {
+            }),
+        ]),
+        related_transactions: Some(vec![Some(RelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            transaction_identifier: TransactionIdentifier {
+            transaction_identifier: Some(TransactionIdentifier {
                 hash: "blah".into(),
-            },
-            direction: Direction::Forward,
-        }]),
+            }),
+            direction: Direction("Forward".into()),
+        })]),
         metadata: Default::default(),
     };
     let related_to_self_transaction = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
-        operations: vec![Operation {
-            operation_identifier: OperationIdentifier {
+        }),
+        operations: Some(vec![Some(Operation {
+            operation_identifier: Some(OperationIdentifier {
                 index: 0,
                 network_index: None,
-            },
-            related_operations: Some(vec![OperationIdentifier {
+            }),
+            related_operations: Some(vec![Some(OperationIdentifier {
                 index: 0,
                 network_index: None,
-            }]),
+            })]),
             type_: "PAYMENT".into(),
             status: Some("SUCCESS".into()),
             account: valid_account_identifier(),
             amount: valid_amount.clone(),
             ..Default::default()
-        }],
+        })]),
         ..Default::default()
     };
     let out_of_order_transaction = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
-        operations: vec![
-            Operation {
-                operation_identifier: OperationIdentifier {
+        }),
+        operations: Some(vec![
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
-                related_operations: Some(vec![OperationIdentifier {
+                }),
+                related_operations: Some(vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                }]),
+                })]),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-            Operation {
-                operation_identifier: OperationIdentifier {
+            }),
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                },
+                }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-        ],
+            }),
+        ]),
         ..Default::default()
     };
     let related_to_later_transaction = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
-        operations: vec![
-            Operation {
-                operation_identifier: OperationIdentifier {
+        }),
+        operations: Some(vec![
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                },
-                related_operations: Some(vec![OperationIdentifier {
+                }),
+                related_operations: Some(vec![Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                }]),
+                })]),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-            Operation {
-                operation_identifier: OperationIdentifier {
+            }),
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
-                related_operations: Some(vec![OperationIdentifier {
+                }),
+                related_operations: Some(vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                }]),
+                })]),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-        ],
+            }),
+        ]),
         ..Default::default()
     };
     let related_duplicate_transaction = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
-        operations: vec![
-            Operation {
-                operation_identifier: OperationIdentifier {
+        }),
+        operations: Some(vec![
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                },
+                }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-            Operation {
-                operation_identifier: OperationIdentifier {
+            }),
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
+                }),
                 related_operations: Some(vec![
-                    OperationIdentifier {
+                    Some(OperationIdentifier {
                         index: 0,
                         network_index: None,
-                    },
-                    OperationIdentifier {
+                    }),
+                    Some(OperationIdentifier {
                         index: 0,
                         network_index: None,
-                    },
+                    }),
                 ]),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-        ],
+            }),
+        ]),
         ..Default::default()
     };
     let related_missing_transaction = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
-        operations: vec![
-            Operation {
-                operation_identifier: OperationIdentifier {
+        }),
+        operations: Some(vec![
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                },
+                }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-            Operation {
-                operation_identifier: OperationIdentifier {
+            }),
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
+                }),
                 related_operations: Some(Vec::new()),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-            Operation {
-                operation_identifier: OperationIdentifier {
+            }),
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
+                }),
                 related_operations: Some(Vec::new()),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-        ],
+            }),
+        ]),
         ..Default::default()
     };
     // TODO allow arbitrary directions
@@ -1384,7 +1367,7 @@ fn test_block() {
     //     },
     //     operations: vec![
     //         Operation {
-    //             operation_identifier: OperationIdentifier {
+    //             operation_identifier: Some(OperationIdentifier) {
     //                 index: 0,
     //                 network_index: None,
     //             },
@@ -1395,11 +1378,11 @@ fn test_block() {
     //             ..Default::default()
     //         },
     //         Operation {
-    //             operation_identifier: OperationIdentifier {
+    //             operation_identifier: Some(OperationIdentifier) {
     //                 index: 1,
     //                 network_index: None,
     //             },
-    //             related_operations: Some(vec![OperationIdentifier {
+    //             related_operations: Some(vec![Some(OperationIdentifier) {
     //                 index: 0,
     //                 network_index: None,
     //             }]),
@@ -1424,60 +1407,60 @@ fn test_block() {
     //     ..Default::default()
     // };
     let duplicated_related_transactions = Transaction {
-        transaction_identifier: TransactionIdentifier {
+        transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
-        },
-        operations: vec![
-            Operation {
-                operation_identifier: OperationIdentifier {
+        }),
+        operations: Some(vec![
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                },
+                }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account_identifier(),
                 amount: valid_amount.clone(),
                 ..Default::default()
-            },
-            Operation {
-                operation_identifier: OperationIdentifier {
+            }),
+            Some(Operation {
+                operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
-                },
-                related_operations: Some(vec![OperationIdentifier {
+                }),
+                related_operations: Some(vec![Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
-                }]),
+                })]),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
                 account: valid_account,
                 amount: valid_amount,
                 ..Default::default()
-            },
-        ],
+            }),
+        ]),
         related_transactions: Some(vec![
-            RelatedTransaction {
+            Some(RelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
                     blockchain: "hello".into(),
                     network: "world".into(),
                     sub_network_identifier: None,
                 }),
-                transaction_identifier: TransactionIdentifier {
+                transaction_identifier: Some(TransactionIdentifier {
                     hash: "blah".into(),
-                },
-                direction: Direction::Forward,
-            },
-            RelatedTransaction {
+                }),
+                direction: Direction("Forward".into()),
+            }),
+            Some(RelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
                     blockchain: "hello".into(),
                     network: "world".into(),
                     sub_network_identifier: None,
                 }),
-                transaction_identifier: TransactionIdentifier {
+                transaction_identifier: Some(TransactionIdentifier {
                     hash: "blah".into(),
-                },
-                direction: Direction::Forward,
-            },
+                }),
+                direction: Direction("Forward".into()),
+            }),
         ]),
         ..Default::default()
     };
@@ -1488,10 +1471,10 @@ fn test_block() {
             name: "valid block",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![valid_transaction.clone()],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     metadata: Default::default(),
                 },
                 validation_file_path: Default::default(),
@@ -1504,9 +1487,9 @@ fn test_block() {
             name: "valid block (before start index)",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    transactions: vec![valid_transaction.clone()],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1519,9 +1502,9 @@ fn test_block() {
             name: "genesis block (without start index)",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    transactions: vec![valid_transaction.clone()],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1534,9 +1517,9 @@ fn test_block() {
             name: "genesis block (with start index)",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: genesis_ident.clone(),
-                    parent_block_identifier: genesis_ident.clone(),
-                    transactions: vec![valid_transaction.clone()],
+                    block_identifier: Some(genesis_ident.clone()),
+                    parent_block_identifier: Some(genesis_ident.clone()),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1549,9 +1532,9 @@ fn test_block() {
             name: "invalid genesis block (with start index)",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: genesis_ident.clone(),
-                    parent_block_identifier: genesis_ident.clone(),
-                    transactions: vec![valid_transaction.clone()],
+                    block_identifier: Some(genesis_ident.clone()),
+                    parent_block_identifier: Some(genesis_ident.clone()),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1564,10 +1547,10 @@ fn test_block() {
             name: "out of order transaction operations",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![out_of_order_transaction],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(out_of_order_transaction)]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1580,10 +1563,10 @@ fn test_block() {
             name: "related to self transaction operations",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![related_to_self_transaction],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(related_to_self_transaction)]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1596,10 +1579,10 @@ fn test_block() {
             name: "related to later transaction operations",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![related_to_later_transaction],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(related_to_later_transaction)]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1612,10 +1595,10 @@ fn test_block() {
             name: "duplicate related transaction operations",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![related_duplicate_transaction],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(related_duplicate_transaction)]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1628,10 +1611,10 @@ fn test_block() {
             name: "missing related transaction operations",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![related_missing_transaction],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(related_missing_transaction)]),
                     ..Default::default()
                 },
                 validation_file_path: PathBuf::from("data/validation_balanced_related_ops.json"),
@@ -1655,9 +1638,9 @@ fn test_block() {
         // request: BlockTest {
         //     block: Block {
         //         block_identifier: None,
-        //         parent_block_identifier: valid_parent_block_ident.clone(),
-        //         timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-        //         transactions: vec![valid_transaction.clone()],
+        //         parent_block_identifier: Some(valid_parent_block_ident.clone()),
+        //         timestamp: (MIN_UNIX_EPOCH + 1),
+        //         transactions: Some(vec![Some(valid_transaction.clone())]),
         //         ..Default::default()
         //     },
         //     validation_file_path:  Default::default(),
@@ -1670,9 +1653,9 @@ fn test_block() {
             name: "invalid block hash",
             payload: BlockTest {
                 block: Block {
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![valid_transaction.clone()],
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1685,9 +1668,9 @@ fn test_block() {
             name: "block previous hash missing",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![valid_transaction.clone()],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1700,13 +1683,13 @@ fn test_block() {
             name: "invalid parent block index",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: BlockIdentifier {
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(BlockIdentifier {
                         index: valid_block_ident.index,
                         hash: valid_parent_block_ident.hash.clone(),
-                    },
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![valid_transaction.clone()],
+                    }),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1719,13 +1702,13 @@ fn test_block() {
             name: "invalid parent block hash",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: BlockIdentifier {
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(BlockIdentifier {
                         index: valid_parent_block_ident.index,
                         hash: valid_block_ident.hash.clone(),
-                    },
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
-                    transactions: vec![valid_transaction.clone()],
+                    }),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1738,9 +1721,9 @@ fn test_block() {
             name: "invalid block timestamp less than MinUnixEpoch",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    transactions: vec![valid_transaction.clone()],
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    transactions: Some(vec![Some(valid_transaction.clone())]),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1753,10 +1736,10 @@ fn test_block() {
             name: "invalid block timestamp greater than MaxUnixEpoch",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    transactions: vec![valid_transaction],
-                    timestamp: (MAX_UNIX_EPOCH + 1) as u64,
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    transactions: Some(vec![Some(valid_transaction)]),
+                    timestamp: (MAX_UNIX_EPOCH + 1),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1769,10 +1752,10 @@ fn test_block() {
             name: "invalid block transaction",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident.clone(),
-                    parent_block_identifier: valid_parent_block_ident.clone(),
-                    transactions: vec![Default::default()],
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
+                    block_identifier: Some(valid_block_ident.clone()),
+                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                    transactions: Some(vec![Default::default()]),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1785,10 +1768,10 @@ fn test_block() {
         // "invalid related transaction" => ServerTest {
         //     request: BlockTest {
         //     block: Block {
-        //         block_identifier: valid_block_ident.clone(),
-        //         parent_block_identifier: valid_parent_block_ident.clone(),
+        //         block_identifier: Some(valid_block_ident.clone()),
+        //         parent_block_identifier: Some(valid_parent_block_ident.clone()),
         //         transactions: vec![invalid_related_transaction],
-        //         timestamp: (MIN_UNIX_EPOCH + 1) as u64,
+        //         timestamp: (MIN_UNIX_EPOCH + 1),
         //         ..Default::default()
         //     },
         //     validation_file_path: Default::default(),
@@ -1802,10 +1785,10 @@ fn test_block() {
             name: "invalid related transaction",
             payload: BlockTest {
                 block: Block {
-                    block_identifier: valid_block_ident,
-                    parent_block_identifier: valid_parent_block_ident,
-                    transactions: vec![duplicated_related_transactions],
-                    timestamp: (MIN_UNIX_EPOCH + 1) as u64,
+                    block_identifier: Some(valid_block_ident),
+                    parent_block_identifier: Some(valid_parent_block_ident),
+                    transactions: Some(vec![Some(duplicated_related_transactions)]),
+                    timestamp: (MIN_UNIX_EPOCH + 1),
                     ..Default::default()
                 },
                 validation_file_path: Default::default(),
@@ -1826,45 +1809,45 @@ fn test_block() {
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
-                current_block_identifier: BlockIdentifier {
+                current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
-                },
+                }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: BlockIdentifier {
-                    index: test.payload.genesis_index as u64,
+                genesis_block_identifier: Some(BlockIdentifier {
+                    index: test.payload.genesis_index,
                     hash: format!("block {}", test.payload.genesis_index),
-                },
+                }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: vec![Peer {
+                peers: Some(vec![Some(Peer {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
-                }],
+                })]),
             },
             NetworkOptionsResponse {
-                version: Version {
+                version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
-                },
-                allow: Allow {
-                    operation_statuses: vec![
-                        OperationStatus {
+                }),
+                allow: Some(Allow {
+                    operation_statuses: Some(vec![
+                        Some(OperationStatus {
                             status: "SUCCESS".into(),
                             successful: true,
-                        },
-                        OperationStatus {
+                        }),
+                        Some(OperationStatus {
                             status: "FAILURE".into(),
                             successful: false,
-                        },
-                    ],
-                    operation_types: vec!["PAYMENT".into()],
+                        }),
+                    ]),
+                    operation_types: Some(vec!["PAYMENT".into()]),
                     // TODO need to make this an i64
-                    timestamp_start_index: test.payload.start_index.map(|i| i as u64),
+                    timestamp_start_index: test.payload.start_index.map(|i| i),
                     ..Default::default()
-                },
+                }),
             },
             "".into(),
         )

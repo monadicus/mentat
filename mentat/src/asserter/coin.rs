@@ -6,7 +6,7 @@ use super::{amount, AssertResult, Coin, CoinAction, CoinChange, CoinError, CoinI
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
 pub(crate) fn coin(coin: &Coin) -> AssertResult<()> {
-    // TODO coin == nil
+    let coins = coin.ok_or(CoinError::IsNil)?;
     coin_identifier(&coin.coin_identifier).map_err(|e| format!("{e}: identifier is invalid"))?;
     amount(Some(&coin.amount)).map_err(|e| format!("{e}: coin amount invalid"))?;
     Ok(())
@@ -16,8 +16,7 @@ pub(crate) fn coin(coin: &Coin) -> AssertResult<()> {
 /// [`Coin`] is invalid. If there are any
 /// duplicate identifiers, this function
 /// will also return an error.
-pub(crate) fn coins(coins: &[Coin]) -> AssertResult<()> {
-    // TODO if coins == nil
+pub(crate) fn coins(coins: &[Option<Coin>]) -> AssertResult<()> {
     let mut ids = IndexSet::new();
     for c in coins {
         coin(c).map_err(|err| format!("{err}: coin is invalid"))?;

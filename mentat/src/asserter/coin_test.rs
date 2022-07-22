@@ -11,11 +11,11 @@ use crate::{
 fn test_coin() {
     let valid_amount = Amount {
         value: "1000".to_string(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     };
 
@@ -23,10 +23,10 @@ fn test_coin() {
         AsserterTest {
             name: "valid coin",
             payload: Coin {
-                coin_identifier: CoinIdentifier {
+                coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
-                },
-                amount: valid_amount.clone(),
+                }),
+                amount: Some(valid_amount.clone()),
             },
             err: None,
         },
@@ -38,10 +38,10 @@ fn test_coin() {
         AsserterTest {
             name: "invalid identifier",
             payload: Coin {
-                coin_identifier: CoinIdentifier {
+                coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
-                },
-                amount: valid_amount,
+                }),
+                amount: Some(valid_amount),
             },
             err: Some(AsserterError::from(
                 "coin identifier cannot be empty: identifier is invalid".to_string(),
@@ -76,11 +76,11 @@ fn test_coin() {
 fn test_coins() {
     let valid_amount = Amount {
         value: "1000".to_string(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
     };
 
@@ -89,16 +89,16 @@ fn test_coins() {
             name: "valid coins",
             payload: vec![
                 Coin {
-                    coin_identifier: CoinIdentifier {
+                    coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
-                    },
-                    amount: valid_amount.clone(),
+                    }),
+                    amount: Some(valid_amount.clone()),
                 },
                 Coin {
-                    coin_identifier: CoinIdentifier {
+                    coin_identifier: Some(CoinIdentifier {
                         identifier: "coin2".to_string(),
-                    },
-                    amount: valid_amount.clone(),
+                    }),
+                    amount: Some(valid_amount.clone()),
                 },
             ],
             err: None,
@@ -112,16 +112,16 @@ fn test_coins() {
             name: "duplicate coins",
             payload: vec![
                 Coin {
-                    coin_identifier: CoinIdentifier {
+                    coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
-                    },
-                    amount: valid_amount.clone(),
+                    }),
+                    amount: Some(valid_amount.clone()),
                 },
                 Coin {
-                    coin_identifier: CoinIdentifier {
+                    coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
-                    },
-                    amount: valid_amount,
+                    }),
+                    amount: Some(valid_amount),
                 },
             ],
             err: Some(CoinError::Duplicate.into()),
@@ -137,9 +137,9 @@ fn test_coin_change() {
         AsserterTest {
             name: "valid change",
             payload: Some(CoinChange {
-                coin_identifier: CoinIdentifier {
+                coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
-                },
+                }),
                 coin_action: CoinAction::CoinCreated,
             }),
             err: None,
@@ -152,9 +152,9 @@ fn test_coin_change() {
         AsserterTest {
             name: "invalid identifier",
             payload: Some(CoinChange {
-                coin_identifier: CoinIdentifier {
+                coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
-                },
+                }),
                 coin_action: CoinAction::CoinCreated,
             }),
             err: Some(CoinError::IdentifierNotSet.into()),

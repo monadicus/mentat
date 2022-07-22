@@ -30,18 +30,18 @@ fn test_events_block_response() {
                 events: vec![
                     BlockEvent {
                         sequence: 0,
-                        block_identifier: BlockIdentifier {
+                        block_identifier: Some(BlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
-                        },
+                        }),
                         type_: BlockEventType::BlockAdded,
                     },
                     BlockEvent {
                         sequence: 1,
-                        block_identifier: BlockIdentifier {
+                        block_identifier: Some(BlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
-                        },
+                        }),
                         type_: BlockEventType::BlockRemoved,
                     },
                 ],
@@ -55,18 +55,18 @@ fn test_events_block_response() {
                 events: vec![
                     BlockEvent {
                         sequence: 0,
-                        block_identifier: BlockIdentifier {
+                        block_identifier: Some(BlockIdentifier {
                             index: 0,
                             hash: String::new(),
-                        },
+                        }),
                         type_: BlockEventType::BlockAdded,
                     },
                     BlockEvent {
                         sequence: 1,
-                        block_identifier: BlockIdentifier {
+                        block_identifier: Some(BlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
-                        },
+                        }),
                         type_: BlockEventType::BlockRemoved,
                     },
                 ],
@@ -99,18 +99,18 @@ fn test_events_block_response() {
                 events: vec![
                     BlockEvent {
                         sequence: 0,
-                        block_identifier: BlockIdentifier {
+                        block_identifier: Some(BlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
-                        },
+                        }),
                         type_: BlockEventType::BlockAdded,
                     },
                     BlockEvent {
                         sequence: 2,
-                        block_identifier: BlockIdentifier {
+                        block_identifier: Some(BlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
-                        },
+                        }),
                         type_: BlockEventType::BlockRemoved,
                     },
                 ],

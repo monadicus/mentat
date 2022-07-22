@@ -3,17 +3,8 @@
 use std::collections::HashSet;
 
 use super::{
-    amount,
-    block_identifier,
-    coins,
-    hash,
-    AccountBalanceError,
-    AccountBalanceResponse,
-    AccountCoinsResponse,
-    Amount,
-    AssertResult,
-    Currency,
-    PartialBlockIdentifier,
+    amount, block_identifier, coins, hash, AccountBalanceError, AccountBalanceResponse,
+    AccountCoinsResponse, Amount, AssertResult, Currency, PartialBlockIdentifier,
 };
 
 /// `contains_duplicate_currency` retruns a boolean indicating
@@ -47,11 +38,11 @@ pub(crate) fn contains_currency(currencies: &[Currency], currency: &Currency) ->
 /// of [`Amount`] is invalid. It is considered invalid if the same
 /// currency is returned multiple times (these should be
 /// consolidated) or if a [`Amount`] is considered invalid.
-pub(crate) fn assert_unique_amounts(amounts: &[Amount]) -> AssertResult<()> {
+pub(crate) fn assert_unique_amounts(amounts: &[Option<Amount>]) -> AssertResult<()> {
     let mut seen = HashSet::new();
 
-    for amt in amounts.iter() {
-        let key = hash(&amt.currency);
+    for amt in amounts.iter().filter_map(|a| a.as_ref()) {
+        let key = hash(&amt.currency.unwrap());
 
         if seen.contains(&key) {
             Err(format!("currency {:?} used multiple times", amt.currency))?;
@@ -73,7 +64,7 @@ pub(crate) fn account_balance_response(
     request_block: Option<&PartialBlockIdentifier>,
     response: &AccountBalanceResponse,
 ) -> AssertResult<()> {
-    block_identifier(&response.block_identifier)
+    block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
     assert_unique_amounts(&response.balances)
         .map_err(|e| format!("{e}: balance amounts are invalid"))?;
@@ -82,20 +73,21 @@ pub(crate) fn account_balance_response(
         return Ok(());
     }
     let request_block = request_block.unwrap();
+    let block_identifier = response.block_identifier.unwrap();
 
-    if matches!(request_block.hash.as_ref(), Some(i) if i != &response.block_identifier.hash) {
+    if matches!(request_block.hash.as_ref(), Some(i) if i != &block_identifier.hash) {
         Err(format!(
             "{}: requested block hash {} but got {}",
             AccountBalanceError::ReturnedBlockHashMismatch,
             request_block.hash.as_ref().unwrap(),
-            response.block_identifier.hash
+            block_identifier.hash
         ))?
-    } else if matches!(request_block.index, Some(i) if i != response.block_identifier.index) {
+    } else if matches!(request_block.index, Some(i) if i != block_identifier.index) {
         Err(format!(
             "{}: requested block index {} but got {}",
             AccountBalanceError::ReturnedBlockIndexMismatch,
             request_block.index.unwrap(),
-            response.block_identifier.index
+            block_identifier.index
         ))?
     } else {
         Ok(())
@@ -105,8 +97,8 @@ pub(crate) fn account_balance_response(
 /// `account_coins` returns an error if the provided
 /// [`AccountCoinsResponse`] is invalid.
 pub(crate) fn account_coins(response: &AccountCoinsResponse) -> AssertResult<()> {
-    block_identifier(&response.block_identifier)
+    block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
-    coins(&response.coins).map_err(|e| format!("{e}: coins are invalid"))?;
+    coins(response.coins.as_ref()).map_err(|e| format!("{e}: coins are invalid"))?;
     Ok(())
 }

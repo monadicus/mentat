@@ -249,7 +249,7 @@ fn test_contains_duplicate_currency() {
 struct AccountBalanceTest {
     request_block: Option<PartialBlockIdentifier>,
     response_block: BlockIdentifier,
-    balances: Vec<Amount>,
+    balances: Vec<Option<Amount>>,
     _metadata: IndexMap<String, Value>,
 }
 
@@ -258,7 +258,7 @@ impl AccountBalanceTest {
         account_balance_response(
             self.request_block.as_ref(),
             &AccountBalanceResponse {
-                block_identifier: self.response_block.clone(),
+                block_identifier: Some(self.response_block.clone()),
                 balances: self.balances.clone(),
                 metadata: Default::default(),
             },
@@ -280,15 +280,15 @@ fn test_account_balance() {
     let invalid_index = 1001;
     let invalid_hash = "ajsdk";
 
-    let valid_amt = Amount {
+    let valid_amt = Some(Amount {
         value: "100".to_string(),
-        currency: Currency {
+        currency: Some(Currency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
-        },
+        }),
         metadata: Default::default(),
-    };
+    });
 
     let tests = [
         AsserterTest {
@@ -324,7 +324,7 @@ fn test_account_balance() {
             },
             err: Some(AsserterError::from(format!(
                 "currency {:?} used multiple times: balance amounts are invalid",
-                &valid_amt.currency
+                &valid_amt.unwrap().currency
             ))),
         },
         AsserterTest {

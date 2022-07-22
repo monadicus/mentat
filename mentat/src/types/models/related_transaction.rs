@@ -13,7 +13,7 @@ pub struct RelatedTransaction {
     pub network_identifier: Option<NetworkIdentifier>,
     /// The [`TransactionIdentifier`] uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
-    pub transaction_identifier: TransactionIdentifier,
+    pub transaction_identifier: Option<TransactionIdentifier>,
     /// [`Direction`] Used by `RelatedTransaction` to indicate the direction of
     /// the relation (i.e. cross-shard/cross-network sends may reference
     /// backward to an earlier transaction and async execution may reference
