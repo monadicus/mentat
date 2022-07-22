@@ -28,17 +28,16 @@ pub(crate) fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
 
 /// `account_array` ensures all [`AccountIdentifier`] in an array
 /// are valid and not duplicates.
-pub(crate) fn account_array(arr_name: &str, arr: &[AccountIdentifier]) -> AssertResult<()> {
+pub(crate) fn account_array(arr_name: &str, arr: &[Option<AccountIdentifier>]) -> AssertResult<()> {
     if arr.is_empty() {
         Err(format!("no {} found", arr_name))?;
     }
 
     let mut parsed = IndexSet::new();
     for s in arr {
-        account_identifier(Some(s))
+        account_identifier(s.as_ref())
             .map_err(|e| format!("{arr_name} has an invalid account identifier"))?;
-
-        let key = hash(s);
+        let key = hash(&s.unwrap_or_default());
         if parsed.contains(&key) {
             Err(format!("{arr_name} contains a duplicate {s:?}"))?;
         }

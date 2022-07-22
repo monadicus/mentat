@@ -19,6 +19,7 @@ pub struct RelatedTransaction {
     /// backward to an earlier transaction and async execution may reference
     /// forward). Can be used to indicate if a transaction relation is from
     /// child to parent or the reverse.
+    #[serde(default)]
     pub direction: Direction,
 }
 

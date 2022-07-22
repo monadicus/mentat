@@ -64,7 +64,7 @@ pub(crate) struct ResponseAsserter {
     pub(crate) network: NetworkIdentifier,
     pub(crate) operation_types: Vec<String>,
     pub(crate) operation_status_map: IndexMap<String, bool>,
-    pub(crate) error_type_map: IndexMap<u16, MentatError>,
+    pub(crate) error_type_map: IndexMap<i32, MentatError>,
     pub(crate) genesis_block: BlockIdentifier,
     pub(crate) timestamp_start_index: i64,
     pub(crate) validations: Validations,
@@ -160,7 +160,7 @@ impl RequestAsserter {
     pub(crate) fn new_server(
         supported_operation_types: Vec<String>,
         historical_balance_lookup: bool,
-        supp_networks: Vec<NetworkIdentifier>,
+        supp_networks: Vec<Option<NetworkIdentifier>>,
         call_methods: Vec<String>,
         mempool_coins: bool,
         validation_file_path: &Path,

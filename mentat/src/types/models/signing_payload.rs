@@ -25,6 +25,6 @@ pub struct SigningPayload {
     )]
     pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub signature_type: Option<SignatureType>,
+    #[serde(default)]
+    pub signature_type: SignatureType,
 }

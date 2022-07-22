@@ -16,5 +16,6 @@ pub struct PublicKey {
     pub bytes: Vec<u8>,
     /// [`CurveType`] is the type of cryptographic curve associated with a
     /// PublicKey.
+    #[serde(default)]
     pub curve_type: CurveType,
 }

@@ -20,7 +20,7 @@ pub struct MentatError {
     #[serde(skip)]
     pub status_code: u16,
     /// The rosetta error code
-    pub code: i16,
+    pub code: i32,
     /// The message for the error.
     pub message: String,
     /// The optional description of the error.

@@ -34,18 +34,22 @@ pub(crate) fn hash_bytes(data: String) -> String {
 /// It is important to note that any interface that is a slice
 /// or contains slices will not be equal if the slice ordering is
 /// different.
-pub(crate) fn hash<T>(hashable: &T) -> String
+pub(crate) fn hash<T>(hashable: Option<&T>) -> String
 where
     T: Debug + Serialize + Sortable,
 {
-    let sorted = hashable.sort();
+    if let Some(hashable) = hashable {
+        let sorted = hashable.sort();
 
-    let json = match serde_json::to_string(&sorted) {
-        Ok(json) => json,
-        Err(e) => panic!("{e}: unable to jsonify {hashable:?}"),
-    };
+        let json = match serde_json::to_string(&sorted) {
+            Ok(json) => json,
+            Err(e) => panic!("{e}: unable to jsonify {hashable:?}"),
+        };
 
-    hash_bytes(json)
+        hash_bytes(json)
+    } else {
+        String::new()
+    }
 }
 
 /// 'construct_partialblock_identifier' constructs a *PartialBlockIdentifier

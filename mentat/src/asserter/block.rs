@@ -6,9 +6,23 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
-    coin_change, hash, network_identifier, AccountIdentifier, Amount, AssertResult, Block,
-    BlockError, BlockIdentifier, Currency, Direction, OperationIdentifier, PartialBlockIdentifier,
-    RelatedTransaction, ResponseAsserter, Transaction, TransactionIdentifier,
+    coin_change,
+    hash,
+    network_identifier,
+    AccountIdentifier,
+    Amount,
+    AssertResult,
+    Block,
+    BlockError,
+    BlockIdentifier,
+    Currency,
+    Direction,
+    OperationIdentifier,
+    PartialBlockIdentifier,
+    RelatedTransaction,
+    ResponseAsserter,
+    Transaction,
+    TransactionIdentifier,
 };
 use crate::types::Operation as TypesOperation;
 
@@ -288,15 +302,15 @@ impl ResponseAsserter {
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
     pub(crate) fn transaction(&self, transaction: Option<&Transaction>) -> AssertResult<()> {
-        // TODO if self nil
+        // TODO if self nil WHERE NEW ASSERTER CALL ok_or(AsserterError::IsNil); or
+        // something like that.
 
         let transaction = transaction.ok_or(BlockError::TxIsNil)?;
 
         transaction_identifier(transaction.transaction_identifier.as_ref())?;
         let transaction_identifier = transaction.transaction_identifier.unwrap();
 
-        // TODO go code never checks nil here
-        self.operations(&transaction.operations.unwrap(), false)
+        self.operations(&transaction.operations.unwrap_or_default(), false)
             .map_err(|err| {
                 format!(
                     "{err} invalid operation in transaction {}",
@@ -340,13 +354,9 @@ impl ResponseAsserter {
             .filter_map(|i| i.as_ref())
             .enumerate()
         {
-            if let Some(network_ident) = related.network_identifier.as_ref() {
-                network_identifier(network_ident).map_err(|err| {
-                    format!(
-                        "{err} invalid network identifier in related transaction at index {index}"
-                    )
-                })?;
-            }
+            network_identifier(related.network_identifier.as_ref()).map_err(|err| {
+                format!("{err} invalid network identifier in related transaction at index {index}")
+            })?;
 
             transaction_identifier(related.transaction_identifier.as_ref()).map_err(|err| {
                 format!(
@@ -363,9 +373,12 @@ impl ResponseAsserter {
 
     /// `direction` returns an error if the value passed is not
     /// [Direction::Forward] or [Direction::Backward]
-    pub(crate) fn direction(&self, _: &Direction) -> AssertResult<()> {
-        // TODO We only support those two values
-        Ok(())
+    pub(crate) fn direction(&self, direction: &Direction) -> AssertResult<()> {
+        if !direction.valid() {
+            Err(BlockError::InvalidDirection)?
+        } else {
+            Ok(())
+        }
     }
 
     /// `block` runs a basic set of assertions for each returned [`Block`].
@@ -437,11 +450,12 @@ pub(crate) fn duplicate_related_transaction(
 ) -> Option<&RelatedTransaction> {
     let mut seen = IndexSet::new();
 
-    for item in items.iter().filter_map(|i| i.as_ref()) {
-        let key = hash(item);
+    // TODO check item for null
+    for item in items {
+        let key = hash(item.as_ref());
 
         if seen.contains(&key) {
-            return Some(item);
+            return item;
         }
 
         seen.insert(key);
@@ -453,7 +467,6 @@ pub(crate) fn duplicate_related_transaction(
 /// `transaction_identifier` returns an error if a
 /// [`TransactionIdentifier`] has an invalid hash.
 pub(crate) fn transaction_identifier(ident: Option<&TransactionIdentifier>) -> AssertResult<()> {
-    // TODO if ident nil
     let ident = ident.ok_or(BlockError::TxIdentifierIsNil)?;
     if ident.hash.is_empty() {
         Err(BlockError::TxIdentifierHashMissing.into())

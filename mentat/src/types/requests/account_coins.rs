@@ -25,5 +25,5 @@ pub struct AccountCoinsRequest {
     /// populated, only balances for the specified currencies will be
     /// returned. If not populated, all available balances will be returned.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub currencies: Option<Vec<Currency>>,
+    pub currencies: Option<Vec<Option<Currency>>>,
 }

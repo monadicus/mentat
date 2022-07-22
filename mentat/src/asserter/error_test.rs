@@ -47,20 +47,20 @@ fn test_error_map() {
             },
             res: Some(ErrorError::DescriptionEmpty),
         },
-        // TODO make code an i32
-        // "negative error" => ErrMapTest {
-        //   err: MentatError {
-        //     status_code: 0,
-        //     code: -1,
-        //     message: "error 10".to_string(),
-        //     description: None,
-        //     retriable: true,
-        //     details: indexmap!(
-        //       "hello".to_string() => "goodbye".into()
-        //     )
-        //   },
-        //   expected_err: Some(ErrorError::CodeIsNeg),
-        // },
+        AsserterEqualityTest {
+            name: "negative error",
+            payload: MentatError {
+                status_code: 0,
+                code: -1,
+                message: "error 10".to_string(),
+                description: None,
+                retriable: true,
+                details: indexmap!(
+                  "hello".to_string() => "goodbye".into()
+                ),
+            },
+            res: Some(ErrorError::CodeIsNeg),
+        },
         AsserterEqualityTest {
             name: "retriable error",
             payload: MentatError {
@@ -115,61 +115,61 @@ fn test_error_map() {
                 sub_network_identifier: None,
             },
             NetworkStatusResponse {
-                current_block_identifier: BlockIdentifier {
+                current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".to_string(),
-                },
+                }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: BlockIdentifier {
+                genesis_block_identifier: Some(BlockIdentifier {
                     index: 0,
                     hash: "block 0".to_string(),
-                },
+                }),
                 oldest_block_identifier: None,
                 sync_status: None,
-                peers: vec![Peer {
+                peers: Some(vec![Some(Peer {
                     peer_id: "peer 1".to_string(),
                     metadata: Default::default(),
-                }],
+                })]),
             },
             NetworkOptionsResponse {
-                version: Version {
+                version: Some(Version {
                     rosetta_version: "1.4.0".to_string(),
                     node_version: "1.0".to_string(),
                     middleware_version: None,
                     metadata: Default::default(),
-                },
-                allow: Allow {
-                    errors: vec![
-                        MentatError {
+                }),
+                allow: Some(Allow {
+                    errors: Some(vec![
+                        Some(MentatError {
                             status_code: 0,
                             code: 10,
                             message: "error 10".to_string(),
                             description: None,
                             retriable: true,
                             details: Default::default(),
-                        },
-                        MentatError {
+                        }),
+                        Some(MentatError {
                             status_code: 0,
                             code: 1,
                             message: "error 1".to_string(),
                             description: None,
                             retriable: false,
                             details: Default::default(),
-                        },
-                    ],
-                    operation_statuses: vec![
-                        OperationStatus {
+                        }),
+                    ]),
+                    operation_statuses: Some(vec![
+                        Some(OperationStatus {
                             status: "SUCCESS".to_string(),
                             successful: true,
-                        },
-                        OperationStatus {
+                        }),
+                        Some(OperationStatus {
                             status: "FAILURE".to_string(),
                             successful: false,
-                        },
-                    ],
-                    operation_types: vec!["PAYMENT".to_string()],
+                        }),
+                    ]),
+                    operation_types: Some(vec!["PAYMENT".to_string()]),
                     ..Default::default()
-                },
+                }),
             },
             // TODO make this optional???
             Default::default(),

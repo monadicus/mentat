@@ -1,11 +1,13 @@
 //! The module defines the `SignatureType` model.
 
+use std::fmt;
+
 use super::*;
 
 /// OperatorSignatureType is the type of a cryptographic signature.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(transparent)]
-pub struct SignatureType(pub String);
+pub struct SignatureType(String);
 
 impl SignatureType {
     /// r (32-bytes) + s (32-bytes)
@@ -29,10 +31,26 @@ impl SignatureType {
             _ => false,
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
-impl Default for SignatureType {
-    fn default() -> Self {
-        Self(Self::ECDSA.to_string())
+impl fmt::Display for SignatureType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for SignatureType {
+    fn from(st: String) -> Self {
+        Self(st)
+    }
+}
+
+impl From<&str> for SignatureType {
+    fn from(st: &str) -> Self {
+        st.to_string().into()
     }
 }

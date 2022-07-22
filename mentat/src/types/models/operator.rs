@@ -1,12 +1,14 @@
 //! The module defines the `Operator` model.
 
+use std::fmt;
+
 use super::*;
 
 /// [`Operator`] is used by query-related endpoints to determine how to apply
 /// conditions.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct Operator(pub String);
+pub struct Operator(String);
 
 impl Operator {
     /// If all conditions are satisfied, it is considered a match.
@@ -19,5 +21,23 @@ impl Operator {
             Self::OR | Self::AND => true,
             _ => false,
         }
+    }
+}
+
+impl fmt::Display for Operator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for Operator {
+    fn from(op: String) -> Self {
+        Self(op)
+    }
+}
+
+impl From<&str> for Operator {
+    fn from(op: &str) -> Self {
+        op.to_string().into()
     }
 }

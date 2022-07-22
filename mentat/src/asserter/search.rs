@@ -1,6 +1,12 @@
 //! Validates that search data is correct.
 
-use super::{block_identifier, AssertResult, ResponseAsserter, SearchTransactionsResponse};
+use super::{
+    block_identifier,
+    errors::SearchError,
+    AssertResult,
+    ResponseAsserter,
+    SearchTransactionsResponse,
+};
 
 impl ResponseAsserter {
     /// SearchTransactionsResponse ensures a
@@ -9,19 +15,18 @@ impl ResponseAsserter {
         &self,
         response: &SearchTransactionsResponse,
     ) -> AssertResult<()> {
-        // if self == nil
-        todo!("impossible case");
-        // if matches!(response.next_offset, Some(r) if r < 0) {
-        //     todo!("impossible case");
-        //     Err(SearchError::NextOffsetInvalid)?;
-        // } else if response.total_count < 0 {
-        //     todo!("impossible case");
-        //     Err(SearchError::TotalCountInvalid)?;
-        // }
+        // TODO if self == nil
+        if matches!(response.next_offset, Some(r) if r < 0) {
+            Err(SearchError::NextOffsetInvalid)?;
+        } else if response.total_count < 0 {
+            Err(SearchError::TotalCountInvalid)?;
+        }
 
-        response.transactions.iter().try_for_each(|t| {
-            block_identifier(Some(&t.block_identifier))?;
-            self.transaction(&t.transaction)
+        response.transactions.iter().flatten().try_for_each(|t| {
+            // TODO: coinbase never checks for nil here
+            let t = t.unwrap();
+            block_identifier(t.block_identifier.as_ref())?;
+            self.transaction(t.transaction.as_ref())
         })
     }
 }

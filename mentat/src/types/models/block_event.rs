@@ -17,6 +17,7 @@ pub struct BlockEvent {
     pub block_identifier: Option<BlockIdentifier>,
     /// `BlockEventType` determines if a `BlockEvent` represents the addition or
     /// removal of a block.
+    #[serde(default)]
     #[serde(rename = "type")]
     pub type_: BlockEventType,
 }

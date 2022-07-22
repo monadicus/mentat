@@ -1,11 +1,13 @@
 //! The module defines the `CurveType` model.
 
+use std::fmt;
+
 use super::*;
 
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct CurveType(pub String);
+pub struct CurveType(String);
 
 impl CurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
@@ -25,8 +27,20 @@ impl CurveType {
     }
 }
 
-impl Default for CurveType {
-    fn default() -> Self {
-        Self(Self::SECP256K1.to_string())
+impl fmt::Display for CurveType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for CurveType {
+    fn from(ct: String) -> Self {
+        Self(ct)
+    }
+}
+
+impl From<&str> for CurveType {
+    fn from(ct: &str) -> Self {
+        ct.to_string().into()
     }
 }

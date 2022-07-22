@@ -23,7 +23,7 @@ pub struct Allow {
     /// is returned during parsing that is not listed here will cause client
     /// validation to error.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<MentatError>>,
+    pub errors: Option<Vec<Option<MentatError>>>,
     /// Any Rosetta implementation that supports querying the balance of an
     /// account at any height in the past should set this to true.
     pub historical_balance_lookup: bool,

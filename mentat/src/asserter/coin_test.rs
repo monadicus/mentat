@@ -22,54 +22,58 @@ fn test_coin() {
     let tests = [
         AsserterTest {
             name: "valid coin",
-            payload: Coin {
+            payload: Some(Coin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
                 amount: Some(valid_amount.clone()),
-            },
+            }),
             err: None,
         },
-        // TODO allow None Coin
-        // "valid coin" => CoinTest {
-        //   coin: None,
-        //   err: Some(CoinError::IsNil.into())
-        // },
+        AsserterTest {
+            name: "valid coin",
+            payload: None,
+            err: Some(CoinError::IsNil.into()),
+        },
         AsserterTest {
             name: "invalid identifier",
-            payload: Coin {
+            payload: Some(Coin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
                 }),
                 amount: Some(valid_amount),
-            },
+            }),
             err: Some(AsserterError::from(
                 "coin identifier cannot be empty: identifier is invalid".to_string(),
             )),
         },
-        // TODO allow None currency
-        // "invalid amount" => CoinTest {
-        //   coin: Coin {
-        //     coin_identifier: CoinIdentifier { identifier: "coin1".to_string() },
-        //     amount: Amount {
-        //       value: "100".to_string(),
-        //       currency: None,
-        //       metadata: Default::default(),
-        //     },
-        //   },
-        //   err: Some(AsserterError::from("amount is invalid".to_string())),
-        // },
-        // TODO allow None amount
-        // "nil amount" => CoinTest {
-        //   coin: Coin {
-        //     coin_identifier: CoinIdentifier { identifier: "coin1".to_string() },
-        //     amount: None,
-        //   },
-        //   err: Some(AsserterError::from("amount is invalid".to_string()))
-        // },
+        AsserterTest {
+            name: "invalid amount",
+            payload: Some(Coin {
+                coin_identifier: Some(CoinIdentifier {
+                    identifier: "coin1".to_string(),
+                }),
+                amount: Some(Amount {
+                    value: "100".to_string(),
+                    currency: None,
+                    metadata: Default::default(),
+                }),
+            }),
+            err: Some(AsserterError::from("amount is invalid".to_string())),
+        },
+        AsserterTest {
+            name: "nil amount",
+            payload: Some(Coin {
+                coin_identifier: Some(CoinIdentifier {
+                    identifier: "coin1".to_string(),
+                }),
+                amount: None,
+            }),
+            err: Some(AsserterError::from("amount is invalid".to_string())),
+        },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, coin);
+    AsserterTest::non_asserter_tests(&tests, |data| coin(data.as_ref()));
 }
 
 #[test]
@@ -87,48 +91,50 @@ fn test_coins() {
     let tests = [
         AsserterTest {
             name: "valid coins",
-            payload: vec![
-                Coin {
+            payload: Some(vec![
+                Some(Coin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
                     amount: Some(valid_amount.clone()),
-                },
-                Coin {
+                }),
+                Some(Coin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin2".to_string(),
                     }),
                     amount: Some(valid_amount.clone()),
-                },
-            ],
+                }),
+            ]),
             err: None,
         },
-        // TODO allow None coins
-        // "nil" => {
-        //   coins: None,
-        //   err: None,
-        // }
+        AsserterTest {
+            name: "nil",
+            payload: None,
+            err: None,
+        },
         AsserterTest {
             name: "duplicate coins",
-            payload: vec![
-                Coin {
+            payload: Some(vec![
+                Some(Coin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
                     amount: Some(valid_amount.clone()),
-                },
-                Coin {
+                }),
+                Some(Coin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
                     amount: Some(valid_amount),
-                },
-            ],
+                }),
+            ]),
             err: Some(CoinError::Duplicate.into()),
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |test| coins(test));
+    AsserterTest::non_asserter_tests(&tests, |test| {
+        coins(test.as_ref().map(|inner| inner.as_slice()))
+    });
 }
 
 #[test]
@@ -140,7 +146,7 @@ fn test_coin_change() {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
-                coin_action: CoinAction::CoinCreated,
+                coin_action: CoinAction::COIN_CREATED.into(),
             }),
             err: None,
         },
@@ -155,18 +161,20 @@ fn test_coin_change() {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
                 }),
-                coin_action: CoinAction::CoinCreated,
+                coin_action: CoinAction::COIN_CREATED.into(),
             }),
             err: Some(CoinError::IdentifierNotSet.into()),
         },
-        // TODO allow arbitrary coin change
-        // "invalid coin action" => CoinChangeTest {
-        //   change: Some(CoinChange {
-        //     coin_identifier: CoinIdentifier { identifier: "coin1".to_string() },
-        //     coin_action: "hello",
-        //   }),
-        //   err: Some(CoinError::ActionInvalid.into())
-        // },
+        AsserterTest {
+            name: "invalid coin action",
+            payload: Some(CoinChange {
+                coin_identifier: Some(CoinIdentifier {
+                    identifier: "coin1".to_string(),
+                }),
+                coin_action: "hello".into(),
+            }),
+            err: Some(CoinError::ActionInvalid.into()),
+        },
     ];
 
     AsserterTest::non_asserter_tests(&tests, |test| coin_change(test.as_ref()));

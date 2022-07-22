@@ -25,5 +25,5 @@ pub struct ConstructionMetadataRequest {
     pub options: Option<Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub public_keys: Option<Vec<PublicKey>>,
+    pub public_keys: Option<Vec<Option<PublicKey>>>,
 }

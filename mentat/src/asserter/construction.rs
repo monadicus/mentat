@@ -1,26 +1,36 @@
 //! Validates that construction data is correct.
 
-use tracing_subscriber::fmt::format;
-
 use super::{
-    account_array, account_identifier, assert_unique_amounts, bytes_array_zero,
-    errors::AsserterError, AssertResult, ConstructionDeriveResponse, ConstructionError,
-    ConstructionMetadataResponse, ConstructionParseResponse, ConstructionPayloadsResponse,
-    ConstructionPreprocessResponse, CurveType, PublicKey, ResponseAsserter, Signature,
-    SignatureType, SigningPayload,
+    account_array,
+    account_identifier,
+    assert_unique_amounts,
+    bytes_array_zero,
+    errors::AsserterError,
+    AssertResult,
+    ConstructionDeriveResponse,
+    ConstructionError,
+    ConstructionMetadataResponse,
+    ConstructionParseResponse,
+    ConstructionPayloadsResponse,
+    ConstructionPreprocessResponse,
+    CurveType,
+    PublicKey,
+    ResponseAsserter,
+    Signature,
+    SignatureType,
+    SigningPayload,
 };
-use crate::types;
 
 /// the request public keys are not valid AccountIdentifiers.
 pub(crate) fn construction_preprocess_response(
-    resp: &ConstructionPreprocessResponse,
+    resp: Option<&ConstructionPreprocessResponse>,
 ) -> AssertResult<()> {
-    // TODO if resp nil
+    let resp = resp.ok_or(ConstructionError::ConstructionPreprocessResponseIsNil)?;
 
     resp.required_public_keys
         .iter()
         .flatten()
-        .try_for_each(|pub_key| account_identifier(Some(pub_key)))?;
+        .try_for_each(|pub_key| account_identifier(pub_key.as_ref()))?;
 
     Ok(())
 }
@@ -28,9 +38,9 @@ pub(crate) fn construction_preprocess_response(
 /// `construction_metadata_response` returns an error if
 /// the metadata is not a JSON object.
 pub(crate) fn construction_metadata_response(
-    resp: &ConstructionMetadataResponse,
+    resp: Option<&ConstructionMetadataResponse>,
 ) -> AssertResult<()> {
-    // TODO if resp nil
+    let resp = resp.ok_or(ConstructionError::ConstructionMetadataResponseIsNil)?;
 
     if resp.metadata.is_empty() {
         Err(ConstructionError::ConstructionMetadataResponseMetadataMissing)?;
@@ -48,8 +58,10 @@ pub(crate) fn construction_metadata_response(
 /// `construction_derive_response` returns an error if
 /// a [`ConstructionDeriveResponse`] does
 /// not have a populated Address.
-pub(crate) fn construction_derive_response(resp: &ConstructionDeriveResponse) -> AssertResult<()> {
-    // TODO if resp nil
+pub(crate) fn construction_derive_response(
+    resp: Option<&ConstructionDeriveResponse>,
+) -> AssertResult<()> {
+    let resp = resp.ok_or(ConstructionError::ConstructionDeriveResponseIsNil)?;
 
     account_identifier(resp.account_identifier.as_ref()).map_err(|err| {
         format!(
@@ -68,24 +80,24 @@ impl ResponseAsserter {
     /// if the signers is empty.
     pub(crate) fn ConstructionParseResponse(
         &self,
-        resp: &ConstructionParseResponse,
+        resp: Option<&ConstructionParseResponse>,
         signed: bool,
     ) -> AssertResult<()> {
         // if self nil
-        // if resp nil
+        let resp = resp.ok_or(ConstructionError::ConstructionParseResponseIsNil)?;
 
-        if resp.operations.is_empty() {
+        if resp.operations.unwrap_or_default().is_empty() {
             Err(ConstructionError::ConstructionParseResponseOperationsEmpty)?;
         }
 
-        self.operations(&resp.operations, true)
+        self.operations(&resp.operations.unwrap(), true)
             .map_err(|err| format!("{err} unable to parse operations"))?;
 
         if signed
             && resp
                 .account_identifier_signers
-                .as_ref()
-                .map_or_else(|| true, |v| v.is_empty())
+                .unwrap_or_default()
+                .is_empty()
         {
             Err(ConstructionError::ConstructionParseResponseIsNil)?;
         }
@@ -93,8 +105,8 @@ impl ResponseAsserter {
         if !signed
             && resp
                 .account_identifier_signers
-                .as_ref()
-                .map_or_else(|| true, |v| v.is_empty())
+                .unwrap_or_default()
+                .is_empty()
         {
             Err(ConstructionError::ConstructionParseResponseSignersNonEmptyOnUnsignedTx)?;
         }
@@ -105,43 +117,44 @@ impl ResponseAsserter {
             .iter()
             .enumerate()
             .try_for_each(|(index, ident)| {
-                account_identifier(Some(ident)).map_err(|err| format!("{err} at index {index}"))
+                account_identifier(ident.as_ref()).map_err(|err| format!("{err} at index {index}"))
             })?;
 
         if resp
             .account_identifier_signers
-            .as_ref()
-            .map_or_else(|| false, |v| !v.is_empty())
+            .unwrap_or_default()
+            .is_empty()
         {
-            account_array("signers", resp.account_identifier_signers.as_ref().unwrap())?;
+            account_array("signers", &resp.account_identifier_signers.unwrap())?;
         }
 
         Ok(())
     }
 }
 
-/// `construction_payload_response` returns an error if
+/// `construction_payloads_response` returns an error if
 /// a [`ConstructionPayloadsResponse`] does
 /// not have an UnsignedTransaction or has no
 /// valid [`SigningPayload`].
-pub(crate) fn construction_payload_response(
-    resp: &ConstructionPayloadsResponse,
+pub(crate) fn construction_payloads_response(
+    resp: Option<&ConstructionPayloadsResponse>,
 ) -> AssertResult<()> {
-    // TODO if resp nil
+    let resp = resp.ok_or(ConstructionError::ConstructionParseResponseIsNil)?;
 
     if resp.unsigned_transaction.is_empty() {
         Err(ConstructionError::ConstructionPayloadsResponseUnsignedTxEmpty)?;
     }
 
-    if resp.payloads.is_empty() {
+    if resp.payloads.unwrap_or_default().is_empty() {
         Err(ConstructionError::ConstructionPayloadsResponsePayloadsEmpty)?;
     }
 
     resp.payloads
         .iter()
+        .flatten()
         .enumerate()
         .try_for_each(|(index, payload)| {
-            signing_payload(payload)
+            signing_payload(payload.as_ref())
                 .map_err(|err| format!("{err}: signing payload {index} is invalid"))
         })?;
 
@@ -151,8 +164,9 @@ pub(crate) fn construction_payload_response(
 /// `public_key` returns an error if
 /// the [PublicKey] is nil, is not
 /// valid hex, or has an undefined CurveType.
-pub(crate) fn public_key(key: &PublicKey) -> AssertResult<()> {
-    // TODO if key nil
+pub(crate) fn public_key(key: Option<&PublicKey>) -> AssertResult<()> {
+    let key = key.ok_or(ConstructionError::PublicKeyIsNil)?;
+
     if key.bytes.is_empty() {
         Err(ConstructionError::PublicKeyBytesEmpty)?;
     }
@@ -169,17 +183,24 @@ pub(crate) fn public_key(key: &PublicKey) -> AssertResult<()> {
 
 /// `curve_type` returns an error if
 /// the curve is not a valid [CurveType].
-pub(crate) fn curve_type(_: &CurveType) -> AssertResult<()> {
-    // todo impossible
-    Ok(())
+pub(crate) fn curve_type(curve: &CurveType) -> AssertResult<()> {
+    if !curve.valid() {
+        Err(format!(
+            "{}: {}",
+            ConstructionError::CurveTypeNotSupported,
+            curve
+        ))?
+    } else {
+        Ok(())
+    }
 }
 
 /// `signing_payload` returns an error
 /// if a [SigningPayload] is nil,
 /// has an empty address, has invalid hex,
 /// or has an invalid [SignatureType] (if populated).
-pub(crate) fn signing_payload(payload: &SigningPayload) -> AssertResult<()> {
-    // TODO if payload ni;
+pub(crate) fn signing_payload(payload: Option<&SigningPayload>) -> AssertResult<()> {
+    let payload = payload.ok_or(ConstructionError::SigningPayloadIsNil)?;
 
     account_identifier(payload.account_identifier.as_ref())
         .map_err(|err| format!("{}: {err}", ConstructionError::SigningPayloadAddrEmpty))?;
@@ -193,11 +214,11 @@ pub(crate) fn signing_payload(payload: &SigningPayload) -> AssertResult<()> {
     }
 
     // SignatureType can be optionally populated
-    if payload.signature_type.is_none() {
+    if payload.signature_type.is_empty() {
         return Ok(());
     }
 
-    signature_type(payload.signature_type.as_ref().unwrap())
+    signature_type(&payload.signature_type)
         .map_err(|err| format!("{err} signature payload signature type is not valid"))?;
 
     Ok(())
@@ -205,16 +226,18 @@ pub(crate) fn signing_payload(payload: &SigningPayload) -> AssertResult<()> {
 
 /// `signatures` returns an error if any
 /// [Signature] is invalid.
-pub(crate) fn signatures(signatures: &[Signature]) -> AssertResult<()> {
+pub(crate) fn signatures(signatures: &[Option<Signature>]) -> AssertResult<()> {
     if signatures.is_empty() {
         Err(ConstructionError::SignaturesEmpty)?;
     }
 
     for (index, sig) in signatures.iter().enumerate() {
-        signing_payload(&sig.signing_payload)
+        // TODO coinbase doesn't check for nil here
+        let sig = sig.unwrap();
+        signing_payload(sig.signing_payload.as_ref())
             .map_err(|err| format!("{err}: signature {index} has invalid signing payload"))?;
 
-        public_key(&sig.public_key)
+        public_key(sig.public_key.as_ref())
             .map_err(|err| format!("{err}: signature {index} has invalid public key"))?;
 
         signature_type(&sig.signature_type)
@@ -222,24 +245,15 @@ pub(crate) fn signatures(signatures: &[Signature]) -> AssertResult<()> {
 
         // Return an error if the requested signature type does not match the
         // signature type in the returned signature.
-        // TODO they check if sigtype is an empty string but ours is an enum
-        if sig
-            .signing_payload
-            .signature_type
-            .as_ref()
-            .map_or_else(|| false, |s| s != &sig.signature_type)
-        {
+        let sig_type = sig.signing_payload.unwrap().signature_type;
+        if !sig_type.is_empty() && sig_type != sig.signature_type {
             Err(ConstructionError::SignaturesReturnedSigMismatch)?;
-        }
-
-        if sig.bytes.is_empty() {
+        } else if sig.bytes.is_empty() {
             Err(format!(
                 "{}: signature {index} has 0 bytes",
                 ConstructionError::SignatureBytesEmpty
             ))?;
-        }
-
-        if bytes_array_zero(&sig.bytes) {
+        } else if bytes_array_zero(&sig.bytes) {
             Err(ConstructionError::SigningPayloadBytesZero)?;
         }
     }
@@ -254,7 +268,7 @@ pub(crate) fn signature_type(st: &SignatureType) -> AssertResult<()> {
         Err(AsserterError::from(format!(
             "{}: {}",
             ConstructionError::SignatureTypeNotSupported,
-            st.0
+            st
         )))
     } else {
         Ok(())

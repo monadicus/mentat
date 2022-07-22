@@ -5,9 +5,9 @@ use super::{error, AssertResult, ErrorError, MentatError, ResponseAsserter};
 impl ResponseAsserter {
     /// `error` ensures a [`MentatError`] matches some error
     /// provided in `/network/options`.
-    pub(crate) fn error(&self, err: &MentatError) -> AssertResult<()> {
-        // TODO if self nil
+    pub(crate) fn error(&self, err: Option<&MentatError>) -> AssertResult<()> {
         error(err)?;
+        let err = err.unwrap();
 
         let value = self
             .error_type_map

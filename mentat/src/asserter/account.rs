@@ -3,20 +3,29 @@
 use std::collections::HashSet;
 
 use super::{
-    amount, block_identifier, coins, hash, AccountBalanceError, AccountBalanceResponse,
-    AccountCoinsResponse, Amount, AssertResult, Currency, PartialBlockIdentifier,
+    amount,
+    block_identifier,
+    coins,
+    hash,
+    AccountBalanceError,
+    AccountBalanceResponse,
+    AccountCoinsResponse,
+    Amount,
+    AssertResult,
+    Currency,
+    PartialBlockIdentifier,
 };
 
 /// `contains_duplicate_currency` retruns a boolean indicating
 /// if an array of [`Currency`] contains any duplicate currencies.
-pub(crate) fn contains_duplicate_currency(currencies: &[Currency]) -> Option<Currency> {
+pub(crate) fn contains_duplicate_currency(currencies: &[Option<Currency>]) -> Option<Currency> {
     let mut seen = HashSet::new();
 
     for currency in currencies.iter() {
-        let key = hash(currency);
+        let key = hash(currency.as_ref());
 
         if seen.contains(&key) {
-            return Some(currency.clone());
+            return currency.clone();
         }
 
         seen.insert(key);
@@ -42,7 +51,7 @@ pub(crate) fn assert_unique_amounts(amounts: &[Option<Amount>]) -> AssertResult<
     let mut seen = HashSet::new();
 
     for amt in amounts.iter().filter_map(|a| a.as_ref()) {
-        let key = hash(&amt.currency.unwrap());
+        let key = hash(amt.currency.as_ref());
 
         if seen.contains(&key) {
             Err(format!("currency {:?} used multiple times", amt.currency))?;
@@ -99,6 +108,6 @@ pub(crate) fn account_balance_response(
 pub(crate) fn account_coins(response: &AccountCoinsResponse) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
-    coins(response.coins.as_ref()).map_err(|e| format!("{e}: coins are invalid"))?;
+    coins(response.coins.map(|c| c.as_slice())).map_err(|e| format!("{e}: coins are invalid"))?;
     Ok(())
 }

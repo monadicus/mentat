@@ -4,16 +4,17 @@ use super::*;
 
 /// [`supported_networks`] returns an error if there is an invalid
 /// [`NetworkIdentifier`] or there is a duplicate.
-pub(crate) fn supported_networks(networks: &[NetworkIdentifier]) -> AssertResult<()> {
+pub(crate) fn supported_networks(networks: &[Option<NetworkIdentifier>]) -> AssertResult<()> {
     if networks.is_empty() {
         Err(ServerError::NoSupportedNetworks)?
     }
 
     let mut parsed = Vec::new();
     for network in networks {
-        network_identifier(network)?;
+        network_identifier(network.as_ref())?;
+        let network = network.unwrap();
 
-        if contains_network_identifier(networks, network) {
+        if contains_network_identifier(&parsed, &network) {
             Err(format!(
                 "{}: {network:?}",
                 ServerError::SupportedNetworksDuplicate
@@ -48,22 +49,24 @@ impl RequestAsserter {
     /// is not valid or not supported.
     pub(crate) fn valid_supported_network(
         &self,
-        request_network: &NetworkIdentifier,
+        request_network: Option<&NetworkIdentifier>,
     ) -> AssertResult<()> {
         network_identifier(request_network)?;
-        self.supported_network(request_network)
+        self.supported_network(&request_network.unwrap())
     }
 
     /// [`account_balance_request`] ensures that a [`AccountBalanceRequest`]
     /// is well-formatted.
     pub(crate) fn account_balance_request(
         &self,
-        request: &AccountBalanceRequest,
+        request: Option<&AccountBalanceRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
-        account_identifier(Some(&request.account_identifier))?;
+
+        let request = request.ok_or(ServerError::AccountBalanceRequestIsNil)?;
+
+        self.valid_supported_network(request.network_identifier.as_ref())?;
+        account_identifier(request.account_identifier.as_ref())?;
         if let Some(c) =
             contains_duplicate_currency(request.currencies.as_ref().unwrap_or(&Vec::new()))
         {
@@ -79,52 +82,54 @@ impl RequestAsserter {
 
     /// [`block_request`] ensures that a [`BlockRequest`]
     /// is well-formatted.
-    pub(crate) fn block_request(&self, request: &BlockRequest) -> AssertResult<()> {
+    pub(crate) fn block_request(&self, request: Option<&BlockRequest>) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
-        partial_block_identifier(&request.block_identifier)
+        let request = request.ok_or(ServerError::BlockRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
+        partial_block_identifier(request.block_identifier.as_ref())
     }
 
     /// [`block_transaction_request`] ensures that a [`BlockTransactionRequest`]
     /// is well-formatted.
     pub(crate) fn block_transaction_request(
         &self,
-        request: &BlockTransactionRequest,
+        request: Option<&BlockTransactionRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
         // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
-        block_identifier(&request.block_identifier)?;
-        transaction_identifier(&request.transaction_identifier)
+        let request = request.ok_or(ServerError::BlockTransactionRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
+        block_identifier(request.block_identifier.as_ref())?;
+        transaction_identifier(request.transaction_identifier.as_ref())
     }
 
     /// [`construction_metadata_request`] ensures that a
     /// [`ConstructionMetadataRequest`] is well-formatted.
     pub(crate) fn construction_metadata_request(
         &self,
-        request: &ConstructionMetadataRequest,
+        request: Option<&ConstructionMetadataRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::ConstructionMetadataRequestIsNil)?;
+
+        self.valid_supported_network(request.network_identifier.as_ref())?;
 
         request
             .public_keys
             .iter()
             .flatten()
-            .try_for_each(public_key)
+            .try_for_each(|k| public_key(k.as_ref()))
     }
 
     /// [`construction_submit_request`] ensures that a
     /// [`ConstructionSubmitRequest`] is well-formatted.
     pub(crate) fn construction_submit_request(
         &self,
-        request: &ConstructionSubmitRequest,
+        request: Option<&ConstructionSubmitRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::ConstructionSubmitRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.signed_transaction.is_empty() {
             Err(ServerError::ConstructionHashRequestSignedTxEmpty)?
         } else {
@@ -136,51 +141,51 @@ impl RequestAsserter {
     /// [`MempoolTransactionRequest`] is well-formatted.
     pub(crate) fn mempool_transaction_request(
         &self,
-        request: &MempoolTransactionRequest,
+        request: Option<&MempoolTransactionRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
-        transaction_identifier(&request.transaction_identifier)
+        let request = request.ok_or(ServerError::MempoolTransactionRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
+        transaction_identifier(request.transaction_identifier.as_ref())
     }
 
     /// [`metadata_request`] ensures that a [`MetadataRequest`]
     /// is well-formatted.
-    pub(crate) fn metadata_request(&self, request: &MetadataRequest) -> AssertResult<()> {
+    pub(crate) fn metadata_request(&self, request: Option<&MetadataRequest>) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
+        let request = request.ok_or(ServerError::MetadataRequestIsNil)?;
         Ok(())
     }
 
     /// [`network_request`] ensures that a [`NetworkRequest`]
     /// is well-formatted.
-    pub(crate) fn network_request(&self, request: &NetworkRequest) -> AssertResult<()> {
+    pub(crate) fn network_request(&self, request: Option<&NetworkRequest>) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)
+        let request = request.ok_or(ServerError::NetworkRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())
     }
 
     /// [`construction_derive_request`] ensures that a
     /// [`ConstructionDeriveRequest`] is well-formatted.
     pub(crate) fn construction_derive_request(
         &self,
-        request: &ConstructionDeriveRequest,
+        request: Option<&ConstructionDeriveRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
-        public_key(&request.public_key)
+        let request = request.ok_or(ServerError::ConstructionDeriveRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
+        public_key(request.public_key.as_ref())
     }
 
     /// [`construction_preprocess_request`] ensures that a
     /// [`ConstructionPreprocessRequest`] is well-formatted.
     pub(crate) fn construction_preprocess_request(
         &self,
-        request: &ConstructionPreprocessRequest,
+        request: Option<&ConstructionPreprocessRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::ConstructionPreprocessRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
         // self.operations(&request.operations, true)?;
         assert_unique_amounts(request.max_fee.as_ref().unwrap_or(&Vec::new()))
             .map_err(|e| format!("{e}: duplicate max fee currency found"))?;
@@ -199,32 +204,32 @@ impl RequestAsserter {
     /// [`ConstructionPayloadsRequest`] is well-formatted.
     pub(crate) fn construction_payload_request(
         &self,
-        request: &ConstructionPayloadsRequest,
+        request: Option<&ConstructionPayloadsRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // todo if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::ConstructionPayloadsRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
         // self.operations(&request.operations, true)?;
         request
             .public_keys
             .iter()
             .flatten()
-            .try_for_each(public_key)
+            .try_for_each(|k| public_key(k.as_ref()))
     }
 
     /// [`construction_combine_request`] ensures that a
     /// [`ConstructionCombineRequest`] is well-formatted.
     pub(crate) fn construction_combine_request(
         &self,
-        request: &ConstructionCombineRequest,
+        request: Option<&ConstructionCombineRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::ConstructionCombineRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.unsigned_transaction.is_empty() {
             Err(ServerError::ConstructionCombineRequestUnsignedTxEmpty)?
         } else {
-            signatures(&request.signatures)
+            signatures(&request.signatures.unwrap_or_default())
         }
     }
 
@@ -232,11 +237,11 @@ impl RequestAsserter {
     /// is well-formatted.
     pub(crate) fn construction_hash_request(
         &self,
-        request: &ConstructionHashRequest,
+        request: Option<&ConstructionHashRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::ConstructionHashRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.signed_transaction.is_empty() {
             Err(ServerError::ConstructionHashRequestSignedTxEmpty)?
         } else {
@@ -248,11 +253,11 @@ impl RequestAsserter {
     /// [`ConstructionParseRequest`] is well-formatted.
     pub(crate) fn construction_parse_request(
         &self,
-        request: &ConstructionParseRequest,
+        request: Option<&ConstructionParseRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::ConstructionParseRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.transaction.is_empty() {
             Err(ServerError::ConstructionParseRequestEmpty)?
         } else {
@@ -276,24 +281,26 @@ impl RequestAsserter {
 
     /// [`call_request`] ensures that a [`CallRequest`]
     /// is well-formatted.
-    pub(crate) fn call_request(&self, request: &CallRequest) -> AssertResult<()> {
+    pub(crate) fn call_request(&self, request: Option<&CallRequest>) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
-        self.valid_call_method(&request.method)
+        let request = request.ok_or(ServerError::CallRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
+        self.valid_call_method(request.method.as_ref())
     }
 
     /// [`account_coins_request`] ensures that a [`AccountCoinsRequest`]
     /// is well-formatted.
-    pub(crate) fn account_coins_request(&self, request: &AccountCoinsRequest) -> AssertResult<()> {
+    pub(crate) fn account_coins_request(
+        &self,
+        request: Option<&AccountCoinsRequest>,
+    ) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
-        account_identifier(Some(&request.account_identifier))?;
+        let request = request.ok_or(ServerError::AccountCoinsRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
+        account_identifier(request.account_identifier.as_ref())?;
         if request.include_mempool && !self.mempool_coins {
             Err(ServerError::MempoolCoinsNotSupported)?
-        } else if let Some(c) =
-            contains_duplicate_currency(request.currencies.as_ref().unwrap_or(&Vec::new()))
+        } else if let Some(c) = contains_duplicate_currency(&request.currencies.unwrap_or_default())
         {
             Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
         } else {
@@ -303,10 +310,13 @@ impl RequestAsserter {
 
     /// [`events_block_request`] ensures that a [`EventsBlocksRequest`]
     /// is well-formatted.
-    pub(crate) fn events_block_request(&self, request: &EventsBlocksRequest) -> AssertResult<()> {
+    pub(crate) fn events_block_request(
+        &self,
+        request: Option<&EventsBlocksRequest>,
+    ) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
-        self.valid_supported_network(&request.network_identifier)?;
+        let request = request.ok_or(ServerError::EventsBlocksRequestIsNil)?;
+        self.valid_supported_network(request.network_identifier.as_ref())?;
         if matches!(request.offset, Some(i) if i < 0) {
             Err(ServerError::OffsetIsNegative)?
         } else if matches!(request.limit, Some(i) if i < 0) {
@@ -320,48 +330,48 @@ impl RequestAsserter {
     /// [`SearchTransactionsRequest`] is well-formatted.
     pub(crate) fn search_transactions_request(
         &self,
-        request: &SearchTransactionsRequest,
+        request: Option<&SearchTransactionsRequest>,
     ) -> AssertResult<()> {
         // TODO if self == nil
-        // TODO if request == nil
+        let request = request.ok_or(ServerError::SearchTransactionsRequestIsNil)?;
 
-        self.valid_supported_network(&request.network_identifier)?;
-        todo!("impossible cases");
-        // if let Some(op) = request.operator {
-        //     match op {
-        //         crate::models::Operator::Or => Ok(()),
-        //         crate::models::Operator::And => Ok(()),
-        //     }
-        // }
-        // if matches!(request.max_block, Some(i) if i < 0) {
-        //     Err(ServerError::MaxBlockInvalid)?
-        // } else if matches!(request.offset, Some(i) if i < 0) {
-        //     Err(ServerError::OffsetIsNegative)?
-        // } else if matches!(request.limit, Some(i) if i < 0) {
-        //     Err(ServerError::LimitIsNegative)?
-        // }
+        self.valid_supported_network(request.network_identifier.as_ref())?;
 
-        if let Some(id) = &request.transaction_identifier {
-            transaction_identifier(id)?;
+        if !request.operator.valid() {
+            Err(ServerError::OperatorInvalid)?;
         }
 
-        if let Some(id) = &request.account_identifier {
-            account_identifier(Some(id))?;
+        if matches!(request.max_block, Some(i) if i < 0) {
+            Err(ServerError::MaxBlockInvalid)?
+        } else if matches!(request.offset, Some(i) if i < 0) {
+            Err(ServerError::OffsetIsNegative)?
+        } else if matches!(request.limit, Some(i) if i < 0) {
+            Err(ServerError::LimitIsNegative)?
         }
 
-        if let Some(id) = &request.coin_identifier {
-            coin_identifier(id)?;
+        if request.transaction_identifier.is_some() {
+            transaction_identifier(request.transaction_identifier.as_ref())?;
         }
 
-        if let Some(c) = &request.currency {
-            currency(c)?;
+        if request.account_identifier.is_some() {
+            account_identifier(request.account_identifier.as_ref())?;
+        }
+
+        if request.coin_identifier.is_some() {
+            coin_identifier(request.coin_identifier.as_ref())?;
+        }
+
+        if request.currency.is_some() {
+            currency(request.currency.as_ref())?;
         }
 
         if let Some(s) = &request.status {
+            todo!();
             // self.operation_status(s, false)?;
         }
 
         if let Some(t) = &request.type_ {
+            todo!();
             // self.operation_type(t, false)?;
         }
 
