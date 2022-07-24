@@ -12,7 +12,7 @@ fn test_events_block_response() {
     let tests = [
         AsserterTest {
             name: "no events",
-            payload: Default::default(),
+            payload: Some(Default::default()),
             err: None,
         },
         AsserterTest {

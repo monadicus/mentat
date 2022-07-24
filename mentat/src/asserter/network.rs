@@ -169,10 +169,10 @@ pub(crate) fn error(err: Option<&MentatError>) -> AssertResult<()> {
     let err = err.ok_or(ErrorError::IsNil)?;
 
     if err.code < 0 {
-        Err(ErrorError::IsNil)?
+        Err(ErrorError::CodeIsNeg)?
     } else if err.message.is_empty() {
         Err(ErrorError::MessageMissing)?
-    } else if err.description.is_none() || err.description.as_ref().unwrap().is_empty() {
+    } else if err.description.is_some() && err.description.as_ref().unwrap().is_empty() {
         Err(ErrorError::DescriptionEmpty)?
     } else {
         Ok(())

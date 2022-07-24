@@ -120,7 +120,6 @@ fn test_amount() {
             payload: None,
             err: Some(BlockError::AmountValueMissing.into()),
         },
-        // Allow None currency
         AsserterTest {
             name: "nil currency",
             payload: Some(Amount {
@@ -194,7 +193,7 @@ fn test_amount() {
         AsserterTest {
             name: "invalid decimals",
             payload: Some(Amount {
-                value: "1.0".into(),
+                value: "111".into(),
                 currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: -1,

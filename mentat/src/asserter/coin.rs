@@ -17,8 +17,8 @@ use super::{
 pub(crate) fn coin(coin: Option<&Coin>) -> AssertResult<()> {
     let coin = coin.ok_or(CoinError::IsNil)?;
     coin_identifier(coin.coin_identifier.as_ref())
-        .map_err(|e| format!("{e}: identifier is invalid"))?;
-    amount(coin.amount.as_ref()).map_err(|e| format!("{e}: coin amount invalid"))?;
+        .map_err(|e| format!("{e}: coin identifier is invalid"))?;
+    amount(coin.amount.as_ref()).map_err(|e| format!("{e}: coin amount is invalid"))?;
     Ok(())
 }
 

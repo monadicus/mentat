@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use axum::Server;
 use indexmap::indexmap;
 
 use super::test_utils::{AsserterTest, CustomAsserterTest};
@@ -9,6 +10,7 @@ use crate::{
         errors::{AssertResult, BlockError, ConstructionError, NetworkError, ServerError},
         server::supported_networks,
     },
+    conf::Network,
     types::{
         AccountBalanceRequest,
         AccountCoinsRequest,
@@ -310,7 +312,8 @@ fn test_new_with_options() {
     let tests = [
         AsserterTest {
             name: "basic",
-            ..Default::default()
+            payload: Some(Default::default()),
+            err: None,
         },
         AsserterTest {
             name: "no call methods",
@@ -375,8 +378,8 @@ fn test_supported_networks() {
         },
         AsserterTest {
             name: "no valid networks",
+            payload: Some(Default::default()),
             err: Some(ServerError::NoSupportedNetworks.into()),
-            ..Default::default()
         },
         AsserterTest {
             name: "invalid networks",
@@ -385,7 +388,7 @@ fn test_supported_networks() {
                 network: "".into(),
                 sub_network_identifier: None,
             })]),
-            ..Default::default()
+            err: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
         },
         AsserterTest {
             name: "duplicate networks",
@@ -401,6 +404,7 @@ fn test_supported_networks() {
         },
     ];
 
+    // TODO: remove Some
     AsserterTest::non_asserter_tests(&tests, |test| supported_networks(test.unwrap()));
 }
 

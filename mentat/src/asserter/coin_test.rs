@@ -44,7 +44,7 @@ fn test_coin() {
                 amount: Some(valid_amount),
             }),
             err: Some(AsserterError::from(
-                "coin identifier cannot be empty: identifier is invalid".to_string(),
+                "coin identifier cannot be empty: coin identifier is invalid".to_string(),
             )),
         },
         AsserterTest {
