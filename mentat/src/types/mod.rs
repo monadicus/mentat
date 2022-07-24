@@ -25,3 +25,10 @@ pub trait Sortable {
 
 /// the current rosetta api version
 const ROSETTA_API_VERSION: &str = "1.4.12";
+
+#[cfg(test)]
+#[path = ""]
+mod tests {
+    mod serialize_test;
+    mod utils_test;
+}

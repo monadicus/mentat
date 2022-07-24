@@ -6,6 +6,11 @@ use crate::asserter::{
     errors::{AssertResult, AsserterError},
 };
 
+// TODO should move this to a common area
+// As it seems the Types module tests are written
+// in a similar fashion.
+// Likely other modules would follow the same schema.
+
 #[derive(Default)]
 pub(crate) struct AsserterTest<P: Default> {
     pub name: &'static str,
