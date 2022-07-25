@@ -11,12 +11,14 @@ pub struct PublicKey {
     /// Hex-encoded public key bytes in the format specified by the
     /// [`CurveType`].
     #[serde(
+        rename = "hex_bytes",
         skip_serializing_if = "Vec::is_empty",
-        serialize_with = "hex::serialize",
+        serialize_with = "bytes_to_hex_str",
         deserialize_with = "null_default_bytes_to_hex"
     )]
     pub bytes: Vec<u8>,
     /// [`CurveType`] is the type of cryptographic curve associated with a
     /// PublicKey.
+    #[serde(default = "CurveType::default")]
     pub curve_type: CurveType,
 }

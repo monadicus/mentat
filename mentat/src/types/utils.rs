@@ -2,9 +2,8 @@
 
 use std::{error::Error, fmt::Debug, str::FromStr};
 
-use hex::FromHex;
 use num_bigint_dig::*;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 use super::{
@@ -181,14 +180,73 @@ where
     Ok(opt.unwrap_or_default())
 }
 
-/// test
+/// For hex look ups when encoding bytes to hex
+const HEXTABLE: &[char] = &[
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
+];
+
+/// Encodes a slice of bytes to a hex string.
+fn encode_to_hex_string(bytes: &[u8]) -> String {
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        hex.push(HEXTABLE[(byte >> 4) as usize]);
+        hex.push(HEXTABLE[(byte & 0x0f) as usize]);
+    }
+
+    hex
+}
+
+/// Converts from a hex byte to a non hex byte.
+fn from_hex_char(byte: u8) -> (u8, bool) {
+    if (b'0'..=b'9').contains(&byte) {
+        (byte - b'0', true)
+    } else if (b'a'..=b'f').contains(&byte) {
+        (byte - b'a' + 10, true)
+    } else if (b'A'..=b'F').contains(&byte) {
+        (byte - b'A' + 10, true)
+    } else {
+        (0, false)
+    }
+}
+
+/// Encodes a slice of bytes to a hex string.
+pub(crate) fn decode_from_hex_string(hex: String) -> Result<Vec<u8>, u8> {
+    let bytes = hex.as_bytes();
+    let mut converted_bytes = Vec::with_capacity(bytes.len() / 2);
+
+    for j in (1..bytes.len()).step_by(2) {
+        let (a, success) = from_hex_char(bytes[j - 1]);
+        if !success {
+            return Err(bytes[j - 1]);
+        }
+
+        let (b, success) = from_hex_char(bytes[j]);
+        if !success {
+            return Err(bytes[j]);
+        }
+
+        converted_bytes.push((a << 4) | b);
+    }
+    Ok(converted_bytes)
+}
+
+/// For serializing a slice of bytes to a hex string.
+pub(crate) fn bytes_to_hex_str<S>(bytes: &[u8], s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let hex = encode_to_hex_string(bytes);
+    s.serialize_str(&hex)
+}
+
+/// custom deserializer that replaces `null` with an empty vec of bytes
 pub(crate) fn null_default_bytes_to_hex<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let opt: Option<String> = Option::deserialize(deserializer)?;
     if let Some(hex_str) = opt {
-        <Vec<u8>>::from_hex(hex_str).map_err(serde::de::Error::custom)
+        decode_from_hex_string(hex_str).map_err(serde::de::Error::custom)
     } else {
         Ok(Vec::new())
     }

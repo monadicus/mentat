@@ -25,8 +25,9 @@ pub struct Signature {
     pub signature_type: SignatureType,
     /// The hex bytes for the `Signature`.
     #[serde(
+        rename = "hex_bytes",
         skip_serializing_if = "Vec::is_empty",
-        serialize_with = "hex::serialize",
+        serialize_with = "bytes_to_hex_str",
         deserialize_with = "null_default_bytes_to_hex"
     )]
     pub bytes: Vec<u8>,
