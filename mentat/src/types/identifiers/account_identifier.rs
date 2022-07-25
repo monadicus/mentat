@@ -8,7 +8,7 @@ use crate::types::Sortable;
 /// The [`AccountIdentifier`] uniquely identifies an account within a network.
 /// All fields in the `account_identifier` are utilized to determine this
 /// uniqueness (including the metadata field, if populated).
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct AccountIdentifier {
     /// The address may be a cryptographic public key (or some encoding of it)

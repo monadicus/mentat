@@ -186,7 +186,7 @@ const HEXTABLE: &[char] = &[
 ];
 
 /// Encodes a slice of bytes to a hex string.
-fn encode_to_hex_string(bytes: &[u8]) -> String {
+pub(crate) fn encode_to_hex_string(bytes: &[u8]) -> String {
     let mut hex = String::with_capacity(bytes.len() * 2);
     for byte in bytes {
         hex.push(HEXTABLE[(byte >> 4) as usize]);
