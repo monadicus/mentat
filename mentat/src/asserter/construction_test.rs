@@ -70,31 +70,33 @@ fn test_construction_metadata_response() {
     let tests = &[
         AsserterTest {
             name: "valid response",
-            payload: Some(Default::default()),
+            payload: Some(ConstructionMetadataResponse {
+                metadata: Some(Default::default()),
+                ..Default::default()
+            }),
             err: None,
         },
         AsserterTest {
             name: "with suggested fee",
             payload: Some(ConstructionMetadataResponse {
+                metadata: Some(Default::default()),
                 suggested_fee: vec![Some(valid_amount())],
-                ..Default::default()
             }),
             err: None,
         },
         AsserterTest {
             name: "with duplicate suggested fee",
             payload: Some(ConstructionMetadataResponse {
+                metadata: Some(Default::default()),
                 suggested_fee: vec![Some(valid_amount()), Some(valid_amount())],
-                ..Default::default()
             }),
-            err: Some(format!("currency {:?} used multiple times", valid_amount()).into()),
+            err: Some(format!("currency {:?} used multiple times", valid_amount().currency).into()),
         },
         AsserterTest {
             name: "nil response",
             payload: None,
             err: Some(ConstructionError::ConstructionMetadataResponseIsNil.into()),
         },
-        // TODO not sure what they want here. can metadata be nil??
         AsserterTest {
             name: "invalid metadata",
             payload: Some(Default::default()),
@@ -144,7 +146,7 @@ fn test_construction_combine_response() {
         AsserterTest {
             name: "nil response",
             payload: None,
-            err: Some(ConstructionError::ConstructionParseResponseIsNil.into()),
+            err: Some(ConstructionError::ConstructionCombineResponseIsNil.into()),
         },
         AsserterTest {
             name: "empty signed transaction",
@@ -470,7 +472,7 @@ fn test_construction_parse_response() {
         },
     ];
 
-    todo!("need to fix asserter");
+    todo!();
 
     // AsserterTest::default_request_asserter_tests(tests, |asserter, test| {
     //     asserter.construction_parse_response(test.payload, test.signed)

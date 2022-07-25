@@ -15,7 +15,8 @@ use super::*;
 #[serde(default)]
 pub struct ConstructionMetadataResponse {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub metadata: IndexMap<String, Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<IndexMap<String, Value>>,
     /// The optional suggested fees for the response.
     #[serde(
         skip_serializing_if = "Vec::is_empty",

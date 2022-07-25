@@ -32,7 +32,7 @@ pub(crate) fn construction_metadata_response(
 ) -> AssertResult<()> {
     let resp = resp.ok_or(ConstructionError::ConstructionMetadataResponseIsNil)?;
 
-    if resp.metadata.is_empty() {
+    if resp.metadata.is_none() {
         Err(ConstructionError::ConstructionMetadataResponseMetadataMissing)?;
     }
 
@@ -134,7 +134,7 @@ impl ResponseAsserter {
 pub(crate) fn construction_payloads_response(
     resp: Option<&ConstructionPayloadsResponse>,
 ) -> AssertResult<()> {
-    let resp = resp.ok_or(ConstructionError::ConstructionParseResponseIsNil)?;
+    let resp = resp.ok_or(ConstructionError::ConstructionPayloadsResponseIsNil)?;
 
     if resp.unsigned_transaction.is_empty() {
         Err(ConstructionError::ConstructionPayloadsResponseUnsignedTxEmpty)?;
@@ -248,7 +248,7 @@ pub(crate) fn signatures(signatures: &[Option<&Signature>]) -> AssertResult<()> 
                 ConstructionError::SignatureBytesEmpty
             ))?;
         } else if bytes_array_zero(&sig.bytes) {
-            Err(ConstructionError::SigningPayloadBytesZero)?;
+            Err(ConstructionError::SignatureBytesZero)?;
         }
     }
 
