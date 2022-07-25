@@ -1,24 +1,15 @@
 //! Validates that construction data is correct.
 
+use crate::types::{ConstructionCombineResponse, TransactionIdentifierResponse};
+
 use super::{
-    account_array,
-    account_identifier,
-    assert_unique_amounts,
+    account_array, account_identifier, assert_unique_amounts,
+    block::transaction_identifier,
     bytes_array_zero,
-    errors::AsserterError,
-    AssertResult,
-    ConstructionDeriveResponse,
-    ConstructionError,
-    ConstructionMetadataResponse,
-    ConstructionParseResponse,
-    ConstructionPayloadsResponse,
-    ConstructionPreprocessResponse,
-    CurveType,
-    PublicKey,
-    ResponseAsserter,
-    Signature,
-    SignatureType,
-    SigningPayload,
+    errors::{AsserterError, BlockError},
+    AssertResult, ConstructionDeriveResponse, ConstructionError, ConstructionMetadataResponse,
+    ConstructionParseResponse, ConstructionPayloadsResponse, ConstructionPreprocessResponse,
+    CurveType, PublicKey, ResponseAsserter, Signature, SignatureType, SigningPayload,
 };
 
 /// the request public keys are not valid AccountIdentifiers.
@@ -49,6 +40,30 @@ pub(crate) fn construction_metadata_response(
         .map_err(|err| format!("{err}: duplicate suggested fee currency found"))?;
 
     Ok(())
+}
+
+/// `TransactionIdentifierResponse` returns an error if
+/// the [`TransactionIdentifier`] in the response is not
+/// valid.
+pub(crate) fn transaction_identifier_response(
+    response: Option<&TransactionIdentifierResponse>,
+) -> AssertResult<()> {
+    let response = response.ok_or(ConstructionError::TxIdentifierResponseIsNil)?;
+    transaction_identifier(response.transaction_identifier.as_ref())
+}
+
+/// `ConstructionCombineResponse` returns an error if
+/// a [`ConstructionCombineResponse`] does
+/// not have a populated [`SignedTransaction`].
+pub(crate) fn construction_combine_response(
+    response: Option<&ConstructionCombineResponse>,
+) -> AssertResult<()> {
+    let response = response.ok_or(ConstructionError::ConstructionCombineResponseIsNil)?;
+    if response.signed_transaction.is_empty() {
+        Err(ConstructionError::SignedTxEmpty)?
+    } else {
+        Ok(())
+    }
 }
 
 /// `construction_derive_response` returns an error if
