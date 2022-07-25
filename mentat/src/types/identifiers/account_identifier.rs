@@ -15,7 +15,7 @@ pub struct AccountIdentifier {
     /// or a provided username.
     pub address: String,
     /// An account may have state specific to a contract address (ERC-20 token)
-    /// and/or a stake (delegated balance). The S`ubAccountIdentifier` should
+    /// and/or a stake (delegated balance). The [`SubAccountIdentifier`] should
     /// specify which state (if applicable) an account instantiation refers to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sub_account: Option<SubAccountIdentifier>,
