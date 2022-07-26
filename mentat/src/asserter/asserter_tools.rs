@@ -60,7 +60,7 @@ pub(crate) struct Validations {
 impl Validations {
     /// Creates a new `Validations` struct given a config file.
     pub(crate) fn get_validation_config(
-        validation_file_path: Option<PathBuf>,
+        validation_file_path: Option<&PathBuf>,
     ) -> Result<Self, String> {
         if let Some(path) = validation_file_path {
             // TODO handle these unwraps
@@ -115,7 +115,7 @@ impl Asserter {
         supp_networks: Vec<NetworkIdentifier>,
         call_methods: Vec<String>,
         mempool_coins: bool,
-        validation_file_path: Option<PathBuf>,
+        validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
         operation_types(&supported_operation_types)?;
         supported_networks(&supp_networks.iter().cloned().map(Some).collect::<Vec<_>>())?;
@@ -211,7 +211,7 @@ impl Asserter {
         network: Option<NetworkIdentifier>,
         status: Option<NetworkStatusResponse>,
         options: Option<NetworkOptionsResponse>,
-        validation_file_path: Option<PathBuf>,
+        validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
         network_identifier(network.as_ref())?;
         network_status_response(status.as_ref())?;

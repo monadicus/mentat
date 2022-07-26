@@ -1,6 +1,6 @@
 use indexmap::indexmap;
 
-use super::test_utils::AsserterEqualityTest;
+use super::test_utils::CustomAsserterTest;
 use crate::{
     asserter::{asserter_tools::Asserter, block::MIN_UNIX_EPOCH, errors::*},
     types::{
@@ -19,9 +19,9 @@ use crate::{
 #[test]
 fn test_error_map() {
     let tests = [
-        AsserterEqualityTest {
+        CustomAsserterTest {
             name: "matching error",
-            payload: MentatError {
+            payload: Some(MentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 10".to_string(),
@@ -30,12 +30,13 @@ fn test_error_map() {
                 details: indexmap!(
                   "hello".to_string() => "goodbye".into()
                 ),
-            },
-            res: None,
+            }),
+            extras: (),
+            err: None,
         },
-        AsserterEqualityTest {
+        CustomAsserterTest {
             name: "empty description",
-            payload: MentatError {
+            payload: Some(MentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 10".to_string(),
@@ -44,12 +45,13 @@ fn test_error_map() {
                 details: indexmap!(
                   "hello".to_string() => "goodbye".into()
                 ),
-            },
-            res: Some(ErrorError::DescriptionEmpty),
+            }),
+            extras: (),
+            err: Some(ErrorError::DescriptionEmpty.into()),
         },
-        AsserterEqualityTest {
+        CustomAsserterTest {
             name: "negative error",
-            payload: MentatError {
+            payload: Some(MentatError {
                 status_code: 0,
                 code: -1,
                 message: "error 10".to_string(),
@@ -58,12 +60,13 @@ fn test_error_map() {
                 details: indexmap!(
                   "hello".to_string() => "goodbye".into()
                 ),
-            },
-            res: Some(ErrorError::CodeIsNeg),
+            }),
+            extras: (),
+            err: Some(ErrorError::CodeIsNeg.into()),
         },
-        AsserterEqualityTest {
+        CustomAsserterTest {
             name: "retriable error",
-            payload: MentatError {
+            payload: Some(MentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 10".to_string(),
@@ -72,12 +75,13 @@ fn test_error_map() {
                 details: indexmap!(
                   "hello".to_string() => "goodbye".into()
                 ),
-            },
-            res: Some(ErrorError::RetriableMismatch),
+            }),
+            extras: (),
+            err: Some(ErrorError::RetriableMismatch.into()),
         },
-        AsserterEqualityTest {
+        CustomAsserterTest {
             name: "code mismatch",
-            payload: MentatError {
+            payload: Some(MentatError {
                 status_code: 0,
                 code: 20,
                 message: "error 20".to_string(),
@@ -86,12 +90,13 @@ fn test_error_map() {
                 details: indexmap!(
                   "hello".to_string() => "goodbye".into()
                 ),
-            },
-            res: Some(ErrorError::UnexpectedCode),
+            }),
+            extras: (),
+            err: Some(ErrorError::UnexpectedCode.into()),
         },
-        AsserterEqualityTest {
+        CustomAsserterTest {
             name: "code mismatch",
-            payload: MentatError {
+            payload: Some(MentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 11".to_string(),
@@ -100,15 +105,14 @@ fn test_error_map() {
                 details: indexmap!(
                   "hello".to_string() => "goodbye".into()
                 ),
-            },
-            res: Some(ErrorError::MessageMismatch),
+            }),
+            extras: (),
+            err: Some(ErrorError::MessageMismatch.into()),
         },
     ];
 
-    tests.into_iter().for_each(|test| {
-        println!("test: {test}");
-
-        let _asserter = Asserter::new_client_with_responses(
+    let asserter = |_: &()| {
+        Asserter::new_client_with_responses(
             Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -173,9 +177,8 @@ fn test_error_map() {
             }),
             None,
         )
-        .unwrap();
+        .unwrap()
+    };
 
-        // let resp = asserter.unwrap().error(&test.err);
-        todo!()
-    });
+    CustomAsserterTest::custom_asserter_tests(&tests, asserter, Asserter::error);
 }

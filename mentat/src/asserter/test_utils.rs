@@ -40,13 +40,13 @@ impl<P: Default> AsserterTest<P> {
     where
         F: FnMut(&Asserter, Option<&P>) -> AssertResult<O>,
     {
-        let server = request_asserter();
+        let asserter = request_asserter();
 
         let failed = tests
             .iter()
             .map(|test| {
                 print!("{test}: ");
-                let res = func(&server, test.payload.as_ref());
+                let res = func(&asserter, test.payload.as_ref());
                 assert_correct(&test.err, &res)
             })
             .filter(|t| !t)
@@ -118,8 +118,8 @@ impl<P: Default, E: Default> CustomAsserterTest<P, E> {
             .iter()
             .map(|test| {
                 print!("{test}: ");
-                let server = asserter(&test.extras);
-                let res = func(&server, test.payload.as_ref());
+                let asserter = asserter(&test.extras);
+                let res = func(&asserter, test.payload.as_ref());
                 assert_correct(&test.err, &res)
             })
             .filter(|t| !t)
