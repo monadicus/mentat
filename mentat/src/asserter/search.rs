@@ -2,20 +2,23 @@
 
 use super::{
     block_identifier,
-    errors::SearchError,
+    errors::{AsserterError, SearchError},
     AssertResult,
-    ResponseAsserter,
+    Asserter,
     SearchTransactionsResponse,
 };
 
-impl ResponseAsserter {
+impl Asserter {
     /// SearchTransactionsResponse ensures a
     /// *types.SearchTransactionsResponse is valid.
     pub fn search_transaction_response(
         &self,
         response: &SearchTransactionsResponse,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
+
         if matches!(response.next_offset, Some(r) if r < 0) {
             Err(SearchError::NextOffsetInvalid)?;
         } else if response.total_count < 0 {

@@ -2,7 +2,7 @@ use std::fmt;
 
 use super::server_test::request_asserter;
 use crate::asserter::{
-    asserter_tools::RequestAsserter,
+    asserter_tools::{Asserter, RequestAsserter},
     errors::{AssertResult, AsserterError},
 };
 
@@ -38,7 +38,7 @@ impl<P: Default> AsserterTest<P> {
 
     pub(crate) fn default_request_asserter_tests<F, O>(tests: &[Self], mut func: F)
     where
-        F: FnMut(&RequestAsserter, Option<&P>) -> AssertResult<O>,
+        F: FnMut(&Asserter, Option<&P>) -> AssertResult<O>,
     {
         let server = request_asserter();
 
@@ -109,10 +109,10 @@ pub(crate) struct CustomAsserterTest<P: Default, E: Default> {
 }
 
 impl<P: Default, E: Default> CustomAsserterTest<P, E> {
-    pub(crate) fn custom_request_asserter_tests<A, F>(tests: &[Self], asserter: A, mut func: F)
+    pub(crate) fn custom_asserter_tests<A, F>(tests: &[Self], asserter: A, mut func: F)
     where
-        A: Fn(&E) -> RequestAsserter,
-        F: FnMut(&RequestAsserter, Option<&P>) -> AssertResult<()>,
+        A: Fn(&E) -> Asserter,
+        F: FnMut(&Asserter, Option<&P>) -> AssertResult<()>,
     {
         let failed = tests
             .iter()

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use super::{server_test::valid_account_identifier, test_utils::AsserterTest};
 use crate::{
@@ -336,7 +336,7 @@ fn test_account_identifier() {
 #[derive(Default)]
 struct OperationValidationsTest {
     operations: Vec<Operation>,
-    validation_file_path: PathBuf,
+    validation_file_path: Option<PathBuf>,
     construction: bool,
 }
 
@@ -418,9 +418,9 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_balanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: None,
@@ -452,9 +452,9 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_balanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: Some(BlockError::FeeCountMismatch.into()),
@@ -486,9 +486,9 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_balanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: Some(BlockError::PaymentCountMismatch.into()),
@@ -539,9 +539,9 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_balanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: Some(BlockError::PaymentAmountNotBalancing.into()),
@@ -592,9 +592,9 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_unbalanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: None,
@@ -649,9 +649,9 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_unbalanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: Some(BlockError::RelatedOperationInFeeNotAllowed.into()),
@@ -702,9 +702,9 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_unbalanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: Some(BlockError::FeeAmountNotNegative.into()),
@@ -759,26 +759,25 @@ fn test_operation_validations() {
                         ..Default::default()
                     },
                 ],
-                validation_file_path: PathBuf::from(
+                validation_file_path: Some(PathBuf::from(
                     "data/validation_fee_and_payment_unbalanced.json",
-                ),
+                )),
                 construction: false,
             }),
             err: None,
         },
     ];
 
-    // TODO Asserter tester
     tests.into_iter().for_each(|test| {
         println!("test: {}", test.name);
 
         let _asserter = Asserter::new_client_with_responses(
-            NetworkIdentifier {
+            Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
                 sub_network_identifier: None,
-            },
-            NetworkStatusResponse {
+            }),
+            Some(NetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -794,8 +793,8 @@ fn test_operation_validations() {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 })],
-            },
-            NetworkOptionsResponse {
+            }),
+            Some(NetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
@@ -816,8 +815,8 @@ fn test_operation_validations() {
                     operation_types: vec!["PAYMENT".into(), "FEE".into()],
                     ..Default::default()
                 }),
-            },
-            test.payload.unwrap().validation_file_path,
+            }),
+            test.payload.and_then(|p| p.validation_file_path),
         )
         .unwrap();
 
@@ -1073,12 +1072,12 @@ fn test_operation() {
         println!("{test}");
 
         let _asserter = Asserter::new_client_with_responses(
-            NetworkIdentifier {
+            Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
                 sub_network_identifier: None,
-            },
-            NetworkStatusResponse {
+            }),
+            Some(NetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -1094,8 +1093,8 @@ fn test_operation() {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 })],
-            },
-            NetworkOptionsResponse {
+            }),
+            Some(NetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
@@ -1116,8 +1115,8 @@ fn test_operation() {
                     operation_types: vec!["PAYMENT".into()],
                     ..Default::default()
                 }),
-            },
-            "".into(),
+            }),
+            None,
         )
         .unwrap();
         todo!()
@@ -1129,8 +1128,7 @@ fn test_operation() {
 #[derive(Default)]
 struct BlockTest {
     block: Option<Block>,
-    // TODO consider making this an options
-    validation_file_path: PathBuf,
+    validation_file_path: Option<PathBuf>,
     genesis_index: i64,
     start_index: Option<i64>,
 }
@@ -1636,7 +1634,9 @@ fn test_block() {
                     transactions: vec![Some(related_missing_transaction)],
                     ..Default::default()
                 }),
-                validation_file_path: PathBuf::from("data/validation_balanced_related_ops.json"),
+                validation_file_path: Some(PathBuf::from(
+                    "data/validation_balanced_related_ops.json",
+                )),
                 genesis_index: 0,
                 start_index: None,
             }),
@@ -1783,7 +1783,6 @@ fn test_block() {
             }),
             err: Some(BlockError::TxIdentifierIsNil.into()),
         },
-        // TODO see invalid_related_transaction defined above
         AsserterTest {
             name: "invalid related transaction",
             payload: Some(BlockTest {
@@ -1824,12 +1823,12 @@ fn test_block() {
         let payload = test.payload.unwrap();
 
         let _asserter = Asserter::new_client_with_responses(
-            NetworkIdentifier {
+            Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
                 sub_network_identifier: None,
-            },
-            NetworkStatusResponse {
+            }),
+            Some(NetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -1845,8 +1844,8 @@ fn test_block() {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 })],
-            },
-            NetworkOptionsResponse {
+            }),
+            Some(NetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
@@ -1865,12 +1864,11 @@ fn test_block() {
                         }),
                     ],
                     operation_types: vec!["PAYMENT".into()],
-                    // TODO need to make this an i64
                     timestamp_start_index: payload.start_index,
                     ..Default::default()
                 }),
-            },
-            "".into(),
+            }),
+            None,
         )
         .unwrap();
         todo!()

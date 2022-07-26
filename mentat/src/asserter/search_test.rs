@@ -161,12 +161,12 @@ fn test_search_transactions_response() {
         println!("test: {test}");
 
         let _asserter = Asserter::new_client_with_responses(
-            NetworkIdentifier {
+            Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
                 sub_network_identifier: None,
-            },
-            NetworkStatusResponse {
+            }),
+            Some(NetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -182,8 +182,8 @@ fn test_search_transactions_response() {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 })],
-            },
-            NetworkOptionsResponse {
+            }),
+            Some(NetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
@@ -204,8 +204,8 @@ fn test_search_transactions_response() {
                     operation_types: vec!["PAYMENT".into()],
                     ..Default::default()
                 }),
-            },
-            Default::default(),
+            }),
+            None,
         )
         .unwrap();
 

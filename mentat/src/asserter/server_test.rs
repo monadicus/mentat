@@ -6,7 +6,7 @@ use indexmap::indexmap;
 use super::test_utils::{AsserterTest, CustomAsserterTest};
 use crate::{
     asserter::{
-        asserter_tools::RequestAsserter,
+        asserter_tools::Asserter,
         errors::{AssertResult, BlockError, ConstructionError, NetworkError, ServerError},
         server::supported_networks,
     },
@@ -262,14 +262,14 @@ pub(crate) fn empty_signature() -> Vec<Option<Signature>> {
     })]
 }
 
-pub(crate) fn request_asserter() -> RequestAsserter {
-    RequestAsserter::new_server(
+pub(crate) fn request_asserter() -> Asserter {
+    Asserter::new_server(
         vec!["PAYMENT".into()],
         true,
         vec![valid_network_identifier().unwrap()],
         vec!["eth_call".into()],
         false,
-        Path::new(""),
+        None,
     )
     .unwrap()
 }
@@ -281,8 +281,8 @@ struct NewWithOptionsTest {
 }
 
 impl NewWithOptionsTest {
-    fn run(&self) -> AssertResult<RequestAsserter> {
-        RequestAsserter::new_server(
+    fn run(&self) -> AssertResult<Asserter> {
+        Asserter::new_server(
             self.supported_operation_types.clone(),
             true,
             self.supported_networks
@@ -292,7 +292,7 @@ impl NewWithOptionsTest {
                 .collect(),
             self.call_methods.clone(),
             false,
-            Path::new(""),
+            None,
         )
     }
 }
@@ -533,22 +533,18 @@ fn test_account_balance_request() {
     ];
 
     let asserter = |allow_historical: &bool| {
-        RequestAsserter::new_server(
+        Asserter::new_server(
             vec!["PAYMENT".into()],
             *allow_historical,
             vec![valid_network_identifier().unwrap()],
             vec![],
             false,
-            Path::new(""),
+            None,
         )
         .unwrap()
     };
 
-    CustomAsserterTest::custom_request_asserter_tests(
-        &tests,
-        asserter,
-        RequestAsserter::account_balance_request,
-    );
+    CustomAsserterTest::custom_asserter_tests(&tests, asserter, Asserter::account_balance_request);
 }
 
 #[test]
@@ -604,7 +600,7 @@ fn test_block_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::block_request);
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::block_request);
 }
 
 #[test]
@@ -669,10 +665,7 @@ fn test_block_transaction_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::block_transaction_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::block_transaction_request);
 }
 
 #[test]
@@ -744,10 +737,7 @@ fn test_construction_metadata_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_metadata_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_metadata_request);
 }
 
 #[test]
@@ -781,10 +771,7 @@ fn test_construction_submit_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_submit_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_submit_request);
 }
 
 #[test]
@@ -836,10 +823,7 @@ fn test_mempool_transaction_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::mempool_transaction_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::mempool_transaction_request);
 }
 
 #[test]
@@ -856,7 +840,7 @@ fn test_metadata_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::metadata_request);
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::metadata_request);
 }
 
 #[test]
@@ -897,7 +881,7 @@ fn test_network_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::network_request);
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::network_request);
 }
 
 #[test]
@@ -954,10 +938,7 @@ fn test_construction_derive_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_derive_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_derive_request);
 }
 
 #[test]
@@ -1087,10 +1068,7 @@ fn test_construction_preprocess_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_preprocess_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_preprocess_request);
 }
 
 #[test]
@@ -1189,10 +1167,7 @@ fn test_construction_payloads_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_payload_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_payload_request);
 }
 
 #[test]
@@ -1319,10 +1294,7 @@ fn test_construction_combine_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_combine_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_combine_request);
 }
 
 #[test]
@@ -1366,10 +1338,7 @@ fn test_construction_hash_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_hash_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_hash_request);
 }
 
 #[test]
@@ -1407,10 +1376,7 @@ fn test_construction_parse_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::construction_parse_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_parse_request);
 }
 
 #[test]
@@ -1473,7 +1439,7 @@ fn test_call_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::call_request);
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::call_request);
 }
 
 #[test]
@@ -1585,22 +1551,18 @@ fn test_account_coins_request() {
     ];
 
     let asserter = |allow_mempool: &bool| {
-        RequestAsserter::new_server(
+        Asserter::new_server(
             vec!["PAYMENT".into()],
             true,
             vec![valid_network_identifier().unwrap()],
             vec![],
             *allow_mempool,
-            Path::new(""),
+            None,
         )
         .unwrap()
     };
 
-    CustomAsserterTest::custom_request_asserter_tests(
-        &tests,
-        asserter,
-        RequestAsserter::account_coins_request,
-    );
+    CustomAsserterTest::custom_asserter_tests(&tests, asserter, Asserter::account_coins_request);
 }
 
 #[test]
@@ -1654,7 +1616,7 @@ fn test_event_blocks_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, RequestAsserter::events_block_request);
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::events_block_request);
 }
 
 #[test]
@@ -1739,8 +1701,5 @@ fn test_search_transactions_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(
-        &tests,
-        RequestAsserter::search_transactions_request,
-    );
+    AsserterTest::default_request_asserter_tests(&tests, Asserter::search_transactions_request);
 }

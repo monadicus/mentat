@@ -1,16 +1,28 @@
 //! Validates that construction data is correct.
 
-use crate::types::{ConstructionCombineResponse, TransactionIdentifierResponse};
-
 use super::{
-    account_array, account_identifier, assert_unique_amounts,
+    account_array,
+    account_identifier,
+    assert_unique_amounts,
+    asserter_tools::Asserter,
     block::transaction_identifier,
     bytes_array_zero,
     errors::{AsserterError, BlockError},
-    AssertResult, ConstructionDeriveResponse, ConstructionError, ConstructionMetadataResponse,
-    ConstructionParseResponse, ConstructionPayloadsResponse, ConstructionPreprocessResponse,
-    CurveType, PublicKey, ResponseAsserter, Signature, SignatureType, SigningPayload,
+    AssertResult,
+    ConstructionDeriveResponse,
+    ConstructionError,
+    ConstructionMetadataResponse,
+    ConstructionParseResponse,
+    ConstructionPayloadsResponse,
+    ConstructionPreprocessResponse,
+    CurveType,
+    PublicKey,
+    ResponseAsserter,
+    Signature,
+    SignatureType,
+    SigningPayload,
 };
+use crate::types::{ConstructionCombineResponse, TransactionIdentifierResponse};
 
 /// the request public keys are not valid AccountIdentifiers.
 pub(crate) fn construction_preprocess_response(
@@ -84,7 +96,7 @@ pub(crate) fn construction_derive_response(
     Ok(())
 }
 
-impl ResponseAsserter {
+impl Asserter {
     /// ConstructionParseResponse returns an error if
     /// a *types.ConstructionParseResponse does
     /// not have a valid set of operations or
@@ -94,7 +106,10 @@ impl ResponseAsserter {
         resp: Option<&ConstructionParseResponse>,
         signed: bool,
     ) -> AssertResult<()> {
-        // if self nil
+        self.response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
+
         let resp = resp.ok_or(ConstructionError::ConstructionParseResponseIsNil)?;
 
         if resp.operations.is_empty() {

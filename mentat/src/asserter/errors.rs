@@ -2,10 +2,6 @@
 
 use thiserror::Error;
 
-// AsserterNotInitialized is returned when some call in the asserter
-// package requires the asserter to be initialized first.
-// ERR_ASSERTER_NOT_INITIALIZED = ("asserter not initialized");
-
 /// Account Balance Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
@@ -372,6 +368,10 @@ pub(crate) enum ErrorError {
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) enum AsserterError {
+    // AsserterNotInitialized is returned when some call in the asserter
+    // package requires the asserter to be initialized first.
+    #[error("asserter not initialized")]
+    NotInitialized,
     #[error(transparent)]
     AccountBalance(#[from] AccountBalanceError),
     #[error(transparent)]
