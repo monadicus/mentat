@@ -15,19 +15,19 @@ pub use coin::*;
 mod construction;
 pub use construction::*;
 mod error;
-
+pub use error::*;
 mod errors;
 pub use errors::*;
 mod events;
-
+pub use events::*;
 mod mempool;
-
+pub use mempool::*;
 mod network;
 pub use network::*;
 mod search;
-
+pub use search::*;
 mod server;
-
+pub use server::*;
 mod util;
 pub use util::*;
 
