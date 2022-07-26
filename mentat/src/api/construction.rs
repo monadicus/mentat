@@ -13,9 +13,9 @@ pub trait ConstructionApi: Default {
     async fn combine(
         &self,
         _caller: Caller,
-        _data: NullableConstructionCombineRequest,
+        _data: ConstructionCombineRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionCombineResponse> {
+    ) -> MentatResponse<ConstructionCombineResponse> {
         MentatError::not_implemented()
     }
 
@@ -25,9 +25,9 @@ pub trait ConstructionApi: Default {
     async fn derive(
         &self,
         _caller: Caller,
-        _data: NullableConstructionDeriveRequest,
+        _data: ConstructionDeriveRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionDeriveResponse> {
+    ) -> MentatResponse<ConstructionDeriveResponse> {
         MentatError::not_implemented()
     }
 
@@ -36,9 +36,9 @@ pub trait ConstructionApi: Default {
     async fn hash(
         &self,
         _caller: Caller,
-        _data: NullableConstructionHashRequest,
+        _data: ConstructionHashRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         MentatError::not_implemented()
     }
 
@@ -57,9 +57,9 @@ pub trait ConstructionApi: Default {
     async fn metadata(
         &self,
         _caller: Caller,
-        _data: NullableConstructionMetadataRequest,
+        _data: ConstructionMetadataRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionMetadataResponse> {
+    ) -> MentatResponse<ConstructionMetadataResponse> {
         MentatError::not_implemented()
     }
 
@@ -70,9 +70,9 @@ pub trait ConstructionApi: Default {
     async fn parse(
         &self,
         _caller: Caller,
-        _data: NullableConstructionParseRequest,
+        _data: ConstructionParseRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionParseResponse> {
+    ) -> MentatResponse<ConstructionParseResponse> {
         MentatError::not_implemented()
     }
 
@@ -90,9 +90,9 @@ pub trait ConstructionApi: Default {
     async fn payloads(
         &self,
         _caller: Caller,
-        _data: NullableConstructionPayloadsRequest,
+        _data: ConstructionPayloadsRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionPayloadsResponse> {
+    ) -> MentatResponse<ConstructionPayloadsResponse> {
         MentatError::not_implemented()
     }
 
@@ -107,9 +107,9 @@ pub trait ConstructionApi: Default {
     async fn preprocess(
         &self,
         _caller: Caller,
-        _data: NullableConstructionPreprocessRequest,
+        _data: ConstructionPreprocessRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionPreprocessResponse> {
+    ) -> MentatResponse<ConstructionPreprocessResponse> {
         MentatError::not_implemented()
     }
 
@@ -122,9 +122,9 @@ pub trait ConstructionApi: Default {
     async fn submit(
         &self,
         _caller: Caller,
-        _data: NullableConstructionSubmitRequest,
+        _data: ConstructionSubmitRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         MentatError::not_implemented()
     }
 }
@@ -137,96 +137,115 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_combine(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionCombineRequest,
+        data: Option<NullableConstructionCombineRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionCombineResponse> {
-        self.combine(caller, data, rpc_caller).await
+    ) -> MentatResponse<ConstructionCombineResponse> {
+        asserter.construction_combine_request(data.as_ref())?;
+        self.combine(caller, data.unwrap().into(), rpc_caller).await
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_derive(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionDeriveRequest,
+        data: Option<NullableConstructionDeriveRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionDeriveResponse> {
-        self.derive(caller, data, rpc_caller).await
+    ) -> MentatResponse<ConstructionDeriveResponse> {
+        asserter.construction_derive_request(data.as_ref())?;
+        self.derive(caller, data.unwrap().into(), rpc_caller).await
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_hash(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionHashRequest,
+        data: Option<NullableConstructionHashRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
-        self.hash(caller, data, rpc_caller).await
+    ) -> MentatResponse<TransactionIdentifierResponse> {
+        asserter.construction_hash_request(data.as_ref())?;
+        self.hash(caller, data.unwrap().into(), rpc_caller).await
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_metadata(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionMetadataRequest,
+        data: Option<NullableConstructionMetadataRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionMetadataResponse> {
+    ) -> MentatResponse<ConstructionMetadataResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
-            self.metadata(caller, data, rpc_caller).await
+            asserter.construction_metadata_request(data.as_ref())?;
+            self.metadata(caller, data.unwrap().into(), rpc_caller)
+                .await
         }
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_parse(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionParseRequest,
+        data: Option<NullableConstructionParseRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionParseResponse> {
-        self.parse(caller, data, rpc_caller).await
+    ) -> MentatResponse<ConstructionParseResponse> {
+        asserter.construction_parse_request(data.as_ref())?;
+        self.parse(caller, data.unwrap().into(), rpc_caller).await
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_payloads(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionPayloadsRequest,
+        data: Option<NullableConstructionPayloadsRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionPayloadsResponse> {
-        self.payloads(caller, data, rpc_caller).await
+    ) -> MentatResponse<ConstructionPayloadsResponse> {
+        asserter.construction_payload_request(data.as_ref())?;
+        self.payloads(caller, data.unwrap().into(), rpc_caller)
+            .await
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_preprocess(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionPreprocessRequest,
+        data: Option<NullableConstructionPreprocessRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionPreprocessResponse> {
-        self.preprocess(caller, data, rpc_caller).await
+    ) -> MentatResponse<ConstructionPreprocessResponse> {
+        asserter.construction_preprocess_request(data.as_ref())?;
+        self.preprocess(caller, data.unwrap().into(), rpc_caller)
+            .await
     }
 
     /// This endpoint only runs in online mode.
     async fn call_submit(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableConstructionSubmitRequest,
+        data: Option<NullableConstructionSubmitRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
+    ) -> MentatResponse<TransactionIdentifierResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
-            self.submit(caller, data, rpc_caller).await
+            asserter.construction_submit_request(data.as_ref())?;
+            self.submit(caller, data.unwrap().into(), rpc_caller).await
         }
     }
 }

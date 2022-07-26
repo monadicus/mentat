@@ -2,7 +2,7 @@
 #![warn(clippy::todo)]
 #![doc = include_str!("../../README.md")]
 
-mod asserter;
+pub(crate) mod asserter;
 #[cfg(feature = "keys")]
 pub mod keys;
 
@@ -87,8 +87,7 @@ mod server_exports {
     pub mod macro_exports {
         pub use axum::{
             extract::{self, ConnectInfo, Extension, Json},
-            routing,
-            Router,
+            routing, Router,
         };
         pub use tracing::Instrument;
 

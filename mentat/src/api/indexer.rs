@@ -18,9 +18,9 @@ pub trait IndexerApi: Default {
     async fn events_blocks(
         &self,
         _caller: Caller,
-        _data: NullableEventsBlocksRequest,
+        _data: EventsBlocksRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableEventsBlocksResponse> {
+    ) -> MentatResponse<EventsBlocksResponse> {
         MentatError::not_implemented()
     }
 
@@ -36,9 +36,9 @@ pub trait IndexerApi: Default {
     async fn search_transactions(
         &self,
         _caller: Caller,
-        _data: NullableSearchTransactionsRequest,
+        _data: SearchTransactionsRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableSearchTransactionsResponse> {
+    ) -> MentatResponse<SearchTransactionsResponse> {
         MentatError::not_implemented()
     }
 }
@@ -51,22 +51,28 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_events_blocks(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableEventsBlocksRequest,
+        data: Option<NullableEventsBlocksRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableEventsBlocksResponse> {
-        self.events_blocks(caller, data, rpc_caller).await
+    ) -> MentatResponse<EventsBlocksResponse> {
+        asserter.events_block_request(data.as_ref())?;
+        self.events_blocks(caller, data.unwrap().into(), rpc_caller)
+            .await
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_search_transactions(
         &self,
+        asserter: &Asserter,
         caller: Caller,
-        data: NullableSearchTransactionsRequest,
+        data: Option<NullableSearchTransactionsRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableSearchTransactionsResponse> {
-        self.search_transactions(caller, data, rpc_caller).await
+    ) -> MentatResponse<SearchTransactionsResponse> {
+        asserter.search_transactions_request(data.as_ref())?;
+        self.search_transactions(caller, data.unwrap().into(), rpc_caller)
+            .await
     }
 }

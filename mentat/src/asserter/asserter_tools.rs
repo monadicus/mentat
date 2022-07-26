@@ -86,7 +86,7 @@ pub(crate) struct RequestAsserter {
 #[derive(Debug)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[allow(clippy::large_enum_variant)]
-pub(crate) struct Asserter {
+pub struct Asserter {
     pub(crate) operation_types: Vec<String>,
     pub(crate) request: Option<RequestAsserter>,
     pub(crate) response: Option<ResponseAsserter>,

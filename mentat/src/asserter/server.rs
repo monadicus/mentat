@@ -4,7 +4,7 @@ use super::*;
 
 /// [`supported_networks`] returns an error if there is an invalid
 /// [`NetworkIdentifier`] or there is a duplicate.
-pub(crate) fn supported_networks(networks: &[Option<NetworkIdentifier>]) -> AssertResult<()> {
+pub fn supported_networks(networks: &[Option<NetworkIdentifier>]) -> AssertResult<()> {
     if networks.is_empty() {
         Err(ServerError::NoSupportedNetworks)?
     }
@@ -29,7 +29,7 @@ impl Asserter {
     /// [`supported_network`] returns a boolean indicating if the
     /// [`NetworkIdentifier`] is allowed. This should be called after the
     /// [`NetworkIdentifier`] is asserted.
-    pub(crate) fn supported_network(
+    pub fn supported_network(
         &self,
         request_network: Option<&NetworkIdentifier>,
     ) -> AssertResult<()> {
@@ -47,7 +47,7 @@ impl Asserter {
 
     /// [`valid_supported_network`] returns an error if a [`NetworkIdentifier`]
     /// is not valid or not supported.
-    pub(crate) fn valid_supported_network(
+    pub fn valid_supported_network(
         &self,
         request_network: Option<&NetworkIdentifier>,
     ) -> AssertResult<()> {
@@ -57,7 +57,7 @@ impl Asserter {
 
     /// [`account_balance_request`] ensures that a [`AccountBalanceRequest`]
     /// is well-formatted.
-    pub(crate) fn account_balance_request(
+    pub fn account_balance_request(
         &self,
         request: Option<&NullableAccountBalanceRequest>,
     ) -> AssertResult<()> {
@@ -86,7 +86,7 @@ impl Asserter {
 
     /// [`block_request`] ensures that a [`BlockRequest`]
     /// is well-formatted.
-    pub(crate) fn block_request(&self, request: Option<&NullableBlockRequest>) -> AssertResult<()> {
+    pub fn block_request(&self, request: Option<&NullableBlockRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -95,7 +95,7 @@ impl Asserter {
 
     /// [`block_transaction_request`] ensures that a [`BlockTransactionRequest`]
     /// is well-formatted.
-    pub(crate) fn block_transaction_request(
+    pub fn block_transaction_request(
         &self,
         request: Option<&NullableBlockTransactionRequest>,
     ) -> AssertResult<()> {
@@ -108,7 +108,7 @@ impl Asserter {
 
     /// [`construction_metadata_request`] ensures that a
     /// [`ConstructionMetadataRequest`] is well-formatted.
-    pub(crate) fn construction_metadata_request(
+    pub fn construction_metadata_request(
         &self,
         request: Option<&NullableConstructionMetadataRequest>,
     ) -> AssertResult<()> {
@@ -125,7 +125,7 @@ impl Asserter {
 
     /// [`construction_submit_request`] ensures that a
     /// [`ConstructionSubmitRequest`] is well-formatted.
-    pub(crate) fn construction_submit_request(
+    pub fn construction_submit_request(
         &self,
         request: Option<&NullableConstructionSubmitRequest>,
     ) -> AssertResult<()> {
@@ -141,7 +141,7 @@ impl Asserter {
 
     /// [`mempool_transaction_request`] ensures that a
     /// [`MempoolTransactionRequest`] is well-formatted.
-    pub(crate) fn mempool_transaction_request(
+    pub fn mempool_transaction_request(
         &self,
         request: Option<&NullableMempoolTransactionRequest>,
     ) -> AssertResult<()> {
@@ -153,10 +153,7 @@ impl Asserter {
 
     /// [`metadata_request`] ensures that a [`MetadataRequest`]
     /// is well-formatted.
-    pub(crate) fn metadata_request(
-        &self,
-        request: Option<&NullableMetadataRequest>,
-    ) -> AssertResult<()> {
+    pub fn metadata_request(&self, request: Option<&NullableMetadataRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         request.ok_or(ServerError::MetadataRequestIsNil)?;
         Ok(())
@@ -164,10 +161,7 @@ impl Asserter {
 
     /// [`network_request`] ensures that a [`NetworkRequest`]
     /// is well-formatted.
-    pub(crate) fn network_request(
-        &self,
-        request: Option<&NullableNetworkRequest>,
-    ) -> AssertResult<()> {
+    pub fn network_request(&self, request: Option<&NullableNetworkRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::NetworkRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())
@@ -175,7 +169,7 @@ impl Asserter {
 
     /// [`construction_derive_request`] ensures that a
     /// [`ConstructionDeriveRequest`] is well-formatted.
-    pub(crate) fn construction_derive_request(
+    pub fn construction_derive_request(
         &self,
         request: Option<&NullableConstructionDeriveRequest>,
     ) -> AssertResult<()> {
@@ -187,7 +181,7 @@ impl Asserter {
 
     /// [`construction_preprocess_request`] ensures that a
     /// [`ConstructionPreprocessRequest`] is well-formatted.
-    pub(crate) fn construction_preprocess_request(
+    pub fn construction_preprocess_request(
         &self,
         request: Option<&NullableConstructionPreprocessRequest>,
     ) -> AssertResult<()> {
@@ -210,7 +204,7 @@ impl Asserter {
 
     /// [`construction_payload_request`] ensures that a
     /// [`ConstructionPayloadsRequest`] is well-formatted.
-    pub(crate) fn construction_payload_request(
+    pub fn construction_payload_request(
         &self,
         request: Option<&NullableConstructionPayloadsRequest>,
     ) -> AssertResult<()> {
@@ -226,7 +220,7 @@ impl Asserter {
 
     /// [`construction_combine_request`] ensures that a
     /// [`ConstructionCombineRequest`] is well-formatted.
-    pub(crate) fn construction_combine_request(
+    pub fn construction_combine_request(
         &self,
         request: Option<&NullableConstructionCombineRequest>,
     ) -> AssertResult<()> {
@@ -248,7 +242,7 @@ impl Asserter {
 
     /// [`construction_hash_request`] ensures that a [`ConstructionHashRequest`]
     /// is well-formatted.
-    pub(crate) fn construction_hash_request(
+    pub fn construction_hash_request(
         &self,
         request: Option<&NullableConstructionHashRequest>,
     ) -> AssertResult<()> {
@@ -264,7 +258,7 @@ impl Asserter {
 
     /// [`construction_parse_request`] ensures that a
     /// [`ConstructionParseRequest`] is well-formatted.
-    pub(crate) fn construction_parse_request(
+    pub fn construction_parse_request(
         &self,
         request: Option<&NullableConstructionParseRequest>,
     ) -> AssertResult<()> {
@@ -280,7 +274,7 @@ impl Asserter {
 
     /// [`valid_call_method`] returns an error if a [`CallRequest`] method
     /// is not valid.
-    pub(crate) fn valid_call_method(&self, method: &str) -> AssertResult<()> {
+    pub fn valid_call_method(&self, method: &str) -> AssertResult<()> {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         if method.is_empty() {
@@ -296,7 +290,7 @@ impl Asserter {
 
     /// [`call_request`] ensures that a [`CallRequest`]
     /// is well-formatted.
-    pub(crate) fn call_request(&self, request: Option<&NullableCallRequest>) -> AssertResult<()> {
+    pub fn call_request(&self, request: Option<&NullableCallRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::CallRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -305,7 +299,7 @@ impl Asserter {
 
     /// [`account_coins_request`] ensures that a [`AccountCoinsRequest`]
     /// is well-formatted.
-    pub(crate) fn account_coins_request(
+    pub fn account_coins_request(
         &self,
         request: Option<&NullableAccountCoinsRequest>,
     ) -> AssertResult<()> {
@@ -336,7 +330,7 @@ impl Asserter {
 
     /// [`events_block_request`] ensures that a [`EventsBlocksRequest`]
     /// is well-formatted.
-    pub(crate) fn events_block_request(
+    pub fn events_block_request(
         &self,
         request: Option<&NullableEventsBlocksRequest>,
     ) -> AssertResult<()> {
@@ -354,7 +348,7 @@ impl Asserter {
 
     /// [`search_transactions_request`] ensures that a
     /// [`SearchTransactionsRequest`] is well-formatted.
-    pub(crate) fn search_transactions_request(
+    pub fn search_transactions_request(
         &self,
         request: Option<&NullableSearchTransactionsRequest>,
     ) -> AssertResult<()> {

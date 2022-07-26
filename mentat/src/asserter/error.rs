@@ -5,7 +5,7 @@ use super::{error, errors::AsserterError, AssertResult, Asserter, ErrorError, Me
 impl Asserter {
     /// `error` ensures a [`MentatError`] matches some error
     /// provided in `/network/options`.
-    pub(crate) fn error(&self, err: Option<&MentatError>) -> AssertResult<()> {
+    pub fn error(&self, err: Option<&MentatError>) -> AssertResult<()> {
         let asserter = self
             .response
             .as_ref()

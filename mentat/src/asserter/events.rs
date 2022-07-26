@@ -10,7 +10,7 @@ use super::{
 
 /// [`BlockEvent`] ensures a *types.BlockEvent
 /// is valid.
-pub(crate) fn block_event(event: Option<&NullableBlockEvent>) -> AssertResult<()> {
+pub fn block_event(event: Option<&NullableBlockEvent>) -> AssertResult<()> {
     // TODO coinbase never checks if event nil
     let event = event.unwrap();
 
@@ -29,7 +29,7 @@ pub(crate) fn block_event(event: Option<&NullableBlockEvent>) -> AssertResult<()
 
 /// events_blocks_response ensures a [`EventsBlocksResponse`]
 /// is valid.
-pub(crate) fn events_blocks_response(
+pub fn events_blocks_response(
     response: Option<&NullableEventsBlocksResponse>,
 ) -> AssertResult<()> {
     // TODO: coinbase never checks for nil
