@@ -98,6 +98,8 @@ mod server_exports {
             server::{RpcCaller, RpcResponse, Server},
             *,
         };
+
+        pub use crate::types::*;
     }
 }
 
