@@ -25,7 +25,7 @@ pub(crate) fn supported_networks(networks: &[Option<NetworkIdentifier>]) -> Asse
     Ok(())
 }
 
-impl RequestAsserter {
+impl Asserter {
     /// [`supported_network`] returns a boolean indicating if the
     /// [`NetworkIdentifier`] is allowed. This should be called after the
     /// [`NetworkIdentifier`] is asserted.
@@ -33,8 +33,9 @@ impl RequestAsserter {
         &self,
         request_network: Option<&NetworkIdentifier>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
-        if !contains_network_identifier(&self.supported_networks, request_network) {
+        let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+
+        if !contains_network_identifier(&asserter.supported_networks, request_network) {
             Err(format!(
                 "{}: {request_network:?}",
                 ServerError::RequestedNetworkNotSupported
@@ -60,7 +61,7 @@ impl RequestAsserter {
         &self,
         request: Option<&AccountBalanceRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         let request = request.ok_or(ServerError::AccountBalanceRequestIsNil)?;
 
@@ -76,7 +77,7 @@ impl RequestAsserter {
             Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
         } else if request.block_identifier.is_none() {
             Ok(())
-        } else if !self.historical_balance_lookup {
+        } else if !asserter.historical_balance_lookup {
             Err(ServerError::AccountBalanceRequestHistoricalBalanceLookupNotSupported)?
         } else {
             partial_block_identifier(Some(request.block_identifier.as_ref().unwrap()))
@@ -86,7 +87,7 @@ impl RequestAsserter {
     /// [`block_request`] ensures that a [`BlockRequest`]
     /// is well-formatted.
     pub(crate) fn block_request(&self, request: Option<&BlockRequest>) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         partial_block_identifier(request.block_identifier.as_ref())
@@ -98,7 +99,7 @@ impl RequestAsserter {
         &self,
         request: Option<&BlockTransactionRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockTransactionRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         block_identifier(request.block_identifier.as_ref())?;
@@ -111,7 +112,7 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionMetadataRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionMetadataRequestIsNil)?;
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -128,7 +129,7 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionSubmitRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionSubmitRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.signed_transaction.is_empty() {
@@ -144,7 +145,7 @@ impl RequestAsserter {
         &self,
         request: Option<&MempoolTransactionRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::MempoolTransactionRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         transaction_identifier(request.transaction_identifier.as_ref())
@@ -153,15 +154,15 @@ impl RequestAsserter {
     /// [`metadata_request`] ensures that a [`MetadataRequest`]
     /// is well-formatted.
     pub(crate) fn metadata_request(&self, request: Option<&MetadataRequest>) -> AssertResult<()> {
-        // TODO if self == nil
-        let _request = request.ok_or(ServerError::MetadataRequestIsNil)?;
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+        request.ok_or(ServerError::MetadataRequestIsNil)?;
         Ok(())
     }
 
     /// [`network_request`] ensures that a [`NetworkRequest`]
     /// is well-formatted.
     pub(crate) fn network_request(&self, request: Option<&NetworkRequest>) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::NetworkRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())
     }
@@ -172,7 +173,7 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionDeriveRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionDeriveRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         public_key(request.public_key.as_ref())
@@ -184,11 +185,10 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionPreprocessRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPreprocessRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        todo!();
-        // TODO self.operations(&request.operations, true)?;
+        self.operations(&request.operations, true)?;
         assert_unique_amounts(&request.max_fee)
             .map_err(|e| format!("{e}: duplicate max fee currency found"))?;
         if matches!(request.suggested_fee_multiplier, Some(i) if i < 0.0) {
@@ -208,11 +208,10 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionPayloadsRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPayloadsRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        todo!();
-        // TODO self.operations(&request.operations, true)?;
+        self.operations(&request.operations, true)?;
         request
             .public_keys
             .iter()
@@ -225,7 +224,7 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionCombineRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionCombineRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.unsigned_transaction.is_empty() {
@@ -247,7 +246,7 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionHashRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionHashRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.signed_transaction.is_empty() {
@@ -263,7 +262,7 @@ impl RequestAsserter {
         &self,
         request: Option<&ConstructionParseRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionParseRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         if request.transaction.is_empty() {
@@ -276,12 +275,14 @@ impl RequestAsserter {
     /// [`valid_call_method`] returns an error if a [`CallRequest`] method
     /// is not valid.
     pub(crate) fn valid_call_method(&self, method: &str) -> AssertResult<()> {
-        // TODO if self == nil
+        let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+
         if method.is_empty() {
             Err(ServerError::CallMethodEmpty)?
         }
 
-        self.call_methods
+        asserter
+            .call_methods
             .get(method)
             .ok_or_else(|| format!("{}: {method}", ServerError::CallMethodUnsupported))?;
         Ok(())
@@ -290,7 +291,7 @@ impl RequestAsserter {
     /// [`call_request`] ensures that a [`CallRequest`]
     /// is well-formatted.
     pub(crate) fn call_request(&self, request: Option<&CallRequest>) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::CallRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         self.valid_call_method(request.method.as_ref())
@@ -302,11 +303,12 @@ impl RequestAsserter {
         &self,
         request: Option<&AccountCoinsRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+
         let request = request.ok_or(ServerError::AccountCoinsRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         account_identifier(request.account_identifier.as_ref())?;
-        if request.include_mempool && !self.mempool_coins {
+        if request.include_mempool && !asserter.mempool_coins {
             Err(ServerError::MempoolCoinsNotSupported)?
         } else if let Some(c) = contains_duplicate_currency(
             &request
@@ -327,7 +329,7 @@ impl RequestAsserter {
         &self,
         request: Option<&EventsBlocksRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::EventsBlocksRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         if matches!(request.offset, Some(i) if i < 0) {
@@ -345,7 +347,7 @@ impl RequestAsserter {
         &self,
         request: Option<&SearchTransactionsRequest>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::SearchTransactionsRequestIsNil)?;
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -378,14 +380,10 @@ impl RequestAsserter {
             currency(request.currency.as_ref())?;
         }
 
-        if let Some(_s) = &request.status {
-            todo!();
-            // TODO self.operation_status(s, false)?;
-        }
+        self.operation_status(request.status.as_ref(), false)?;
 
-        if let Some(_t) = &request.type_ {
-            todo!();
-            // TODO self.operation_type(t, false)?;
+        if let Some(t) = &request.type_ {
+            self.operation_type(t.clone())?;
         }
 
         if matches!(&request.address, Some(a) if a.is_empty()) {

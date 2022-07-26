@@ -1,4 +1,4 @@
-use super::test_utils::AsserterTest;
+use super::test_utils::CustomAsserterTest;
 use crate::{
     asserter::{
         asserter_tools::Asserter,
@@ -82,44 +82,49 @@ fn test_search_transactions_response() {
     };
 
     let tests = [
-        AsserterTest {
+        CustomAsserterTest {
             name: "no transactions",
-            payload: Default::default(),
+            payload: Some(Default::default()),
+            extras: (),
             err: None,
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "valid next",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 ..Default::default()
             }),
+            extras: (),
             err: None,
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "invalid next",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(-1),
                 ..Default::default()
             }),
+            extras: (),
             err: Some(SearchError::NextOffsetInvalid.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "valid count",
             payload: Some(SearchTransactionsResponse {
                 total_count: 0,
                 ..Default::default()
             }),
+            extras: (),
             err: None,
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "invalid count",
             payload: Some(SearchTransactionsResponse {
                 total_count: -1,
                 ..Default::default()
             }),
+            extras: (),
             err: Some(SearchError::TotalCountInvalid.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "valid next + transaction",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
@@ -129,9 +134,10 @@ fn test_search_transactions_response() {
                 })],
                 ..Default::default()
             }),
+            extras: (),
             err: None,
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "valid next + invalid blockIdentifier",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
@@ -141,9 +147,10 @@ fn test_search_transactions_response() {
                 })],
                 ..Default::default()
             }),
+            extras: (),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "valid next + invalid transaction",
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
@@ -153,20 +160,19 @@ fn test_search_transactions_response() {
                 })],
                 ..Default::default()
             }),
+            extras: (),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
     ];
 
-    tests.into_iter().for_each(|test| {
-        println!("test: {test}");
-
-        let _asserter = Asserter::new_client_with_responses(
-            NetworkIdentifier {
+    let asserter = |_: &()| {
+        Asserter::new_client_with_responses(
+            Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
                 sub_network_identifier: None,
-            },
-            NetworkStatusResponse {
+            }),
+            Some(NetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -182,8 +188,8 @@ fn test_search_transactions_response() {
                     peer_id: "peer 1".into(),
                     metadata: Default::default(),
                 })],
-            },
-            NetworkOptionsResponse {
+            }),
+            Some(NetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
@@ -204,11 +210,15 @@ fn test_search_transactions_response() {
                     operation_types: vec!["PAYMENT".into()],
                     ..Default::default()
                 }),
-            },
-            Default::default(),
+            }),
+            None,
         )
-        .unwrap();
+        .unwrap()
+    };
 
-        todo!()
-    });
+    CustomAsserterTest::custom_asserter_tests(
+        &tests,
+        asserter,
+        Asserter::search_transaction_response,
+    );
 }

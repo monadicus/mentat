@@ -2,20 +2,26 @@
 
 use super::{
     block_identifier,
-    errors::SearchError,
+    errors::{AsserterError, SearchError},
     AssertResult,
-    ResponseAsserter,
+    Asserter,
     SearchTransactionsResponse,
 };
 
-impl ResponseAsserter {
+impl Asserter {
     /// SearchTransactionsResponse ensures a
     /// *types.SearchTransactionsResponse is valid.
     pub fn search_transaction_response(
         &self,
-        response: &SearchTransactionsResponse,
+        response: Option<&SearchTransactionsResponse>,
     ) -> AssertResult<()> {
-        // TODO if self == nil
+        self.response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
+
+        // TODO coinbase doesn't check for nil here.
+        let response = response.unwrap();
+
         if matches!(response.next_offset, Some(r) if r < 0) {
             Err(SearchError::NextOffsetInvalid)?;
         } else if response.total_count < 0 {

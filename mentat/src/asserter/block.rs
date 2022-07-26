@@ -6,7 +6,9 @@ use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
 use super::{
+    asserter_tools::{Asserter, RequestAsserter},
     coin_change,
+    errors::AsserterError,
     hash,
     network_identifier,
     AccountIdentifier,
@@ -90,7 +92,7 @@ pub(crate) fn account_identifier(account: Option<&AccountIdentifier>) -> AssertR
     }
 }
 
-impl ResponseAsserter {
+impl Asserter {
     /// `operation_status` returns an error if an operation.Status
     /// is not valid.
     pub(crate) fn operation_status(
@@ -98,7 +100,10 @@ impl ResponseAsserter {
         status: Option<&String>,
         construction: bool,
     ) -> AssertResult<()> {
-        // TODO if self nil
+        let asserter = self
+            .response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
 
         if status.is_none() || status.unwrap().is_empty() {
             return if construction {
@@ -112,7 +117,7 @@ impl ResponseAsserter {
 
         if construction {
             Err(BlockError::OperationStatusNotEmptyForConstruction)?
-        } else if !self.operation_status_map[status] {
+        } else if !asserter.operation_status_map[status] {
             Err(format!(
                 "{}: {}",
                 BlockError::OperationStatusInvalid,
@@ -126,7 +131,7 @@ impl ResponseAsserter {
     /// `operation_type` returns an error if an operation.Type
     /// is not valid.
     pub(crate) fn operation_type(&self, t: String) -> AssertResult<()> {
-        // TODO if self nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         if t.is_empty() || self.operation_types.contains(&t) {
             Err(format!("{}: {t}", BlockError::OperationTypeInvalid))?
@@ -143,7 +148,7 @@ impl ResponseAsserter {
         index: i64,
         construction: bool,
     ) -> AssertResult<()> {
-        // TODO if self nil
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         let operation = operation.ok_or(BlockError::OperationIsNil)?;
 
@@ -301,8 +306,7 @@ impl ResponseAsserter {
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
     pub(crate) fn transaction(&self, transaction: Option<&Transaction>) -> AssertResult<()> {
-        // TODO if self nil WHERE NEW ASSERTER CALL ok_or(AsserterError::IsNil); or
-        // something like that.
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         let transaction = transaction.ok_or(BlockError::TxIsNil)?;
 
@@ -378,7 +382,10 @@ impl ResponseAsserter {
 
     /// `block` runs a basic set of assertions for each returned [`Block`].
     pub(crate) fn block(&self, block: Option<&Block>) -> AssertResult<()> {
-        // TODO if self nil
+        let asserter = self
+            .response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
         let block = block.ok_or(BlockError::BlockIsNil)?;
 
         block_identifier(block.block_identifier.as_ref())?;
@@ -388,7 +395,7 @@ impl ResponseAsserter {
 
         // Only apply duplicate hash and index checks if the block index is not the
         // genesis index.
-        if self.genesis_block.index != block_identifier.index {
+        if asserter.genesis_block.index != block_identifier.index {
             if block_identifier.hash == parent_block_identifier.hash {
                 Err(BlockError::BlockHashEqualsParentBlockHash)?;
             } else if block_identifier.index <= parent_block_identifier.index {
@@ -398,7 +405,7 @@ impl ResponseAsserter {
 
         // Only check for timestamp validity if timestamp start index is <=
         // the current block index.
-        if self.timestamp_start_index <= block_identifier.index as i64 {
+        if asserter.timestamp_start_index <= block_identifier.index as i64 {
             timestamp(block.timestamp as i64)?;
         }
 

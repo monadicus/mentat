@@ -1,13 +1,19 @@
 //! The asserter contains tools and methods to help validate the other types.
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 
 use super::{
     block::block_identifier,
-    errors::{AssertResult, NetworkError, ServerError},
-    network::{network_identifier, operation_statuses, operation_types},
+    errors::{AssertResult, AsserterError, BlockError, NetworkError, ServerError},
+    network::{
+        network_identifier,
+        network_options_response,
+        network_status_response,
+        operation_statuses,
+        operation_types,
+    },
     server::supported_networks,
     BlockIdentifier,
     MentatError,
@@ -22,7 +28,7 @@ pub(crate) const ACCOUNT: &str = "account";
 // pub(crate) const UTXO: &str = "utxo";
 
 /// The `Operation` data helps validate data.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct Operation {
     pub(crate) count: i64,
@@ -30,7 +36,7 @@ pub(crate) struct Operation {
 }
 
 /// The `ValidationOperation` data helps validate data.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct ValidationOperation {
     pub(crate) name: String,
@@ -40,8 +46,9 @@ pub(crate) struct ValidationOperation {
 /// Validations is used to define stricter validations
 /// on the transaction. Fore more details please refer to
 /// https://github.com/coinbase/rosetta-sdk-go/tree/master/asserter#readme
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[allow(clippy::missing_docs_in_private_items)]
+#[serde(default)]
 pub(crate) struct Validations {
     pub(crate) enabled: bool,
     pub(crate) related_ops_exists: bool,
@@ -52,8 +59,18 @@ pub(crate) struct Validations {
 
 impl Validations {
     /// Creates a new `Validations` struct given a config file.
-    pub(crate) fn get_validation_config(_validation_file_path: &Path) -> Result<Self, String> {
-        todo!()
+    pub(crate) fn get_validation_config(
+        validation_file_path: Option<&PathBuf>,
+    ) -> Result<Self, String> {
+        if let Some(path) = validation_file_path {
+            // TODO handle these unwraps
+            let content = std::fs::File::open(path).unwrap();
+            let mut config: Self = serde_json::from_reader(content).unwrap();
+            config.enabled = true;
+            return Ok(config);
+        }
+
+        Ok(Self::default())
     }
 }
 
@@ -62,114 +79,43 @@ impl Validations {
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct ResponseAsserter {
     pub(crate) network: NetworkIdentifier,
-    pub(crate) operation_types: Vec<String>,
     pub(crate) operation_status_map: IndexMap<String, bool>,
     pub(crate) error_type_map: IndexMap<i32, MentatError>,
     pub(crate) genesis_block: BlockIdentifier,
     pub(crate) timestamp_start_index: i64,
-    pub(crate) validations: Validations,
 }
 
-impl ResponseAsserter {
-    /// ClientConfiguration returns all variables currently set in an Asserter.
-    /// This function will error if it is called on an uninitialized asserter.
-    pub(crate) fn client_configuration(&self) -> AssertResult<Configuration> {
-        // TODO if self nil
-
-        let mut allowed_operation_statuses = Vec::new();
-        for (status, successful) in self.operation_status_map.iter() {
-            allowed_operation_statuses.push(OperationStatus {
-                status: status.clone(),
-                successful: *successful,
-            });
-        }
-
-        Ok(Configuration {
-            network_identifier: self.network.clone(),
-            genesis_block_identifier: self.genesis_block.clone(),
-            allowed_operation_types: self.operation_types.clone(),
-            allowed_operation_statuses,
-            allowed_errors: Vec::new(),
-            allowed_timestamp_start_index: self.timestamp_start_index,
-        })
-    }
-
-    /// NewClientWithOptions constructs a new Asserter using the provided
-    /// arguments instead of using a NetworkStatusResponse and a
-    /// NetworkOptionsResponse.
-    pub(crate) fn new_client_with_options(
-        network: NetworkIdentifier,
-        genesis_block: BlockIdentifier,
-        operation_types_: Vec<String>,
-        operation_stats: Vec<OperationStatus>,
-        _errors: Vec<String>,
-        timestamp_start_index: i64,
-        validations: Validations,
-    ) -> AssertResult<Self> {
-        network_identifier(Some(&network))?;
-        block_identifier(Some(&genesis_block))?;
-        operation_statuses(
-            &operation_stats
-                .iter()
-                .cloned()
-                .map(Some)
-                .collect::<Vec<_>>(),
-        )?;
-        operation_types(&operation_types_)?;
-
-        // TimestampStartIndex defaults to genesisIndex + 1 (this
-        // avoid breaking existing clients using < v1.4.6).
-        let parsed_timestamp_start_index = genesis_block.index + 1;
-        // TODO if timestampindex nil set parsedtimestampindex = timestampstartindex
-
-        if timestamp_start_index < 0 {
-            Err(format!(
-                "{}: {timestamp_start_index}",
-                NetworkError::TimestampStartIndexInvalid
-            ))?
-        }
-
-        let operation_status_map = operation_stats
-            .iter()
-            .map(|status| (status.status.clone(), status.successful))
-            .collect();
-
-        let error_type_map = Default::default();
-
-        Ok(Self {
-            network,
-            operation_types: operation_types_,
-            genesis_block,
-            timestamp_start_index: parsed_timestamp_start_index as i64,
-            validations,
-            operation_status_map,
-            error_type_map,
-        })
-    }
-}
-
-/// For response assertion.
+/// For request assertion.
 #[derive(Debug)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct RequestAsserter {
-    pub(crate) operation_types: Vec<String>,
     pub(crate) historical_balance_lookup: bool,
     pub(crate) supported_networks: Vec<NetworkIdentifier>,
     pub(crate) call_methods: IndexSet<String>,
     pub(crate) mempool_coins: bool,
+}
+/// Asserter contains all logic to perform static
+/// validation on Rosetta Server responses.
+#[derive(Debug)]
+#[allow(clippy::missing_docs_in_private_items)]
+#[allow(clippy::large_enum_variant)]
+pub(crate) struct Asserter {
+    pub(crate) operation_types: Vec<String>,
+    pub(crate) request: Option<RequestAsserter>,
+    pub(crate) response: Option<ResponseAsserter>,
     pub(crate) validations: Validations,
 }
 
-impl RequestAsserter {
-    /// Creates a new `RequestAsserter` struct given the settings and a
-    /// `Validations` config file.
+impl Asserter {
+    /// `new_server` constructs a new [`Asserter`] for use in the
+    /// server package.
     pub(crate) fn new_server(
         supported_operation_types: Vec<String>,
         historical_balance_lookup: bool,
         supp_networks: Vec<NetworkIdentifier>,
         call_methods: Vec<String>,
         mempool_coins: bool,
-        validation_file_path: &Path,
+        validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
         operation_types(&supported_operation_types)?;
         supported_networks(&supp_networks.iter().cloned().map(Some).collect::<Vec<_>>())?;
@@ -188,80 +134,190 @@ impl RequestAsserter {
 
         Ok(Self {
             operation_types: supported_operation_types,
-            historical_balance_lookup,
-            supported_networks: supp_networks,
-            call_methods: call_map,
-            mempool_coins,
+            request: Some(RequestAsserter {
+                historical_balance_lookup,
+                supported_networks: supp_networks,
+                call_methods: call_map,
+                mempool_coins,
+            }),
+            response: None,
             validations,
         })
     }
-}
 
-/// Asserter contains all logic to perform static
-/// validation on Rosetta Server responses.
-#[derive(Debug)]
-#[allow(clippy::missing_docs_in_private_items)]
-#[allow(clippy::large_enum_variant)]
-pub(crate) enum Asserter {
-    Response(ResponseAsserter),
-    Request(RequestAsserter),
-}
-
-impl Asserter {
-    /// NewServer constructs a new Asserter for use in the
-    /// server package.
-    pub(crate) fn new_server(
-        supported_operation_types: Vec<String>,
-        historical_balance_lookup: bool,
-        supp_networks: Vec<NetworkIdentifier>,
-        call_methods: Vec<String>,
-        mempool_coins: bool,
-        validation_file_path: &Path,
+    /// `new_client_with_options` constructs a new [`Asserter`] using the
+    /// provided arguments instead of using a NetworkStatusResponse and a
+    /// NetworkOptionsResponse.
+    pub(crate) fn new_client_with_options(
+        network: Option<NetworkIdentifier>,
+        genesis_block: Option<BlockIdentifier>,
+        operation_types_: Vec<String>,
+        operation_stats: Vec<Option<OperationStatus>>,
+        errors: Vec<Option<MentatError>>,
+        timestamp_start_index: Option<i64>,
+        validations: Validations,
     ) -> AssertResult<Self> {
-        Ok(Asserter::Request(RequestAsserter::new_server(
-            supported_operation_types,
-            historical_balance_lookup,
-            supp_networks,
-            call_methods,
-            mempool_coins,
-            validation_file_path,
-        )?))
+        network_identifier(network.as_ref())?;
+        block_identifier(genesis_block.as_ref())?;
+        let genesis_block = genesis_block.unwrap();
+        operation_statuses(&operation_stats)?;
+        operation_types(&operation_types_)?;
+
+        // TimestampStartIndex defaults to genesisIndex + 1 (this
+        // avoid breaking existing clients using < v1.4.6).
+        // safe to unwrap.
+        let parsed_timestamp_start_index = genesis_block.index + 1;
+        if let Some(tsi) = timestamp_start_index {
+            if tsi < 0 {
+                Err(AsserterError::from(format!(
+                    "{}: {tsi}",
+                    NetworkError::TimestampStartIndexInvalid
+                )))?;
+            }
+        }
+
+        // TODO these unwraps are not safe see operation_statuses fn.
+        let operation_status_map = operation_stats
+            .iter()
+            .map(|status| {
+                (
+                    status.clone().unwrap().status,
+                    status.clone().unwrap().successful,
+                )
+            })
+            .collect();
+
+        let error_type_map = Default::default();
+
+        Ok(Self {
+            operation_types: operation_types_,
+            request: None,
+            response: Some(ResponseAsserter {
+                // safe to unwrap.
+                network: network.unwrap(),
+                genesis_block,
+                timestamp_start_index: parsed_timestamp_start_index as i64,
+                operation_status_map,
+                error_type_map,
+            }),
+            validations,
+        })
     }
 
     /// NewClientWithResponses constructs a new Asserter
     /// from a NetworkStatusResponse and
     /// NetworkOptionsResponse.
     pub(crate) fn new_client_with_responses(
-        network: NetworkIdentifier,
-        _status: NetworkStatusResponse,
-        _options: NetworkOptionsResponse,
-        _validation_file_path: PathBuf,
+        network: Option<NetworkIdentifier>,
+        status: Option<NetworkStatusResponse>,
+        options: Option<NetworkOptionsResponse>,
+        validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
-        network_identifier(Some(&network))?;
+        network_identifier(network.as_ref())?;
+        network_status_response(status.as_ref())?;
+        network_options_response(options.as_ref())?;
+        // safe to unwrap.
+        let allow = options.unwrap().allow.unwrap();
 
-        todo!()
-        // Self::new_client_with_options
+        let validations = Validations::get_validation_config(validation_file_path)?;
+
+        Self::new_client_with_options(
+            network,
+            // this is safe to unwrap.
+            status.unwrap().genesis_block_identifier,
+            allow.operation_types,
+            allow.operation_statuses,
+            allow.errors,
+            allow.timestamp_start_index,
+            validations,
+        )
     }
 
-    /// Creates a new `Asserter` struct given the settings and a `Validations`
-    /// config file.
-    pub(crate) fn new_with_file(_file_path: String) -> AssertResult<Self> {
-        todo!()
+    /// ClientConfiguration returns all variables currently set in an Asserter.
+    /// This function will error if it is called on an uninitialized asserter.
+    pub(crate) fn client_configuration(&self) -> AssertResult<Configuration> {
+        let asserter = self
+            .response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
+
+        let mut allowed_operation_statuses = Vec::new();
+        for (status, successful) in asserter.operation_status_map.iter() {
+            allowed_operation_statuses.push(OperationStatus {
+                status: status.clone(),
+                successful: *successful,
+            });
+        }
+
+        Ok(Configuration {
+            network_identifier: Some(asserter.network.clone()),
+            genesis_block_identifier: Some(asserter.genesis_block.clone()),
+            allowed_operation_types: self.operation_types.clone(),
+            allowed_operation_statuses: allowed_operation_statuses.into_iter().map(Some).collect(),
+            allowed_errors: Vec::new(),
+            allowed_timestamp_start_index: Some(asserter.timestamp_start_index),
+        })
     }
 
     /// Says whether a given operation was successful or not.
-    pub(crate) fn operation_successful(&self, _operation: &Operation) -> AssertResult<bool> {
-        todo!()
+    pub(crate) fn operation_successful(
+        &self,
+        operation: Option<&crate::types::Operation>,
+    ) -> AssertResult<bool> {
+        let asserter = self
+            .response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
+
+        let operation = operation.unwrap();
+        if operation.status.is_none() || operation.status.as_ref().unwrap().is_empty() {
+            Err(BlockError::OperationStatusMissing)?;
+        }
+
+        if let Some(val) = asserter
+            .operation_status_map
+            .get(operation.status.as_ref().unwrap())
+        {
+            Ok(*val)
+        } else {
+            Err(AsserterError::from(format!(
+                "{} not found",
+                operation.status.as_ref().unwrap()
+            )))
+        }
     }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct Configuration {
-    network_identifier: NetworkIdentifier,
-    genesis_block_identifier: BlockIdentifier,
-    allowed_operation_types: Vec<String>,
-    allowed_operation_statuses: Vec<OperationStatus>,
-    allowed_errors: Vec<String>,
-    allowed_timestamp_start_index: i64,
+    pub(crate) network_identifier: Option<NetworkIdentifier>,
+    pub(crate) genesis_block_identifier: Option<BlockIdentifier>,
+    pub(crate) allowed_operation_types: Vec<String>,
+    pub(crate) allowed_operation_statuses: Vec<Option<OperationStatus>>,
+    pub(crate) allowed_errors: Vec<Option<MentatError>>,
+    pub(crate) allowed_timestamp_start_index: Option<i64>,
+}
+
+impl Configuration {
+    /// NewClientWithFile constructs a new Asserter using a specification
+    /// file instead of responses. This can be useful for running reliable
+    /// systems that error when updates to the server (more error types,
+    /// more operations, etc.) significantly change how to parse the chain.
+    /// The filePath provided is parsed relative to the current directory.
+    pub(crate) fn new_client_with_file(path: PathBuf) -> AssertResult<Asserter> {
+        // TODO handle these unwraps
+        let content = std::fs::File::open(path).unwrap();
+        let config: Self = serde_json::from_reader(content).unwrap();
+
+        Asserter::new_client_with_options(
+            config.network_identifier,
+            config.genesis_block_identifier,
+            config.allowed_operation_types,
+            config.allowed_operation_statuses,
+            config.allowed_errors,
+            config.allowed_timestamp_start_index,
+            Validations::default(),
+        )
+    }
 }

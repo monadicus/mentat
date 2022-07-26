@@ -1,26 +1,41 @@
+use super::{
+    server_test::{valid_account, valid_amount, valid_public_key},
+    test_utils::AsserterTest,
+};
 use crate::{
     asserter::{
         asserter_tools::{Asserter, RequestAsserter, ResponseAsserter},
         construction::{
-            construction_combine_response, construction_derive_response,
-            construction_metadata_response, construction_payloads_response,
-            construction_preprocess_response, public_key, signatures, signing_payload,
+            construction_combine_response,
+            construction_derive_response,
+            construction_metadata_response,
+            construction_payloads_response,
+            construction_preprocess_response,
+            public_key,
+            signatures,
+            signing_payload,
             transaction_identifier_response,
         },
         errors::{BlockError, ConstructionError, ServerError},
     },
     types::{
-        AccountIdentifier, ConstructionCombineResponse, ConstructionDeriveResponse,
-        ConstructionMetadataResponse, ConstructionParseResponse, ConstructionPayloadsResponse,
-        ConstructionPreprocessResponse, CurveType, Operation, OperationIdentifier, PublicKey,
-        Signature, SignatureType, SigningPayload, TransactionIdentifier,
+        AccountIdentifier,
+        ConstructionCombineResponse,
+        ConstructionDeriveResponse,
+        ConstructionMetadataResponse,
+        ConstructionParseResponse,
+        ConstructionPayloadsResponse,
+        ConstructionPreprocessResponse,
+        CurveType,
+        Operation,
+        OperationIdentifier,
+        PublicKey,
+        Signature,
+        SignatureType,
+        SigningPayload,
+        TransactionIdentifier,
         TransactionIdentifierResponse,
     },
-};
-
-use super::{
-    server_test::{valid_account, valid_amount, valid_public_key},
-    test_utils::AsserterTest,
 };
 
 #[test]
@@ -472,11 +487,12 @@ fn test_construction_parse_response() {
         },
     ];
 
-    todo!();
-
-    // AsserterTest::default_request_asserter_tests(tests, |asserter, test| {
-    //     asserter.construction_parse_response(test.payload, test.signed)
-    // });
+    AsserterTest::default_request_asserter_tests(tests, |asserter, test| {
+        asserter.construction_parse_response(
+            test.unwrap().payload.as_ref(),
+            test.as_ref().unwrap().signed,
+        )
+    });
 }
 
 #[test]
