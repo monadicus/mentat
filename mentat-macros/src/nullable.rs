@@ -2,11 +2,11 @@
 #![allow(clippy::missing_docs_in_private_items)]
 
 use proc_macro::TokenStream;
-use quote::quote;
+use proc_macro2::{TokenStream as TokenStream2, TokenTree};
+use quote::{quote, ToTokens};
 use syn::{
-    parse_quote, punctuated::Punctuated, token::Brace, AngleBracketedGenericArguments, Field,
-    FieldValue, Fields, FieldsNamed, GenericArgument, Ident, ItemImpl, ItemStruct, Path,
-    PathArguments, PathSegment, Type, TypePath,
+    parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
+    Ident, ItemImpl, ItemStruct, Type,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -57,37 +57,37 @@ impl FieldData {
         }
     }
 
-    fn get_inner(ty: &Type) -> (Type, FieldBehavior) {
-        let match_path = |segments: &Punctuated<PathSegment, _>| {
-            if let PathArguments::AngleBracketed(AngleBracketedGenericArguments { args, .. }) =
-                &segments[0].arguments
-            {
-                if let GenericArgument::Type(t) = &args[0] {
-                    t.clone()
+    fn mutate_type(ty: &Type) -> (Type, FieldBehavior) {
+        let mut stream = ty
+            .clone()
+            .into_token_stream()
+            .into_iter()
+            .map(|t| {
+                if let Some(id) = t.to_string().strip_prefix("Nullable") {
+                    TokenTree::Ident(Ident::new(id, t.span()))
                 } else {
-                    unreachable!()
+                    t
                 }
-            } else {
-                unreachable!()
+            })
+            .collect::<Vec<_>>();
+
+        let behavior = match stream.get(0).unwrap() {
+            TokenTree::Ident(id) if id == "Option" => {
+                stream.drain(0..2);
+                stream.pop();
+                FieldBehavior::Option
             }
+            TokenTree::Ident(id) if id == "Vec" => {
+                stream.drain(2..4);
+                stream.pop();
+                FieldBehavior::Vec
+            }
+            _ => FieldBehavior::Retain,
         };
 
-        match ty {
-            Type::Path(TypePath {
-                path: Path { segments, .. },
-                ..
-            }) if FieldBehavior::Option == (&segments[0].ident).into() => {
-                (match_path(segments), FieldBehavior::Option)
-            }
-            Type::Path(TypePath {
-                path: Path { segments, .. },
-                ..
-            }) if FieldBehavior::Vec == (&segments[0].ident).into() => {
-                let ty = Self::get_inner(&match_path(segments)).0;
-                (parse_quote!(Vec<#ty>), FieldBehavior::Vec)
-            }
-            ty => (ty.clone(), FieldBehavior::Retain),
-        }
+        let stream = stream.into_iter().collect::<TokenStream2>();
+
+        (parse_quote!(#stream), behavior)
     }
 }
 
@@ -108,7 +108,7 @@ impl From<&Field> for FieldData {
         let (ty, behavior) = if retain {
             (field.ty.clone(), FieldBehavior::Retain)
         } else {
-            FieldData::get_inner(&field.ty)
+            FieldData::mutate_type(&field.ty)
         };
 
         Self {
