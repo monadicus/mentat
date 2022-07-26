@@ -11,9 +11,9 @@ pub trait CallApi {
     async fn call(
         &self,
         _caller: Caller,
-        _data: CallRequest,
+        _data: NullableCallRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<CallResponse> {
+    ) -> MentatResponse<NullableCallResponse> {
         MentatError::not_implemented()
     }
 }
@@ -27,10 +27,10 @@ pub trait CallerCallApi: CallApi + Clone + Default {
     async fn call_call(
         &self,
         caller: Caller,
-        data: CallRequest,
+        data: NullableCallRequest,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<CallResponse> {
+    ) -> MentatResponse<NullableCallResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {

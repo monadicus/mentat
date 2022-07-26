@@ -7,11 +7,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier,
-    Amount,
-    BlockIdentifier,
-    Currency,
-    PartialBlockIdentifier,
+    AccountIdentifier, BlockIdentifier, NullableAmount, NullableCurrency, PartialBlockIdentifier,
     Sortable,
 };
 
@@ -66,7 +62,7 @@ pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> Part
 
 /// `amount_value` returns a [`BigInt`] representation of an
 /// Amount.Value or an error.
-pub(crate) fn amount_value(amount: &Amount) -> Result<BigInt, Box<dyn Error>> {
+pub(crate) fn amount_value(amount: &NullableAmount) -> Result<BigInt, Box<dyn Error>> {
     Ok(BigInt::from_str(&amount.value)?)
 }
 
@@ -91,7 +87,7 @@ pub(crate) fn account_string(account: &AccountIdentifier) -> String {
 
 /// `currency_string` returns a human-readable representation
 /// of a *Currency.
-pub(crate) fn currency_string(currency: &Currency) -> String {
+pub(crate) fn currency_string(currency: &NullableCurrency) -> String {
     if currency.metadata.is_empty() {
         return format!("{}:{}", currency.symbol, currency.decimals);
     }
@@ -151,7 +147,10 @@ pub(crate) fn negative_value(val: &str) -> Result<String, Box<dyn Error>> {
 
 /// `extract_amount` returns the Amount from a slice of Balance
 /// pertaining to an AccountAndCurrency.
-pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -> Amount {
+pub(crate) fn extract_amount(
+    balances: &[Option<NullableAmount>],
+    currency: &NullableCurrency,
+) -> NullableAmount {
     balances
         .iter()
         .find(|amt| {
@@ -163,7 +162,7 @@ pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -
         })
         .cloned()
         .flatten()
-        .unwrap_or(Amount {
+        .unwrap_or(NullableAmount {
             value: "0".to_string(),
             currency: Some(currency.clone()),
             ..Default::default()

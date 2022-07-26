@@ -1,14 +1,15 @@
 //! The module defines the `NetworkRequest` request.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
 /// A [`NetworkRequest`] is utilized to retrieve some data specific exclusively
 /// to a [`NetworkIdentifier`].
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct NetworkRequest {
+pub struct NullableNetworkRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]

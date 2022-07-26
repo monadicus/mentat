@@ -7,15 +7,8 @@ use crate::{
         network::{allow, error, errors, network_identifier, network_list_response, version},
     },
     types::{
-        Allow,
-        BalanceExemption,
-        Currency,
-        ExemptionType,
-        MentatError,
-        NetworkIdentifier,
-        NetworkListResponse,
-        OperationStatus,
-        SubNetworkIdentifier,
+        ExemptionType, MentatError, NetworkIdentifier, NullableAllow, NullableBalanceExemption,
+        NullableCurrency, NullableNetworkListResponse, OperationStatus, SubNetworkIdentifier,
         Version,
     },
 };
@@ -160,9 +153,9 @@ fn test_allow() {
     ];
     let operation_types = vec!["PAYMENT".to_string()];
     let call_methods = vec!["call".to_string()];
-    let balance_exemptions = vec![Some(BalanceExemption {
+    let balance_exemptions = vec![Some(NullableBalanceExemption {
         sub_account_address: None,
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
@@ -175,7 +168,7 @@ fn test_allow() {
     let tests = [
         AsserterTest {
             name: "valid Allow",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 ..Default::default()
@@ -184,7 +177,7 @@ fn test_allow() {
         },
         AsserterTest {
             name: "valid Allow with call methods and exemptions",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods: call_methods.clone(),
@@ -197,7 +190,7 @@ fn test_allow() {
         },
         AsserterTest {
             name: "valid Allow with exemptions and no historical",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods,
@@ -208,7 +201,7 @@ fn test_allow() {
         },
         AsserterTest {
             name: "invalid timestamp start index",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 timestamp_start_index: neg_index,
@@ -223,7 +216,7 @@ fn test_allow() {
         },
         AsserterTest {
             name: "no OperationStatuses",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
@@ -231,7 +224,7 @@ fn test_allow() {
         },
         AsserterTest {
             name: "no successful OperationStatuses",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: vec![operation_statuses[1].clone()],
                 operation_types: operation_types.clone(),
                 ..Default::default()
@@ -240,7 +233,7 @@ fn test_allow() {
         },
         AsserterTest {
             name: "no OperationTypes",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 ..Default::default()
             }),
@@ -250,7 +243,7 @@ fn test_allow() {
         },
         AsserterTest {
             name: "duplicate call methods",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods: vec!["call".into(), "call".into()],
@@ -263,11 +256,11 @@ fn test_allow() {
         },
         AsserterTest {
             name: "empty exemption",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods: vec!["call".into()],
-                balance_exemptions: vec![Some(BalanceExemption {
+                balance_exemptions: vec![Some(NullableBalanceExemption {
                     sub_account_address: None,
                     currency: None,
                     exemption_type: ExemptionType::DYNAMIC.into(),
@@ -278,11 +271,11 @@ fn test_allow() {
         },
         AsserterTest {
             name: "invalid exemption type",
-            payload: Some(Allow {
+            payload: Some(NullableAllow {
                 operation_statuses,
                 operation_types,
                 call_methods: vec!["call".into()],
-                balance_exemptions: vec![Some(BalanceExemption {
+                balance_exemptions: vec![Some(NullableBalanceExemption {
                     sub_account_address: None,
                     currency: None,
                     exemption_type: "test".into(),
@@ -422,7 +415,7 @@ fn test_network_list_response() {
     let tests = [
         AsserterTest {
             name: "valid network list",
-            payload: Some(NetworkListResponse {
+            payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1, network_1_sub.clone(), network_2],
             }),
             err: None,
@@ -434,14 +427,14 @@ fn test_network_list_response() {
         },
         AsserterTest {
             name: "network list duplicate",
-            payload: Some(NetworkListResponse {
+            payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1_sub.clone(), network_1_sub],
             }),
             err: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
         },
         AsserterTest {
             name: "invalid network",
-            payload: Some(NetworkListResponse {
+            payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_3],
             }),
             err: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),

@@ -18,9 +18,9 @@ pub trait IndexerApi: Default {
     async fn events_blocks(
         &self,
         _caller: Caller,
-        _data: EventsBlocksRequest,
+        _data: NullableEventsBlocksRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<EventsBlocksResponse> {
+    ) -> MentatResponse<NullableEventsBlocksResponse> {
         MentatError::not_implemented()
     }
 
@@ -36,9 +36,9 @@ pub trait IndexerApi: Default {
     async fn search_transactions(
         &self,
         _caller: Caller,
-        _data: SearchTransactionsRequest,
+        _data: NullableSearchTransactionsRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<SearchTransactionsResponse> {
+    ) -> MentatResponse<NullableSearchTransactionsResponse> {
         MentatError::not_implemented()
     }
 }
@@ -52,10 +52,10 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     async fn call_events_blocks(
         &self,
         caller: Caller,
-        data: EventsBlocksRequest,
+        data: NullableEventsBlocksRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<EventsBlocksResponse> {
+    ) -> MentatResponse<NullableEventsBlocksResponse> {
         self.events_blocks(caller, data, rpc_caller).await
     }
 
@@ -63,10 +63,10 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     async fn call_search_transactions(
         &self,
         caller: Caller,
-        data: SearchTransactionsRequest,
+        data: NullableSearchTransactionsRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<SearchTransactionsResponse> {
+    ) -> MentatResponse<NullableSearchTransactionsResponse> {
         self.search_transactions(caller, data, rpc_caller).await
     }
 }

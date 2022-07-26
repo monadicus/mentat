@@ -3,18 +3,12 @@
 use indexmap::IndexSet;
 
 use super::{
-    amount,
-    errors::AsserterError,
-    AssertResult,
-    Coin,
-    CoinAction,
-    CoinChange,
-    CoinError,
-    CoinIdentifier,
+    amount, errors::AsserterError, AssertResult, CoinAction, CoinError, CoinIdentifier,
+    NullableCoin, NullableCoinChange,
 };
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
-pub(crate) fn coin(coin: Option<&Coin>) -> AssertResult<()> {
+pub(crate) fn coin(coin: Option<&NullableCoin>) -> AssertResult<()> {
     let coin = coin.ok_or(CoinError::IsNil)?;
     coin_identifier(coin.coin_identifier.as_ref())
         .map_err(|e| format!("{e}: coin identifier is invalid"))?;
@@ -26,7 +20,7 @@ pub(crate) fn coin(coin: Option<&Coin>) -> AssertResult<()> {
 /// [`Coin`] is invalid. If there are any
 /// duplicate identifiers, this function
 /// will also return an error.
-pub(crate) fn coins(coins: &[Option<Coin>]) -> AssertResult<()> {
+pub(crate) fn coins(coins: &[Option<NullableCoin>]) -> AssertResult<()> {
     let mut ids = IndexSet::new();
     for c in coins {
         coin(c.as_ref()).map_err(|err| format!("{err}: coin is invalid"))?;
@@ -55,7 +49,7 @@ pub(crate) fn coin_identifier(coin_identifier: Option<&CoinIdentifier>) -> Asser
 
 /// `coin_change` returns an error if the provided [`CoinChange`]
 /// is invalid.
-pub(crate) fn coin_change(change: Option<&CoinChange>) -> AssertResult<()> {
+pub(crate) fn coin_change(change: Option<&NullableCoinChange>) -> AssertResult<()> {
     let change = change.ok_or(CoinError::ChangeIsNil)?;
 
     coin_identifier(change.coin_identifier.as_ref())

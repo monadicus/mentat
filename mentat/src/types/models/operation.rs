@@ -1,6 +1,7 @@
 //! The module defines the `Operation` model.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
@@ -10,9 +11,9 @@ use super::*;
 /// are used both to represent on-chain data (Data API) and to construct new
 /// transactions (Construction API), creating a standard interface for reading
 /// and writing to blockchains.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Nullable)]
 #[serde(default)]
-pub struct Operation {
+pub struct NullableOperation {
     /// The [`OperationIdentifier`] uniquely identifies an operation within a
     /// transaction.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -46,17 +47,20 @@ pub struct Operation {
     /// (operations yet to be included on-chain have not yet succeeded or
     /// failed).
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[retain]
     pub status: Option<String>,
     /// The [`AccountIdentifier`] uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[retain]
     pub account: Option<AccountIdentifier>,
     /// [`Amount`] is some Value of a [`Currency`]. It is considered invalid to
     /// specify a Value without a [`Currency`].
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub amount: Option<Amount>,
+    #[retain]
+    pub amount: Option<NullableAmount>,
     /// `CoinChange` is used to represent a change in state of a some coin
     /// identified by a coin_identifier. This object is part of the
     /// [`Operation`] model and must be populated for UTXO-based
@@ -65,7 +69,8 @@ pub struct Operation {
     /// the same blockchain (when a transfer is account-based, don't
     /// populate this model).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub coin_change: Option<CoinChange>,
+    #[retain]
+    pub coin_change: Option<NullableCoinChange>,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.

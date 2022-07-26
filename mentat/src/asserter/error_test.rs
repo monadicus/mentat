@@ -4,14 +4,8 @@ use super::test_utils::CustomAsserterTest;
 use crate::{
     asserter::{asserter_tools::Asserter, block::MIN_UNIX_EPOCH, errors::*},
     types::{
-        Allow,
-        BlockIdentifier,
-        MentatError,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        OperationStatus,
-        Peer,
+        BlockIdentifier, MentatError, NetworkIdentifier, NullableAllow,
+        NullableNetworkOptionsResponse, NullableNetworkStatusResponse, OperationStatus, Peer,
         Version,
     },
 };
@@ -118,7 +112,7 @@ fn test_error_map() {
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            Some(NetworkStatusResponse {
+            Some(NullableNetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".to_string(),
@@ -135,14 +129,14 @@ fn test_error_map() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NetworkOptionsResponse {
+            Some(NullableNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".to_string(),
                     node_version: "1.0".to_string(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(Allow {
+                allow: Some(NullableAllow {
                     errors: vec![
                         Some(MentatError {
                             status_code: 0,

@@ -4,7 +4,7 @@ use crate::{
         errors::{BlockError, EventError},
         events::events_blocks_response,
     },
-    types::{BlockEvent, BlockEventType, BlockIdentifier, EventsBlocksResponse},
+    types::{BlockEventType, BlockIdentifier, NullableBlockEvent, NullableEventsBlocksResponse},
 };
 
 #[test]
@@ -17,7 +17,7 @@ fn test_events_block_response() {
         },
         AsserterTest {
             name: "invalid max",
-            payload: Some(EventsBlocksResponse {
+            payload: Some(NullableEventsBlocksResponse {
                 max_sequence: -1,
                 events: Vec::new(),
             }),
@@ -25,10 +25,10 @@ fn test_events_block_response() {
         },
         AsserterTest {
             name: "valid event",
-            payload: Some(EventsBlocksResponse {
+            payload: Some(NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -36,7 +36,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 1,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -50,10 +50,10 @@ fn test_events_block_response() {
         },
         AsserterTest {
             name: "invalid identifier",
-            payload: Some(EventsBlocksResponse {
+            payload: Some(NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -61,7 +61,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 1,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -75,10 +75,10 @@ fn test_events_block_response() {
         },
         AsserterTest {
             name: "invalid event type",
-            payload: Some(EventsBlocksResponse {
+            payload: Some(NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -86,7 +86,7 @@ fn test_events_block_response() {
                         }),
                         type_: "revert".into(),
                     }),
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 1,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -100,10 +100,10 @@ fn test_events_block_response() {
         },
         AsserterTest {
             name: "gap events",
-            payload: Some(EventsBlocksResponse {
+            payload: Some(NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -111,7 +111,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 2,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -125,10 +125,10 @@ fn test_events_block_response() {
         },
         AsserterTest {
             name: "gap events",
-            payload: Some(EventsBlocksResponse {
+            payload: Some(NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: -1,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,
@@ -136,7 +136,7 @@ fn test_events_block_response() {
                         }),
                         type_: BlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(BlockEvent {
+                    Some(NullableBlockEvent {
                         sequence: 0,
                         block_identifier: Some(BlockIdentifier {
                             index: 0,

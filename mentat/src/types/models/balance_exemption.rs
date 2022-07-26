@@ -1,5 +1,7 @@
 //! The module defines the `BalanceExemption` model.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// [`BalanceExemption`] indicates that the balance for an exempt account could
@@ -14,9 +16,9 @@ use super::*;
 /// balance changes. If your implementation relies on any `[BalanceExemption]`s,
 /// you MUST implement historical balance lookup (the ability to query an
 /// account balance at any [`BlockIdentifier`]).
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct BalanceExemption {
+pub struct NullableBalanceExemption {
     /// SubAccountAddress is the [`SubAccountIdentifier`]. Address that the
     /// BalanceExemption applies to (regardless of the value of
     /// [`SubAccountIdentifier`].Metadata).
@@ -26,7 +28,8 @@ pub struct BalanceExemption {
     /// value is used to convert an Amount.Value from atomic units (Satoshis) to
     /// standard units (Bitcoins).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub currency: Option<Currency>,
+    #[retain]
+    pub currency: Option<NullableCurrency>,
     /// `ExemptionType` is used to indicate if the live balance for an account
     /// subject to a [`BalanceExemption`] could increase above, decrease below,
     /// or equal the computed balance. * `greater_or_equal`: The live

@@ -1,16 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    decode_from_hex_string,
-    AccountIdentifier,
-    ConstructionDeriveResponse,
-    ConstructionParseResponse,
-    CurveType,
-    PublicKey,
-    Signature,
-    SignatureType,
-    SigningPayload,
-    SubAccountIdentifier,
+    decode_from_hex_string, AccountIdentifier, CurveType, NullableConstructionDeriveResponse,
+    NullableConstructionParseResponse, NullablePublicKey, NullableSignature,
+    NullableSigningPayload, SignatureType, SubAccountIdentifier,
 };
 
 #[derive(Deserialize, Serialize)]
@@ -20,7 +13,7 @@ struct HexBytesTester {
 
 #[test]
 fn test_custom_marshal_public_key() {
-    let s = PublicKey {
+    let s = NullablePublicKey {
         bytes: "hsdjkfhkasjfhkjasdhfkjasdnfkjabsdfkjhakjsfdhjksadhfjk23478923645yhsdfn"
             .as_bytes()
             .to_vec(),
@@ -34,17 +27,17 @@ fn test_custom_marshal_public_key() {
     assert_eq!(b, s.bytes);
 
     // Full Check
-    let s2: PublicKey = serde_json::from_str(&json).unwrap();
+    let s2: NullablePublicKey = serde_json::from_str(&json).unwrap();
     assert_eq!(s.bytes, s2.bytes);
 
     // Invalid Hex Check
-    let s3: Result<PublicKey, _> = serde_json::from_str("{ \"hex_bytes\": \"hello\" }");
+    let s3: Result<NullablePublicKey, _> = serde_json::from_str("{ \"hex_bytes\": \"hello\" }");
     assert!(s3.is_err());
 }
 
 #[test]
 fn test_custom_marshal_signature() {
-    let s = Signature {
+    let s = NullableSignature {
         bytes: "hsdjkfhkasjfhkjasdhfkjasdnfkjabsdfkjhakjsfdhjksadhfjk23478923645yhsdfn"
             .as_bytes()
             .to_vec(),
@@ -59,17 +52,17 @@ fn test_custom_marshal_signature() {
     assert_eq!(b, s.bytes);
 
     // Full Check
-    let s2: Signature = serde_json::from_str(&json).unwrap();
+    let s2: NullableSignature = serde_json::from_str(&json).unwrap();
     assert_eq!(s.bytes, s2.bytes);
 
     // Invalid Hex Check
-    let s3: Result<Signature, _> = serde_json::from_str("{ \"hex_bytes\": \"hello\" }");
+    let s3: Result<NullableSignature, _> = serde_json::from_str("{ \"hex_bytes\": \"hello\" }");
     assert!(s3.is_err());
 }
 
 #[test]
 fn test_custom_marshal_signing_payload() {
-    let s = SigningPayload {
+    let s = NullableSigningPayload {
         account_identifier: Some(AccountIdentifier {
             address: "addr1".into(),
             sub_account: Some(SubAccountIdentifier {
@@ -91,15 +84,16 @@ fn test_custom_marshal_signing_payload() {
     assert_eq!(b, s.bytes);
 
     // Full Check
-    let s2: SigningPayload = serde_json::from_str(&json).unwrap();
+    let s2: NullableSigningPayload = serde_json::from_str(&json).unwrap();
     assert_eq!(s, s2);
 
     // Invalid Hex Check
-    let s3: Result<SigningPayload, _> = serde_json::from_str("{ \"hex_bytes\": \"hello\" }");
+    let s3: Result<NullableSigningPayload, _> =
+        serde_json::from_str("{ \"hex_bytes\": \"hello\" }");
     assert!(s3.is_err());
 
     // Deserialize Fields
-    let s4: SigningPayload =
+    let s4: NullableSigningPayload =
         serde_json::from_str("{ \"address\": \"hello\", \"hex_bytes\": \"74657374\" }").unwrap();
     assert_eq!(
         Some(AccountIdentifier {
@@ -111,14 +105,15 @@ fn test_custom_marshal_signing_payload() {
     assert_eq!("test".as_bytes(), &s4.bytes);
 
     // Deserialize Fields (empty address)
-    let s5: SigningPayload = serde_json::from_str("{ \"hex_bytes\": \"74657374\" }").unwrap();
+    let s5: NullableSigningPayload =
+        serde_json::from_str("{ \"hex_bytes\": \"74657374\" }").unwrap();
     assert!(s5.account_identifier.is_none());
     assert_eq!("test".as_bytes(), &s5.bytes);
 }
 
 #[test]
 fn test_custom_construction_derive_response() {
-    let s = ConstructionDeriveResponse {
+    let s = NullableConstructionDeriveResponse {
         account_identifier: Some(AccountIdentifier {
             address: "addr1".into(),
             ..Default::default()
@@ -130,11 +125,11 @@ fn test_custom_construction_derive_response() {
     // TODO Simple check
 
     // Full Check
-    let s2: ConstructionDeriveResponse = serde_json::from_str(&json).unwrap();
+    let s2: NullableConstructionDeriveResponse = serde_json::from_str(&json).unwrap();
     assert_eq!(s, s2);
 
     // Deserialize Fields
-    let s3: ConstructionDeriveResponse =
+    let s3: NullableConstructionDeriveResponse =
         serde_json::from_str("{ \"address\": \"hello\", \"hex_bytes\": \"74657374\" }").unwrap();
     assert_eq!(
         Some(AccountIdentifier {
@@ -145,12 +140,12 @@ fn test_custom_construction_derive_response() {
     );
 
     // Deserialize Fields (empty address)
-    let s4: ConstructionDeriveResponse =
+    let s4: NullableConstructionDeriveResponse =
         serde_json::from_str("{ \"hex_bytes\": \"74657374\" }").unwrap();
     assert!(s4.account_identifier.is_none());
 
     // Deserialize Fields (override)
-    let s5: ConstructionDeriveResponse =
+    let s5: NullableConstructionDeriveResponse =
         serde_json::from_str("{ \"address\": \"hello\", \"account_identifier\": { \"address\": \"hello2\" }, \"hex_bytes\": \"74657374\" }").unwrap();
     assert_eq!(
         Some(AccountIdentifier {
@@ -163,7 +158,7 @@ fn test_custom_construction_derive_response() {
 
 #[test]
 fn test_custom_construction_parse_response() {
-    let s = ConstructionParseResponse {
+    let s = NullableConstructionParseResponse {
         account_identifier_signers: vec![
             Some(AccountIdentifier {
                 address: "addr1".into(),
@@ -186,11 +181,11 @@ fn test_custom_construction_parse_response() {
     // TODO Simple check
 
     // Full Check
-    let s2: ConstructionParseResponse = serde_json::from_str(&json).unwrap();
+    let s2: NullableConstructionParseResponse = serde_json::from_str(&json).unwrap();
     assert_eq!(s, s2);
 
     // Deserialize Fields
-    let s3: ConstructionParseResponse =
+    let s3: NullableConstructionParseResponse =
         serde_json::from_str("{ \"signers\": [\"hello\"], \"hex_bytes\": \"74657374\" }").unwrap();
     assert_eq!(
         vec![Some(AccountIdentifier {
@@ -201,12 +196,12 @@ fn test_custom_construction_parse_response() {
     );
 
     // Deserialize Fields (empty address)
-    let s4: ConstructionParseResponse =
+    let s4: NullableConstructionParseResponse =
         serde_json::from_str("{ \"hex_bytes\": \"74657374\" }").unwrap();
     assert!(s4.signers.is_empty());
 
     // Deserialize Fields (override)
-    let s5: ConstructionParseResponse =
+    let s5: NullableConstructionParseResponse =
         serde_json::from_str("{ \"signers\": [\"hello\"], \"account_identifier_signers\": [{ \"address\": \"hello2\" }], \"hex_bytes\": \"74657374\" }").unwrap();
     assert_eq!(
         vec![Some(AccountIdentifier {

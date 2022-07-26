@@ -38,22 +38,22 @@ impl FieldData {
     fn gen_from_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
-            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name),
+            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
             FieldBehavior::Vec => {
-                parse_quote!(#field_name: other.#field_name.into_iter().flatten().collect())
+                parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| v.into()).collect())
             }
-            FieldBehavior::Option => parse_quote!(#field_name: other.#field_name.unwrap()),
+            FieldBehavior::Option => parse_quote!(#field_name: other.#field_name.unwrap().into()),
         }
     }
 
     fn gen_to_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
-            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name),
+            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
             FieldBehavior::Vec => {
-                parse_quote!(#field_name: other.#field_name.into_iter().map(|c| Some(c)).collect())
+                parse_quote!(#field_name: other.#field_name.into_iter().map(|c| Some(c.into())).collect())
             }
-            FieldBehavior::Option => parse_quote!(#field_name: Some(other.#field_name)),
+            FieldBehavior::Option => parse_quote!(#field_name: Some(other.#field_name.into())),
         }
     }
 
@@ -77,7 +77,10 @@ impl FieldData {
                 stream.pop();
                 FieldBehavior::Option
             }
-            TokenTree::Ident(id) if id == "Vec" => {
+            TokenTree::Ident(id)
+                if id == "Vec"
+                    && matches!(stream.get(2), Some(TokenTree::Ident(i)) if i == "Option") =>
+            {
                 stream.drain(2..4);
                 stream.pop();
                 FieldBehavior::Vec
@@ -165,6 +168,7 @@ impl StructBuilder {
 
         // TODO hack to get around lazy macro expansion for attributes
         parse_quote!(
+            #[allow(clippy::missing_docs_in_private_items)]
             #[derive(Clone, Debug, Default)]
             #tmp
         )

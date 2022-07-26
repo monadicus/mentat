@@ -8,34 +8,17 @@ use crate::{
     asserter::{
         asserter_tools::Asserter,
         block::{
-            account_identifier,
-            amount,
-            block_identifier,
-            operation_identifier,
-            MAX_UNIX_EPOCH,
+            account_identifier, amount, block_identifier, operation_identifier, MAX_UNIX_EPOCH,
             MIN_UNIX_EPOCH,
         },
         errors::{AssertResult, AsserterError, BlockError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        Block,
-        BlockIdentifier,
-        Currency,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        RelatedTransaction,
-        SubAccountIdentifier,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, BlockIdentifier, NetworkIdentifier, NullableAllow, NullableAmount,
+        NullableBlock, NullableCurrency, NullableNetworkOptionsResponse,
+        NullableNetworkStatusResponse, NullableOperation, NullableRelatedTransaction,
+        NullableTransaction, OperationIdentifier, OperationStatus, Peer, SubAccountIdentifier,
+        TransactionIdentifier, Version,
     },
 };
 
@@ -81,9 +64,9 @@ fn test_amount() {
     let tests = [
         AsserterTest {
             name: "valid amount",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "100000".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -94,9 +77,9 @@ fn test_amount() {
         },
         AsserterTest {
             name: "valid amount no decimals",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "100000".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: "BTC".into(),
                     decimals: Default::default(),
                     metadata: Default::default(),
@@ -107,9 +90,9 @@ fn test_amount() {
         },
         AsserterTest {
             name: "valid negative amount",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "-100000".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -125,7 +108,7 @@ fn test_amount() {
         },
         AsserterTest {
             name: "nil currency",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "-100000".into(),
                 currency: None,
                 metadata: Default::default(),
@@ -134,9 +117,9 @@ fn test_amount() {
         },
         AsserterTest {
             name: "invalid non number",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "blah".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -150,9 +133,9 @@ fn test_amount() {
         },
         AsserterTest {
             name: "invalid integer format",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "1.0".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -166,9 +149,9 @@ fn test_amount() {
         },
         AsserterTest {
             name: "invalid non-integer",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "1.1".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -182,9 +165,9 @@ fn test_amount() {
         },
         AsserterTest {
             name: "invalid symbol",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "11".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: String::new(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -195,9 +178,9 @@ fn test_amount() {
         },
         AsserterTest {
             name: "invalid decimals",
-            payload: Some(Amount {
+            payload: Some(NullableAmount {
                 value: "111".into(),
-                currency: Some(Currency {
+                currency: Some(NullableCurrency {
                     symbol: "BTC".into(),
                     decimals: -1,
                     metadata: Default::default(),
@@ -338,42 +321,42 @@ fn test_account_identifier() {
 
 #[derive(Default)]
 struct OperationValidationsTest {
-    operations: Vec<Option<Operation>>,
+    operations: Vec<Option<NullableOperation>>,
     construction: bool,
 }
 
 #[test]
 fn test_operation_validations() {
-    let valid_deposit_amt = Amount {
+    let valid_deposit_amt = NullableAmount {
         value: "1000".into(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         }),
         metadata: Default::default(),
     };
-    let valid_withdraw_amt = Amount {
+    let valid_withdraw_amt = NullableAmount {
         value: "-1000".into(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         }),
         metadata: Default::default(),
     };
-    let valid_fee_amt = Amount {
+    let valid_fee_amt = NullableAmount {
         value: "-100".into(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         }),
         metadata: Default::default(),
     };
-    let invalid_fee_amt = Amount {
+    let invalid_fee_amt = NullableAmount {
         value: "100".into(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
@@ -386,7 +369,7 @@ fn test_operation_validations() {
             name: "valid operations based on validation file",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -397,7 +380,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -408,7 +391,7 @@ fn test_operation_validations() {
                         amount: Some(valid_withdraw_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
@@ -431,7 +414,7 @@ fn test_operation_validations() {
             name: "throw error on missing fee operation",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -442,7 +425,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -465,7 +448,7 @@ fn test_operation_validations() {
             name: "throw error on missing payment operation",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -476,7 +459,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -499,7 +482,7 @@ fn test_operation_validations() {
             name: "throw error on payment amount not balancing",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -510,7 +493,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -518,9 +501,9 @@ fn test_operation_validations() {
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
-                        amount: Some(Amount {
+                        amount: Some(NullableAmount {
                             value: "-2000".into(),
-                            currency: Some(Currency {
+                            currency: Some(NullableCurrency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
@@ -529,7 +512,7 @@ fn test_operation_validations() {
                         }),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
@@ -552,7 +535,7 @@ fn test_operation_validations() {
             name: "valid operations based on validation file - unbalanced",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -563,7 +546,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -571,9 +554,9 @@ fn test_operation_validations() {
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
-                        amount: Some(Amount {
+                        amount: Some(NullableAmount {
                             value: "-2000".into(),
-                            currency: Some(Currency {
+                            currency: Some(NullableCurrency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
@@ -582,7 +565,7 @@ fn test_operation_validations() {
                         }),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
@@ -605,7 +588,7 @@ fn test_operation_validations() {
             name: "fee operation shouldn't contain related_operation key",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -616,7 +599,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -624,9 +607,9 @@ fn test_operation_validations() {
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
-                        amount: Some(Amount {
+                        amount: Some(NullableAmount {
                             value: "-2000".into(),
-                            currency: Some(Currency {
+                            currency: Some(NullableCurrency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
@@ -635,7 +618,7 @@ fn test_operation_validations() {
                         }),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
@@ -662,7 +645,7 @@ fn test_operation_validations() {
             name: "fee amount is non-negative",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -673,7 +656,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt.clone()),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -681,9 +664,9 @@ fn test_operation_validations() {
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
-                        amount: Some(Amount {
+                        amount: Some(NullableAmount {
                             value: "-2000".into(),
-                            currency: Some(Currency {
+                            currency: Some(NullableCurrency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
@@ -692,7 +675,7 @@ fn test_operation_validations() {
                         }),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
@@ -715,7 +698,7 @@ fn test_operation_validations() {
             name: "fee amount is negative as expected",
             payload: Some(OperationValidationsTest {
                 operations: vec![
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -726,7 +709,7 @@ fn test_operation_validations() {
                         amount: Some(valid_deposit_amt),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 1,
                             network_index: None,
@@ -734,9 +717,9 @@ fn test_operation_validations() {
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
                         account: valid_account_identifier(),
-                        amount: Some(Amount {
+                        amount: Some(NullableAmount {
                             value: "-2000".into(),
-                            currency: Some(Currency {
+                            currency: Some(NullableCurrency {
                                 symbol: "BTC".into(),
                                 decimals: 8,
                                 metadata: Default::default(),
@@ -745,7 +728,7 @@ fn test_operation_validations() {
                         }),
                         ..Default::default()
                     }),
-                    Some(Operation {
+                    Some(NullableOperation {
                         operation_identifier: Some(OperationIdentifier {
                             index: 2,
                             network_index: None,
@@ -777,7 +760,7 @@ fn test_operation_validations() {
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            Some(NetworkStatusResponse {
+            Some(NullableNetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -794,14 +777,14 @@ fn test_operation_validations() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NetworkOptionsResponse {
+            Some(NullableNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(Allow {
+                allow: Some(NullableAllow {
                     operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
@@ -829,7 +812,7 @@ fn test_operation_validations() {
 
 #[derive(Default)]
 struct OperationTest {
-    operation: Option<Operation>,
+    operation: Option<NullableOperation>,
     index: i64,
     successful: bool,
     construction: bool,
@@ -837,9 +820,9 @@ struct OperationTest {
 
 #[test]
 fn test_operation() {
-    let valid_amount = Some(Amount {
+    let valid_amount = Some(NullableAmount {
         value: "1000".into(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
@@ -851,7 +834,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "valid operation",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -872,7 +855,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "valid operation no account",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -903,7 +886,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "invalid operation no account",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -923,7 +906,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "invalid operation empty account",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -944,7 +927,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "invalid operation invalid index",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -963,7 +946,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "invalid operation invalid type",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -982,7 +965,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "unsuccessful operation",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -1001,7 +984,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "invalid operation invalid status",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -1020,7 +1003,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "valid construction operation",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -1040,7 +1023,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "valid construction operation (empty status)",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -1061,7 +1044,7 @@ fn test_operation() {
         CustomAsserterTest {
             name: "invalid construction operation",
             payload: Some(OperationTest {
-                operation: Some(Operation {
+                operation: Some(NullableOperation {
                     operation_identifier: Some(OperationIdentifier {
                         index: 1,
                         network_index: None,
@@ -1088,7 +1071,7 @@ fn test_operation() {
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            Some(NetworkStatusResponse {
+            Some(NullableNetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -1105,14 +1088,14 @@ fn test_operation() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NetworkOptionsResponse {
+            Some(NullableNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(Allow {
+                allow: Some(NullableAllow {
                     operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
@@ -1144,7 +1127,7 @@ fn test_operation() {
 
 #[derive(Default)]
 struct BlockTest {
-    block: Option<Block>,
+    block: Option<NullableBlock>,
 }
 
 #[derive(Default)]
@@ -1168,9 +1151,9 @@ fn test_block() {
         hash: "blah parent".into(),
         index: 99,
     };
-    let valid_amount = Some(Amount {
+    let valid_amount = Some(NullableAmount {
         value: "1000".into(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
@@ -1181,12 +1164,12 @@ fn test_block() {
         address: "test".into(),
         ..Default::default()
     });
-    let valid_transaction = Transaction {
+    let valid_transaction = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -1197,7 +1180,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1213,7 +1196,7 @@ fn test_block() {
                 ..Default::default()
             }),
         ],
-        related_transactions: vec![Some(RelatedTransaction {
+        related_transactions: vec![Some(NullableRelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -1226,11 +1209,11 @@ fn test_block() {
         })],
         metadata: Default::default(),
     };
-    let related_to_self_transaction = Transaction {
+    let related_to_self_transaction = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: vec![Some(Operation {
+        operations: vec![Some(NullableOperation {
             operation_identifier: Some(OperationIdentifier {
                 index: 0,
                 network_index: None,
@@ -1247,12 +1230,12 @@ fn test_block() {
         })],
         ..Default::default()
     };
-    let out_of_order_transaction = Transaction {
+    let out_of_order_transaction = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1267,7 +1250,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -1281,12 +1264,12 @@ fn test_block() {
         ],
         ..Default::default()
     };
-    let related_to_later_transaction = Transaction {
+    let related_to_later_transaction = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -1301,7 +1284,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1319,12 +1302,12 @@ fn test_block() {
         ],
         ..Default::default()
     };
-    let related_duplicate_transaction = Transaction {
+    let related_duplicate_transaction = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -1335,7 +1318,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1359,12 +1342,12 @@ fn test_block() {
         ],
         ..Default::default()
     };
-    let related_missing_transaction = Transaction {
+    let related_missing_transaction = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -1375,7 +1358,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1386,7 +1369,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1400,12 +1383,12 @@ fn test_block() {
         ],
         ..Default::default()
     };
-    let invalid_related_transaction = Transaction {
+    let invalid_related_transaction = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -1416,7 +1399,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1432,7 +1415,7 @@ fn test_block() {
                 ..Default::default()
             }),
         ],
-        related_transactions: vec![Some(RelatedTransaction {
+        related_transactions: vec![Some(NullableRelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
                 blockchain: "hello".into(),
                 network: "world".into(),
@@ -1445,12 +1428,12 @@ fn test_block() {
         })],
         ..Default::default()
     };
-    let duplicated_related_transactions = Transaction {
+    let duplicated_related_transactions = NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -1461,7 +1444,7 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -1478,7 +1461,7 @@ fn test_block() {
             }),
         ],
         related_transactions: vec![
-            Some(RelatedTransaction {
+            Some(NullableRelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
                     blockchain: "hello".into(),
                     network: "world".into(),
@@ -1489,7 +1472,7 @@ fn test_block() {
                 }),
                 direction: "Forward".into(),
             }),
-            Some(RelatedTransaction {
+            Some(NullableRelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
                     blockchain: "hello".into(),
                     network: "world".into(),
@@ -1508,7 +1491,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "valid block",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1522,7 +1505,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "valid block (before start index)",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![Some(valid_transaction.clone())],
@@ -1538,7 +1521,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "genesis block (without start index)",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![Some(valid_transaction.clone())],
@@ -1554,7 +1537,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "genesis block (with start index)",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident.clone()),
                     transactions: vec![Some(valid_transaction.clone())],
@@ -1571,7 +1554,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid genesis block (with start index)",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident.clone()),
                     transactions: vec![Some(valid_transaction.clone())],
@@ -1588,7 +1571,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "out of order transaction operations",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1602,7 +1585,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "related to self transaction operations",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1616,7 +1599,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "related to later transaction operations",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1630,7 +1613,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "duplicate related transaction operations",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1644,7 +1627,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "missing related transaction operations",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1669,7 +1652,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "nil block hash",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: None,
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1683,7 +1666,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid block hash",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
                     transactions: vec![Some(valid_transaction.clone())],
@@ -1696,7 +1679,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "block previous hash missing",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
                     transactions: vec![Some(valid_transaction.clone())],
@@ -1709,7 +1692,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid parent block index",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(BlockIdentifier {
                         index: valid_block_ident.index,
@@ -1726,7 +1709,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid parent block hash",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(BlockIdentifier {
                         index: valid_parent_block_ident.index,
@@ -1743,7 +1726,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid block timestamp less than MinUnixEpoch",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![Some(valid_transaction.clone())],
@@ -1756,7 +1739,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid block timestamp greater than MaxUnixEpoch",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![Some(valid_transaction)],
@@ -1770,7 +1753,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid block transaction",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![Default::default()],
@@ -1784,7 +1767,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "invalid related transaction",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![Some(invalid_related_transaction)],
@@ -1798,7 +1781,7 @@ fn test_block() {
         CustomAsserterTest {
             name: "duplicate related transaction",
             payload: Some(BlockTest {
-                block: Some(Block {
+                block: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident),
                     parent_block_identifier: Some(valid_parent_block_ident),
                     transactions: vec![Some(duplicated_related_transactions)],
@@ -1818,7 +1801,7 @@ fn test_block() {
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            Some(NetworkStatusResponse {
+            Some(NullableNetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -1835,14 +1818,14 @@ fn test_block() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NetworkOptionsResponse {
+            Some(NullableNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(Allow {
+                allow: Some(NullableAllow {
                     operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),

@@ -3,27 +3,10 @@
 use indexmap::IndexSet;
 
 use super::{
-    block_identifier,
-    currency,
-    hash,
-    string_array,
-    timestamp,
-    Allow,
-    AssertResult,
-    AsserterError,
-    BalanceExemption,
-    BlockError,
-    ErrorError,
-    MentatError,
-    NetworkError,
-    NetworkIdentifier,
-    NetworkListResponse,
-    NetworkOptionsResponse,
-    NetworkStatusResponse,
-    OperationStatus,
-    Peer,
-    SubNetworkIdentifier,
-    SyncStatus,
+    block_identifier, currency, hash, string_array, timestamp, AssertResult, AsserterError,
+    BlockError, ErrorError, MentatError, NetworkError, NetworkIdentifier, NullableAllow,
+    NullableBalanceExemption, NullableNetworkListResponse, NullableNetworkOptionsResponse,
+    NullableNetworkStatusResponse, OperationStatus, Peer, SubNetworkIdentifier, SyncStatus,
     Version,
 };
 
@@ -113,7 +96,9 @@ pub(crate) fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
 
 /// `network_status_response` ensures any [`NetworkStatusResponse`]
 /// is valid.
-pub(crate) fn network_status_response(resp: Option<&NetworkStatusResponse>) -> AssertResult<()> {
+pub(crate) fn network_status_response(
+    resp: Option<&NullableNetworkStatusResponse>,
+) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkStatusResponseIsNil)?;
 
     block_identifier(resp.current_block_identifier.as_ref())?;
@@ -203,7 +188,9 @@ pub(crate) fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
 }
 
 /// `balance_exemptions` ensures [`BalanceExemption`]] in a slice is valid.
-pub(crate) fn balance_exemptions(exemptions: &[Option<BalanceExemption>]) -> AssertResult<()> {
+pub(crate) fn balance_exemptions(
+    exemptions: &[Option<NullableBalanceExemption>],
+) -> AssertResult<()> {
     for (index, exemption) in exemptions.iter().enumerate() {
         let exemption = exemption.as_ref().ok_or(format!(
             "{} (index {})",
@@ -255,7 +242,7 @@ pub(crate) fn call_methods(methods: &[String]) -> AssertResult<()> {
 }
 
 /// `allow` ensures a [`Allow`] object is valid.
-pub(crate) fn allow(allowed: Option<&Allow>) -> AssertResult<()> {
+pub(crate) fn allow(allowed: Option<&NullableAllow>) -> AssertResult<()> {
     let allowed = allowed.ok_or(NetworkError::AllowIsNil)?;
 
     operation_statuses(&allowed.operation_statuses)?;
@@ -282,7 +269,7 @@ pub(crate) fn allow(allowed: Option<&Allow>) -> AssertResult<()> {
 /// `network_options_response` ensures a [`NetworkOptionsResponse`] object is
 /// valid.
 pub(crate) fn network_options_response(
-    options: Option<&NetworkOptionsResponse>,
+    options: Option<&NullableNetworkOptionsResponse>,
 ) -> AssertResult<()> {
     let options = options.ok_or(NetworkError::NetworkOptionsResponseIsNil)?;
     version(options.version.as_ref())?;
@@ -304,7 +291,9 @@ pub(crate) fn contains_network_identifier(
 }
 
 /// `network_list_response` ensures a [`NetworkListResponse`] object is valid.
-pub(crate) fn network_list_response(resp: Option<&NetworkListResponse>) -> AssertResult<()> {
+pub(crate) fn network_list_response(
+    resp: Option<&NullableNetworkListResponse>,
+) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkListResponseIsNil)?;
     let mut seen = Vec::new();
     for network in &resp.network_identifiers {

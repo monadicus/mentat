@@ -4,7 +4,7 @@
 use axum::http::Extensions;
 
 use super::*;
-use crate::types::{NetworkRequest, Result, Sortable};
+use crate::types::{NullableNetworkRequest, Result, Sortable};
 #[cfg(feature = "server")]
 use crate::{
     conf::{Configuration, Network, NodeConf},
@@ -59,7 +59,7 @@ impl From<(String, String, Option<String>)> for NetworkIdentifier {
     }
 }
 
-impl From<Option<NetworkIdentifier>> for NetworkRequest {
+impl From<Option<NetworkIdentifier>> for NullableNetworkRequest {
     fn from(net: Option<NetworkIdentifier>) -> Self {
         Self {
             network_identifier: net,

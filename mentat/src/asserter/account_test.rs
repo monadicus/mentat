@@ -7,13 +7,16 @@ use crate::{
         account::{account_balance_response, contains_currency, contains_duplicate_currency},
         errors::{AccountBalanceError, AssertResult, AsserterError, BlockError},
     },
-    types::{AccountBalanceResponse, Amount, BlockIdentifier, Currency, PartialBlockIdentifier},
+    types::{
+        BlockIdentifier, NullableAccountBalanceResponse, NullableAmount, NullableCurrency,
+        PartialBlockIdentifier,
+    },
 };
 
 #[derive(Default)]
 struct ContainsCurrencyTest {
-    currencies: Vec<Currency>,
-    currency: Currency,
+    currencies: Vec<NullableCurrency>,
+    currency: NullableCurrency,
 }
 
 #[test]
@@ -22,12 +25,12 @@ fn test_contains_currency() {
         AsserterEqualityTest {
             name: "simple contains",
             payload: ContainsCurrencyTest {
-                currencies: vec![Currency {
+                currencies: vec![NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }],
-                currency: Currency {
+                currency: NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -38,12 +41,12 @@ fn test_contains_currency() {
         AsserterEqualityTest {
             name: "complex contains",
             payload: ContainsCurrencyTest {
-                currencies: vec![Currency {
+                currencies: vec![NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }],
-                currency: Currency {
+                currency: NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
@@ -54,12 +57,12 @@ fn test_contains_currency() {
         AsserterEqualityTest {
             name: "more complex contains",
             payload: ContainsCurrencyTest {
-                currencies: vec![Currency {
+                currencies: vec![NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 }],
-                currency: Currency {
+                currency: NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
@@ -71,7 +74,7 @@ fn test_contains_currency() {
             name: "empty",
             payload: ContainsCurrencyTest {
                 currencies: Vec::new(),
-                currency: Currency {
+                currency: NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -82,12 +85,12 @@ fn test_contains_currency() {
         AsserterEqualityTest {
             name: "symbol mismatch",
             payload: ContainsCurrencyTest {
-                currencies: vec![Currency {
+                currencies: vec![NullableCurrency {
                     symbol: "ERX".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }],
-                currency: Currency {
+                currency: NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -98,12 +101,12 @@ fn test_contains_currency() {
         AsserterEqualityTest {
             name: "decimal mismatch",
             payload: ContainsCurrencyTest {
-                currencies: vec![Currency {
+                currencies: vec![NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }],
-                currency: Currency {
+                currency: NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 6,
                     metadata: Default::default(),
@@ -114,12 +117,12 @@ fn test_contains_currency() {
         AsserterEqualityTest {
             name: "metadata mismatch",
             payload: ContainsCurrencyTest {
-                currencies: vec![Currency {
+                currencies: vec![NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }],
-                currency: Currency {
+                currency: NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("bye")),
@@ -140,12 +143,12 @@ fn test_contains_duplicate_currency() {
         AsserterEqualityTest {
             name: "simple contains",
             payload: vec![
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }),
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -156,12 +159,12 @@ fn test_contains_duplicate_currency() {
         AsserterEqualityTest {
             name: "complex contains",
             payload: vec![
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }),
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
@@ -172,12 +175,12 @@ fn test_contains_duplicate_currency() {
         AsserterEqualityTest {
             name: "more complex contains",
             payload: vec![
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 }),
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
@@ -193,12 +196,12 @@ fn test_contains_duplicate_currency() {
         AsserterEqualityTest {
             name: "symbol mismatch",
             payload: vec![
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "ERX".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }),
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -209,12 +212,12 @@ fn test_contains_duplicate_currency() {
         AsserterEqualityTest {
             name: "decimal mismatch",
             payload: vec![
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }),
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 6,
                     metadata: Default::default(),
@@ -225,12 +228,12 @@ fn test_contains_duplicate_currency() {
         AsserterEqualityTest {
             name: "metadata mismatch",
             payload: vec![
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }),
-                Some(Currency {
+                Some(NullableCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("bye")),
@@ -249,7 +252,7 @@ fn test_contains_duplicate_currency() {
 struct AccountBalanceTest {
     request_block: Option<PartialBlockIdentifier>,
     response_block: BlockIdentifier,
-    balances: Vec<Option<Amount>>,
+    balances: Vec<Option<NullableAmount>>,
     _metadata: IndexMap<String, Value>,
 }
 
@@ -257,7 +260,7 @@ impl AccountBalanceTest {
     fn run(&self) -> AssertResult<()> {
         account_balance_response(
             self.request_block.as_ref(),
-            &AccountBalanceResponse {
+            &NullableAccountBalanceResponse {
                 block_identifier: Some(self.response_block.clone()),
                 balances: self.balances.clone(),
                 metadata: Default::default(),
@@ -280,9 +283,9 @@ fn test_account_balance() {
     let invalid_index = 1001;
     let invalid_hash = "ajsdk";
 
-    let valid_amt = Some(Amount {
+    let valid_amt = Some(NullableAmount {
         value: "100".to_string(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),

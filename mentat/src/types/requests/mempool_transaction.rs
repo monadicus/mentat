@@ -1,13 +1,14 @@
 //! The module defines the `MempoolTransactionRequest` request.
 
 use from_tuple::FromTuple;
+use mentat_macros::Nullable;
 
 use super::*;
 
 /// The transaction submission request includes a signed transaction.
-#[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize, Nullable)]
 #[serde(default)]
-pub struct MempoolTransactionRequest {
+pub struct NullableMempoolTransactionRequest {
     /// [`EventsBlocksRequest`] is utilized to fetch a sequence of
     /// [`BlockEvent`]s indicating which blocks were added and removed from
     /// storage to reach the current state.

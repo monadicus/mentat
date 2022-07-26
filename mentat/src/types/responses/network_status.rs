@@ -1,5 +1,7 @@
 //! The module defines the `NetworkStatusResponse` response.
 
+use mentat_macros::Nullable;
+
 use super::*;
 use crate::types::{Peer, SyncStatus};
 
@@ -14,9 +16,9 @@ use crate::types::{Peer, SyncStatus};
 /// `sync_status` should be populated so that clients can still monitor
 /// healthiness. Without this field, it may appear that the implementation is
 /// stuck syncing and needs to be terminated.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct NetworkStatusResponse {
+pub struct NullableNetworkStatusResponse {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,6 +34,7 @@ pub struct NetworkStatusResponse {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[retain]
     pub oldest_block_identifier: Option<BlockIdentifier>,
     /// `SyncStatus` is used to provide additional context about an
     /// implementation's sync status. This object is often used by
@@ -39,6 +42,7 @@ pub struct NetworkStatusResponse {
     /// queried until some sync phase completes or cannot be determined by
     /// comparing the timestamp of the most recent block with the current time.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[retain]
     pub sync_status: Option<SyncStatus>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(

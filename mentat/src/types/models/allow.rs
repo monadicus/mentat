@@ -1,5 +1,7 @@
 //! The module defines the `Allow` model.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// `Allow` specifies supported [`Operation`] status, [`Operation`] types, and
@@ -7,9 +9,9 @@ use super::*;
 /// validate the correctness of a Rosetta Server implementation. It is expected
 /// that these clients will error if they receive some response that contains
 /// any of the above information that is not specified here.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct Allow {
+pub struct NullableAllow {
     /// All `OperationStatus` this implementation supports. Any status that is
     /// returned during parsing that is not listed here will cause client
     /// validation to error.
@@ -44,6 +46,7 @@ pub struct Allow {
     /// populated, block timestamps are assumed to be valid for all available
     /// blocks.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[retain]
     pub timestamp_start_index: Option<i64>,
     /// All methods that are supported by the `/call` endpoint. Communicating
     /// which parameters should be provided to `/call` is the responsibility of
@@ -65,7 +68,7 @@ pub struct Allow {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub balance_exemptions: Vec<Option<BalanceExemption>>,
+    pub balance_exemptions: Vec<Option<NullableBalanceExemption>>,
     /// Any Rosetta implementation that can update an [`AccountIdentifier`]'s
     /// unspent coins based on the contents of the mempool should populate this
     /// field as true. If false, requests to `/account/coins` that set
