@@ -5,25 +5,18 @@
 
 extern crate proc_macro;
 
+mod nullable;
 mod route_builder;
 
+use nullable::create_nullable_counterpart;
 use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
-    self,
-    parse_macro_input,
-    AttributeArgs,
-    GenericArgument,
-    Ident,
-    ItemFn,
-    ItemStruct,
-    Meta,
+    self, parse_macro_input, AttributeArgs, GenericArgument, Ident, ItemFn, ItemStruct, Meta,
     NestedMeta,
     PathArguments::{self},
-    PathSegment,
-    ReturnType,
-    Type,
+    PathSegment, ReturnType, Type,
 };
 
 /// Matches the provided macro argument for the optional `CacheInner` type.
@@ -158,4 +151,11 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     out.extend(quote!(#function));
     out.extend(gen_main(&server_call, server_type, cache_type));
     out.into()
+}
+
+/// TODO doc
+#[proc_macro_derive(Nullable, attributes(retain))]
+pub fn nullable(item: TokenStream) -> TokenStream {
+    let item = parse_macro_input!(item as ItemStruct);
+    create_nullable_counterpart(item)
 }
