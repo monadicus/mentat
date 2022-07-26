@@ -10,7 +10,7 @@ use super::{
 
 /// `contains_duplicate_currency` returns a boolean indicating
 /// if an array of [`Currency`] contains any duplicate currencies.
-pub(crate) fn contains_duplicate_currency<'a>(
+pub fn contains_duplicate_currency<'a>(
     currencies: &[Option<&'a NullableCurrency>],
 ) -> Option<&'a NullableCurrency> {
     let mut seen = HashSet::new();
@@ -33,7 +33,7 @@ pub(crate) fn contains_duplicate_currency<'a>(
 /// [`Currency`]. The check for equality takes
 /// into account everything within the [`Currency`]
 /// struct (including currency.Metadata).
-pub(crate) fn contains_currency(
+pub fn contains_currency(
     currencies: &[NullableCurrency],
     currency: &NullableCurrency,
 ) -> bool {
@@ -44,7 +44,7 @@ pub(crate) fn contains_currency(
 /// of [`Amount`] is invalid. It is considered invalid if the same
 /// currency is returned multiple times (these should be
 /// consolidated) or if a [`Amount`] is considered invalid.
-pub(crate) fn assert_unique_amounts(amounts: &[Option<NullableAmount>]) -> AssertResult<()> {
+pub fn assert_unique_amounts(amounts: &[Option<NullableAmount>]) -> AssertResult<()> {
     let mut seen = HashSet::new();
 
     for amt in amounts.iter().filter_map(|a| a.as_ref()) {
@@ -66,7 +66,7 @@ pub(crate) fn assert_unique_amounts(amounts: &[Option<NullableAmount>]) -> Asser
 /// [`PartialBlockIdentifier`] is invalid, if the requestBlock
 /// is not nil and not equal to the response block, or
 /// if the same currency is present in multiple amounts.
-pub(crate) fn account_balance_response(
+pub fn account_balance_response(
     request_block: Option<&PartialBlockIdentifier>,
     response: &NullableAccountBalanceResponse,
 ) -> AssertResult<()> {
@@ -102,7 +102,7 @@ pub(crate) fn account_balance_response(
 
 /// `account_coins` returns an error if the provided
 /// [`AccountCoinsResponse`] is invalid.
-pub(crate) fn account_coins(response: &NullableAccountCoinsResponse) -> AssertResult<()> {
+pub fn account_coins(response: &NullableAccountCoinsResponse) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
     coins(&response.coins).map_err(|e| format!("{e}: coins are invalid"))?;
