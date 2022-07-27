@@ -288,8 +288,8 @@ impl NewWithOptionsTest {
             self.supported_networks
                 .clone()
                 .into_iter()
-                .flatten()
-                .collect(),
+                .map(|ni| ni.ok_or(NetworkError::NetworkIdentifierIsNil))
+                .collect::<Result<_, _>>()?,
             self.call_methods.clone(),
             false,
             None,
@@ -766,8 +766,8 @@ fn test_construction_submit_request() {
         },
         AsserterTest {
             name: "empty tx",
+            payload: Some(Default::default()),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
-            ..Default::default()
         },
     ];
 
@@ -817,7 +817,7 @@ fn test_mempool_transaction_request() {
             name: "invalid TransactionIdentifier request",
             payload: Some(MempoolTransactionRequest {
                 network_identifier: valid_network_identifier(),
-                ..Default::default()
+                transaction_identifier: Some(Default::default()),
             }),
             err: Some(BlockError::TxIdentifierHashMissing.into()),
         },
@@ -831,6 +831,7 @@ fn test_metadata_request() {
     let tests = [
         AsserterTest {
             name: "valid request",
+            payload: Some(Default::default()),
             ..Default::default()
         },
         AsserterTest {
@@ -876,8 +877,8 @@ fn test_network_request() {
         },
         AsserterTest {
             name: "missing network",
+            payload: Some(Default::default()),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
-            ..Default::default()
         },
     ];
 
@@ -1017,6 +1018,7 @@ fn test_construction_preprocess_request() {
             name: "empty operations",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
+                operations: Vec::new(),
                 ..Default::default()
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
@@ -1049,9 +1051,9 @@ fn test_construction_preprocess_request() {
             }),
             err: Some(
                 format!(
-                    "{}: {:?}",
+                    "{}: {}",
                     ServerError::ConstructionPreprocessRequestSuggestedFeeMultiplierIsNeg,
-                    negative_fee_multiplier
+                    negative_fee_multiplier.unwrap()
                 )
                 .into(),
             ),
@@ -1135,7 +1137,7 @@ fn test_construction_payloads_request() {
             name: "empty operations",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
-                operations: vec![Some(Operation::default())],
+                operations: vec![],
                 ..Default::default()
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
@@ -1640,7 +1642,7 @@ fn test_search_transactions_request() {
             name: "valid request",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::AND.into(),
+                operator: Some(Operator::AND.into()),
                 ..Default::default()
             }),
             ..Default::default()
@@ -1649,7 +1651,7 @@ fn test_search_transactions_request() {
             name: "invalid request wrong network",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: wrong_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: Some(Operator::OR.into()),
                 ..Default::default()
             }),
             err: Some(
@@ -1670,7 +1672,7 @@ fn test_search_transactions_request() {
             name: "negative max block",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: Some(Operator::OR.into()),
                 max_block: Some(-1),
                 ..Default::default()
             }),
@@ -1680,7 +1682,7 @@ fn test_search_transactions_request() {
             name: "negative offset",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: Some(Operator::OR.into()),
                 offset: Some(-1),
                 ..Default::default()
             }),
@@ -1690,7 +1692,7 @@ fn test_search_transactions_request() {
             name: "negative limit",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: Some(Operator::OR.into()),
                 limit: Some(-1),
                 ..Default::default()
             }),
@@ -1700,7 +1702,7 @@ fn test_search_transactions_request() {
             name: "invalid operator",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: "nor".into(),
+                operator: Some("nor".into()),
                 ..Default::default()
             }),
             err: Some(ServerError::OperatorInvalid.into()),

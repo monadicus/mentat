@@ -357,7 +357,7 @@ impl Asserter {
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
 
-        if !request.operator.valid() {
+        if request.operator.is_some() && !request.operator.as_ref().unwrap().valid() {
             Err(ServerError::OperatorInvalid)?;
         }
 
@@ -385,7 +385,9 @@ impl Asserter {
             currency(request.currency.as_ref())?;
         }
 
-        self.operation_status(request.status.as_ref(), false)?;
+        if request.status.is_some() {
+            self.operation_status(request.status.as_ref(), false)?;
+        }
 
         if let Some(t) = &request.type_ {
             self.operation_type(t.clone())?;

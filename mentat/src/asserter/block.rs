@@ -100,10 +100,9 @@ impl Asserter {
         status: Option<&String>,
         construction: bool,
     ) -> AssertResult<()> {
-        let asserter = self
-            .response
-            .as_ref()
-            .ok_or(AsserterError::NotInitialized)?;
+        if self.response.is_none() && self.request.is_none() {
+            Err(AsserterError::NotInitialized)?;
+        }
 
         if status.is_none() || status.unwrap().is_empty() {
             return if construction {
@@ -119,7 +118,12 @@ impl Asserter {
             Err(BlockError::OperationStatusNotEmptyForConstruction)?
         }
 
-        if asserter.operation_status_map.get(status).is_none() {
+        if self
+            .response
+            .as_ref()
+            .and_then(|r| r.operation_status_map.get(status))
+            .is_none()
+        {
             Err(format!(
                 "{}: {}",
                 BlockError::OperationStatusInvalid,
@@ -133,9 +137,9 @@ impl Asserter {
     /// `operation_type` returns an error if an operation.Type
     /// is not valid.
     pub(crate) fn operation_type(&self, t: String) -> AssertResult<()> {
-        self.response
-            .as_ref()
-            .ok_or(AsserterError::NotInitialized)?;
+        if self.response.is_none() && self.request.is_none() {
+            Err(AsserterError::NotInitialized)?;
+        }
 
         if t.is_empty() || !self.operation_types.contains(&t) {
             Err(format!("{}: {t}", BlockError::OperationTypeInvalid))?
@@ -152,9 +156,9 @@ impl Asserter {
         index: i64,
         construction: bool,
     ) -> AssertResult<()> {
-        self.response
-            .as_ref()
-            .ok_or(AsserterError::NotInitialized)?;
+        if self.response.is_none() && self.request.is_none() {
+            Err(AsserterError::NotInitialized)?;
+        }
 
         let operation = operation.ok_or(BlockError::OperationIsNil)?;
 
