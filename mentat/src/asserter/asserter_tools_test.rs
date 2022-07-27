@@ -276,7 +276,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("BlockIdentifier is Nil".into()),
+            err: Some("BlockIdentifier is nil".into()),
         },
         AsserterTest {
             name: "invalid network status (with sync status)",
@@ -337,7 +337,7 @@ fn test_new() {
 
     // TODO make use of test framework
     tests.into_iter().for_each(|test| {
-        println!("{}: ", test.name);
+        print!("{}: ", test.name);
         let payload = test.payload.unwrap();
         let res = Asserter::new_client_with_responses(
             payload.network.clone(),
@@ -428,6 +428,7 @@ fn test_new() {
                     config.allowed_timestamp_start_index
                 )
             }
+            println!("ok!");
         }
     });
 
@@ -451,7 +452,7 @@ fn test_new() {
         valid_network.clone(),
         valid_network_status.clone(),
         valid_network_options.clone(),
-        Some(Path::new("")),
+        None,
     )
     .unwrap();
     assert!(!asserter.validations.enabled);

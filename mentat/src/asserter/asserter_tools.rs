@@ -1,5 +1,8 @@
 //! The asserter contains tools and methods to help validate the other types.
-use std::path::{Path, PathBuf};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
@@ -56,9 +59,11 @@ impl Validations {
         validation_file_path: Option<&Path>,
     ) -> Result<Self, String> {
         if let Some(path) = validation_file_path {
-            // TODO handle these unwraps
-            let content = DATA_DIR.get_file(path).unwrap();
-            let mut config: Self = serde_json::from_str(content.contents_utf8().unwrap()).unwrap();
+            let content = DATA_DIR
+                .get_file(path)
+                .ok_or_else(|| format!("failed to get file `{}`", path.display()))?;
+            let mut config: Self = serde_json::from_str(content.contents_utf8().unwrap())
+                .map_err(|e| format!("failed to read `{}` file contents: {}", path.display(), e))?;
             return Ok(config);
         }
 
@@ -250,7 +255,7 @@ impl Asserter {
             genesis_block_identifier: Some(asserter.genesis_block.clone()),
             allowed_operation_types: self.operation_types.clone(),
             allowed_operation_statuses: allowed_operation_statuses.into_iter().map(Some).collect(),
-            allowed_errors: Vec::new(),
+            allowed_errors: vec![Some(MentatError::default_error())],
             allowed_timestamp_start_index: Some(asserter.timestamp_start_index),
         })
     }
@@ -302,9 +307,16 @@ impl Configuration {
     /// more operations, etc.) significantly change how to parse the chain.
     /// The filePath provided is parsed relative to the current directory.
     pub(crate) fn new_client_with_file(path: &Path) -> AssertResult<Asserter> {
-        // TODO handle these unwraps
-        let content = std::fs::File::open(path).unwrap();
-        let config: Self = serde_json::from_reader(content).unwrap();
+        let content = File::open(path).map_err(|e| {
+            AsserterError::StringError(format!("failed to read file `{}`: {}", path.display(), e))
+        })?;
+        let config: Self = serde_json::from_reader(content).map_err(|e| {
+            AsserterError::StringError(format!(
+                "failed to read contents of file `{}`: {}",
+                path.display(),
+                e
+            ))
+        })?;
 
         Asserter::new_client_with_options(
             config.network_identifier,

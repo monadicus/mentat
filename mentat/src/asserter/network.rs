@@ -3,28 +3,10 @@
 use indexmap::IndexSet;
 
 use super::{
-    block_identifier,
-    currency,
-    hash,
-    string_array,
-    timestamp,
-    Allow,
-    AssertResult,
-    AsserterError,
-    BalanceExemption,
-    BlockError,
-    ErrorError,
-    MentatError,
-    NetworkError,
-    NetworkIdentifier,
-    NetworkListResponse,
-    NetworkOptionsResponse,
-    NetworkStatusResponse,
-    OperationStatus,
-    Peer,
-    SubNetworkIdentifier,
-    SyncStatus,
-    Version,
+    block_identifier, currency, hash, string_array, timestamp, Allow, AssertResult, AsserterError,
+    BalanceExemption, BlockError, ErrorError, MentatError, NetworkError, NetworkIdentifier,
+    NetworkListResponse, NetworkOptionsResponse, NetworkStatusResponse, OperationStatus, Peer,
+    SubNetworkIdentifier, SyncStatus, Version,
 };
 
 /// `sub_network_identifier` asserts a [`SubNetworkIdentifier`] is valid (if not
@@ -96,15 +78,15 @@ pub(crate) fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
         None => return Ok(()),
     };
 
-    if status.current_index.is_none() || status.current_index.unwrap() < 0 {
+    if matches!(status.current_index, Some(i) if i < 0) {
         Err(NetworkError::SyncStatusCurrentIndexNegative)?;
     }
 
-    if status.target_index.is_none() || status.target_index.unwrap() < 0 {
+    if matches!(status.target_index, Some(i) if i < 0) {
         Err(NetworkError::SyncStatusTargetIndexNegative)?;
     }
 
-    if status.stage.is_none() || status.stage.as_ref().unwrap().is_empty() {
+    if matches!(&status.stage, Some(i) if i.is_empty()) {
         Err(NetworkError::SyncStatusStageInvalid)?;
     }
 

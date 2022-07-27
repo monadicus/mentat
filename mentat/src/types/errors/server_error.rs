@@ -115,6 +115,18 @@ impl MentatError {
         }
     }
 
+    /// default error
+    pub fn default_error() -> Self {
+        MentatError {
+            status_code: 0,
+            code: 1,
+            message: "error".into(),
+            description: None,
+            retriable: true,
+            details: Default::default(),
+        }
+    }
+
     /// Endpoint not implemented
     pub fn not_implemented<R>() -> MentatResponse<R> {
         Err(MentatError {
