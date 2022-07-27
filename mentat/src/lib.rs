@@ -119,3 +119,10 @@ mod client_rexport {
 
 #[cfg(feature = "client")]
 pub use client_rexport::*;
+
+#[cfg(test)]
+#[path = ""]
+mod tests {
+    mod test_utils;
+    pub(crate) use test_utils::*;
+}

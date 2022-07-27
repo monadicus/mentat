@@ -1,51 +1,4 @@
-use super::{
-    server_test::{valid_account, valid_amount, valid_public_key},
-    test_utils::{AsserterTest, CustomAsserterTest},
-};
-use crate::{
-    asserter::{
-        asserter_tools::{Asserter, RequestAsserter, ResponseAsserter},
-        block::MIN_UNIX_EPOCH,
-        construction::{
-            construction_combine_response,
-            construction_derive_response,
-            construction_metadata_response,
-            construction_payloads_response,
-            construction_preprocess_response,
-            public_key,
-            signatures,
-            signing_payload,
-            transaction_identifier_response,
-        },
-        errors::{BlockError, ConstructionError, ServerError},
-    },
-    types::{
-        AccountIdentifier,
-        Allow,
-        BlockIdentifier,
-        ConstructionCombineResponse,
-        ConstructionDeriveResponse,
-        ConstructionMetadataResponse,
-        ConstructionParseResponse,
-        ConstructionPayloadsResponse,
-        ConstructionPreprocessResponse,
-        CurveType,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        PublicKey,
-        Signature,
-        SignatureType,
-        SigningPayload,
-        TransactionIdentifier,
-        TransactionIdentifierResponse,
-        Version,
-    },
-};
+use super::*;
 
 #[test]
 fn test_construction_preprocess_response() {
@@ -86,7 +39,7 @@ fn test_construction_preprocess_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, construction_preprocess_response)
+    AsserterTest::run(tests, construction_preprocess_response)
 }
 
 #[test]
@@ -134,7 +87,7 @@ fn test_construction_metadata_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, construction_metadata_response)
+    AsserterTest::run(tests, construction_metadata_response)
 }
 
 #[test]
@@ -160,7 +113,7 @@ fn test_transaction_identifier_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, transaction_identifier_response)
+    AsserterTest::run(tests, transaction_identifier_response)
 }
 
 #[test]
@@ -185,7 +138,7 @@ fn test_construction_combine_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, construction_combine_response)
+    AsserterTest::run(tests, construction_combine_response)
 }
 
 #[test]
@@ -218,7 +171,7 @@ fn test_construction_derive_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, construction_derive_response)
+    AsserterTest::run(tests, construction_derive_response)
 }
 
 #[derive(Default)]
@@ -627,7 +580,7 @@ fn test_construction_payloads_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, construction_payloads_response)
+    AsserterTest::run(tests, construction_payloads_response)
 }
 
 #[test]
@@ -672,7 +625,7 @@ fn test_public_key() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, public_key)
+    AsserterTest::run(tests, public_key)
 }
 
 #[test]
@@ -754,7 +707,7 @@ fn test_signing_payload() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, signing_payload)
+    AsserterTest::run(tests, signing_payload)
 }
 
 #[test]
@@ -865,7 +818,7 @@ fn test_signatures() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(tests, |test| {
+    AsserterTest::run(tests, |test| {
         signatures(&test.unwrap().iter().map(|s| s.as_ref()).collect::<Vec<_>>())
     })
 }

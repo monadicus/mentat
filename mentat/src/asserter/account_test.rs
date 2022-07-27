@@ -1,14 +1,7 @@
 use indexmap::{indexmap, IndexMap};
 use serde_json::{json, Value};
 
-use super::test_utils::{AsserterEqualityTest, AsserterTest};
-use crate::{
-    asserter::{
-        account::{account_balance_response, contains_currency, contains_duplicate_currency},
-        errors::{AccountBalanceError, AssertResult, AsserterError, BlockError},
-    },
-    types::{AccountBalanceResponse, Amount, BlockIdentifier, Currency, PartialBlockIdentifier},
-};
+use super::*;
 
 #[derive(Default)]
 struct ContainsCurrencyTest {
@@ -129,7 +122,7 @@ fn test_contains_currency() {
         },
     ];
 
-    AsserterEqualityTest::non_asserter_equality_tests(&tests, |test| {
+    AsserterEqualityTest::run(&tests, |test| {
         contains_currency(&test.currencies, &test.currency)
     });
 }
@@ -240,7 +233,7 @@ fn test_contains_duplicate_currency() {
         },
     ];
 
-    AsserterEqualityTest::non_asserter_equality_tests(&tests, |test| {
+    AsserterEqualityTest::run(&tests, |test| {
         contains_duplicate_currency(&test.iter().map(|t| t.as_ref()).collect::<Vec<_>>()).is_some()
     });
 }
@@ -389,5 +382,5 @@ fn test_account_balance() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |t| t.unwrap().run());
+    AsserterTest::run(&tests, |t| t.unwrap().run());
 }

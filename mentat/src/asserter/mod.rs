@@ -10,37 +10,52 @@ use include_dir::{include_dir, Dir};
 pub(crate) static DATA_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/asserter/data");
 
 mod account;
-use account::*;
+pub(crate) use account::*;
+
 mod asserter_tools;
-use asserter_tools::*;
+pub(crate) use asserter_tools::*;
+
 mod block;
-use block::*;
+pub(crate) use block::*;
+
 mod coin;
-use coin::*;
+pub(crate) use coin::*;
+
 mod construction;
-use construction::*;
+pub(crate) use construction::*;
+
 mod error;
+pub(crate) use error::*;
 
 mod errors;
-use errors::*;
+pub(crate) use errors::*;
+
 mod events;
+pub(crate) use events::*;
 
 mod mempool;
+pub(crate) use mempool::*;
 
 mod network;
-use network::*;
+pub(crate) use network::*;
+
 mod search;
+pub(crate) use search::*;
 
 mod server;
+pub(crate) use server::*;
 
 mod util;
-use util::*;
+pub(crate) use util::*;
 
 use crate::types::*;
 
 #[cfg(test)]
 #[path = ""]
 mod tests {
+    pub use super::*;
+    use crate::tests::Test;
+
     mod account_test;
     mod asserter_test;
     mod block_test;
@@ -52,5 +67,7 @@ mod tests {
     mod network_test;
     mod search_test;
     mod server_test;
+    pub(crate) use server_test::*;
     mod test_utils;
+    pub(crate) use test_utils::*;
 }

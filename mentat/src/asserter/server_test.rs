@@ -1,51 +1,8 @@
 use std::path::Path;
 
-use axum::Server;
 use indexmap::indexmap;
 
-use super::test_utils::{AsserterTest, CustomAsserterTest};
-use crate::{
-    asserter::{
-        asserter_tools::Asserter,
-        errors::{AssertResult, BlockError, ConstructionError, NetworkError, ServerError},
-        server::supported_networks,
-    },
-    conf::Network,
-    types::{
-        AccountBalanceRequest,
-        AccountCoinsRequest,
-        AccountIdentifier,
-        Amount,
-        BlockIdentifier,
-        BlockRequest,
-        BlockTransactionRequest,
-        CallRequest,
-        ConstructionCombineRequest,
-        ConstructionDeriveRequest,
-        ConstructionHashRequest,
-        ConstructionMetadataRequest,
-        ConstructionParseRequest,
-        ConstructionPayloadsRequest,
-        ConstructionPreprocessRequest,
-        ConstructionSubmitRequest,
-        Currency,
-        CurveType,
-        EventsBlocksRequest,
-        MempoolTransactionRequest,
-        NetworkIdentifier,
-        NetworkRequest,
-        Operation,
-        OperationIdentifier,
-        Operator,
-        PartialBlockIdentifier,
-        PublicKey,
-        SearchTransactionsRequest,
-        Signature,
-        SignatureType,
-        SigningPayload,
-        TransactionIdentifier,
-    },
-};
+use super::*;
 
 pub(crate) fn valid_network_identifier() -> Option<NetworkIdentifier> {
     Some(NetworkIdentifier {
@@ -365,7 +322,7 @@ fn test_new_with_options() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |t| t.unwrap().run());
+    AsserterTest::run(&tests, |t| t.unwrap().run());
 }
 
 #[test]
@@ -405,7 +362,7 @@ fn test_supported_networks() {
     ];
 
     // TODO: remove Some
-    AsserterTest::non_asserter_tests(&tests, |test| supported_networks(test.unwrap()));
+    AsserterTest::run(&tests, |test| supported_networks(test.unwrap()));
 }
 
 #[test]
@@ -550,7 +507,7 @@ fn test_account_balance_request() {
 #[test]
 fn test_block_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(BlockRequest {
                 network_identifier: valid_network_identifier(),
@@ -558,7 +515,7 @@ fn test_block_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request for block 0",
             payload: Some(BlockRequest {
                 network_identifier: valid_network_identifier(),
@@ -569,12 +526,12 @@ fn test_block_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::BlockRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing network",
             payload: Some(BlockRequest {
                 block_identifier: Some(valid_partial_block_identifier()),
@@ -582,7 +539,7 @@ fn test_block_request() {
             }),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing block identifier",
             payload: Some(BlockRequest {
                 network_identifier: valid_network_identifier(),
@@ -590,7 +547,7 @@ fn test_block_request() {
             }),
             err: Some(BlockError::PartialBlockIdentifierIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid PartialBlockIdentifier request",
             payload: Some(BlockRequest {
                 network_identifier: valid_network_identifier(),
@@ -600,13 +557,13 @@ fn test_block_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::block_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::block_request);
 }
 
 #[test]
 fn test_block_transaction_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(BlockTransactionRequest {
                 network_identifier: valid_network_identifier(),
@@ -615,7 +572,7 @@ fn test_block_transaction_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(BlockTransactionRequest {
                 network_identifier: wrong_network_identifier(),
@@ -631,12 +588,12 @@ fn test_block_transaction_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::BlockTransactionRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing network",
             payload: Some(BlockTransactionRequest {
                 block_identifier: valid_block_identifier(),
@@ -645,7 +602,7 @@ fn test_block_transaction_request() {
             }),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing block identifier",
             payload: Some(BlockTransactionRequest {
                 network_identifier: valid_network_identifier(),
@@ -654,7 +611,7 @@ fn test_block_transaction_request() {
             }),
             err: Some(BlockError::BlockIdentifierIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid BlockIdentifier request",
             payload: Some(BlockTransactionRequest {
                 network_identifier: valid_network_identifier(),
@@ -665,13 +622,13 @@ fn test_block_transaction_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::block_transaction_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::block_transaction_request);
 }
 
 #[test]
 fn test_construction_metadata_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
@@ -680,7 +637,7 @@ fn test_construction_metadata_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request with public keys",
             payload: Some(ConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
@@ -692,7 +649,7 @@ fn test_construction_metadata_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionMetadataRequest {
                 network_identifier: wrong_network_identifier(),
@@ -701,12 +658,12 @@ fn test_construction_metadata_request() {
             }),
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionMetadataRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing network",
             payload: Some(ConstructionMetadataRequest {
                 options: Some(Default::default()),
@@ -714,7 +671,7 @@ fn test_construction_metadata_request() {
             }),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing options",
             payload: Some(ConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
@@ -723,7 +680,7 @@ fn test_construction_metadata_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request with public keys",
             payload: Some(ConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
@@ -737,13 +694,13 @@ fn test_construction_metadata_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_metadata_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_metadata_request);
 }
 
 #[test]
 fn test_construction_submit_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionSubmitRequest {
                 network_identifier: valid_network_identifier(),
@@ -751,7 +708,7 @@ fn test_construction_submit_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionSubmitRequest {
                 network_identifier: wrong_network_identifier(),
@@ -759,25 +716,25 @@ fn test_construction_submit_request() {
             }),
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionSubmitRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty tx",
             payload: Some(Default::default()),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_submit_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_submit_request);
 }
 
 #[test]
 fn test_mempool_transaction_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(MempoolTransactionRequest {
                 network_identifier: valid_network_identifier(),
@@ -785,7 +742,7 @@ fn test_mempool_transaction_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(MempoolTransactionRequest {
                 network_identifier: wrong_network_identifier(),
@@ -800,12 +757,12 @@ fn test_mempool_transaction_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::MempoolTransactionRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing network",
             payload: Some(MempoolTransactionRequest {
                 transaction_identifier: Some(valid_transaction_identifier()),
@@ -813,7 +770,7 @@ fn test_mempool_transaction_request() {
             }),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid TransactionIdentifier request",
             payload: Some(MempoolTransactionRequest {
                 network_identifier: valid_network_identifier(),
@@ -823,31 +780,31 @@ fn test_mempool_transaction_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::mempool_transaction_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::mempool_transaction_request);
 }
 
 #[test]
 fn test_metadata_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(Default::default()),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::MetadataRequestIsNil.into()),
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::metadata_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::metadata_request);
 }
 
 #[test]
 fn test_network_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(NetworkRequest {
                 network_identifier: valid_network_identifier(),
@@ -855,7 +812,7 @@ fn test_network_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(NetworkRequest {
                 network_identifier: wrong_network_identifier(),
@@ -870,25 +827,25 @@ fn test_network_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::NetworkRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "missing network",
             payload: Some(Default::default()),
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::network_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::network_request);
 }
 
 #[test]
 fn test_construction_derive_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionDeriveRequest {
                 network_identifier: valid_network_identifier(),
@@ -897,7 +854,7 @@ fn test_construction_derive_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionDeriveRequest {
                 network_identifier: wrong_network_identifier(),
@@ -912,12 +869,12 @@ fn test_construction_derive_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionDeriveRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil public key",
             payload: Some(ConstructionDeriveRequest {
                 network_identifier: valid_network_identifier(),
@@ -925,7 +882,7 @@ fn test_construction_derive_request() {
             }),
             err: Some(ConstructionError::PublicKeyIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty public key bytes",
             payload: Some(ConstructionDeriveRequest {
                 network_identifier: valid_network_identifier(),
@@ -939,7 +896,7 @@ fn test_construction_derive_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_derive_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_derive_request);
 }
 
 #[test]
@@ -948,7 +905,7 @@ fn test_construction_preprocess_request() {
     let negative_fee_multiplier = Some(-1.1f64);
 
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -957,7 +914,7 @@ fn test_construction_preprocess_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request with suggested fee multiplier",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -966,7 +923,7 @@ fn test_construction_preprocess_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request with max fee",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -975,7 +932,7 @@ fn test_construction_preprocess_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request with suggested fee multiplier and max fee",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -986,7 +943,7 @@ fn test_construction_preprocess_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1001,12 +958,12 @@ fn test_construction_preprocess_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionPreprocessRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil operations",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1014,7 +971,7 @@ fn test_construction_preprocess_request() {
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty operations",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1023,7 +980,7 @@ fn test_construction_preprocess_request() {
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "unsupported operation type",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1032,7 +989,7 @@ fn test_construction_preprocess_request() {
             }),
             err: Some(BlockError::OperationTypeInvalid.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid operations",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1041,7 +998,7 @@ fn test_construction_preprocess_request() {
             }),
             err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "negative suggested fee multiplier",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1058,7 +1015,7 @@ fn test_construction_preprocess_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "max fee with duplicate currency",
             payload: Some(ConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1076,13 +1033,13 @@ fn test_construction_preprocess_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_preprocess_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_preprocess_request);
 }
 
 #[test]
 fn test_construction_payloads_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1092,7 +1049,7 @@ fn test_construction_payloads_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request with public keys",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1105,7 +1062,7 @@ fn test_construction_payloads_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1120,12 +1077,12 @@ fn test_construction_payloads_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil operations",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1133,7 +1090,7 @@ fn test_construction_payloads_request() {
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty operations",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1142,7 +1099,7 @@ fn test_construction_payloads_request() {
             }),
             err: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "unsupported operation type",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1151,7 +1108,7 @@ fn test_construction_payloads_request() {
             }),
             err: Some(BlockError::OperationTypeInvalid.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid operations",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1160,7 +1117,7 @@ fn test_construction_payloads_request() {
             }),
             err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request with public keys",
             payload: Some(ConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1175,13 +1132,13 @@ fn test_construction_payloads_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_payload_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_payload_request);
 }
 
 #[test]
 fn test_construction_combine_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1190,7 +1147,7 @@ fn test_construction_combine_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request 2",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1208,7 +1165,7 @@ fn test_construction_combine_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request 3",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1226,7 +1183,7 @@ fn test_construction_combine_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1241,12 +1198,12 @@ fn test_construction_combine_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionCombineRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty unsigned transaction",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1255,7 +1212,7 @@ fn test_construction_combine_request() {
             }),
             err: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil signatures",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1264,7 +1221,7 @@ fn test_construction_combine_request() {
             }),
             err: Some(ConstructionError::SignaturesEmpty.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty signatures",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1273,7 +1230,7 @@ fn test_construction_combine_request() {
             }),
             err: Some(ConstructionError::SignaturesEmpty.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "signature type mismatch",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1282,7 +1239,7 @@ fn test_construction_combine_request() {
             }),
             err: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty signature",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1291,7 +1248,7 @@ fn test_construction_combine_request() {
             }),
             err: Some(ConstructionError::SignatureBytesEmpty.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "signature type match",
             payload: Some(ConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1302,13 +1259,13 @@ fn test_construction_combine_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_combine_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_combine_request);
 }
 
 #[test]
 fn test_construction_hash_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionHashRequest {
                 network_identifier: valid_network_identifier(),
@@ -1316,7 +1273,7 @@ fn test_construction_hash_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionHashRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1331,12 +1288,12 @@ fn test_construction_hash_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionHashRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty signed transaction",
             payload: Some(ConstructionHashRequest {
                 network_identifier: valid_network_identifier(),
@@ -1346,13 +1303,13 @@ fn test_construction_hash_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_hash_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_hash_request);
 }
 
 #[test]
 fn test_construction_parse_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(ConstructionParseRequest {
                 network_identifier: valid_network_identifier(),
@@ -1361,7 +1318,7 @@ fn test_construction_parse_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(ConstructionParseRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1369,12 +1326,12 @@ fn test_construction_parse_request() {
             }),
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::ConstructionParseRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty signed transaction",
             payload: Some(ConstructionParseRequest {
                 network_identifier: valid_network_identifier(),
@@ -1384,13 +1341,13 @@ fn test_construction_parse_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::construction_parse_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::construction_parse_request);
 }
 
 #[test]
 fn test_call_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(CallRequest {
                 network_identifier: valid_network_identifier(),
@@ -1399,7 +1356,7 @@ fn test_call_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request with params",
             payload: Some(CallRequest {
                 network_identifier: valid_network_identifier(),
@@ -1408,7 +1365,7 @@ fn test_call_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(CallRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1423,7 +1380,7 @@ fn test_call_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "unsupported method",
             payload: Some(CallRequest {
                 network_identifier: valid_network_identifier(),
@@ -1432,12 +1389,12 @@ fn test_call_request() {
             }),
             err: Some(ServerError::CallMethodUnsupported.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::CallRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "empty method",
             payload: Some(CallRequest {
                 network_identifier: valid_network_identifier(),
@@ -1447,7 +1404,7 @@ fn test_call_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::call_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::call_request);
 }
 
 #[test]
@@ -1576,7 +1533,7 @@ fn test_account_coins_request() {
 #[test]
 fn test_event_blocks_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(EventsBlocksRequest {
                 network_identifier: valid_network_identifier(),
@@ -1584,7 +1541,7 @@ fn test_event_blocks_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(EventsBlocksRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1599,12 +1556,12 @@ fn test_event_blocks_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::EventsBlocksRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "negative offset",
             payload: Some(EventsBlocksRequest {
                 network_identifier: valid_network_identifier(),
@@ -1613,7 +1570,7 @@ fn test_event_blocks_request() {
             }),
             err: Some(ServerError::OffsetIsNegative.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "negative limit",
             payload: Some(EventsBlocksRequest {
                 network_identifier: valid_network_identifier(),
@@ -1624,13 +1581,13 @@ fn test_event_blocks_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::events_block_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::events_block_request);
 }
 
 #[test]
 fn test_search_transactions_request() {
     let tests = [
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request no operator",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1638,7 +1595,7 @@ fn test_search_transactions_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1647,7 +1604,7 @@ fn test_search_transactions_request() {
             }),
             ..Default::default()
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid request wrong network",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: wrong_network_identifier(),
@@ -1663,12 +1620,12 @@ fn test_search_transactions_request() {
                 .into(),
             ),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "nil request",
             payload: None,
             err: Some(ServerError::SearchTransactionsRequestIsNil.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "negative max block",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1678,7 +1635,7 @@ fn test_search_transactions_request() {
             }),
             err: Some(ServerError::MaxBlockInvalid.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "negative offset",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1688,7 +1645,7 @@ fn test_search_transactions_request() {
             }),
             err: Some(ServerError::OffsetIsNegative.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "negative limit",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1698,7 +1655,7 @@ fn test_search_transactions_request() {
             }),
             err: Some(ServerError::LimitIsNegative.into()),
         },
-        AsserterTest {
+        AsserterRequestDefaultTest {
             name: "invalid operator",
             payload: Some(SearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1709,5 +1666,5 @@ fn test_search_transactions_request() {
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(&tests, Asserter::search_transactions_request);
+    AsserterRequestDefaultTest::run(&tests, Asserter::search_transactions_request);
 }

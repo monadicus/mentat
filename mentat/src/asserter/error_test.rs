@@ -1,20 +1,6 @@
 use indexmap::indexmap;
 
-use super::test_utils::CustomAsserterTest;
-use crate::{
-    asserter::{asserter_tools::Asserter, block::MIN_UNIX_EPOCH, errors::*},
-    types::{
-        Allow,
-        BlockIdentifier,
-        MentatError,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        OperationStatus,
-        Peer,
-        Version,
-    },
-};
+use super::*;
 
 #[test]
 fn test_error_map() {

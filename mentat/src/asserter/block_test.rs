@@ -1,42 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use super::test_utils::{status_message, AsserterTest, CustomAsserterTest};
-use crate::{
-    asserter::{
-        asserter_tools::Asserter,
-        block::{
-            account_identifier,
-            amount,
-            block_identifier,
-            operation_identifier,
-            MAX_UNIX_EPOCH,
-            MIN_UNIX_EPOCH,
-        },
-        errors::{AssertResult, AsserterError, BlockError},
-        tests::test_utils::assert_correct,
-    },
-    types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        Block,
-        BlockIdentifier,
-        Currency,
-        Direction,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        RelatedTransaction,
-        SubAccountIdentifier,
-        Transaction,
-        TransactionIdentifier,
-        Version,
-    },
-};
+use super::*;
 
 #[test]
 fn test_block_identifier() {
@@ -72,7 +36,7 @@ fn test_block_identifier() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, block_identifier);
+    AsserterTest::run(&tests, block_identifier);
 }
 
 #[test]
@@ -207,7 +171,7 @@ fn test_amount() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, amount);
+    AsserterTest::run(&tests, amount);
 }
 
 #[derive(Default)]
@@ -282,7 +246,7 @@ fn test_operation_identifier() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, |t| t.unwrap().run());
+    AsserterTest::run(&tests, |t| t.unwrap().run());
 }
 
 #[test]
@@ -332,7 +296,7 @@ fn test_account_identifier() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, account_identifier);
+    AsserterTest::run(&tests, account_identifier);
 }
 
 #[derive(Default)]

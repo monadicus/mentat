@@ -28,10 +28,10 @@ use super::{
 pub(crate) const ACCOUNT: &str = "account";
 // pub(crate) const UTXO: &str = "utxo";
 
-/// The `Operation` data helps validate data.
+/// The `AsserterOperation` data helps validate data.
 #[derive(Debug, Default, Deserialize, Serialize)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) struct Operation {
+pub(crate) struct AsserterOperation {
     pub(crate) count: i64,
     pub(crate) should_balance: bool,
 }
@@ -41,7 +41,7 @@ pub(crate) struct Operation {
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct ValidationOperation {
     pub(crate) name: String,
-    pub(crate) operation: Operation,
+    pub(crate) operation: AsserterOperation,
 }
 
 /// Validations is used to define stricter validations

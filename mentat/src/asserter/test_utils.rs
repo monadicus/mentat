@@ -1,15 +1,13 @@
 use std::fmt;
 
 use super::server_test::request_asserter;
-use crate::asserter::{
-    asserter_tools::{Asserter, RequestAsserter},
-    errors::{AssertResult, AsserterError},
+use crate::{
+    asserter::{
+        asserter_tools::{Asserter, RequestAsserter},
+        errors::{AssertResult, AsserterError},
+    },
+    tests::Test,
 };
-
-// TODO should move this to a common area
-// As it seems the Types module tests are written
-// in a similar fashion.
-// Likely other modules would follow the same schema.
 
 #[derive(Default)]
 pub(crate) struct AsserterTest<P: Default> {
@@ -18,35 +16,17 @@ pub(crate) struct AsserterTest<P: Default> {
     pub err: Option<AsserterError>,
 }
 
-impl<P: Default> AsserterTest<P> {
-    pub(crate) fn non_asserter_tests<F, O>(tests: &[Self], mut func: F)
-    where
-        F: FnMut(Option<&P>) -> AssertResult<O>,
-    {
+impl<P, Input, O> Test<Input> for AsserterTest<P>
+where
+    P: Default,
+    Input: FnMut(Option<&P>) -> AssertResult<O>,
+{
+    fn run(tests: &[Self], mut func: Input) {
         let failed = tests
             .iter()
             .map(|test| {
                 print!("{test}: ");
                 let res = func(test.payload.as_ref());
-                assert_correct(&test.err, &res)
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, tests.len());
-    }
-
-    pub(crate) fn default_request_asserter_tests<F, O>(tests: &[Self], mut func: F)
-    where
-        F: FnMut(&Asserter, Option<&P>) -> AssertResult<O>,
-    {
-        let asserter = request_asserter();
-
-        let failed = tests
-            .iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(&asserter, test.payload.as_ref());
                 assert_correct(&test.err, &res)
             })
             .filter(|t| !t)
@@ -63,18 +43,54 @@ impl<P: Default> fmt::Display for AsserterTest<P> {
 }
 
 #[derive(Default)]
+pub(crate) struct AsserterRequestDefaultTest<P: Default> {
+    pub name: &'static str,
+    pub payload: Option<P>,
+    pub err: Option<AsserterError>,
+}
+
+impl<P, Input, O> Test<Input> for AsserterRequestDefaultTest<P>
+where
+    P: Default,
+    Input: FnMut(&Asserter, Option<&P>) -> AssertResult<O>,
+{
+    fn run(tests: &[Self], mut func: Input) {
+        let asserter = request_asserter();
+
+        let failed = tests
+            .iter()
+            .map(|test| {
+                print!("{test}: ");
+                let res = func(&asserter, test.payload.as_ref());
+                assert_correct(&test.err, &res)
+            })
+            .filter(|t| !t)
+            .count();
+
+        status_message(failed, tests.len());
+    }
+}
+
+impl<P: Default> fmt::Display for AsserterRequestDefaultTest<P> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "test `{}`", self.name)
+    }
+}
+
+#[derive(Default)]
 pub(crate) struct AsserterEqualityTest<P: Default, R: Default> {
     pub name: &'static str,
     pub payload: P,
     pub res: R,
 }
 
-impl<P: Default, R: Default> AsserterEqualityTest<P, R> {
-    pub(crate) fn non_asserter_equality_tests<F>(tests: &[Self], mut func: F)
-    where
-        R: Eq + fmt::Display,
-        F: FnMut(&P) -> R,
-    {
+impl<P, Input, R> Test<Input> for AsserterEqualityTest<P, R>
+where
+    P: Default,
+    Input: FnMut(&P) -> R,
+    R: Default + Eq + fmt::Display,
+{
+    fn run(tests: &[Self], mut func: Input) {
         let failed = tests
             .iter()
             .map(|test| {

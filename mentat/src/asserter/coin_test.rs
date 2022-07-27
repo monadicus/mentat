@@ -1,11 +1,4 @@
-use super::test_utils::AsserterTest;
-use crate::{
-    asserter::{
-        coin::{coin, coin_change, coins},
-        errors::{AsserterError, CoinError},
-    },
-    types::{Amount, Coin, CoinAction, CoinChange, CoinIdentifier, Currency},
-};
+use super::*;
 
 #[test]
 fn test_coin() {
@@ -73,7 +66,7 @@ fn test_coin() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, coin);
+    AsserterTest::run(&tests, coin);
 }
 
 #[test]
@@ -133,7 +126,7 @@ fn test_coins() {
     ];
 
     // TODO: remove use of Some
-    AsserterTest::non_asserter_tests(&tests, |test| coins(test.unwrap()));
+    AsserterTest::run(&tests, |test| coins(test.unwrap()));
 }
 
 #[test]
@@ -176,5 +169,5 @@ fn test_coin_change() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, coin_change);
+    AsserterTest::run(&tests, coin_change);
 }
