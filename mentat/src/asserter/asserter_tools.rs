@@ -21,6 +21,7 @@ use super::{
     NetworkOptionsResponse,
     NetworkStatusResponse,
     OperationStatus,
+    DATA_DIR,
 };
 
 /// A static string representing account type data.
@@ -64,9 +65,8 @@ impl Validations {
     ) -> Result<Self, String> {
         if let Some(path) = validation_file_path {
             // TODO handle these unwraps
-            let content = std::fs::File::open(path).unwrap();
-            let mut config: Self = serde_json::from_reader(content).unwrap();
-            config.enabled = true;
+            let content = DATA_DIR.get_file(path).unwrap();
+            let mut config: Self = serde_json::from_str(content.contents_utf8().unwrap()).unwrap();
             return Ok(config);
         }
 
@@ -148,7 +148,7 @@ impl Asserter {
     /// `new_client_with_options` constructs a new [`Asserter`] using the
     /// provided arguments instead of using a NetworkStatusResponse and a
     /// NetworkOptionsResponse.
-    pub(crate) fn new_client_with_options(
+    fn new_client_with_options(
         network: Option<NetworkIdentifier>,
         genesis_block: Option<BlockIdentifier>,
         operation_types_: Vec<String>,
@@ -166,7 +166,7 @@ impl Asserter {
         // TimestampStartIndex defaults to genesisIndex + 1 (this
         // avoid breaking existing clients using < v1.4.6).
         // safe to unwrap.
-        let parsed_timestamp_start_index = genesis_block.index + 1;
+        let mut parsed_timestamp_start_index = genesis_block.index + 1;
         if let Some(tsi) = timestamp_start_index {
             if tsi < 0 {
                 Err(AsserterError::from(format!(
@@ -174,20 +174,24 @@ impl Asserter {
                     NetworkError::TimestampStartIndexInvalid
                 )))?;
             }
+
+            parsed_timestamp_start_index = tsi;
         }
 
         // TODO these unwraps are not safe see operation_statuses fn.
         let operation_status_map = operation_stats
-            .iter()
-            .map(|status| {
-                (
-                    status.clone().unwrap().status,
-                    status.clone().unwrap().successful,
-                )
-            })
+            .into_iter()
+            .map(|status| (status.clone().unwrap().status, status.unwrap().successful))
             .collect();
 
-        let error_type_map = Default::default();
+        let error_type_map = errors
+            .into_iter()
+            .map(|err| {
+                // Safe to unwrap
+                let err = err.unwrap();
+                (err.code, err)
+            })
+            .collect();
 
         Ok(Self {
             operation_types: operation_types_,

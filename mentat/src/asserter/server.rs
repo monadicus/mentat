@@ -306,11 +306,16 @@ impl Asserter {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         let request = request.ok_or(ServerError::AccountCoinsRequestIsNil)?;
+
         self.valid_supported_network(request.network_identifier.as_ref())?;
+
         account_identifier(request.account_identifier.as_ref())?;
+
         if request.include_mempool && !asserter.mempool_coins {
             Err(ServerError::MempoolCoinsNotSupported)?
-        } else if let Some(c) = contains_duplicate_currency(
+        }
+
+        if let Some(c) = contains_duplicate_currency(
             &request
                 .currencies
                 .iter()

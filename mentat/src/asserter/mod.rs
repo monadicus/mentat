@@ -4,6 +4,11 @@
 // TODO this is temporary to help find relevant warnings faster
 #![allow(unused)]
 
+use include_dir::{include_dir, Dir};
+
+/// Includes the data dir files;
+pub(crate) static DATA_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/asserter/data");
+
 mod account;
 use account::*;
 mod asserter_tools;

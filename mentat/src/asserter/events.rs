@@ -42,9 +42,9 @@ pub(crate) fn events_blocks_response(response: Option<&EventsBlocksResponse>) ->
         let event = event.as_ref().unwrap();
 
         if seq == -1 {
-            seq = event.sequence as i64
+            seq = event.sequence
         }
-        if event.sequence as i64 != seq + i as i64 {
+        if event.sequence != seq + (i as i64) {
             Err(EventError::SequenceOutOfOrder)?;
         }
     }

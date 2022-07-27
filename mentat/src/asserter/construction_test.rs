@@ -1,10 +1,11 @@
 use super::{
     server_test::{valid_account, valid_amount, valid_public_key},
-    test_utils::AsserterTest,
+    test_utils::{AsserterTest, CustomAsserterTest},
 };
 use crate::{
     asserter::{
         asserter_tools::{Asserter, RequestAsserter, ResponseAsserter},
+        block::MIN_UNIX_EPOCH,
         construction::{
             construction_combine_response,
             construction_derive_response,
@@ -20,6 +21,8 @@ use crate::{
     },
     types::{
         AccountIdentifier,
+        Allow,
+        BlockIdentifier,
         ConstructionCombineResponse,
         ConstructionDeriveResponse,
         ConstructionMetadataResponse,
@@ -27,14 +30,20 @@ use crate::{
         ConstructionPayloadsResponse,
         ConstructionPreprocessResponse,
         CurveType,
+        NetworkIdentifier,
+        NetworkOptionsResponse,
+        NetworkStatusResponse,
         Operation,
         OperationIdentifier,
+        OperationStatus,
+        Peer,
         PublicKey,
         Signature,
         SignatureType,
         SigningPayload,
         TransactionIdentifier,
         TransactionIdentifierResponse,
+        Version,
     },
 };
 
@@ -95,7 +104,7 @@ fn test_construction_metadata_response() {
             name: "with suggested fee",
             payload: Some(ConstructionMetadataResponse {
                 metadata: Some(Default::default()),
-                suggested_fee: vec![Some(valid_amount())],
+                suggested_fee: vec![valid_amount()],
             }),
             err: None,
         },
@@ -103,9 +112,15 @@ fn test_construction_metadata_response() {
             name: "with duplicate suggested fee",
             payload: Some(ConstructionMetadataResponse {
                 metadata: Some(Default::default()),
-                suggested_fee: vec![Some(valid_amount()), Some(valid_amount())],
+                suggested_fee: vec![valid_amount(), valid_amount()],
             }),
-            err: Some(format!("currency {:?} used multiple times", valid_amount().currency).into()),
+            err: Some(
+                format!(
+                    "currency {:?} used multiple times",
+                    valid_amount().unwrap().currency
+                )
+                .into(),
+            ),
         },
         AsserterTest {
             name: "nil response",
@@ -215,7 +230,7 @@ struct ConstructionParseResponseTest {
 #[test]
 fn test_construction_parse_response() {
     let tests = &[
-        AsserterTest {
+        CustomAsserterTest {
             name: "valid response",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
@@ -226,8 +241,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             }),
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                         Some(Operation {
@@ -240,20 +255,21 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             })],
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                     ],
-                    account_identifier_signers: vec![Some(valid_account())],
+                    account_identifier_signers: vec![valid_account()],
                     metadata: [("extra".into(), "stuff".into())].into(),
                     ..Default::default()
                 }),
                 signed: true,
             }),
+            extras: (),
             err: None,
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "duplicate signer",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
@@ -264,8 +280,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             }),
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                         Some(Operation {
@@ -282,36 +298,39 @@ fn test_construction_parse_response() {
                                 address: "addr 2".into(),
                                 ..Default::default()
                             }),
-                            amount: Some(valid_amount()),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                     ],
-                    account_identifier_signers: vec![Some(valid_account()), Some(valid_account())],
+                    account_identifier_signers: vec![valid_account(), valid_account()],
                     metadata: [("extra".into(), "stuff".into())].into(),
                     ..Default::default()
                 }),
                 signed: true,
             }),
+            extras: (),
             err: Some(ConstructionError::ConstructionParseResponseDuplicateSigner.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "nil response",
-            payload: None,
+            payload: Some(Default::default()),
+            extras: (),
             err: Some(ConstructionError::ConstructionParseResponseIsNil.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "no operations",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
-                    account_identifier_signers: vec![Some(valid_account())],
+                    account_identifier_signers: vec![valid_account()],
                     metadata: [("extra".into(), "stuff".into())].into(),
                     ..Default::default()
                 }),
                 ..Default::default()
             }),
+            extras: (),
             err: Some(ConstructionError::ConstructionParseResponseOperationsEmpty.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "invalid operation ordering",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
@@ -321,19 +340,20 @@ fn test_construction_parse_response() {
                             ..Default::default()
                         }),
                         type_: "PAYMENT".into(),
-                        account: Some(valid_account()),
-                        amount: Some(valid_amount()),
+                        account: valid_account(),
+                        amount: valid_amount(),
                         ..Default::default()
                     })],
-                    account_identifier_signers: vec![Some(valid_account())],
+                    account_identifier_signers: vec![valid_account()],
                     metadata: [("extra".into(), "stuff".into())].into(),
                     ..Default::default()
                 }),
                 ..Default::default()
             }),
+            extras: (),
             err: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "no signers",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
@@ -344,8 +364,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             }),
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                         Some(Operation {
@@ -358,8 +378,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             })],
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                     ],
@@ -368,9 +388,10 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
+            extras: (),
             err: Some(ConstructionError::ConstructionParseResponseSignersEmptyOnSignedTx.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "empty account identifier signer",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
@@ -381,8 +402,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             }),
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                         Some(Operation {
@@ -395,8 +416,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             })],
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                     ],
@@ -406,9 +427,10 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
+            extras: (),
             err: Some(ConstructionError::ConstructionParseResponseSignerEmpty.into()),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "invalid signer unsigned",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
@@ -419,8 +441,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             }),
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                         Some(Operation {
@@ -433,22 +455,23 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             })],
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                     ],
-                    account_identifier_signers: vec![Some(valid_account())],
+                    account_identifier_signers: vec![valid_account()],
                     metadata: [("extra".into(), "stuff".into())].into(),
                     ..Default::default()
                 }),
                 ..Default::default()
             }),
+            extras: (),
             err: Some(
                 ConstructionError::ConstructionParseResponseSignersNonEmptyOnUnsignedTx.into(),
             ),
         },
-        AsserterTest {
+        CustomAsserterTest {
             name: "valid response unsigned",
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(ConstructionParseResponse {
@@ -459,8 +482,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             }),
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                         Some(Operation {
@@ -473,8 +496,8 @@ fn test_construction_parse_response() {
                                 ..Default::default()
                             })],
                             type_: "PAYMENT".into(),
-                            account: Some(valid_account()),
-                            amount: Some(valid_amount()),
+                            account: valid_account(),
+                            amount: valid_amount(),
                             ..Default::default()
                         }),
                     ],
@@ -483,14 +506,64 @@ fn test_construction_parse_response() {
                 }),
                 ..Default::default()
             }),
+            extras: (),
             err: None,
         },
     ];
 
-    AsserterTest::default_request_asserter_tests(tests, |asserter, test| {
+    let asserter = |_: &()| -> Asserter {
+        Asserter::new_client_with_responses(
+            Some(NetworkIdentifier {
+                blockchain: "hello".into(),
+                network: "world".into(),
+                ..Default::default()
+            }),
+            Some(NetworkStatusResponse {
+                current_block_identifier: Some(BlockIdentifier {
+                    index: 100,
+                    hash: "block 100".into(),
+                }),
+                genesis_block_identifier: Some(BlockIdentifier {
+                    index: 0,
+                    hash: "block 0".into(),
+                }),
+                current_block_timestamp: MIN_UNIX_EPOCH + 1,
+                peers: vec![Some(Peer {
+                    peer_id: "peer 1".into(),
+                    metadata: Default::default(),
+                })],
+                ..Default::default()
+            }),
+            Some(NetworkOptionsResponse {
+                version: Some(Version {
+                    rosetta_version: "1.4.0".into(),
+                    node_version: "1.0".into(),
+                    ..Default::default()
+                }),
+                allow: Some(Allow {
+                    operation_statuses: vec![
+                        Some(OperationStatus {
+                            status: "SUCCESS".into(),
+                            successful: true,
+                        }),
+                        Some(OperationStatus {
+                            status: "FAILURE".into(),
+                            successful: false,
+                        }),
+                    ],
+                    operation_types: vec!["PAYMENT".into()],
+                    ..Default::default()
+                }),
+            }),
+            None,
+        )
+        .unwrap()
+    };
+
+    CustomAsserterTest::custom_asserter_tests(tests, asserter, |asserter, payload| {
         asserter.construction_parse_response(
-            test.unwrap().payload.as_ref(),
-            test.as_ref().unwrap().signed,
+            payload.unwrap().payload.as_ref(),
+            payload.as_ref().unwrap().signed,
         )
     });
 }
@@ -692,7 +765,7 @@ fn test_signatures() {
             payload: Some(vec![
                 Some(Signature {
                     signing_payload: Some(SigningPayload {
-                        account_identifier: Some(valid_account()),
+                        account_identifier: valid_account(),
                         bytes: "blah".into(),
                         ..Default::default()
                     }),
@@ -702,7 +775,7 @@ fn test_signatures() {
                 }),
                 Some(Signature {
                     signing_payload: Some(SigningPayload {
-                        account_identifier: Some(valid_account()),
+                        account_identifier: valid_account(),
                         bytes: "blah".into(),
                         ..Default::default()
                     }),
@@ -717,7 +790,7 @@ fn test_signatures() {
             name: "signature type match",
             payload: Some(vec![Some(Signature {
                 signing_payload: Some(SigningPayload {
-                    account_identifier: Some(valid_account()),
+                    account_identifier: valid_account(),
                     bytes: "blah".into(),
                     signature_type: SignatureType::ED25519.into(),
                     ..Default::default()
@@ -738,7 +811,7 @@ fn test_signatures() {
             payload: Some(vec![
                 Some(Signature {
                     signing_payload: Some(SigningPayload {
-                        account_identifier: Some(valid_account()),
+                        account_identifier: valid_account(),
                         bytes: "blah".into(),
                         ..Default::default()
                     }),
@@ -748,7 +821,7 @@ fn test_signatures() {
                 }),
                 Some(Signature {
                     signing_payload: Some(SigningPayload {
-                        account_identifier: Some(valid_account()),
+                        account_identifier: valid_account(),
                         bytes: "blah".into(),
                         signature_type: SignatureType::ED25519.into(),
                         ..Default::default()
@@ -764,7 +837,7 @@ fn test_signatures() {
             name: "signature zero bytes",
             payload: Some(vec![Some(Signature {
                 signing_payload: Some(SigningPayload {
-                    account_identifier: Some(valid_account()),
+                    account_identifier: valid_account(),
                     bytes: "blah".into(),
                     signature_type: SignatureType::ED25519.into(),
                     ..Default::default()
@@ -779,7 +852,7 @@ fn test_signatures() {
             name: "signature type mismatch",
             payload: Some(vec![Some(Signature {
                 signing_payload: Some(SigningPayload {
-                    account_identifier: Some(valid_account()),
+                    account_identifier: valid_account(),
                     bytes: "blah".into(),
                     signature_type: SignatureType::ECDSA_RECOVERY.into(),
                     ..Default::default()

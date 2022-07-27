@@ -1,4 +1,7 @@
-use super::test_utils::CustomAsserterTest;
+use super::{
+    server_test::{valid_account, valid_amount, valid_block_identifier},
+    test_utils::CustomAsserterTest,
+};
 use crate::{
     asserter::{
         asserter_tools::Asserter,
@@ -28,21 +31,7 @@ use crate::{
 
 #[test]
 fn test_search_transactions_response() {
-    let valid_account = Some(AccountIdentifier {
-        address: "test".into(),
-        sub_account: None,
-        metadata: Default::default(),
-    });
-    let valid_amount = Some(Amount {
-        value: "1000".into(),
-        currency: Some(Currency {
-            symbol: "BTC".into(),
-            decimals: 8,
-            metadata: Default::default(),
-        }),
-        metadata: Default::default(),
-    });
-    let valid_transaction = Transaction {
+    let valid_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -54,8 +43,8 @@ fn test_search_transactions_response() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account.clone(),
-                amount: valid_amount.clone(),
+                account: valid_account(),
+                amount: valid_amount(),
                 ..Default::default()
             }),
             Some(Operation {
@@ -69,17 +58,13 @@ fn test_search_transactions_response() {
                 })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account,
-                amount: valid_amount,
+                account: valid_account(),
+                amount: valid_amount(),
                 ..Default::default()
             }),
         ],
         ..Default::default()
-    };
-    let valid_block_ident = BlockIdentifier {
-        hash: "blah".into(),
-        index: 100,
-    };
+    });
 
     let tests = [
         CustomAsserterTest {
@@ -129,8 +114,8 @@ fn test_search_transactions_response() {
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![Some(BlockTransaction {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    transaction: Some(valid_transaction.clone()),
+                    block_identifier: valid_block_identifier(),
+                    transaction: valid_transaction.clone(),
                 })],
                 ..Default::default()
             }),
@@ -142,8 +127,8 @@ fn test_search_transactions_response() {
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![Some(BlockTransaction {
-                    block_identifier: Default::default(),
-                    transaction: Some(valid_transaction),
+                    block_identifier: Some(Default::default()),
+                    transaction: valid_transaction,
                 })],
                 ..Default::default()
             }),
@@ -155,13 +140,13 @@ fn test_search_transactions_response() {
             payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![Some(BlockTransaction {
-                    block_identifier: Some(valid_block_ident),
-                    transaction: Default::default(),
+                    block_identifier: valid_block_identifier(),
+                    transaction: Some(Default::default()),
                 })],
                 ..Default::default()
             }),
             extras: (),
-            err: Some(BlockError::BlockIdentifierHashMissing.into()),
+            err: Some(BlockError::TxIdentifierIsNil.into()),
         },
     ];
 

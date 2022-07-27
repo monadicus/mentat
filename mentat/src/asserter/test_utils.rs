@@ -135,7 +135,10 @@ impl<P: Default, E: Default> fmt::Display for CustomAsserterTest<P, E> {
     }
 }
 
-fn assert_correct<T>(err: &Option<AsserterError>, res: &Result<T, AsserterError>) -> bool {
+pub(crate) fn assert_correct<T>(
+    err: &Option<AsserterError>,
+    res: &Result<T, AsserterError>,
+) -> bool {
     match (res, err) {
         (Err(err), Some(exp)) if !err.to_string().contains(&exp.to_string()) => {
             println!("expected text fragment `{exp}` not found in error: `{err}`");
@@ -156,7 +159,7 @@ fn assert_correct<T>(err: &Option<AsserterError>, res: &Result<T, AsserterError>
     }
 }
 
-fn status_message(failed: usize, total: usize) {
+pub(crate) fn status_message(failed: usize, total: usize) {
     if failed == 0 {
         println!("all passed!")
     } else {

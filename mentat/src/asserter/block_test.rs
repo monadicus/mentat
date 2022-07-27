@@ -1,9 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use super::{
-    server_test::valid_account_identifier,
-    test_utils::{AsserterTest, CustomAsserterTest},
-};
+use super::test_utils::{status_message, AsserterTest, CustomAsserterTest};
 use crate::{
     asserter::{
         asserter_tools::Asserter,
@@ -16,6 +13,7 @@ use crate::{
             MIN_UNIX_EPOCH,
         },
         errors::{AssertResult, AsserterError, BlockError},
+        tests::test_utils::assert_correct,
     },
     types::{
         AccountIdentifier,
@@ -24,6 +22,7 @@ use crate::{
         Block,
         BlockIdentifier,
         Currency,
+        Direction,
         NetworkIdentifier,
         NetworkOptionsResponse,
         NetworkStatusResponse,
@@ -343,8 +342,8 @@ struct OperationValidationsTest {
 }
 
 #[test]
-fn test_operation_validations() {
-    let valid_deposit_amt = Amount {
+fn test_operations_validations() {
+    let valid_deposit_amt = Some(Amount {
         value: "1000".into(),
         currency: Some(Currency {
             symbol: "BTC".into(),
@@ -352,8 +351,8 @@ fn test_operation_validations() {
             metadata: Default::default(),
         }),
         metadata: Default::default(),
-    };
-    let valid_withdraw_amt = Amount {
+    });
+    let valid_withdraw_amt = Some(Amount {
         value: "-1000".into(),
         currency: Some(Currency {
             symbol: "BTC".into(),
@@ -361,8 +360,8 @@ fn test_operation_validations() {
             metadata: Default::default(),
         }),
         metadata: Default::default(),
-    };
-    let valid_fee_amt = Amount {
+    });
+    let valid_fee_amt = Some(Amount {
         value: "-100".into(),
         currency: Some(Currency {
             symbol: "BTC".into(),
@@ -370,8 +369,8 @@ fn test_operation_validations() {
             metadata: Default::default(),
         }),
         metadata: Default::default(),
-    };
-    let invalid_fee_amt = Amount {
+    });
+    let invalid_fee_amt = Some(Amount {
         value: "100".into(),
         currency: Some(Currency {
             symbol: "BTC".into(),
@@ -379,7 +378,11 @@ fn test_operation_validations() {
             metadata: Default::default(),
         }),
         metadata: Default::default(),
-    };
+    });
+    let valid_account = Some(AccountIdentifier {
+        address: "test".into(),
+        ..Default::default()
+    });
 
     let tests = [
         CustomAsserterTest {
@@ -393,8 +396,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -404,8 +407,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_withdraw_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_withdraw_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -415,16 +418,14 @@ fn test_operation_validations() {
                         }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_fee_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_fee_amt.clone(),
                         ..Default::default()
                     }),
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_balanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_balanced.json")),
             err: None,
         },
         CustomAsserterTest {
@@ -438,8 +439,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -449,16 +450,14 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_withdraw_amt),
+                        account: valid_account.clone(),
+                        amount: valid_withdraw_amt,
                         ..Default::default()
                     }),
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_balanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_balanced.json")),
             err: Some(BlockError::FeeCountMismatch.into()),
         },
         CustomAsserterTest {
@@ -472,8 +471,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -483,16 +482,14 @@ fn test_operation_validations() {
                         }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_fee_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_fee_amt.clone(),
                         ..Default::default()
                     }),
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_balanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_balanced.json")),
             err: Some(BlockError::PaymentCountMismatch.into()),
         },
         CustomAsserterTest {
@@ -506,8 +503,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -517,7 +514,7 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
+                        account: valid_account.clone(),
                         amount: Some(Amount {
                             value: "-2000".into(),
                             currency: Some(Currency {
@@ -536,16 +533,14 @@ fn test_operation_validations() {
                         }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_fee_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_fee_amt.clone(),
                         ..Default::default()
                     }),
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_balanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_balanced.json")),
             err: Some(BlockError::PaymentAmountNotBalancing.into()),
         },
         CustomAsserterTest {
@@ -559,8 +554,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -570,7 +565,7 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
+                        account: valid_account.clone(),
                         amount: Some(Amount {
                             value: "-2000".into(),
                             currency: Some(Currency {
@@ -589,16 +584,14 @@ fn test_operation_validations() {
                         }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_fee_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_fee_amt.clone(),
                         ..Default::default()
                     }),
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_unbalanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_unbalanced.json")),
             err: None,
         },
         CustomAsserterTest {
@@ -612,8 +605,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -623,7 +616,7 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
+                        account: valid_account.clone(),
                         amount: Some(Amount {
                             value: "-2000".into(),
                             currency: Some(Currency {
@@ -642,8 +635,8 @@ fn test_operation_validations() {
                         }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_fee_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_fee_amt.clone(),
                         related_operations: vec![Some(OperationIdentifier {
                             index: 0,
                             network_index: None,
@@ -653,9 +646,7 @@ fn test_operation_validations() {
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_unbalanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_unbalanced.json")),
             err: Some(BlockError::RelatedOperationInFeeNotAllowed.into()),
         },
         CustomAsserterTest {
@@ -669,8 +660,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt.clone()),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt.clone(),
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -680,7 +671,7 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
+                        account: valid_account.clone(),
                         amount: Some(Amount {
                             value: "-2000".into(),
                             currency: Some(Currency {
@@ -699,16 +690,14 @@ fn test_operation_validations() {
                         }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(invalid_fee_amt),
+                        account: valid_account.clone(),
+                        amount: invalid_fee_amt,
                         ..Default::default()
                     }),
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_unbalanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_unbalanced.json")),
             err: Some(BlockError::FeeAmountNotNegative.into()),
         },
         CustomAsserterTest {
@@ -722,8 +711,8 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_deposit_amt),
+                        account: valid_account.clone(),
+                        amount: valid_deposit_amt,
                         ..Default::default()
                     }),
                     Some(Operation {
@@ -733,7 +722,7 @@ fn test_operation_validations() {
                         }),
                         type_: "PAYMENT".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
+                        account: valid_account.clone(),
                         amount: Some(Amount {
                             value: "-2000".into(),
                             currency: Some(Currency {
@@ -752,20 +741,14 @@ fn test_operation_validations() {
                         }),
                         type_: "FEE".into(),
                         status: Some("SUCCESS".into()),
-                        account: valid_account_identifier(),
-                        amount: Some(valid_fee_amt),
-                        related_operations: vec![Some(OperationIdentifier {
-                            index: 0,
-                            network_index: None,
-                        })],
+                        account: valid_account,
+                        amount: valid_fee_amt,
                         ..Default::default()
                     }),
                 ],
                 construction: false,
             }),
-            extras: Some(PathBuf::from(
-                "data/validation_fee_and_payment_unbalanced.json",
-            )),
+            extras: Some(PathBuf::from("validation_fee_and_payment_unbalanced.json")),
             err: None,
         },
     ];
@@ -846,6 +829,10 @@ fn test_operation() {
         }),
         metadata: Default::default(),
     });
+    let valid_account = Some(AccountIdentifier {
+        address: "test".into(),
+        ..Default::default()
+    });
 
     let tests = [
         CustomAsserterTest {
@@ -858,7 +845,7 @@ fn test_operation() {
                     }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
-                    account: valid_account_identifier(),
+                    account: valid_account.clone(),
                     amount: valid_amount.clone(),
                     ..Default::default()
                 }),
@@ -879,7 +866,6 @@ fn test_operation() {
                     }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
-                    amount: valid_amount.clone(),
                     ..Default::default()
                 }),
                 index: 1,
@@ -918,7 +904,7 @@ fn test_operation() {
                 construction: false,
             }),
             extras: (),
-            err: Some(BlockError::OperationIsNil.into()),
+            err: Some(BlockError::AccountIsNil.into()),
         },
         CustomAsserterTest {
             name: "invalid operation empty account",
@@ -1026,7 +1012,7 @@ fn test_operation() {
                         network_index: None,
                     }),
                     type_: "PAYMENT".into(),
-                    account: valid_account_identifier(),
+                    account: valid_account.clone(),
                     amount: valid_amount.clone(),
                     ..Default::default()
                 }),
@@ -1047,7 +1033,7 @@ fn test_operation() {
                     }),
                     type_: "PAYMENT".into(),
                     status: Some(String::new()),
-                    account: valid_account_identifier(),
+                    account: valid_account.clone(),
                     amount: valid_amount.clone(),
                     ..Default::default()
                 }),
@@ -1068,7 +1054,7 @@ fn test_operation() {
                     }),
                     type_: "PAYMENT".into(),
                     status: Some("SUCCESS".into()),
-                    account: valid_account_identifier(),
+                    account: valid_account,
                     amount: valid_amount,
                     ..Default::default()
                 }),
@@ -1132,19 +1118,45 @@ fn test_operation() {
         .unwrap()
     };
 
-    CustomAsserterTest::custom_asserter_tests(&tests, asserter, |asserter, payload| {
-        let payload = payload.unwrap();
-        asserter.operation(
-            payload.operation.as_ref(),
-            payload.index,
-            payload.construction,
-        )
-    });
-}
+    let test_count = tests.len();
+    let failed = tests
+        .into_iter()
+        .map(|test| {
+            println!("{}: ", test.name);
 
-#[derive(Default)]
-struct BlockTest {
-    block: Option<Block>,
+            print!("Testing operation: ");
+            let asserter = asserter(&test.extras);
+            let payload = test.payload.as_ref().unwrap();
+            if !assert_correct(
+                &test.err,
+                &asserter.operation(
+                    payload.operation.as_ref(),
+                    payload.index,
+                    payload.construction,
+                ),
+            ) {
+                return false;
+            }
+
+            if test.err.is_none() && !payload.construction {
+                print!("Testing operation successful: ");
+                let successful = asserter
+                    .operation_successful(payload.operation.as_ref())
+                    .unwrap();
+
+                if payload.successful == successful {
+                    println!("ok!");
+                } else {
+                    println!("failed!");
+                }
+                return payload.successful == successful;
+            }
+
+            true
+        })
+        .filter(|t| !t)
+        .count();
+    status_message(failed, test_count);
 }
 
 #[derive(Default)]
@@ -1181,7 +1193,7 @@ fn test_block() {
         address: "test".into(),
         ..Default::default()
     });
-    let valid_transaction = Transaction {
+    let valid_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1193,7 +1205,7 @@ fn test_block() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1208,7 +1220,7 @@ fn test_block() {
                 })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1222,11 +1234,11 @@ fn test_block() {
             transaction_identifier: Some(TransactionIdentifier {
                 hash: "blah".into(),
             }),
-            direction: "Forward".into(),
+            direction: Direction::FORWARD.into(),
         })],
         metadata: Default::default(),
-    };
-    let related_to_self_transaction = Transaction {
+    });
+    let related_to_self_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1241,13 +1253,13 @@ fn test_block() {
             })],
             type_: "PAYMENT".into(),
             status: Some("SUCCESS".into()),
-            account: valid_account_identifier(),
+            account: valid_account.clone(),
             amount: valid_amount.clone(),
             ..Default::default()
         })],
         ..Default::default()
-    };
-    let out_of_order_transaction = Transaction {
+    });
+    let out_of_order_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1263,7 +1275,7 @@ fn test_block() {
                 })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1274,14 +1286,14 @@ fn test_block() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
         ],
         ..Default::default()
-    };
-    let related_to_later_transaction = Transaction {
+    });
+    let related_to_later_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1297,7 +1309,7 @@ fn test_block() {
                 })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1312,14 +1324,14 @@ fn test_block() {
                 })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
         ],
         ..Default::default()
-    };
-    let related_duplicate_transaction = Transaction {
+    });
+    let related_duplicate_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1331,7 +1343,7 @@ fn test_block() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1352,14 +1364,14 @@ fn test_block() {
                 ],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
         ],
         ..Default::default()
-    };
-    let related_missing_transaction = Transaction {
+    });
+    let related_missing_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1371,7 +1383,7 @@ fn test_block() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1382,25 +1394,25 @@ fn test_block() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
             Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
-                    index: 1,
+                    index: 2,
                     network_index: None,
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
         ],
         ..Default::default()
-    };
-    let invalid_related_transaction = Transaction {
+    });
+    let invalid_related_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1412,7 +1424,7 @@ fn test_block() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1427,7 +1439,7 @@ fn test_block() {
                 })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1444,8 +1456,8 @@ fn test_block() {
             direction: "blah".into(),
         })],
         ..Default::default()
-    };
-    let duplicated_related_transactions = Transaction {
+    });
+    let duplicated_related_transactions = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
@@ -1457,7 +1469,7 @@ fn test_block() {
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account_identifier(),
+                account: valid_account.clone(),
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
@@ -1502,32 +1514,28 @@ fn test_block() {
             }),
         ],
         ..Default::default()
-    };
+    });
 
     let tests = [
         CustomAsserterTest {
             name: "valid block",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    metadata: Default::default(),
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![valid_transaction.clone()],
+                metadata: Default::default(),
             }),
             extras: Default::default(),
             err: None,
         },
         CustomAsserterTest {
             name: "valid block (before start index)",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: BlockTestExtras {
                 start_index: Some(valid_block_ident.index + 1),
@@ -1537,13 +1545,11 @@ fn test_block() {
         },
         CustomAsserterTest {
             name: "genesis block (without start index)",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: BlockTestExtras {
                 genesis_index: valid_block_ident.index,
@@ -1553,13 +1559,11 @@ fn test_block() {
         },
         CustomAsserterTest {
             name: "genesis block (with start index)",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(genesis_ident.clone()),
-                    parent_block_identifier: Some(genesis_ident.clone()),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(genesis_ident.clone()),
+                parent_block_identifier: Some(genesis_ident.clone()),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: BlockTestExtras {
                 genesis_index: genesis_ident.index,
@@ -1570,13 +1574,11 @@ fn test_block() {
         },
         CustomAsserterTest {
             name: "invalid genesis block (with start index)",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(genesis_ident.clone()),
-                    parent_block_identifier: Some(genesis_ident.clone()),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(genesis_ident.clone()),
+                parent_block_identifier: Some(genesis_ident.clone()),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: BlockTestExtras {
                 genesis_index: genesis_ident.index,
@@ -1587,224 +1589,194 @@ fn test_block() {
         },
         CustomAsserterTest {
             name: "out of order transaction operations",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(out_of_order_transaction)],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![out_of_order_transaction],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         CustomAsserterTest {
             name: "related to self transaction operations",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(related_to_self_transaction)],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![related_to_self_transaction],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
         },
         CustomAsserterTest {
             name: "related to later transaction operations",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(related_to_later_transaction)],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![related_to_later_transaction],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
         },
         CustomAsserterTest {
             name: "duplicate related transaction operations",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(related_duplicate_transaction)],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![related_duplicate_transaction],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::RelatedOperationIndexDuplicate.into()),
         },
         CustomAsserterTest {
             name: "missing related transaction operations",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(related_missing_transaction)],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![related_missing_transaction],
+                ..Default::default()
             }),
             extras: BlockTestExtras {
-                validation_file_path: Some(PathBuf::from(
-                    "data/validation_balanced_related_ops.json",
-                )),
+                validation_file_path: Some(PathBuf::from("validation_balanced_related_ops.json")),
                 ..Default::default()
             },
             err: Some(BlockError::RelatedOperationMissing.into()),
         },
         CustomAsserterTest {
             name: "nil block",
-            payload: Some(BlockTest { block: None }),
+            payload: Default::default(),
             extras: Default::default(),
             err: Some(BlockError::BlockIsNil.into()),
         },
         CustomAsserterTest {
             name: "nil block hash",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: None,
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: None,
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::BlockIdentifierIsNil.into()),
         },
         CustomAsserterTest {
             name: "invalid block hash",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(Default::default()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         CustomAsserterTest {
             name: "block previous hash missing",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(Default::default()),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         CustomAsserterTest {
             name: "invalid parent block index",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(BlockIdentifier {
-                        index: valid_block_ident.index,
-                        hash: valid_parent_block_ident.hash.clone(),
-                    }),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(BlockIdentifier {
+                    index: valid_block_ident.index,
+                    hash: valid_parent_block_ident.hash.clone(),
                 }),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::BlockIndexPrecedesParentBlockIndex.into()),
         },
         CustomAsserterTest {
             name: "invalid parent block hash",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(BlockIdentifier {
-                        index: valid_parent_block_ident.index,
-                        hash: valid_block_ident.hash.clone(),
-                    }),
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(BlockIdentifier {
+                    index: valid_parent_block_ident.index,
+                    hash: valid_block_ident.hash.clone(),
                 }),
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::BlockHashEqualsParentBlockHash.into()),
         },
         CustomAsserterTest {
             name: "invalid block timestamp less than MinUnixEpoch",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: vec![Some(valid_transaction.clone())],
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                transactions: vec![valid_transaction.clone()],
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::TimestampBeforeMin.into()),
         },
         CustomAsserterTest {
             name: "invalid block timestamp greater than MaxUnixEpoch",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: vec![Some(valid_transaction)],
-                    timestamp: (MAX_UNIX_EPOCH + 1),
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                transactions: vec![valid_transaction],
+                timestamp: (MAX_UNIX_EPOCH + 1),
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::TimestampAfterMax.into()),
         },
         CustomAsserterTest {
             name: "invalid block transaction",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: vec![Default::default()],
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                transactions: vec![Some(Default::default())],
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::TxIdentifierIsNil.into()),
         },
         CustomAsserterTest {
             name: "invalid related transaction",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(valid_parent_block_ident.clone()),
-                    transactions: vec![Some(invalid_related_transaction)],
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident.clone()),
+                parent_block_identifier: Some(valid_parent_block_ident.clone()),
+                transactions: vec![invalid_related_transaction],
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::InvalidDirection.into()),
         },
         CustomAsserterTest {
             name: "duplicate related transaction",
-            payload: Some(BlockTest {
-                block: Some(Block {
-                    block_identifier: Some(valid_block_ident),
-                    parent_block_identifier: Some(valid_parent_block_ident),
-                    transactions: vec![Some(duplicated_related_transactions)],
-                    timestamp: (MIN_UNIX_EPOCH + 1),
-                    ..Default::default()
-                }),
+            payload: Some(Block {
+                block_identifier: Some(valid_block_ident),
+                parent_block_identifier: Some(valid_parent_block_ident),
+                transactions: vec![duplicated_related_transactions],
+                timestamp: (MIN_UNIX_EPOCH + 1),
+                ..Default::default()
             }),
             extras: Default::default(),
             err: Some(BlockError::DuplicateRelatedTransaction.into()),
@@ -1863,8 +1835,5 @@ fn test_block() {
         .unwrap()
     };
 
-    CustomAsserterTest::custom_asserter_tests(&tests, asserter, |asserter, payload| {
-        let payload = payload.unwrap();
-        asserter.block(payload.block.as_ref())
-    });
+    CustomAsserterTest::custom_asserter_tests(&tests, asserter, Asserter::block);
 }
