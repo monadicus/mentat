@@ -16,7 +16,7 @@ use crate::types::{Peer, SyncStatus};
 /// `sync_status` should be populated so that clients can still monitor
 /// healthiness. Without this field, it may appear that the implementation is
 /// stuck syncing and needs to be terminated.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Nullable)]
 #[serde(default)]
 pub struct NullableNetworkStatusResponse {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
