@@ -14,7 +14,7 @@ use serde_json::Value;
 use crate::api::MentatResponse;
 
 /// The Error type for any mentat responses.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 pub struct MentatError {
     /// The http status code.
     #[serde(skip)]

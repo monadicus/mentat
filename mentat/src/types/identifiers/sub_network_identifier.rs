@@ -8,7 +8,7 @@ use crate::types::Sortable;
 /// In blockchains with sharded state, the `SubNetworkIdentifier` is required to
 /// query some object on a specific shard. This identifier is optional for all
 /// non-sharded blockchains.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct SubNetworkIdentifier {
     /// The network string

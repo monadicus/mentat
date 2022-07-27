@@ -3,7 +3,7 @@
 use super::*;
 
 /// Struct for the `Operation` Status.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct OperationStatus {
     /// The status of the operation.

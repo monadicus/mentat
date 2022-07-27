@@ -13,7 +13,7 @@ use crate::{
 
 /// The [`NetworkIdentifier`] specifies which network a particular object is
 /// associated with.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct NetworkIdentifier {
     /// The name of the blockchain.

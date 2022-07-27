@@ -57,7 +57,7 @@ mod tests {
     use crate::tests::Test;
 
     mod account_test;
-    mod asserter_test;
+    mod asserter_tools_test;
     mod block_test;
     mod coin_test;
     mod construction_test;
