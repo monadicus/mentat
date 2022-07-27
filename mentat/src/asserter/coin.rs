@@ -3,8 +3,8 @@
 use indexmap::IndexSet;
 
 use super::{
-    amount, errors::AsserterError, AssertResult, CoinAction, CoinError, CoinIdentifier,
-    NullableCoin, NullableCoinChange,
+    amount, errors::AsserterError, AssertResult, CoinError, CoinIdentifier, NullableCoin,
+    NullableCoinAction, NullableCoinChange,
 };
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
@@ -60,7 +60,7 @@ pub fn coin_change(change: Option<&NullableCoinChange>) -> AssertResult<()> {
 
 /// coin_action returns an error if the provided [`CoinAction`]
 /// is invalid.
-pub fn coin_action(act: &CoinAction) -> AssertResult<()> {
+pub fn coin_action(act: &NullableCoinAction) -> AssertResult<()> {
     if !act.valid() {
         Err(AsserterError::from(format!(
             "{}: {}",

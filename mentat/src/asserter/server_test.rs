@@ -12,17 +12,17 @@ use crate::{
     },
     conf::Network,
     types::{
-        AccountIdentifier, BlockIdentifier, CurveType, NetworkIdentifier,
-        NullableAccountBalanceRequest, NullableAccountCoinsRequest, NullableAmount,
-        NullableBlockRequest, NullableBlockTransactionRequest, NullableCallRequest,
-        NullableConstructionCombineRequest, NullableConstructionDeriveRequest,
-        NullableConstructionHashRequest, NullableConstructionMetadataRequest,
-        NullableConstructionParseRequest, NullableConstructionPayloadsRequest,
-        NullableConstructionPreprocessRequest, NullableConstructionSubmitRequest, NullableCurrency,
+        AccountIdentifier, BlockIdentifier, NetworkIdentifier, NullableAccountBalanceRequest,
+        NullableAccountCoinsRequest, NullableAmount, NullableBlockRequest,
+        NullableBlockTransactionRequest, NullableCallRequest, NullableConstructionCombineRequest,
+        NullableConstructionDeriveRequest, NullableConstructionHashRequest,
+        NullableConstructionMetadataRequest, NullableConstructionParseRequest,
+        NullableConstructionPayloadsRequest, NullableConstructionPreprocessRequest,
+        NullableConstructionSubmitRequest, NullableCurrency, NullableCurveType,
         NullableEventsBlocksRequest, NullableMempoolTransactionRequest, NullableNetworkRequest,
-        NullableOperation, NullablePublicKey, NullableSearchTransactionsRequest, NullableSignature,
-        NullableSigningPayload, OperationIdentifier, Operator, PartialBlockIdentifier,
-        SignatureType, TransactionIdentifier,
+        NullableOperation, NullableOperator, NullablePublicKey, NullableSearchTransactionsRequest,
+        NullableSignature, NullableSignatureType, NullableSigningPayload, OperationIdentifier,
+        PartialBlockIdentifier, TransactionIdentifier,
     },
 };
 
@@ -78,7 +78,7 @@ pub(crate) fn valid_transaction_identifier() -> TransactionIdentifier {
 pub(crate) fn valid_public_key() -> NullablePublicKey {
     NullablePublicKey {
         bytes: "hello".into(),
-        curve_type: CurveType::SECP256K1.into(),
+        curve_type: NullableCurveType::SECP256K1.into(),
     }
 }
 
@@ -194,7 +194,7 @@ pub(crate) fn valid_signatures() -> Vec<Option<NullableSignature>> {
             ..Default::default()
         }),
         public_key: Some(valid_public_key()),
-        signature_type: SignatureType::ED25519.into(),
+        signature_type: NullableSignatureType::ED25519.into(),
         bytes: "hello".into(),
     })]
 }
@@ -204,11 +204,11 @@ pub(crate) fn signature_type_mismatch() -> Vec<Option<NullableSignature>> {
         signing_payload: Some(NullableSigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
-            signature_type: SignatureType::ECDSA_RECOVERY.into(),
+            signature_type: NullableSignatureType::ECDSA_RECOVERY.into(),
             ..Default::default()
         }),
         public_key: Some(valid_public_key()),
-        signature_type: SignatureType::ED25519.into(),
+        signature_type: NullableSignatureType::ED25519.into(),
         bytes: "hello".into(),
     })]
 }
@@ -218,11 +218,11 @@ pub(crate) fn signature_type_match() -> Vec<Option<NullableSignature>> {
         signing_payload: Some(NullableSigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
-            signature_type: SignatureType::ED25519.into(),
+            signature_type: NullableSignatureType::ED25519.into(),
             ..Default::default()
         }),
         public_key: Some(valid_public_key()),
-        signature_type: SignatureType::ED25519.into(),
+        signature_type: NullableSignatureType::ED25519.into(),
         ..Default::default()
     })]
 }
@@ -232,11 +232,11 @@ pub(crate) fn empty_signature() -> Vec<Option<NullableSignature>> {
         signing_payload: Some(NullableSigningPayload {
             account_identifier: Some(valid_account()),
             bytes: "blah".into(),
-            signature_type: SignatureType::ED25519.into(),
+            signature_type: NullableSignatureType::ED25519.into(),
             ..Default::default()
         }),
         public_key: Some(valid_public_key()),
-        signature_type: SignatureType::ED25519.into(),
+        signature_type: NullableSignatureType::ED25519.into(),
         ..Default::default()
     })]
 }
@@ -666,7 +666,7 @@ fn test_construction_metadata_request() {
                 options: Some(Default::default()),
                 public_keys: vec![Some(NullablePublicKey {
                     bytes: "hello".into(),
-                    curve_type: CurveType::SECP256K1.into(),
+                    curve_type: NullableCurveType::SECP256K1.into(),
                 })],
             }),
             ..Default::default()
@@ -708,7 +708,7 @@ fn test_construction_metadata_request() {
                 network_identifier: valid_network_identifier(),
                 options: Some(Default::default()),
                 public_keys: vec![Some(NullablePublicKey {
-                    curve_type: CurveType::SECP256K1.into(),
+                    curve_type: NullableCurveType::SECP256K1.into(),
                     ..Default::default()
                 })],
             }),
@@ -908,7 +908,7 @@ fn test_construction_derive_request() {
             payload: Some(NullableConstructionDeriveRequest {
                 network_identifier: valid_network_identifier(),
                 public_key: Some(NullablePublicKey {
-                    curve_type: CurveType::SECP256K1.into(),
+                    curve_type: NullableCurveType::SECP256K1.into(),
                     ..Default::default()
                 }),
                 ..Default::default()
@@ -1071,7 +1071,7 @@ fn test_construction_payloads_request() {
                 metadata: indexmap!("test".into() => "hello".into()),
                 public_keys: vec![Some(NullablePublicKey {
                     bytes: "hello".into(),
-                    curve_type: CurveType::SECP256K1.into(),
+                    curve_type: NullableCurveType::SECP256K1.into(),
                 })],
             }),
             ..Default::default()
@@ -1138,7 +1138,7 @@ fn test_construction_payloads_request() {
                 operations: valid_ops(),
                 metadata: indexmap!("test".into() => "hello".into()),
                 public_keys: vec![Some(NullablePublicKey {
-                    curve_type: CurveType::SECP256K1.into(),
+                    curve_type: NullableCurveType::SECP256K1.into(),
                     ..Default::default()
                 })],
             }),
@@ -1173,7 +1173,7 @@ fn test_construction_combine_request() {
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: SignatureType::ED25519.into(),
+                    signature_type: NullableSignatureType::ED25519.into(),
                     bytes: "blah".into(),
                 })],
             }),
@@ -1191,7 +1191,7 @@ fn test_construction_combine_request() {
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: SignatureType::ED25519.into(),
+                    signature_type: NullableSignatureType::ED25519.into(),
                     bytes: "hello".into(),
                 })],
             }),
@@ -1613,7 +1613,7 @@ fn test_search_transactions_request() {
             name: "valid request",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::AND.into(),
+                operator: NullableOperator::AND.into(),
                 ..Default::default()
             }),
             ..Default::default()
@@ -1622,7 +1622,7 @@ fn test_search_transactions_request() {
             name: "invalid request wrong network",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: wrong_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: NullableOperator::OR.into(),
                 ..Default::default()
             }),
             err: Some(
@@ -1643,7 +1643,7 @@ fn test_search_transactions_request() {
             name: "negative max block",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: NullableOperator::OR.into(),
                 max_block: Some(-1),
                 ..Default::default()
             }),
@@ -1653,7 +1653,7 @@ fn test_search_transactions_request() {
             name: "negative offset",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: NullableOperator::OR.into(),
                 offset: Some(-1),
                 ..Default::default()
             }),
@@ -1663,7 +1663,7 @@ fn test_search_transactions_request() {
             name: "negative limit",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
-                operator: Operator::OR.into(),
+                operator: NullableOperator::OR.into(),
                 limit: Some(-1),
                 ..Default::default()
             }),

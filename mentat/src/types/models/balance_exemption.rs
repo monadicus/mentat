@@ -40,5 +40,5 @@ pub struct NullableBalanceExemption {
     /// to spendable on a vesting account. * dynamic: The live balance may
     /// increase above, decrease below, or equal the computed balance. This
     /// typically occurs with tokens that have a dynamic supply.
-    pub exemption_type: ExemptionType,
+    pub exemption_type: NullableExemptionType,
 }

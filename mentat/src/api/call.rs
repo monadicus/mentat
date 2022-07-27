@@ -13,7 +13,7 @@ pub trait CallApi {
         _caller: Caller,
         _data: CallRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<CallResponse> {
+    ) -> Result<CallResponse> {
         MentatError::not_implemented()
     }
 }
@@ -27,16 +27,21 @@ pub trait CallerCallApi: CallApi + Clone + Default {
     async fn call_call(
         &self,
         asserter: &Asserter,
+        _assert_resp: bool,
         caller: Caller,
         data: Option<NullableCallRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<CallResponse> {
+    ) -> MentatResponse<NullableCallResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.call_request(data.as_ref())?;
-            self.call(caller, data.unwrap().into(), rpc_caller).await
+            Ok(Json(
+                self.call(caller, data.unwrap().into(), rpc_caller)
+                    .await?
+                    .into(),
+            ))
         }
     }
 }

@@ -11,8 +11,6 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::api::MentatResponse;
-
 /// The Error type for any mentat responses.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MentatError {
@@ -80,7 +78,7 @@ impl MentatError {
     }
 
     /// For when a method called but not available on the current network.
-    pub fn wrong_network<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn wrong_network<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 500,
@@ -92,7 +90,7 @@ impl MentatError {
     }
 
     /// Not Found
-    fn not_found_example<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    fn not_found_example<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 404,
             code: 404,
@@ -116,7 +114,7 @@ impl MentatError {
     }
 
     /// Endpoint not implemented
-    pub fn not_implemented<R>() -> MentatResponse<R> {
+    pub fn not_implemented<R>() -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 0,
@@ -128,7 +126,7 @@ impl MentatError {
     }
 
     /// Endpoint unavailable offline
-    pub fn unavailable_offline<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn unavailable_offline<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 1,
@@ -140,7 +138,7 @@ impl MentatError {
     }
 
     /// Node is not ready
-    pub fn node_not_ready<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn node_not_ready<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 2,
@@ -152,7 +150,7 @@ impl MentatError {
     }
 
     /// Node error
-    pub fn node_error<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn node_error<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 3,
@@ -164,7 +162,7 @@ impl MentatError {
     }
 
     /// Block not found
-    pub fn block_not_found<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn block_not_found<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 4,
@@ -176,7 +174,7 @@ impl MentatError {
     }
 
     /// Unable to derive address
-    pub fn unable_to_derive_address<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn unable_to_derive_address<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 5,
@@ -189,7 +187,7 @@ impl MentatError {
 
     // TODO not sure what this is
     /// Unable to parse intent
-    pub fn bad_intent<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn bad_intent<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 6,
@@ -201,7 +199,7 @@ impl MentatError {
     }
 
     /// Unable to parse intermediate result
-    pub fn bad_intermediate<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn bad_intermediate<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 7,
@@ -213,7 +211,7 @@ impl MentatError {
     }
 
     /// Missing ScriptPubKeys
-    pub fn missing_keys<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn missing_keys<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 8,
@@ -225,7 +223,7 @@ impl MentatError {
     }
 
     /// Coin is invalid
-    pub fn invalid_coin<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn invalid_coin<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 9,
@@ -237,7 +235,7 @@ impl MentatError {
     }
 
     /// Unable to decode address
-    pub fn bad_address<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn bad_address<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 10,
@@ -249,7 +247,7 @@ impl MentatError {
     }
 
     /// Unable to decode ScriptPubKey
-    pub fn bad_pub_key<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn bad_pub_key<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 11,
@@ -261,7 +259,7 @@ impl MentatError {
     }
 
     /// Unable to calculate signature hash
-    pub fn calc_sig_hash<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn calc_sig_hash<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 12,
@@ -273,7 +271,7 @@ impl MentatError {
     }
 
     /// Script type is not supported
-    pub fn unsupported_script_type<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn unsupported_script_type<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 13,
@@ -285,7 +283,7 @@ impl MentatError {
     }
 
     /// Unable to compute PK script
-    pub fn compute_pk_script<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn compute_pk_script<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 14,
@@ -297,7 +295,7 @@ impl MentatError {
     }
 
     /// Unable to get coins
-    pub fn failed_to_get_coins<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn failed_to_get_coins<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 15,
@@ -309,7 +307,7 @@ impl MentatError {
     }
 
     /// Transaction not found
-    pub fn transaction_not_found<D: Display, R>(hash: Option<D>) -> MentatResponse<R> {
+    pub fn transaction_not_found<D: Display, R>(hash: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 16,
@@ -321,7 +319,7 @@ impl MentatError {
     }
 
     /// Could not get suggested fee rate
-    pub fn couldnt_get_fee_rate<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn couldnt_get_fee_rate<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 17,
@@ -333,7 +331,7 @@ impl MentatError {
     }
 
     /// Unable to get balance
-    pub fn couldnt_get_balance<D: Display, R>(details: Option<D>) -> MentatResponse<R> {
+    pub fn couldnt_get_balance<D: Display, R>(details: Option<D>) -> Result<R> {
         Err(MentatError {
             status_code: 500,
             code: 18,

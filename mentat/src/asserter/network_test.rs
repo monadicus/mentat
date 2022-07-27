@@ -7,8 +7,8 @@ use crate::{
         network::{allow, error, errors, network_identifier, network_list_response, version},
     },
     types::{
-        ExemptionType, MentatError, NetworkIdentifier, NullableAllow, NullableBalanceExemption,
-        NullableCurrency, NullableNetworkListResponse, OperationStatus, SubNetworkIdentifier,
+        MentatError, NetworkIdentifier, NullableAllow, NullableBalanceExemption, NullableCurrency,
+        NullableExemptionType, NullableNetworkListResponse, OperationStatus, SubNetworkIdentifier,
         Version,
     },
 };
@@ -160,7 +160,7 @@ fn test_allow() {
             decimals: 8,
             metadata: Default::default(),
         }),
-        exemption_type: ExemptionType::DYNAMIC.into(),
+        exemption_type: NullableExemptionType::DYNAMIC.into(),
     })];
     let neg_index = Some(-1);
     let index = Some(100);
@@ -263,7 +263,7 @@ fn test_allow() {
                 balance_exemptions: vec![Some(NullableBalanceExemption {
                     sub_account_address: None,
                     currency: None,
-                    exemption_type: ExemptionType::DYNAMIC.into(),
+                    exemption_type: NullableExemptionType::DYNAMIC.into(),
                 })],
                 ..Default::default()
             }),

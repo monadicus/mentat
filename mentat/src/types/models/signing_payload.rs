@@ -24,7 +24,7 @@ pub struct NullableSigningPayload {
     /// The hex bytes of the Signing Payload.
     pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
-    pub signature_type: SignatureType,
+    pub signature_type: NullableSignatureType,
 }
 
 impl Serialize for NullableSigningPayload {
@@ -64,7 +64,7 @@ struct SigningPayloadPre {
         deserialize_with = "null_default_bytes_to_hex"
     )]
     pub bytes: Vec<u8>,
-    pub signature_type: SignatureType,
+    pub signature_type: NullableSignatureType,
 }
 
 impl<'de> Deserialize<'de> for NullableSigningPayload {

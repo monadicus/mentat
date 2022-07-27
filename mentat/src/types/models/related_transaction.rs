@@ -24,7 +24,7 @@ pub struct NullableRelatedTransaction {
     /// backward to an earlier transaction and async execution may reference
     /// forward). Can be used to indicate if a transaction relation is from
     /// child to parent or the reverse.
-    pub direction: Direction,
+    pub direction: NullableDirection,
 }
 
 impl Sortable for NullableRelatedTransaction {

@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    decode_from_hex_string, AccountIdentifier, CurveType, NullableConstructionDeriveResponse,
-    NullableConstructionParseResponse, NullablePublicKey, NullableSignature,
-    NullableSigningPayload, SignatureType, SubAccountIdentifier,
+    decode_from_hex_string, AccountIdentifier, NullableConstructionDeriveResponse,
+    NullableConstructionParseResponse, NullableCurveType, NullablePublicKey, NullableSignature,
+    NullableSignatureType, NullableSigningPayload, SubAccountIdentifier,
 };
 
 #[derive(Deserialize, Serialize)]
@@ -17,7 +17,7 @@ fn test_custom_marshal_public_key() {
         bytes: "hsdjkfhkasjfhkjasdhfkjasdnfkjabsdfkjhakjsfdhjksadhfjk23478923645yhsdfn"
             .as_bytes()
             .to_vec(),
-        curve_type: CurveType::SECP256K1.into(),
+        curve_type: NullableCurveType::SECP256K1.into(),
     };
     let json = serde_json::to_string(&s).unwrap();
 
@@ -41,7 +41,7 @@ fn test_custom_marshal_signature() {
         bytes: "hsdjkfhkasjfhkjasdhfkjasdnfkjabsdfkjhakjsfdhjksadhfjk23478923645yhsdfn"
             .as_bytes()
             .to_vec(),
-        signature_type: SignatureType::ECDSA.into(),
+        signature_type: NullableSignatureType::ECDSA.into(),
         ..Default::default()
     };
     let json = serde_json::to_string(&s).unwrap();

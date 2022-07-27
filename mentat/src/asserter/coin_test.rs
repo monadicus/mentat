@@ -5,7 +5,7 @@ use crate::{
         errors::{AsserterError, CoinError},
     },
     types::{
-        CoinAction, CoinIdentifier, NullableAmount, NullableCoin, NullableCoinChange,
+        CoinIdentifier, NullableAmount, NullableCoin, NullableCoinAction, NullableCoinChange,
         NullableCurrency,
     },
 };
@@ -148,7 +148,7 @@ fn test_coin_change() {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
-                coin_action: CoinAction::COIN_CREATED.into(),
+                coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
             err: None,
         },
@@ -163,7 +163,7 @@ fn test_coin_change() {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
                 }),
-                coin_action: CoinAction::COIN_CREATED.into(),
+                coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
             err: Some(CoinError::IdentifierNotSet.into()),
         },

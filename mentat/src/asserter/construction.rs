@@ -6,10 +6,11 @@ use super::{
     block::transaction_identifier,
     bytes_array_zero,
     errors::{AsserterError, BlockError},
-    AssertResult, ConstructionError, CurveType, NullableConstructionDeriveResponse,
+    AssertResult, ConstructionError, NullableConstructionDeriveResponse,
     NullableConstructionMetadataResponse, NullableConstructionParseResponse,
     NullableConstructionPayloadsResponse, NullableConstructionPreprocessResponse,
-    NullablePublicKey, NullableSignature, NullableSigningPayload, ResponseAsserter, SignatureType,
+    NullableCurveType, NullablePublicKey, NullableSignature, NullableSignatureType,
+    NullableSigningPayload, ResponseAsserter,
 };
 use crate::types::{NullableConstructionCombineResponse, NullableTransactionIdentifierResponse};
 
@@ -181,7 +182,7 @@ pub fn public_key(key: Option<&NullablePublicKey>) -> AssertResult<()> {
 
 /// `curve_type` returns an error if
 /// the curve is not a valid [CurveType].
-pub fn curve_type(curve: &CurveType) -> AssertResult<()> {
+pub fn curve_type(curve: &NullableCurveType) -> AssertResult<()> {
     if !curve.valid() {
         Err(format!(
             "{}: {}",
@@ -261,7 +262,7 @@ pub fn signatures(signatures: &[Option<&NullableSignature>]) -> AssertResult<()>
 
 /// signature_type returns an error if
 /// signature is not a valid [`SignatureType`].
-pub fn signature_type(st: &SignatureType) -> AssertResult<()> {
+pub fn signature_type(st: &NullableSignatureType) -> AssertResult<()> {
     if !st.valid() {
         Err(AsserterError::from(format!(
             "{}: {}",

@@ -4,7 +4,9 @@ use crate::{
         errors::{BlockError, EventError},
         events::events_blocks_response,
     },
-    types::{BlockEventType, BlockIdentifier, NullableBlockEvent, NullableEventsBlocksResponse},
+    types::{
+        BlockIdentifier, NullableBlockEvent, NullableBlockEventType, NullableEventsBlocksResponse,
+    },
 };
 
 #[test]
@@ -34,7 +36,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_ADDED.into(),
+                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
                     }),
                     Some(NullableBlockEvent {
                         sequence: 1,
@@ -42,7 +44,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_REMOVED.into(),
+                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             }),
@@ -59,7 +61,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: String::new(),
                         }),
-                        type_: BlockEventType::BLOCK_ADDED.into(),
+                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
                     }),
                     Some(NullableBlockEvent {
                         sequence: 1,
@@ -67,7 +69,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_REMOVED.into(),
+                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             }),
@@ -92,7 +94,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_REMOVED.into(),
+                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             }),
@@ -109,7 +111,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_ADDED.into(),
+                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
                     }),
                     Some(NullableBlockEvent {
                         sequence: 2,
@@ -117,7 +119,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_REMOVED.into(),
+                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             }),
@@ -134,7 +136,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_ADDED.into(),
+                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
                     }),
                     Some(NullableBlockEvent {
                         sequence: 0,
@@ -142,7 +144,7 @@ fn test_events_block_response() {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: BlockEventType::BLOCK_REMOVED.into(),
+                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             }),

@@ -14,7 +14,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: MetadataRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NetworkListResponse> {
+    ) -> Result<NetworkListResponse> {
         MentatError::not_implemented()
     }
 
@@ -30,7 +30,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: NetworkRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NetworkOptionsResponse> {
+    ) -> Result<NetworkOptionsResponse> {
         MentatError::not_implemented()
     }
 
@@ -42,7 +42,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: NetworkRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<NetworkStatusResponse> {
+    ) -> Result<NetworkStatusResponse> {
         MentatError::not_implemented()
     }
 
@@ -70,7 +70,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: AccountBalanceRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<AccountBalanceResponse> {
+    ) -> Result<AccountBalanceResponse> {
         MentatError::not_implemented()
     }
 
@@ -99,7 +99,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: AccountCoinsRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<AccountCoinsResponse> {
+    ) -> Result<AccountCoinsResponse> {
         MentatError::not_implemented()
     }
 
@@ -121,7 +121,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: BlockRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<BlockResponse> {
+    ) -> Result<BlockResponse> {
         MentatError::not_implemented()
     }
 
@@ -150,7 +150,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: BlockTransactionRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<BlockTransactionResponse> {
+    ) -> Result<BlockTransactionResponse> {
         MentatError::not_implemented()
     }
 
@@ -160,7 +160,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: NetworkRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<MempoolResponse> {
+    ) -> Result<MempoolResponse> {
         MentatError::not_implemented()
     }
 
@@ -179,7 +179,7 @@ pub trait DataApi: Default {
         _caller: Caller,
         _data: MempoolTransactionRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<MempoolTransactionResponse> {
+    ) -> Result<MempoolTransactionResponse> {
         MentatError::not_implemented()
     }
 }
@@ -193,45 +193,66 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_network_list(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableMetadataRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NetworkListResponse> {
+    ) -> MentatResponse<NullableNetworkListResponse> {
         asserter.metadata_request(data.as_ref())?;
-        self.network_list(caller, data.unwrap().into(), rpc_caller)
-            .await
+        let resp = self
+            .network_list(caller, data.unwrap().into(), rpc_caller)
+            .await?
+            .into();
+        if assert_resp {
+            network_list_response(Some(&resp)).unwrap();
+        }
+        Ok(Json(resp))
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_network_options(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableNetworkRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NetworkOptionsResponse> {
+    ) -> MentatResponse<NullableNetworkOptionsResponse> {
         asserter.network_request(data.as_ref())?;
-        self.network_options(caller, data.unwrap().into(), rpc_caller)
-            .await
+        let resp = self
+            .network_options(caller, data.unwrap().into(), rpc_caller)
+            .await?
+            .into();
+        if assert_resp {
+            network_options_response(Some(&resp)).unwrap();
+        }
+        Ok(Json(resp))
     }
 
     /// This endpoint only runs in online mode.
     async fn call_network_status(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableNetworkRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NetworkStatusResponse> {
+    ) -> MentatResponse<NullableNetworkStatusResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.network_request(data.as_ref())?;
-            self.network_status(caller, data.unwrap().into(), rpc_caller)
-                .await
+            let resp = self
+                .network_status(caller, data.unwrap().into(), rpc_caller)
+                .await?
+                .into();
+            if assert_resp {
+                network_status_response(Some(&resp)).unwrap();
+            }
+            Ok(Json(resp))
         }
     }
 
@@ -239,17 +260,29 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_account_balance(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableAccountBalanceRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<AccountBalanceResponse> {
+    ) -> MentatResponse<NullableAccountBalanceResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.account_balance_request(data.as_ref())?;
-            self.account_balance(caller, data.unwrap().into(), rpc_caller)
-                .await
+            let ident = if assert_resp {
+                data.as_ref().unwrap().block_identifier.clone()
+            } else {
+                None
+            };
+            let resp = self
+                .account_balance(caller, data.unwrap().into(), rpc_caller)
+                .await?
+                .into();
+            if assert_resp {
+                account_balance_response(ident.as_ref(), &resp).unwrap();
+            }
+            Ok(Json(resp))
         }
     }
 
@@ -257,17 +290,24 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_account_coins(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableAccountCoinsRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<AccountCoinsResponse> {
+    ) -> MentatResponse<NullableAccountCoinsResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.account_coins_request(data.as_ref())?;
-            self.account_coins(caller, data.unwrap().into(), rpc_caller)
-                .await
+            let resp = self
+                .account_coins(caller, data.unwrap().into(), rpc_caller)
+                .await?
+                .into();
+            if assert_resp {
+                account_coins(&resp).unwrap();
+            }
+            Ok(Json(resp))
         }
     }
 
@@ -275,16 +315,24 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_block(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableBlockRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<BlockResponse> {
+    ) -> MentatResponse<NullableBlockResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.block_request(data.as_ref())?;
-            self.block(caller, data.unwrap().into(), rpc_caller).await
+            let resp: NullableBlockResponse = self
+                .block(caller, data.unwrap().into(), rpc_caller)
+                .await?
+                .into();
+            if assert_resp {
+                asserter.block(resp.block.as_ref()).unwrap();
+            }
+            Ok(Json(resp))
         }
     }
 
@@ -292,17 +340,24 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_block_transaction(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableBlockTransactionRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<BlockTransactionResponse> {
+    ) -> MentatResponse<NullableBlockTransactionResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.block_transaction_request(data.as_ref())?;
-            self.block_transaction(caller, data.unwrap().into(), rpc_caller)
-                .await
+            let resp: NullableBlockTransactionResponse = self
+                .block_transaction(caller, data.unwrap().into(), rpc_caller)
+                .await?
+                .into();
+            if assert_resp {
+                asserter.transaction(resp.transaction.as_ref()).unwrap();
+            }
+            Ok(Json(resp))
         }
     }
 
@@ -310,16 +365,24 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_mempool(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableNetworkRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<MempoolResponse> {
+    ) -> MentatResponse<NullableMempoolResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.network_request(data.as_ref())?;
-            self.mempool(caller, data.unwrap().into(), rpc_caller).await
+            let resp: NullableMempoolResponse = self
+                .mempool(caller, data.unwrap().into(), rpc_caller)
+                .await?
+                .into();
+            if assert_resp {
+                mempool_transactions(&resp.transaction_identifiers).unwrap()
+            }
+            Ok(Json(resp))
         }
     }
 
@@ -327,17 +390,24 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_mempool_transaction(
         &self,
         asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
         data: Option<NullableMempoolTransactionRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<MempoolTransactionResponse> {
+    ) -> MentatResponse<NullableMempoolTransactionResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.mempool_transaction_request(data.as_ref())?;
-            self.mempool_transaction(caller, data.unwrap().into(), rpc_caller)
-                .await
+            let resp: NullableMempoolTransactionResponse = self
+                .mempool_transaction(caller, data.unwrap().into(), rpc_caller)
+                .await?
+                .into();
+            if assert_resp {
+                asserter.transaction(resp.transaction.as_ref()).unwrap();
+            }
+            Ok(Json(resp))
         }
     }
 }

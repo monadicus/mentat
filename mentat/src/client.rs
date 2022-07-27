@@ -90,7 +90,6 @@ impl Client {
         let resp: NullableNetworkListResponse = self
             .post("network/list", &NullableMetadataRequest::from(request))
             .await?;
-        // network_list_response(Some(&resp)).map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -99,7 +98,6 @@ impl Client {
         let resp: NullableNetworkOptionsResponse = self
             .post("network/options", &NullableNetworkRequest::from(request))
             .await?;
-        // network_options_response(Some(&resp)).map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -108,7 +106,6 @@ impl Client {
         let resp: NullableNetworkStatusResponse = self
             .post("network/status", &NullableNetworkRequest::from(request))
             .await?;
-        // network_status_response(Some(&resp)).map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -123,7 +120,6 @@ impl Client {
                 &NullableAccountBalanceRequest::from(request),
             )
             .await?;
-        // account_balance_response(todo!(), &resp).map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -135,7 +131,6 @@ impl Client {
         let resp: NullableAccountCoinsResponse = self
             .post("account/coins", &NullableAccountCoinsRequest::from(request))
             .await?;
-        // account_coins(&resp).map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -144,9 +139,6 @@ impl Client {
         let resp: NullableBlockResponse = self
             .post("block", &NullableBlockRequest::from(request))
             .await?;
-        // self.asserter
-        //     .block(resp.block.as_ref())
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -161,9 +153,6 @@ impl Client {
                 &NullableBlockTransactionRequest::from(request),
             )
             .await?;
-        // self.asserter
-        //     .transaction(resp.transaction.as_ref())
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -172,8 +161,6 @@ impl Client {
         let resp: NullableMempoolResponse = self
             .post("mempool", &NullableNetworkRequest::from(request))
             .await?;
-        // mempool_transactions(&resp.transaction_identifiers)
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -188,9 +175,6 @@ impl Client {
                 &NullableMempoolTransactionRequest::from(request),
             )
             .await?;
-        // self.asserter
-        //     .transaction(resp.transaction.as_ref())
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -205,8 +189,6 @@ impl Client {
                 &NullableConstructionCombineRequest::from(request),
             )
             .await?;
-        // construction_combine_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -221,8 +203,6 @@ impl Client {
                 &NullableConstructionDeriveRequest::from(request),
             )
             .await?;
-        // construction_derive_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -237,8 +217,6 @@ impl Client {
                 &NullableConstructionHashRequest::from(request),
             )
             .await?;
-        // transaction_identifier_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -253,8 +231,6 @@ impl Client {
                 &NullableConstructionMetadataRequest::from(request),
             )
             .await?;
-        // construction_metadata_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -269,9 +245,6 @@ impl Client {
                 &NullableConstructionParseRequest::from(request),
             )
             .await?;
-        // self.asserter
-        //     .construction_parse_response(Some(&resp), todo!())
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -286,8 +259,6 @@ impl Client {
                 &NullableConstructionPayloadsRequest::from(request),
             )
             .await?;
-        // construction_payloads_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -302,8 +273,6 @@ impl Client {
                 &NullableConstructionPreprocessRequest::from(request),
             )
             .await?;
-        // construction_preprocess_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -318,8 +287,6 @@ impl Client {
                 &NullableConstructionSubmitRequest::from(request),
             )
             .await?;
-        // transaction_identifier_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -331,7 +298,6 @@ impl Client {
         let resp: NullableEventsBlocksResponse = self
             .post("events/blocks", &NullableEventsBlocksRequest::from(request))
             .await?;
-        // events_blocks_response(Some(&resp)).map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 
@@ -346,9 +312,6 @@ impl Client {
                 &NullableSearchTransactionsRequest::from(request),
             )
             .await?;
-        // self.asserter
-        //     .search_transaction_response(Some(&resp))
-        //     .map_err(|e| ClientError::ServerError(e.into()))?;
         Ok(resp.into())
     }
 }

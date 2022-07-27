@@ -10,7 +10,7 @@ use super::{
     coin_change,
     errors::AsserterError,
     hash, network_identifier, AccountIdentifier, AssertResult, BlockError, BlockIdentifier,
-    Direction, NullableAmount, NullableBlock, NullableCurrency, NullableOperation,
+    NullableAmount, NullableBlock, NullableCurrency, NullableDirection, NullableOperation,
     NullableRelatedTransaction, NullableTransaction, OperationIdentifier, PartialBlockIdentifier,
     ResponseAsserter, TransactionIdentifier,
 };
@@ -44,10 +44,7 @@ pub fn amount(amount: Option<&NullableAmount>) -> AssertResult<()> {
 /// `operation_identifier` returns an error if index of the
 /// [`OperationIdentifier`] is out-of-order or if the NetworkIndex is
 /// invalid.
-pub fn operation_identifier(
-    ident: Option<&OperationIdentifier>,
-    index: i64,
-) -> AssertResult<()> {
+pub fn operation_identifier(ident: Option<&OperationIdentifier>, index: i64) -> AssertResult<()> {
     let ident = ident.ok_or(BlockError::OperationIdentifierIndexIsNil)?;
 
     if ident.index as i64 != index {
@@ -292,10 +289,7 @@ impl Asserter {
     /// `transaction` returns an error if the [`TransactionIdentifier`]
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
-    pub fn transaction(
-        &self,
-        transaction: Option<&NullableTransaction>,
-    ) -> AssertResult<()> {
+    pub fn transaction(&self, transaction: Option<&NullableTransaction>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         let transaction = transaction.ok_or(BlockError::TxIsNil)?;
@@ -362,7 +356,7 @@ impl Asserter {
 
     /// `direction` returns an error if the value passed is not
     /// [Direction::Forward] or [Direction::Backward]
-    pub fn direction(&self, direction: &Direction) -> AssertResult<()> {
+    pub fn direction(&self, direction: &NullableDirection) -> AssertResult<()> {
         if !direction.valid() {
             Err(BlockError::InvalidDirection)?
         } else {

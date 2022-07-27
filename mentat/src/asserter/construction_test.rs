@@ -14,12 +14,12 @@ use crate::{
         errors::{BlockError, ConstructionError, ServerError},
     },
     types::{
-        AccountIdentifier, CurveType, NullableConstructionCombineResponse,
-        NullableConstructionDeriveResponse, NullableConstructionMetadataResponse,
-        NullableConstructionParseResponse, NullableConstructionPayloadsResponse,
-        NullableConstructionPreprocessResponse, NullableOperation, NullablePublicKey,
-        NullableSignature, NullableSigningPayload, NullableTransactionIdentifierResponse,
-        OperationIdentifier, SignatureType, TransactionIdentifier,
+        AccountIdentifier, NullableConstructionCombineResponse, NullableConstructionDeriveResponse,
+        NullableConstructionMetadataResponse, NullableConstructionParseResponse,
+        NullableConstructionPayloadsResponse, NullableConstructionPreprocessResponse,
+        NullableCurveType, NullableOperation, NullablePublicKey, NullableSignature,
+        NullableSignatureType, NullableSigningPayload, NullableTransactionIdentifierResponse,
+        OperationIdentifier, TransactionIdentifier,
     },
 };
 
@@ -549,7 +549,7 @@ fn test_public_key() {
             name: "valid public key",
             payload: Some(NullablePublicKey {
                 bytes: "blah".into(),
-                curve_type: CurveType::SECP256K1.into(),
+                curve_type: NullableCurveType::SECP256K1.into(),
             }),
             err: None,
         },
@@ -557,7 +557,7 @@ fn test_public_key() {
             name: "zero public key",
             payload: Some(NullablePublicKey {
                 bytes: vec![0; 4],
-                curve_type: CurveType::SECP256K1.into(),
+                curve_type: NullableCurveType::SECP256K1.into(),
             }),
             err: Some(ConstructionError::PublicKeyBytesZero.into()),
         },
@@ -569,7 +569,7 @@ fn test_public_key() {
         AsserterTest {
             name: "invalid bytes",
             payload: Some(NullablePublicKey {
-                curve_type: CurveType::SECP256K1.into(),
+                curve_type: NullableCurveType::SECP256K1.into(),
                 ..Default::default()
             }),
             err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
@@ -610,7 +610,7 @@ fn test_signing_payload() {
                     ..Default::default()
                 }),
                 bytes: "blah".into(),
-                signature_type: SignatureType::ED25519.into(),
+                signature_type: NullableSignatureType::ED25519.into(),
                 ..Default::default()
             }),
             err: None,
@@ -682,7 +682,7 @@ fn test_signatures() {
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: SignatureType::ED25519.into(),
+                    signature_type: NullableSignatureType::ED25519.into(),
                     bytes: "hello".into(),
                 }),
                 Some(NullableSignature {
@@ -692,7 +692,7 @@ fn test_signatures() {
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: SignatureType::ECDSA_RECOVERY.into(),
+                    signature_type: NullableSignatureType::ECDSA_RECOVERY.into(),
                     bytes: "hello".into(),
                 }),
             ]),
@@ -704,11 +704,11 @@ fn test_signatures() {
                 signing_payload: Some(NullableSigningPayload {
                     account_identifier: Some(valid_account()),
                     bytes: "blah".into(),
-                    signature_type: SignatureType::ED25519.into(),
+                    signature_type: NullableSignatureType::ED25519.into(),
                     ..Default::default()
                 }),
                 public_key: Some(valid_public_key()),
-                signature_type: SignatureType::ED25519.into(),
+                signature_type: NullableSignatureType::ED25519.into(),
                 bytes: "hello".into(),
             })]),
             err: None,
@@ -728,18 +728,18 @@ fn test_signatures() {
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: SignatureType::ECDSA_RECOVERY.into(),
+                    signature_type: NullableSignatureType::ECDSA_RECOVERY.into(),
                     bytes: "hello".into(),
                 }),
                 Some(NullableSignature {
                     signing_payload: Some(NullableSigningPayload {
                         account_identifier: Some(valid_account()),
                         bytes: "blah".into(),
-                        signature_type: SignatureType::ED25519.into(),
+                        signature_type: NullableSignatureType::ED25519.into(),
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: SignatureType::ED25519.into(),
+                    signature_type: NullableSignatureType::ED25519.into(),
                     ..Default::default()
                 }),
             ]),
@@ -751,11 +751,11 @@ fn test_signatures() {
                 signing_payload: Some(NullableSigningPayload {
                     account_identifier: Some(valid_account()),
                     bytes: "blah".into(),
-                    signature_type: SignatureType::ED25519.into(),
+                    signature_type: NullableSignatureType::ED25519.into(),
                     ..Default::default()
                 }),
                 public_key: Some(valid_public_key()),
-                signature_type: SignatureType::ED25519.into(),
+                signature_type: NullableSignatureType::ED25519.into(),
                 bytes: vec![0],
             })]),
             err: Some(ConstructionError::SignatureBytesZero.into()),
@@ -766,11 +766,11 @@ fn test_signatures() {
                 signing_payload: Some(NullableSigningPayload {
                     account_identifier: Some(valid_account()),
                     bytes: "blah".into(),
-                    signature_type: SignatureType::ECDSA_RECOVERY.into(),
+                    signature_type: NullableSignatureType::ECDSA_RECOVERY.into(),
                     ..Default::default()
                 }),
                 public_key: Some(valid_public_key()),
-                signature_type: SignatureType::ED25519.into(),
+                signature_type: NullableSignatureType::ED25519.into(),
                 bytes: "hello".into(),
             })]),
             err: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
