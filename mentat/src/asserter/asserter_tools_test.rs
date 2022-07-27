@@ -1,4 +1,9 @@
-use std::path::PathBuf;
+use std::{
+    env::temp_dir,
+    fs::OpenOptions,
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 use super::*;
 
@@ -278,7 +283,7 @@ fn test_new() {
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
                 network_status: invalid_network_status_sync_status,
-                network_options: valid_network_options,
+                network_options: valid_network_options.clone(),
                 validation_file_path: None,
                 skip_load_test: true,
             }),
@@ -320,8 +325,8 @@ fn test_new() {
         AsserterTest {
             name: "invalid start index",
             payload: Some(TestNewExtras {
-                network: valid_network,
-                network_status: valid_network_status,
+                network: valid_network.clone(),
+                network_status: valid_network_status.clone(),
                 network_options: negative_start_index,
                 validation_file_path: None,
                 skip_load_test: false,
@@ -338,7 +343,7 @@ fn test_new() {
             payload.network.clone(),
             payload.network_status.clone(),
             payload.network_options.clone(),
-            payload.validation_file_path.as_ref(),
+            payload.validation_file_path.as_deref(),
         );
 
         if test.err.is_some() {
@@ -426,18 +431,46 @@ fn test_new() {
         }
     });
 
+    let tmp_file = temp_dir().join("test.json");
+    let mut file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(&tmp_file)
+        .unwrap();
+    file.write_all(b"blah").unwrap();
+
     println!("non-existent file: ");
-    Configuration::new_client_with_file("blah".into()).unwrap();
+    Configuration::new_client_with_file(Path::new("blah")).unwrap_err();
 
     println!("file not formatted correctly: ");
-    todo!();
+    Configuration::new_client_with_file(&tmp_file).unwrap_err();
 
     println!("default no validation file: ");
-    todo!();
+    let asserter = Asserter::new_client_with_responses(
+        valid_network.clone(),
+        valid_network_status.clone(),
+        valid_network_options.clone(),
+        Some(Path::new("")),
+    )
+    .unwrap();
+    assert!(!asserter.validations.enabled);
 
     println!("non existent validation file: ");
-    todo!();
+    Asserter::new_client_with_responses(
+        valid_network.clone(),
+        valid_network_status.clone(),
+        valid_network_options.clone(),
+        Some(Path::new("blah")),
+    )
+    .unwrap_err();
 
     println!("wrong format of validation file: ");
-    todo!();
+    Asserter::new_client_with_responses(
+        valid_network,
+        valid_network_status,
+        valid_network_options,
+        Some(&tmp_file),
+    )
+    .unwrap_err();
 }

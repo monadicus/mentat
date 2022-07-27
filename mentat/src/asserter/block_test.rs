@@ -763,7 +763,7 @@ fn test_operations_validations() {
                     ..Default::default()
                 }),
             }),
-            validation_file_path.as_ref(),
+            validation_file_path.as_deref(),
         )
         .unwrap()
     };
@@ -1794,7 +1794,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             }),
-            extras.validation_file_path.as_ref(),
+            extras.validation_file_path.as_deref(),
         )
         .unwrap()
     };

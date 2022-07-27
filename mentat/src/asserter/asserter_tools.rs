@@ -1,5 +1,5 @@
 //! The asserter contains tools and methods to help validate the other types.
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
@@ -8,20 +8,12 @@ use super::{
     block::block_identifier,
     errors::{AssertResult, AsserterError, BlockError, NetworkError, ServerError},
     network::{
-        network_identifier,
-        network_options_response,
-        network_status_response,
-        operation_statuses,
+        network_identifier, network_options_response, network_status_response, operation_statuses,
         operation_types,
     },
     server::supported_networks,
-    BlockIdentifier,
-    MentatError,
-    NetworkIdentifier,
-    NetworkOptionsResponse,
-    NetworkStatusResponse,
-    OperationStatus,
-    DATA_DIR,
+    BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse,
+    OperationStatus, DATA_DIR,
 };
 
 /// A static string representing account type data.
@@ -61,7 +53,7 @@ pub(crate) struct Validations {
 impl Validations {
     /// Creates a new `Validations` struct given a config file.
     pub(crate) fn get_validation_config(
-        validation_file_path: Option<&PathBuf>,
+        validation_file_path: Option<&Path>,
     ) -> Result<Self, String> {
         if let Some(path) = validation_file_path {
             // TODO handle these unwraps
@@ -115,7 +107,7 @@ impl Asserter {
         supp_networks: Vec<NetworkIdentifier>,
         call_methods: Vec<String>,
         mempool_coins: bool,
-        validation_file_path: Option<&PathBuf>,
+        validation_file_path: Option<&Path>,
     ) -> AssertResult<Self> {
         operation_types(&supported_operation_types)?;
         supported_networks(&supp_networks.iter().cloned().map(Some).collect::<Vec<_>>())?;
@@ -215,7 +207,7 @@ impl Asserter {
         network: Option<NetworkIdentifier>,
         status: Option<NetworkStatusResponse>,
         options: Option<NetworkOptionsResponse>,
-        validation_file_path: Option<&PathBuf>,
+        validation_file_path: Option<&Path>,
     ) -> AssertResult<Self> {
         network_identifier(network.as_ref())?;
         network_status_response(status.as_ref())?;
@@ -309,7 +301,7 @@ impl Configuration {
     /// systems that error when updates to the server (more error types,
     /// more operations, etc.) significantly change how to parse the chain.
     /// The filePath provided is parsed relative to the current directory.
-    pub(crate) fn new_client_with_file(path: PathBuf) -> AssertResult<Asserter> {
+    pub(crate) fn new_client_with_file(path: &Path) -> AssertResult<Asserter> {
         // TODO handle these unwraps
         let content = std::fs::File::open(path).unwrap();
         let config: Self = serde_json::from_reader(content).unwrap();
