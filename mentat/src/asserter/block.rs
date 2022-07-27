@@ -47,7 +47,7 @@ pub fn amount(amount: Option<&NullableAmount>) -> AssertResult<()> {
 pub fn operation_identifier(ident: Option<&OperationIdentifier>, index: i64) -> AssertResult<()> {
     let ident = ident.ok_or(BlockError::OperationIdentifierIndexIsNil)?;
 
-    if ident.index as i64 != index {
+    if ident.index != index {
         Err(format!(
             "{}: expected {index} but got {}",
             BlockError::OperationIdentifierIndexOutOfOrder,
@@ -84,10 +84,9 @@ impl Asserter {
         status: Option<&String>,
         construction: bool,
     ) -> AssertResult<()> {
-        let asserter = self
-            .response
-            .as_ref()
-            .ok_or(AsserterError::NotInitialized)?;
+        if self.response.is_none() && self.request.is_none() {
+            Err(AsserterError::NotInitialized)?;
+        }
 
         if status.is_none() || status.unwrap().is_empty() {
             return if construction {
@@ -101,7 +100,14 @@ impl Asserter {
 
         if construction {
             Err(BlockError::OperationStatusNotEmptyForConstruction)?
-        } else if !asserter.operation_status_map[status] {
+        }
+
+        if self
+            .response
+            .as_ref()
+            .and_then(|r| r.operation_status_map.get(status))
+            .is_none()
+        {
             Err(format!(
                 "{}: {}",
                 BlockError::OperationStatusInvalid,
@@ -115,9 +121,11 @@ impl Asserter {
     /// `operation_type` returns an error if an operation.Type
     /// is not valid.
     pub fn operation_type(&self, t: String) -> AssertResult<()> {
-        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+        if self.response.is_none() && self.request.is_none() {
+            Err(AsserterError::NotInitialized)?;
+        }
 
-        if t.is_empty() || self.operation_types.contains(&t) {
+        if t.is_empty() || !self.operation_types.contains(&t) {
             Err(format!("{}: {t}", BlockError::OperationTypeInvalid))?
         } else {
             Ok(())
@@ -132,7 +140,9 @@ impl Asserter {
         index: i64,
         construction: bool,
     ) -> AssertResult<()> {
-        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+        if self.response.is_none() && self.request.is_none() {
+            Err(AsserterError::NotInitialized)?;
+        }
 
         let operation = operation.ok_or(BlockError::OperationIsNil)?;
 
@@ -250,8 +260,9 @@ impl Asserter {
         // throw an error if relatedOps is not implemented and relatedOps is supported
         if !related_ops_exist && self.validations.enabled && self.validations.related_ops_exists {
             Err(BlockError::RelatedOperationMissing)?;
-        } else if self.validations.enabled
-            && self.validations.chain_type == super::asserter_tools::ACCOUNT
+        }
+
+        if self.validations.enabled && self.validations.chain_type == super::asserter_tools::ACCOUNT
         {
             // only account based validation
             self.validate_payment_and_fee(payment_total, payment_count, fee_total, fee_count)?;
@@ -273,13 +284,19 @@ impl Asserter {
             && self.validations.payment.operation.count != payment_count
         {
             Err(BlockError::PaymentCountMismatch)?
-        } else if self.validations.payment.operation.should_balance && payment_total != zero {
+        }
+
+        if self.validations.payment.operation.should_balance && payment_total != zero {
             Err(BlockError::PaymentAmountNotBalancing)?
-        } else if self.validations.fee.operation.count != -1
-            && self.validations.payment.operation.count != fee_count
+        }
+
+        if self.validations.fee.operation.count != -1
+            && self.validations.fee.operation.count != fee_count
         {
             Err(BlockError::FeeCountMismatch)?
-        } else if self.validations.fee.operation.should_balance && fee_total != zero {
+        }
+
+        if self.validations.fee.operation.should_balance && fee_total != zero {
             Err(BlockError::FeeAmountNotBalancing)?
         } else {
             Ok(())
@@ -290,7 +307,9 @@ impl Asserter {
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
     pub fn transaction(&self, transaction: Option<&NullableTransaction>) -> AssertResult<()> {
-        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+        self.response
+            .as_ref()
+            .ok_or(AsserterError::NotInitialized)?;
 
         let transaction = transaction.ok_or(BlockError::TxIsNil)?;
 
@@ -389,8 +408,8 @@ impl Asserter {
 
         // Only check for timestamp validity if timestamp start index is <=
         // the current block index.
-        if asserter.timestamp_start_index <= block_identifier.index as i64 {
-            timestamp(block.timestamp as i64)?;
+        if asserter.timestamp_start_index <= block_identifier.index {
+            timestamp(block.timestamp)?;
         }
 
         block

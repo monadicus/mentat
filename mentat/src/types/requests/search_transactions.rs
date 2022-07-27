@@ -16,7 +16,8 @@ pub struct NullableSearchTransactionsRequest {
     /// `Operator` is used by query-related endpoints to determine how to apply
     /// conditions. If this field is not populated, the default and value will
     /// be used.
-    pub operator: NullableOperator,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operator: Option<NullableOperator>,
     /// `max_block` is the largest block index to consider when searching for
     /// transactions. If this field is not populated, the current block is
     /// considered the `max_block`. If you do not specify a `max_block`, it is

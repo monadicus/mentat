@@ -306,11 +306,16 @@ impl Asserter {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         let request = request.ok_or(ServerError::AccountCoinsRequestIsNil)?;
+
         self.valid_supported_network(request.network_identifier.as_ref())?;
+
         account_identifier(request.account_identifier.as_ref())?;
+
         if request.include_mempool && !asserter.mempool_coins {
             Err(ServerError::MempoolCoinsNotSupported)?
-        } else if let Some(c) = contains_duplicate_currency(
+        }
+
+        if let Some(c) = contains_duplicate_currency(
             &request
                 .currencies
                 .iter()
@@ -352,7 +357,7 @@ impl Asserter {
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
 
-        if !request.operator.valid() {
+        if request.operator.is_some() && !request.operator.as_ref().unwrap().valid() {
             Err(ServerError::OperatorInvalid)?;
         }
 
@@ -380,7 +385,9 @@ impl Asserter {
             currency(request.currency.as_ref())?;
         }
 
-        self.operation_status(request.status.as_ref(), false)?;
+        if request.status.is_some() {
+            self.operation_status(request.status.as_ref(), false)?;
+        }
 
         if let Some(t) = &request.type_ {
             self.operation_type(t.clone())?;

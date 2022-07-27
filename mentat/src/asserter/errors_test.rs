@@ -2,7 +2,7 @@ use std::{error::Error, fmt::Display};
 
 use indexmap::{indexmap, IndexMap};
 
-use crate::asserter::errors::*;
+use super::*;
 
 struct ErrTest {
     err: Box<dyn Error>,

@@ -1,4 +1,7 @@
-use super::test_utils::CustomAsserterTest;
+use super::{
+    server_test::{valid_account, valid_amount, valid_block_identifier},
+    test_utils::CustomAsserterTest,
+};
 use crate::{
     asserter::{
         asserter_tools::Asserter,
@@ -6,47 +9,45 @@ use crate::{
         errors::{BlockError, SearchError},
     },
     types::{
-        AccountIdentifier, BlockIdentifier, NetworkIdentifier, NullableAllow, NullableAmount,
-        NullableBlockTransaction, NullableCurrency, NullableNetworkOptionsResponse,
-        NullableNetworkStatusResponse, NullableOperation, NullableSearchTransactionsResponse,
-        NullableTransaction, OperationIdentifier, OperationStatus, Peer, TransactionIdentifier,
+        AccountIdentifier,
+        Allow,
+        Amount,
+        BlockIdentifier,
+        BlockTransaction,
+        Currency,
+        NetworkIdentifier,
+        NetworkOptionsResponse,
+        NetworkStatusResponse,
+        Operation,
+        OperationIdentifier,
+        OperationStatus,
+        Peer,
+        SearchTransactionsResponse,
+        Transaction,
+        TransactionIdentifier,
         Version,
     },
 };
 
 #[test]
 fn test_search_transactions_response() {
-    let valid_account = Some(AccountIdentifier {
-        address: "test".into(),
-        sub_account: None,
-        metadata: Default::default(),
-    });
-    let valid_amount = Some(NullableAmount {
-        value: "1000".into(),
-        currency: Some(NullableCurrency {
-            symbol: "BTC".into(),
-            decimals: 8,
-            metadata: Default::default(),
-        }),
-        metadata: Default::default(),
-    });
-    let valid_transaction = NullableTransaction {
+    let valid_transaction = Some(Transaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
+            Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account.clone(),
-                amount: valid_amount.clone(),
+                account: valid_account(),
+                amount: valid_amount(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
+            Some(Operation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -57,17 +58,13 @@ fn test_search_transactions_response() {
                 })],
                 type_: "PAYMENT".into(),
                 status: Some("SUCCESS".into()),
-                account: valid_account,
-                amount: valid_amount,
+                account: valid_account(),
+                amount: valid_amount(),
                 ..Default::default()
             }),
         ],
         ..Default::default()
-    };
-    let valid_block_ident = BlockIdentifier {
-        hash: "blah".into(),
-        index: 100,
-    };
+    });
 
     let tests = [
         CustomAsserterTest {
@@ -78,7 +75,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
                 ..Default::default()
             }),
@@ -87,7 +84,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "invalid next",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(-1),
                 ..Default::default()
             }),
@@ -96,7 +93,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid count",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 total_count: 0,
                 ..Default::default()
             }),
@@ -105,7 +102,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "invalid count",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 total_count: -1,
                 ..Default::default()
             }),
@@ -114,11 +111,11 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next + transaction",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(NullableBlockTransaction {
-                    block_identifier: Some(valid_block_ident.clone()),
-                    transaction: Some(valid_transaction.clone()),
+                transactions: vec![Some(BlockTransaction {
+                    block_identifier: valid_block_identifier(),
+                    transaction: valid_transaction.clone(),
                 })],
                 ..Default::default()
             }),
@@ -127,11 +124,11 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next + invalid blockIdentifier",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(NullableBlockTransaction {
-                    block_identifier: Default::default(),
-                    transaction: Some(valid_transaction),
+                transactions: vec![Some(BlockTransaction {
+                    block_identifier: Some(Default::default()),
+                    transaction: valid_transaction,
                 })],
                 ..Default::default()
             }),
@@ -140,16 +137,16 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next + invalid transaction",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: Some(SearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(NullableBlockTransaction {
-                    block_identifier: Some(valid_block_ident),
-                    transaction: Default::default(),
+                transactions: vec![Some(BlockTransaction {
+                    block_identifier: valid_block_identifier(),
+                    transaction: Some(Default::default()),
                 })],
                 ..Default::default()
             }),
             extras: (),
-            err: Some(BlockError::BlockIdentifierHashMissing.into()),
+            err: Some(BlockError::TxIdentifierIsNil.into()),
         },
     ];
 
@@ -160,7 +157,7 @@ fn test_search_transactions_response() {
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            Some(NullableNetworkStatusResponse {
+            Some(NetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -177,14 +174,14 @@ fn test_search_transactions_response() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NullableNetworkOptionsResponse {
+            Some(NetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(NullableAllow {
+                allow: Some(Allow {
                     operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),

@@ -110,10 +110,10 @@ impl Asserter {
             .map_err(|err| format!("{err} unable to parse operations"))?;
 
         if signed && resp.account_identifier_signers.is_empty() {
-            Err(ConstructionError::ConstructionParseResponseIsNil)?;
+            Err(ConstructionError::ConstructionParseResponseSignersEmptyOnSignedTx)?;
         }
 
-        if !signed && resp.account_identifier_signers.is_empty() {
+        if !signed && !resp.account_identifier_signers.is_empty() {
             Err(ConstructionError::ConstructionParseResponseSignersNonEmptyOnUnsignedTx)?;
         }
 
@@ -121,11 +121,21 @@ impl Asserter {
             .iter()
             .enumerate()
             .try_for_each(|(index, ident)| {
-                account_identifier(ident.as_ref()).map_err(|err| format!("{err} at index {index}"))
+                account_identifier(ident.as_ref()).map_err(|_| {
+                    format!(
+                        "{} at index {index}",
+                        ConstructionError::ConstructionParseResponseSignerEmpty
+                    )
+                })
             })?;
 
         if !resp.account_identifier_signers.is_empty() {
-            account_array("signers", &resp.account_identifier_signers)?;
+            account_array("signers", &resp.account_identifier_signers).map_err(|err| {
+                format!(
+                    "{}: {err}",
+                    ConstructionError::ConstructionParseResponseDuplicateSigner
+                )
+            })?;
         }
 
         Ok(())

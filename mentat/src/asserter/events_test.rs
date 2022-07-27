@@ -1,13 +1,4 @@
-use super::test_utils::AsserterTest;
-use crate::{
-    asserter::{
-        errors::{BlockError, EventError},
-        events::events_blocks_response,
-    },
-    types::{
-        BlockIdentifier, NullableBlockEvent, NullableBlockEventType, NullableEventsBlocksResponse,
-    },
-};
+use super::*;
 
 #[test]
 fn test_events_block_response() {
@@ -152,5 +143,5 @@ fn test_events_block_response() {
         },
     ];
 
-    AsserterTest::non_asserter_tests(&tests, events_blocks_response);
+    AsserterTest::run(&tests, events_blocks_response);
 }
