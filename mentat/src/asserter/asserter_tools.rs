@@ -12,13 +12,8 @@ use super::{
         operation_types,
     },
     server::supported_networks,
-    BlockIdentifier,
-    MentatError,
-    NetworkIdentifier,
-    NetworkOptionsResponse,
-    NetworkStatusResponse,
-    OperationStatus,
-    DATA_DIR,
+    BlockIdentifier, MentatError, NetworkIdentifier, NullableNetworkOptionsResponse,
+    NullableNetworkStatusResponse, OperationStatus, DATA_DIR,
 };
 
 /// A static string representing account type data.

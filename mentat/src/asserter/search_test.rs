@@ -9,34 +9,21 @@ use crate::{
         errors::{BlockError, SearchError},
     },
     types::{
-        AccountIdentifier,
-        Allow,
-        Amount,
-        BlockIdentifier,
-        BlockTransaction,
-        Currency,
-        NetworkIdentifier,
-        NetworkOptionsResponse,
-        NetworkStatusResponse,
-        Operation,
-        OperationIdentifier,
-        OperationStatus,
-        Peer,
-        SearchTransactionsResponse,
-        Transaction,
-        TransactionIdentifier,
-        Version,
+        AccountIdentifier, Amount, BlockIdentifier, Currency, NetworkIdentifier, NullableAllow,
+        NullableBlockTransaction, NullableNetworkOptionsResponse, NullableNetworkStatusResponse,
+        NullableOperation, NullableSearchTransactionsResponse, NullableTransaction,
+        OperationIdentifier, OperationStatus, Peer, TransactionIdentifier, Version,
     },
 };
 
 #[test]
 fn test_search_transactions_response() {
-    let valid_transaction = Some(Transaction {
+    let valid_transaction = Some(NullableTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 0,
                     network_index: None,
@@ -47,7 +34,7 @@ fn test_search_transactions_response() {
                 amount: valid_amount(),
                 ..Default::default()
             }),
-            Some(Operation {
+            Some(NullableOperation {
                 operation_identifier: Some(OperationIdentifier {
                     index: 1,
                     network_index: None,
@@ -75,7 +62,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next",
-            payload: Some(SearchTransactionsResponse {
+            payload: Some(NullableSearchTransactionsResponse {
                 next_offset: Some(1),
                 ..Default::default()
             }),
@@ -84,7 +71,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "invalid next",
-            payload: Some(SearchTransactionsResponse {
+            payload: Some(NullableSearchTransactionsResponse {
                 next_offset: Some(-1),
                 ..Default::default()
             }),
@@ -93,7 +80,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid count",
-            payload: Some(SearchTransactionsResponse {
+            payload: Some(NullableSearchTransactionsResponse {
                 total_count: 0,
                 ..Default::default()
             }),
@@ -102,7 +89,7 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "invalid count",
-            payload: Some(SearchTransactionsResponse {
+            payload: Some(NullableSearchTransactionsResponse {
                 total_count: -1,
                 ..Default::default()
             }),
@@ -111,9 +98,9 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next + transaction",
-            payload: Some(SearchTransactionsResponse {
+            payload: Some(NullableSearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(BlockTransaction {
+                transactions: vec![Some(NullableBlockTransaction {
                     block_identifier: valid_block_identifier(),
                     transaction: valid_transaction.clone(),
                 })],
@@ -124,9 +111,9 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next + invalid blockIdentifier",
-            payload: Some(SearchTransactionsResponse {
+            payload: Some(NullableSearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(BlockTransaction {
+                transactions: vec![Some(NullableBlockTransaction {
                     block_identifier: Some(Default::default()),
                     transaction: valid_transaction,
                 })],
@@ -137,9 +124,9 @@ fn test_search_transactions_response() {
         },
         CustomAsserterTest {
             name: "valid next + invalid transaction",
-            payload: Some(SearchTransactionsResponse {
+            payload: Some(NullableSearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(BlockTransaction {
+                transactions: vec![Some(NullableBlockTransaction {
                     block_identifier: valid_block_identifier(),
                     transaction: Some(Default::default()),
                 })],
@@ -157,7 +144,7 @@ fn test_search_transactions_response() {
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            Some(NetworkStatusResponse {
+            Some(NullableNetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
@@ -174,14 +161,14 @@ fn test_search_transactions_response() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NetworkOptionsResponse {
+            Some(NullableNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(Allow {
+                allow: Some(NullableAllow {
                     operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
