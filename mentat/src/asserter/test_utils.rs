@@ -6,7 +6,7 @@ use crate::{
         asserter_tools::{Asserter, RequestAsserter},
         errors::{AssertResult, AsserterError},
     },
-    tests::Test,
+    tests::{status_message, Test},
 };
 
 pub(crate) struct AsserterTest<P> {
@@ -73,43 +73,6 @@ impl<P> fmt::Display for AsserterRequestDefaultTest<P> {
     }
 }
 
-pub struct AsserterEqualityTest<P, R> {
-    pub name: &'static str,
-    pub payload: P,
-    pub res: R,
-}
-
-impl<P, Input, R> Test<Input> for AsserterEqualityTest<P, R>
-where
-    Input: FnMut(&P) -> R,
-    R: Eq + fmt::Display,
-{
-    fn run(tests: &[Self], mut func: Input) {
-        let failed = tests
-            .iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(&test.payload);
-                if test.res != res {
-                    println!("test returned wrong value: `{}` != `{}`", test.res, res);
-                    false
-                } else {
-                    true
-                }
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, tests.len());
-    }
-}
-
-impl<P, R> fmt::Display for AsserterEqualityTest<P, R> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "test `{}`", self.name)
-    }
-}
-
 pub(crate) struct CustomAsserterTest<P, E> {
     pub name: &'static str,
     pub payload: Option<P>,
@@ -154,24 +117,16 @@ pub(crate) fn assert_correct<T>(
             false
         }
         (Err(err), None) => {
-            println!("test failed when it shouldnt have. returned error: `{err}`");
+            println!("test failed when it shouldn't have. returned error: `{err}`");
             false
         }
         (Ok(_), Some(exp)) => {
-            println!("test passed when it shouldnt have. expected error: `{exp}`");
+            println!("test passed when it shouldn't have. expected error: `{exp}`");
             false
         }
         _ => {
             println!("ok!");
             true
         }
-    }
-}
-
-pub(crate) fn status_message(failed: usize, total: usize) {
-    if failed == 0 {
-        println!("all passed!")
-    } else {
-        panic!("failed {}/{} tests", failed, total)
     }
 }

@@ -1,13 +1,18 @@
-//! TEMP DOC STRING
+//! Types module Util functions
 
-use std::{error::Error, fmt::Debug, str::FromStr};
+use std::{fmt::Debug, str::FromStr};
 
 use num_bigint_dig::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier, Amount, BlockIdentifier, Currency, PartialBlockIdentifier, Sortable,
+    AccountIdentifier,
+    Amount,
+    BlockIdentifier,
+    Currency,
+    PartialBlockIdentifier,
+    Sortable,
 };
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided
@@ -38,6 +43,7 @@ where
 
         let json = match serde_json::to_string(&sorted) {
             Ok(json) => json,
+            // TODO this should log?
             Err(e) => panic!("{e}: unable to jsonify {hashable:?}"),
         };
 
@@ -61,17 +67,18 @@ pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> Part
 
 /// `amount_value` returns a [`BigInt`] representation of an
 /// Amount.Value or an error.
-pub(crate) fn amount_value(amount: &Amount) -> Result<BigInt, String> {
+pub(crate) fn amount_value(amount: Option<&Amount>) -> Result<BigInt, String> {
+    let amount = amount.ok_or("amount value cannot be nil")?;
     BigInt::from_str(&amount.value).map_err(|_| format!("{} is not an integer", amount.value))
 }
 
 /// `account_string` returns a human-readable representation of a
 /// [`AccountIdentifier`].
 pub(crate) fn account_string(account: &AccountIdentifier) -> String {
-    let sub_account = if account.sub_account.is_none() {
-        return account.address.clone();
+    let sub_account = if let Some(sub_account) = account.sub_account.as_ref() {
+        sub_account
     } else {
-        account.sub_account.as_ref().unwrap()
+        return account.address.clone();
     };
 
     if sub_account.metadata.is_empty() {
@@ -146,12 +153,12 @@ pub(crate) fn negate_value(val: &str) -> Result<String, String> {
 
 /// `extract_amount` returns the Amount from a slice of Balance
 /// pertaining to an AccountAndCurrency.
-pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -> Amount {
+pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: Option<&Currency>) -> Amount {
     balances
         .iter()
         .find(|amt| {
             if amt.is_some() && amt.as_ref().unwrap().currency.is_some() {
-                hash(amt.as_ref().unwrap().currency.as_ref()) == hash(Some(currency))
+                hash(amt.as_ref().unwrap().currency.as_ref()) == hash(currency)
             } else {
                 false
             }
@@ -160,7 +167,7 @@ pub(crate) fn extract_amount(balances: &[Option<Amount>], currency: &Currency) -
         .flatten()
         .unwrap_or(Amount {
             value: "0".to_string(),
-            currency: Some(currency.clone()),
+            currency: currency.cloned(),
             ..Default::default()
         })
 }

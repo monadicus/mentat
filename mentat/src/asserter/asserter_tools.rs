@@ -11,12 +11,20 @@ use super::{
     block::block_identifier,
     errors::{AssertResult, AsserterError, BlockError, NetworkError, ServerError},
     network::{
-        network_identifier, network_options_response, network_status_response, operation_statuses,
+        network_identifier,
+        network_options_response,
+        network_status_response,
+        operation_statuses,
         operation_types,
     },
     server::supported_networks,
-    BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse,
-    OperationStatus, DATA_DIR,
+    BlockIdentifier,
+    MentatError,
+    NetworkIdentifier,
+    NetworkOptionsResponse,
+    NetworkStatusResponse,
+    OperationStatus,
+    DATA_DIR,
 };
 
 /// A static string representing account type data.

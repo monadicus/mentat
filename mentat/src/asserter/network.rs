@@ -3,10 +3,28 @@
 use indexmap::IndexSet;
 
 use super::{
-    block_identifier, currency, hash, string_array, timestamp, Allow, AssertResult, AsserterError,
-    BalanceExemption, BlockError, ErrorError, MentatError, NetworkError, NetworkIdentifier,
-    NetworkListResponse, NetworkOptionsResponse, NetworkStatusResponse, OperationStatus, Peer,
-    SubNetworkIdentifier, SyncStatus, Version,
+    block_identifier,
+    currency,
+    hash,
+    string_array,
+    timestamp,
+    Allow,
+    AssertResult,
+    AsserterError,
+    BalanceExemption,
+    BlockError,
+    ErrorError,
+    MentatError,
+    NetworkError,
+    NetworkIdentifier,
+    NetworkListResponse,
+    NetworkOptionsResponse,
+    NetworkStatusResponse,
+    OperationStatus,
+    Peer,
+    SubNetworkIdentifier,
+    SyncStatus,
+    Version,
 };
 
 /// `sub_network_identifier` asserts a [`SubNetworkIdentifier`] is valid (if not

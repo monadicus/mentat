@@ -54,7 +54,7 @@ use crate::types::*;
 #[path = ""]
 pub mod tests {
     use super::*;
-    use crate::tests::Test;
+    use crate::tests::{status_message, Test};
 
     mod account_test;
     mod asserter_tools_test;
