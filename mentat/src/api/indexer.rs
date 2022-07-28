@@ -2,7 +2,6 @@
 //! These traits are easily overridable for custom
 //! implementations.
 use super::*;
-use crate::errors::MentatError;
 
 /// Trait to define the endpoints necessary for the Rosetta Indexer API.
 #[axum::async_trait]

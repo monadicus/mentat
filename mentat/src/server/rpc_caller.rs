@@ -4,7 +4,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     conf::{Configuration, NodeConf},
-    errors::{MapErrMentat, Result},
+    types::{MapErrMentat, Result},
 };
 
 /// The `RpcCaller` struct is a wrapper to hold a rpc caller instance

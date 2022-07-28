@@ -19,8 +19,7 @@ use self::middleware_checks::middleware_checks;
 use crate::{
     api::*,
     conf::*,
-    errors::{MentatError, Result},
-    identifiers::NetworkIdentifier,
+    types::{MentatError, NetworkIdentifier, Result},
 };
 
 /// Contains the types required to construct a mentat [`Server`].

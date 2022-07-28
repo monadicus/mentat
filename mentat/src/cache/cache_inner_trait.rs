@@ -9,7 +9,7 @@ use std::{
 use axum::Json;
 use tokio::sync::broadcast;
 
-use crate::{api::MentatResponse, errors::MentatError};
+use crate::{api::MentatResponse, types::MentatError};
 
 /// A cache `Entry`, stores when it was last accessed, and the `Json` of the
 /// data it has.
