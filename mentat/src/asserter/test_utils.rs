@@ -25,7 +25,7 @@ where
             .map(|test| {
                 print!("{test}: ");
                 let res = func(test.payload.as_ref());
-                assert_correct(&test.err, &res)
+                check_test_result(&test.err, &res)
             })
             .filter(|t| !t)
             .count();
@@ -58,7 +58,7 @@ where
             .map(|test| {
                 print!("{test}: ");
                 let res = func(&asserter, test.payload.as_ref());
-                assert_correct(&test.err, &res)
+                check_test_result(&test.err, &res)
             })
             .filter(|t| !t)
             .count();
@@ -92,7 +92,7 @@ impl<P, E> CustomAsserterTest<P, E> {
                 print!("{test}: ");
                 let asserter = asserter(&test.extras);
                 let res = func(&asserter, test.payload.as_ref());
-                assert_correct(&test.err, &res)
+                check_test_result(&test.err, &res)
             })
             .filter(|t| !t)
             .count();
@@ -107,7 +107,7 @@ impl<P, E> fmt::Display for CustomAsserterTest<P, E> {
     }
 }
 
-pub(crate) fn assert_correct<T>(
+pub(crate) fn check_test_result<T>(
     err: &Option<AsserterError>,
     res: &Result<T, AsserterError>,
 ) -> bool {

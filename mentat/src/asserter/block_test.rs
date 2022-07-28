@@ -1091,7 +1091,7 @@ fn test_operation() {
             print!("Testing operation: ");
             let asserter = asserter(&test.extras);
             let payload = test.payload.as_ref().unwrap();
-            if !assert_correct(
+            if !check_test_result(
                 &test.err,
                 &asserter.operation(
                     payload.operation.as_ref(),
