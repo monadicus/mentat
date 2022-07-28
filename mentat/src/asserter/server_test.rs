@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use indexmap::indexmap;
 
 use super::*;

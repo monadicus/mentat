@@ -8,13 +8,10 @@ use num_bigint_dig::{BigInt, Sign};
 use crate::macro_exports::NullableDirection;
 
 use super::{
-    asserter_tools::{Asserter, RequestAsserter},
-    coin_change,
-    errors::AsserterError,
-    hash, network_identifier, AccountIdentifier, AssertResult, BlockError, BlockIdentifier,
-    Direction, NullableAmount, NullableBlock, NullableCurrency, NullableOperation,
-    NullableRelatedTransaction, NullableTransaction, OperationIdentifier, PartialBlockIdentifier,
-    ResponseAsserter, TransactionIdentifier,
+    asserter_tools::Asserter, coin_change, errors::AsserterError, hash, network_identifier,
+    AccountIdentifier, AssertResult, BlockError, BlockIdentifier, NullableAmount, NullableBlock,
+    NullableCurrency, NullableOperation, NullableRelatedTransaction, NullableTransaction,
+    OperationIdentifier, PartialBlockIdentifier, TransactionIdentifier,
 };
 
 /// `currency` ensures a [`Currency`] is valid.

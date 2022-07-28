@@ -1,16 +1,12 @@
 //! Validates that construction data is correct.
 
 use super::{
-    account_array, account_identifier, assert_unique_amounts,
-    asserter_tools::Asserter,
-    block::transaction_identifier,
-    bytes_array_zero,
-    errors::{AsserterError, BlockError},
-    AssertResult, ConstructionError, NullableConstructionDeriveResponse,
-    NullableConstructionMetadataResponse, NullableConstructionParseResponse,
-    NullableConstructionPayloadsResponse, NullableConstructionPreprocessResponse,
-    NullableCurveType, NullablePublicKey, NullableSignature, NullableSignatureType,
-    NullableSigningPayload, ResponseAsserter,
+    account_array, account_identifier, assert_unique_amounts, asserter_tools::Asserter,
+    block::transaction_identifier, bytes_array_zero, errors::AsserterError, AssertResult,
+    ConstructionError, NullableConstructionDeriveResponse, NullableConstructionMetadataResponse,
+    NullableConstructionParseResponse, NullableConstructionPayloadsResponse,
+    NullableConstructionPreprocessResponse, NullableCurveType, NullablePublicKey,
+    NullableSignature, NullableSignatureType, NullableSigningPayload,
 };
 use crate::types::{NullableConstructionCombineResponse, NullableTransactionIdentifierResponse};
 

@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use super::*;
 
@@ -1121,11 +1121,6 @@ fn test_operation() {
         .filter(|t| !t)
         .count();
     status_message(failed, test_count);
-}
-
-#[derive(Default)]
-struct BlockTest {
-    block: Option<NullableBlock>,
 }
 
 #[derive(Default)]

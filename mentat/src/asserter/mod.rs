@@ -1,13 +1,11 @@
 //! The asserter contains tools and methods to help validate the other types.
 
 #![allow(clippy::absurd_extreme_comparisons)]
-// TODO this is temporary to help find relevant warnings faster
-#![allow(unused)]
 
 use include_dir::{include_dir, Dir};
 
 /// Includes the data dir files;
-pub static DATA_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/asserter/data");
+const DATA_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/asserter/data");
 
 mod account;
 pub use account::*;
@@ -46,7 +44,7 @@ mod server;
 pub use server::*;
 
 mod util;
-pub use util::*;
+use util::*;
 
 use crate::types::*;
 
@@ -67,7 +65,7 @@ pub mod tests {
     mod network_test;
     mod search_test;
     mod server_test;
-    pub use server_test::*;
+    use server_test::*;
     mod test_utils;
-    pub use test_utils::*;
+    use test_utils::*;
 }
