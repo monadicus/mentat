@@ -347,7 +347,7 @@ fn test_new() {
         );
 
         if test.err.is_some() {
-            assert_correct(&test.err, &res);
+            assert!(check_test_result(&test.err, &res));
         } else {
             let asserter = res.unwrap();
 
@@ -432,19 +432,19 @@ fn test_new() {
                     config.allowed_timestamp_start_index
                 )
             }
+            println!("ok!");
         }
-        println!("ok!");
 
         if !payload.skip_load_test {
             print!("{} with file: ", test.name);
 
             let allow = payload.network_options.unwrap().allow.unwrap();
             let genesis_block_identifier = payload.network_status.unwrap().genesis_block_identifier;
-            let allowed_timestamp_start_index = Some(
-                allow
-                    .timestamp_start_index
-                    .unwrap_or_else(|| genesis_block_identifier.as_ref().unwrap().index + 1),
-            );
+            let allowed_timestamp_start_index = if allow.timestamp_start_index.is_some() {
+                allow.timestamp_start_index
+            } else {
+                genesis_block_identifier.as_ref().map(|t| t.index)
+            };
             let file_config = Configuration {
                 network_identifier: payload.network.clone(),
                 allowed_timestamp_start_index,
@@ -456,9 +456,9 @@ fn test_new() {
 
             let tmp_file_path = temp_dir().join("test.json");
             let mut tmp_file = OpenOptions::new()
-                .read(true)
-                .write(true)
                 .create(true)
+                .write(true)
+                .truncate(true)
                 .open(&tmp_file_path)
                 .unwrap();
 
@@ -470,7 +470,7 @@ fn test_new() {
 
             if let Some(e) = test.err {
                 let err = asserter.unwrap_err();
-                assert!(err.to_string().contains(&e.to_string()));
+                assert!(check_test_result::<()>(&Some(err), &Err(e)))
             } else {
                 let configuration = asserter.unwrap().client_configuration().unwrap();
                 assert_eq!(payload.network, configuration.network_identifier);
@@ -488,25 +488,25 @@ fn test_new() {
                     allowed_timestamp_start_index,
                     configuration.allowed_timestamp_start_index
                 );
+                println!("ok!");
             }
-            println!("ok!");
         }
     }
 
-    let tmp_file = temp_dir().join("test.json");
-    let mut file = OpenOptions::new()
-        .read(true)
-        .write(true)
+    let tmp_file_path = temp_dir().join("test.json");
+    let mut tmp_file = OpenOptions::new()
         .create(true)
-        .open(&tmp_file)
+        .write(true)
+        .truncate(true)
+        .open(&tmp_file_path)
         .unwrap();
-    file.write_all(b"blah").unwrap();
+    tmp_file.write_all(b"blah").unwrap();
 
     println!("non-existent file: ");
     Configuration::new_client_with_file(Path::new("blah")).unwrap_err();
 
     println!("file not formatted correctly: ");
-    Configuration::new_client_with_file(&tmp_file).unwrap_err();
+    Configuration::new_client_with_file(&tmp_file_path).unwrap_err();
 
     println!("default no validation file: ");
     let asserter = Asserter::new_client_with_responses(
@@ -532,7 +532,7 @@ fn test_new() {
         valid_network,
         valid_network_status,
         valid_network_options,
-        Some(&tmp_file),
+        Some(&tmp_file_path),
     )
     .unwrap_err();
 }
