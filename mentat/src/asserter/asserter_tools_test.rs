@@ -336,7 +336,7 @@ fn test_new() {
     ];
 
     // TODO make use of test framework
-    tests.into_iter().for_each(|test| {
+    for test in tests {
         print!("{}: ", test.name);
         let payload = test.payload.unwrap();
         let res = Asserter::new_client_with_responses(
@@ -408,8 +408,10 @@ fn test_new() {
                 assert_eq!(
                     payload
                         .network_options
+                        .as_ref()
                         .unwrap()
                         .allow
+                        .as_ref()
                         .unwrap()
                         .timestamp_start_index,
                     config.allowed_timestamp_start_index
@@ -419,8 +421,10 @@ fn test_new() {
                     Some(
                         payload
                             .network_status
+                            .as_ref()
                             .unwrap()
                             .genesis_block_identifier
+                            .as_ref()
                             .unwrap()
                             .index
                             + 1
@@ -428,9 +432,66 @@ fn test_new() {
                     config.allowed_timestamp_start_index
                 )
             }
+        }
+        println!("ok!");
+
+        if !payload.skip_load_test {
+            print!("{} with file: ", test.name);
+
+            let allow = payload.network_options.unwrap().allow.unwrap();
+            let genesis_block_identifier = payload.network_status.unwrap().genesis_block_identifier;
+            let allowed_timestamp_start_index = Some(
+                allow
+                    .timestamp_start_index
+                    .unwrap_or_else(|| genesis_block_identifier.as_ref().unwrap().index + 1),
+            );
+            let file_config = Configuration {
+                network_identifier: payload.network.clone(),
+                allowed_timestamp_start_index,
+                genesis_block_identifier: genesis_block_identifier.clone(),
+                allowed_operation_types: allow.operation_types.clone(),
+                allowed_operation_statuses: allow.operation_statuses.clone(),
+                allowed_errors: allow.errors.clone(),
+            };
+
+            let tmp_file_path = temp_dir().join("test.json");
+            let mut tmp_file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(&tmp_file_path)
+                .unwrap();
+
+            let data = serde_json::to_string_pretty(&file_config).unwrap();
+
+            tmp_file.write_all(data.as_bytes()).unwrap();
+
+            let asserter = Configuration::new_client_with_file(&tmp_file_path);
+
+            if let Some(e) = test.err {
+                let err = asserter.unwrap_err();
+                assert!(err.to_string().contains(&e.to_string()));
+            } else {
+                let configuration = asserter.unwrap().client_configuration().unwrap();
+                assert_eq!(payload.network, configuration.network_identifier);
+                assert_eq!(
+                    genesis_block_identifier,
+                    configuration.genesis_block_identifier
+                );
+                assert_eq!(allow.operation_types, configuration.allowed_operation_types);
+                assert_eq!(
+                    allow.operation_statuses,
+                    configuration.allowed_operation_statuses
+                );
+                assert_eq!(allow.errors, configuration.allowed_errors);
+                assert_eq!(
+                    allowed_timestamp_start_index,
+                    configuration.allowed_timestamp_start_index
+                );
+            }
             println!("ok!");
         }
-    });
+    }
 
     let tmp_file = temp_dir().join("test.json");
     let mut file = OpenOptions::new()
