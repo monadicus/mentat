@@ -12,24 +12,24 @@ use super::{
     hash,
     network_identifier,
     AccountIdentifier,
-    Amount,
     AssertResult,
-    Block,
     BlockError,
     BlockIdentifier,
-    Currency,
     Direction,
+    NullableAmount,
+    NullableBlock,
+    NullableCurrency,
+    NullableOperation,
+    NullableRelatedTransaction,
+    NullableTransaction,
     OperationIdentifier,
     PartialBlockIdentifier,
-    RelatedTransaction,
     ResponseAsserter,
-    Transaction,
     TransactionIdentifier,
 };
-use crate::types::Operation as TypesOperation;
 
 /// `currency` ensures a [`Currency`] is valid.
-pub(crate) fn currency(currency: Option<&Currency>) -> AssertResult<()> {
+pub(crate) fn currency(currency: Option<&NullableCurrency>) -> AssertResult<()> {
     let currency = currency.ok_or(BlockError::AmountCurrencyIsNil)?;
     if currency.symbol.is_empty() {
         Err(BlockError::AmountCurrencySymbolEmpty)?
@@ -42,7 +42,7 @@ pub(crate) fn currency(currency: Option<&Currency>) -> AssertResult<()> {
 
 /// `amount` ensures a [`Amount`] has an
 /// integer value, specified precision, and symbol.
-pub(crate) fn amount(amount: Option<&Amount>) -> AssertResult<()> {
+pub(crate) fn amount(amount: Option<&NullableAmount>) -> AssertResult<()> {
     let amount = amount.ok_or(BlockError::AmountValueMissing)?;
 
     if amount.value.is_empty() {
@@ -152,7 +152,7 @@ impl Asserter {
     /// type, status, and amount.
     pub(crate) fn operation(
         &self,
-        operation: Option<&TypesOperation>,
+        operation: Option<&NullableOperation>,
         index: i64,
         construction: bool,
     ) -> AssertResult<()> {
@@ -196,7 +196,7 @@ impl Asserter {
     /// in a [`TypesOperation`] is invalid.
     pub(crate) fn operations(
         &self,
-        operations: &[Option<TypesOperation>],
+        operations: &[Option<NullableOperation>],
         construction: bool,
     ) -> AssertResult<()> {
         if operations.is_empty() && construction {
@@ -322,7 +322,10 @@ impl Asserter {
     /// `transaction` returns an error if the [`TransactionIdentifier`]
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
-    pub(crate) fn transaction(&self, transaction: Option<&Transaction>) -> AssertResult<()> {
+    pub(crate) fn transaction(
+        &self,
+        transaction: Option<&NullableTransaction>,
+    ) -> AssertResult<()> {
         self.response
             .as_ref()
             .ok_or(AsserterError::NotInitialized)?;
@@ -358,7 +361,7 @@ impl Asserter {
     /// defined by the enum.
     pub(crate) fn related_transactions(
         &self,
-        related_transactions: &[Option<RelatedTransaction>],
+        related_transactions: &[Option<NullableRelatedTransaction>],
     ) -> AssertResult<()> {
         if let Some(dup) = duplicate_related_transaction(related_transactions) {
             Err(format!(
@@ -400,7 +403,7 @@ impl Asserter {
     }
 
     /// `block` runs a basic set of assertions for each returned [`Block`].
-    pub(crate) fn block(&self, block: Option<&Block>) -> AssertResult<()> {
+    pub(crate) fn block(&self, block: Option<&NullableBlock>) -> AssertResult<()> {
         let asserter = self
             .response
             .as_ref()
@@ -466,8 +469,8 @@ pub(crate) fn partial_block_identifier(
 /// `duplicate_related_transaction` returns nil if no duplicates are found in
 /// the array and returns the first duplicated item found otherwise.
 pub(crate) fn duplicate_related_transaction(
-    items: &[Option<RelatedTransaction>],
-) -> Option<&RelatedTransaction> {
+    items: &[Option<NullableRelatedTransaction>],
+) -> Option<&NullableRelatedTransaction> {
     let mut seen = IndexSet::new();
 
     for item in items {

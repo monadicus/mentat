@@ -1,15 +1,16 @@
 //! The module defines the `Currency` model.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
 /// [`Currency`] is composed of a canonical Symbol and Decimals. This Decimals
 /// value is used to convert an Amount.Value from atomic units (Satoshis) to
 /// standard units (Bitcoins).
-#[derive(Clone, Debug, Default, Eq, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Eq, Deserialize, PartialEq, Serialize, Nullable)]
 #[serde(default)]
-pub struct Currency {
+pub struct NullableCurrency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,
     /// Number of decimal places in the standard unit representation of the
@@ -24,7 +25,7 @@ pub struct Currency {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl From<String> for Currency {
+impl From<String> for NullableCurrency {
     fn from(symbol: String) -> Self {
         Self {
             symbol,
@@ -33,7 +34,7 @@ impl From<String> for Currency {
     }
 }
 
-impl Sortable for Currency {
+impl Sortable for NullableCurrency {
     fn sort(&self) -> Self {
         let mut new = self.clone();
         new.metadata.sort_keys();

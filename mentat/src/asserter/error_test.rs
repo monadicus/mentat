@@ -104,7 +104,7 @@ fn test_error_map() {
                 network: "world".into(),
                 sub_network_identifier: None,
             }),
-            Some(NetworkStatusResponse {
+            Some(NullableNetworkStatusResponse {
                 current_block_identifier: Some(BlockIdentifier {
                     index: 100,
                     hash: "block 100".to_string(),
@@ -121,14 +121,14 @@ fn test_error_map() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NetworkOptionsResponse {
+            Some(NullableNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".to_string(),
                     node_version: "1.0".to_string(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(Allow {
+                allow: Some(NullableAllow {
                     errors: vec![
                         Some(MentatError {
                             status_code: 0,

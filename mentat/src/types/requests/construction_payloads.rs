@@ -1,6 +1,7 @@
 //! The module defines the ConstructionPayloadsRequest request.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
@@ -10,9 +11,9 @@ use super::*;
 /// request can also include an array of [`PublicKey`]s associated with the
 /// [`AccountIdentifier`]s returned in
 /// [`crate::responses::ConstructionPreprocessResponse`].
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default, Nullable)]
 #[serde(default)]
-pub struct ConstructionPayloadsRequest {
+pub struct NullableConstructionPayloadsRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,14 +23,15 @@ pub struct ConstructionPayloadsRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub operations: Vec<Option<Operation>>,
+    pub operations: Vec<Option<NullableOperation>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
+    #[retain]
     pub metadata: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub public_keys: Vec<Option<PublicKey>>,
+    pub public_keys: Vec<Option<NullablePublicKey>>,
 }

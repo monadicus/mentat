@@ -1,12 +1,14 @@
 //! The module defines the `BlockRequest` request.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// A [`BlockRequest`] is utilized to make a block request on the `/block`
 /// endpoint.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct BlockRequest {
+pub struct NullableBlockRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -19,7 +21,7 @@ pub struct BlockRequest {
     pub block_identifier: Option<PartialBlockIdentifier>,
 }
 
-impl From<(Option<NetworkIdentifier>, Option<PartialBlockIdentifier>)> for BlockRequest {
+impl From<(Option<NetworkIdentifier>, Option<PartialBlockIdentifier>)> for NullableBlockRequest {
     fn from(
         (network_identifier, block_identifier): (
             Option<NetworkIdentifier>,
@@ -33,7 +35,7 @@ impl From<(Option<NetworkIdentifier>, Option<PartialBlockIdentifier>)> for Block
     }
 }
 
-impl From<(Option<PartialBlockIdentifier>, Option<NetworkIdentifier>)> for BlockRequest {
+impl From<(Option<PartialBlockIdentifier>, Option<NetworkIdentifier>)> for NullableBlockRequest {
     fn from(
         (block_identifier, network_identifier): (
             Option<PartialBlockIdentifier>,

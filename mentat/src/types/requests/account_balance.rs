@@ -1,13 +1,15 @@
 //! The module defines the `AccountBalanceRequest` request.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// An `AccountBalanceRequest` is utilized to make a balance request on the
 /// `/account/balance` endpoint. If the `block_identifier` is populated, a
 /// historical balance query should be performed.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct AccountBalanceRequest {
+pub struct NullableAccountBalanceRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,6 +24,7 @@ pub struct AccountBalanceRequest {
     /// specify the index or hash. If neither property is specified, it is
     /// assumed that the client is making a request at the current block.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[retain]
     pub block_identifier: Option<PartialBlockIdentifier>,
     /// In some cases, the caller may not want to retrieve all available
     /// balances for an [`AccountIdentifier`]. If the currencies field is
@@ -31,5 +34,5 @@ pub struct AccountBalanceRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub currencies: Vec<Option<Currency>>,
+    pub currencies: Vec<Option<NullableCurrency>>,
 }

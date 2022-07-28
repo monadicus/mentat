@@ -1,12 +1,14 @@
 //! The module defines the `ConstructionHashRequest` request.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// [`ConstructionHashRequest`] is the input to the `/construction/hash`
 /// endpoint.
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default, Nullable)]
 #[serde(default)]
-pub struct ConstructionHashRequest {
+pub struct NullableConstructionHashRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]

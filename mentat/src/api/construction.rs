@@ -13,9 +13,9 @@ pub trait ConstructionApi: Default {
     async fn combine(
         &self,
         _caller: Caller,
-        _data: ConstructionCombineRequest,
+        _data: NullableConstructionCombineRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionCombineResponse> {
+    ) -> MentatResponse<NullableConstructionCombineResponse> {
         MentatError::not_implemented()
     }
 
@@ -25,9 +25,9 @@ pub trait ConstructionApi: Default {
     async fn derive(
         &self,
         _caller: Caller,
-        _data: ConstructionDeriveRequest,
+        _data: NullableConstructionDeriveRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionDeriveResponse> {
+    ) -> MentatResponse<NullableConstructionDeriveResponse> {
         MentatError::not_implemented()
     }
 
@@ -36,9 +36,9 @@ pub trait ConstructionApi: Default {
     async fn hash(
         &self,
         _caller: Caller,
-        _data: ConstructionHashRequest,
+        _data: NullableConstructionHashRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
         MentatError::not_implemented()
     }
 
@@ -57,9 +57,9 @@ pub trait ConstructionApi: Default {
     async fn metadata(
         &self,
         _caller: Caller,
-        _data: ConstructionMetadataRequest,
+        _data: NullableConstructionMetadataRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionMetadataResponse> {
+    ) -> MentatResponse<NullableConstructionMetadataResponse> {
         MentatError::not_implemented()
     }
 
@@ -70,9 +70,9 @@ pub trait ConstructionApi: Default {
     async fn parse(
         &self,
         _caller: Caller,
-        _data: ConstructionParseRequest,
+        _data: NullableConstructionParseRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionParseResponse> {
+    ) -> MentatResponse<NullableConstructionParseResponse> {
         MentatError::not_implemented()
     }
 
@@ -90,9 +90,9 @@ pub trait ConstructionApi: Default {
     async fn payloads(
         &self,
         _caller: Caller,
-        _data: ConstructionPayloadsRequest,
+        _data: NullableConstructionPayloadsRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionPayloadsResponse> {
+    ) -> MentatResponse<NullableConstructionPayloadsResponse> {
         MentatError::not_implemented()
     }
 
@@ -107,9 +107,9 @@ pub trait ConstructionApi: Default {
     async fn preprocess(
         &self,
         _caller: Caller,
-        _data: ConstructionPreprocessRequest,
+        _data: NullableConstructionPreprocessRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionPreprocessResponse> {
+    ) -> MentatResponse<NullableConstructionPreprocessResponse> {
         MentatError::not_implemented()
     }
 
@@ -122,9 +122,9 @@ pub trait ConstructionApi: Default {
     async fn submit(
         &self,
         _caller: Caller,
-        _data: ConstructionSubmitRequest,
+        _data: NullableConstructionSubmitRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
         MentatError::not_implemented()
     }
 }
@@ -138,10 +138,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_combine(
         &self,
         caller: Caller,
-        data: ConstructionCombineRequest,
+        data: NullableConstructionCombineRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionCombineResponse> {
+    ) -> MentatResponse<NullableConstructionCombineResponse> {
         self.combine(caller, data, rpc_caller).await
     }
 
@@ -149,10 +149,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_derive(
         &self,
         caller: Caller,
-        data: ConstructionDeriveRequest,
+        data: NullableConstructionDeriveRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionDeriveResponse> {
+    ) -> MentatResponse<NullableConstructionDeriveResponse> {
         self.derive(caller, data, rpc_caller).await
     }
 
@@ -160,10 +160,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_hash(
         &self,
         caller: Caller,
-        data: ConstructionHashRequest,
+        data: NullableConstructionHashRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
         self.hash(caller, data, rpc_caller).await
     }
 
@@ -171,10 +171,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_metadata(
         &self,
         caller: Caller,
-        data: ConstructionMetadataRequest,
+        data: NullableConstructionMetadataRequest,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionMetadataResponse> {
+    ) -> MentatResponse<NullableConstructionMetadataResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {
@@ -186,10 +186,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_parse(
         &self,
         caller: Caller,
-        data: ConstructionParseRequest,
+        data: NullableConstructionParseRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionParseResponse> {
+    ) -> MentatResponse<NullableConstructionParseResponse> {
         self.parse(caller, data, rpc_caller).await
     }
 
@@ -197,10 +197,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_payloads(
         &self,
         caller: Caller,
-        data: ConstructionPayloadsRequest,
+        data: NullableConstructionPayloadsRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionPayloadsResponse> {
+    ) -> MentatResponse<NullableConstructionPayloadsResponse> {
         self.payloads(caller, data, rpc_caller).await
     }
 
@@ -208,10 +208,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_preprocess(
         &self,
         caller: Caller,
-        data: ConstructionPreprocessRequest,
+        data: NullableConstructionPreprocessRequest,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<ConstructionPreprocessResponse> {
+    ) -> MentatResponse<NullableConstructionPreprocessResponse> {
         self.preprocess(caller, data, rpc_caller).await
     }
 
@@ -219,10 +219,10 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_submit(
         &self,
         caller: Caller,
-        data: ConstructionSubmitRequest,
+        data: NullableConstructionSubmitRequest,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<TransactionIdentifierResponse> {
+    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
         if mode.is_offline() {
             MentatError::wrong_network(Some(mode))
         } else {

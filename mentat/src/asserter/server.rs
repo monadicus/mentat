@@ -59,7 +59,7 @@ impl Asserter {
     /// is well-formatted.
     pub(crate) fn account_balance_request(
         &self,
-        request: Option<&AccountBalanceRequest>,
+        request: Option<&NullableAccountBalanceRequest>,
     ) -> AssertResult<()> {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
@@ -86,7 +86,7 @@ impl Asserter {
 
     /// [`block_request`] ensures that a [`BlockRequest`]
     /// is well-formatted.
-    pub(crate) fn block_request(&self, request: Option<&BlockRequest>) -> AssertResult<()> {
+    pub(crate) fn block_request(&self, request: Option<&NullableBlockRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -97,7 +97,7 @@ impl Asserter {
     /// is well-formatted.
     pub(crate) fn block_transaction_request(
         &self,
-        request: Option<&BlockTransactionRequest>,
+        request: Option<&NullableBlockTransactionRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockTransactionRequestIsNil)?;
@@ -110,7 +110,7 @@ impl Asserter {
     /// [`ConstructionMetadataRequest`] is well-formatted.
     pub(crate) fn construction_metadata_request(
         &self,
-        request: Option<&ConstructionMetadataRequest>,
+        request: Option<&NullableConstructionMetadataRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionMetadataRequestIsNil)?;
@@ -127,7 +127,7 @@ impl Asserter {
     /// [`ConstructionSubmitRequest`] is well-formatted.
     pub(crate) fn construction_submit_request(
         &self,
-        request: Option<&ConstructionSubmitRequest>,
+        request: Option<&NullableConstructionSubmitRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionSubmitRequestIsNil)?;
@@ -143,7 +143,7 @@ impl Asserter {
     /// [`MempoolTransactionRequest`] is well-formatted.
     pub(crate) fn mempool_transaction_request(
         &self,
-        request: Option<&MempoolTransactionRequest>,
+        request: Option<&NullableMempoolTransactionRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::MempoolTransactionRequestIsNil)?;
@@ -153,7 +153,10 @@ impl Asserter {
 
     /// [`metadata_request`] ensures that a [`MetadataRequest`]
     /// is well-formatted.
-    pub(crate) fn metadata_request(&self, request: Option<&MetadataRequest>) -> AssertResult<()> {
+    pub(crate) fn metadata_request(
+        &self,
+        request: Option<&NullableMetadataRequest>,
+    ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         request.ok_or(ServerError::MetadataRequestIsNil)?;
         Ok(())
@@ -161,7 +164,10 @@ impl Asserter {
 
     /// [`network_request`] ensures that a [`NetworkRequest`]
     /// is well-formatted.
-    pub(crate) fn network_request(&self, request: Option<&NetworkRequest>) -> AssertResult<()> {
+    pub(crate) fn network_request(
+        &self,
+        request: Option<&NullableNetworkRequest>,
+    ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::NetworkRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())
@@ -171,7 +177,7 @@ impl Asserter {
     /// [`ConstructionDeriveRequest`] is well-formatted.
     pub(crate) fn construction_derive_request(
         &self,
-        request: Option<&ConstructionDeriveRequest>,
+        request: Option<&NullableConstructionDeriveRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionDeriveRequestIsNil)?;
@@ -183,7 +189,7 @@ impl Asserter {
     /// [`ConstructionPreprocessRequest`] is well-formatted.
     pub(crate) fn construction_preprocess_request(
         &self,
-        request: Option<&ConstructionPreprocessRequest>,
+        request: Option<&NullableConstructionPreprocessRequest>,
     ) -> AssertResult<()> {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPreprocessRequestIsNil)?;
@@ -206,7 +212,7 @@ impl Asserter {
     /// [`ConstructionPayloadsRequest`] is well-formatted.
     pub(crate) fn construction_payload_request(
         &self,
-        request: Option<&ConstructionPayloadsRequest>,
+        request: Option<&NullableConstructionPayloadsRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPayloadsRequestIsNil)?;
@@ -222,7 +228,7 @@ impl Asserter {
     /// [`ConstructionCombineRequest`] is well-formatted.
     pub(crate) fn construction_combine_request(
         &self,
-        request: Option<&ConstructionCombineRequest>,
+        request: Option<&NullableConstructionCombineRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionCombineRequestIsNil)?;
@@ -244,7 +250,7 @@ impl Asserter {
     /// is well-formatted.
     pub(crate) fn construction_hash_request(
         &self,
-        request: Option<&ConstructionHashRequest>,
+        request: Option<&NullableConstructionHashRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionHashRequestIsNil)?;
@@ -260,7 +266,7 @@ impl Asserter {
     /// [`ConstructionParseRequest`] is well-formatted.
     pub(crate) fn construction_parse_request(
         &self,
-        request: Option<&ConstructionParseRequest>,
+        request: Option<&NullableConstructionParseRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionParseRequestIsNil)?;
@@ -290,7 +296,7 @@ impl Asserter {
 
     /// [`call_request`] ensures that a [`CallRequest`]
     /// is well-formatted.
-    pub(crate) fn call_request(&self, request: Option<&CallRequest>) -> AssertResult<()> {
+    pub(crate) fn call_request(&self, request: Option<&NullableCallRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::CallRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -301,7 +307,7 @@ impl Asserter {
     /// is well-formatted.
     pub(crate) fn account_coins_request(
         &self,
-        request: Option<&AccountCoinsRequest>,
+        request: Option<&NullableAccountCoinsRequest>,
     ) -> AssertResult<()> {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
@@ -332,7 +338,7 @@ impl Asserter {
     /// is well-formatted.
     pub(crate) fn events_block_request(
         &self,
-        request: Option<&EventsBlocksRequest>,
+        request: Option<&NullableEventsBlocksRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::EventsBlocksRequestIsNil)?;
@@ -350,7 +356,7 @@ impl Asserter {
     /// [`SearchTransactionsRequest`] is well-formatted.
     pub(crate) fn search_transactions_request(
         &self,
-        request: Option<&SearchTransactionsRequest>,
+        request: Option<&NullableSearchTransactionsRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::SearchTransactionsRequestIsNil)?;

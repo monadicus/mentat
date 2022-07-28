@@ -5,7 +5,7 @@ use super::{
     errors::{AsserterError, SearchError},
     AssertResult,
     Asserter,
-    SearchTransactionsResponse,
+    NullableSearchTransactionsResponse,
 };
 
 impl Asserter {
@@ -13,7 +13,7 @@ impl Asserter {
     /// *types.SearchTransactionsResponse is valid.
     pub fn search_transaction_response(
         &self,
-        response: Option<&SearchTransactionsResponse>,
+        response: Option<&NullableSearchTransactionsResponse>,
     ) -> AssertResult<()> {
         self.response
             .as_ref()
