@@ -2,10 +2,16 @@ use clap::Parser;
 use mentat::{
     anyhow,
     client::Client,
-    identifiers::{BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier},
-    requests::{AccountBalanceRequest, AccountCoinsRequest, MetadataRequest},
     serde_json::json,
     tokio,
+    types::{
+        AccountBalanceRequest,
+        AccountCoinsRequest,
+        BlockIdentifier,
+        MetadataRequest,
+        NetworkIdentifier,
+        PartialBlockIdentifier,
+    },
 };
 
 use crate::{account::AccountSubCommand, network::NetworkSubCommand};
@@ -33,7 +39,7 @@ struct Opts {
     pub(crate) subnetwork: String,
 
     #[clap(long)]
-    pub(crate) index: Option<u64>,
+    pub(crate) index: Option<i64>,
     #[clap(long)]
     pub(crate) hash: Option<String>,
 }
@@ -117,8 +123,8 @@ async fn main() -> anyhow::Result<()> {
             AccountSubCommand::Balance(_opts) => {
                 let network = get_first_network().await?;
                 display!(client.account_balance(&AccountBalanceRequest {
-                    network_identifier: network,
-                    account_identifier: sub_opts.account_id(),
+                    network_identifier: Some(network),
+                    account_identifier: Some(sub_opts.account_id()),
                     currencies: sub_opts.get_currencies(),
                     block_identifier: main_opts.partial_block_id(),
                 }));
@@ -126,8 +132,8 @@ async fn main() -> anyhow::Result<()> {
             AccountSubCommand::Coins(_opts) => {
                 let network = get_first_network().await?;
                 display!(client.account_coins(&AccountCoinsRequest {
-                    network_identifier: network,
-                    account_identifier: sub_opts.account_id(),
+                    network_identifier: Some(network),
+                    account_identifier: Some(sub_opts.account_id()),
                     currencies: sub_opts.get_currencies(),
                     ..Default::default()
                 }));

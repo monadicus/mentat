@@ -3,8 +3,14 @@
 use indexmap::IndexSet;
 
 use super::{
-    amount, errors::AsserterError, AssertResult, CoinError, CoinIdentifier, NullableCoin,
-    NullableCoinAction, NullableCoinChange,
+    amount,
+    errors::AsserterError,
+    AssertResult,
+    CoinAction,
+    CoinError,
+    CoinIdentifier,
+    NullableCoin,
+    NullableCoinChange,
 };
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.

@@ -9,10 +9,23 @@ use super::{
     asserter_tools::{Asserter, RequestAsserter},
     coin_change,
     errors::AsserterError,
-    hash, network_identifier, AccountIdentifier, AssertResult, BlockError, BlockIdentifier,
-    NullableAmount, NullableBlock, NullableCurrency, NullableDirection, NullableOperation,
-    NullableRelatedTransaction, NullableTransaction, OperationIdentifier, PartialBlockIdentifier,
-    ResponseAsserter, TransactionIdentifier,
+    hash,
+    network_identifier,
+    AccountIdentifier,
+    AssertResult,
+    BlockError,
+    BlockIdentifier,
+    Direction,
+    NullableAmount,
+    NullableBlock,
+    NullableCurrency,
+    NullableOperation,
+    NullableRelatedTransaction,
+    NullableTransaction,
+    OperationIdentifier,
+    PartialBlockIdentifier,
+    ResponseAsserter,
+    TransactionIdentifier,
 };
 
 /// `currency` ensures a [`Currency`] is valid.
@@ -44,7 +57,10 @@ pub fn amount(amount: Option<&NullableAmount>) -> AssertResult<()> {
 /// `operation_identifier` returns an error if index of the
 /// [`OperationIdentifier`] is out-of-order or if the NetworkIndex is
 /// invalid.
-pub fn operation_identifier(ident: Option<&OperationIdentifier>, index: i64) -> AssertResult<()> {
+pub fn operation_identifier(
+    ident: Option<&OperationIdentifier>,
+    index: i64,
+) -> AssertResult<()> {
     let ident = ident.ok_or(BlockError::OperationIdentifierIndexIsNil)?;
 
     if ident.index != index {
@@ -306,7 +322,10 @@ impl Asserter {
     /// `transaction` returns an error if the [`TransactionIdentifier`]
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
-    pub fn transaction(&self, transaction: Option<&NullableTransaction>) -> AssertResult<()> {
+    pub fn transaction(
+        &self,
+        transaction: Option<&NullableTransaction>,
+    ) -> AssertResult<()> {
         self.response
             .as_ref()
             .ok_or(AsserterError::NotInitialized)?;

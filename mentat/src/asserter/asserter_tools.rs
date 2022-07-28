@@ -1,20 +1,13 @@
 //! The asserter contains tools and methods to help validate the other types.
-use std::path::PathBuf;
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 
-use super::{
-    block::block_identifier,
-    errors::{AssertResult, AsserterError, BlockError, NetworkError, ServerError},
-    network::{
-        network_identifier, network_options_response, network_status_response, operation_statuses,
-        operation_types,
-    },
-    server::supported_networks,
-    BlockIdentifier, MentatError, NetworkIdentifier, NullableNetworkOptionsResponse,
-    NullableNetworkStatusResponse, OperationStatus, DATA_DIR,
-};
+use super::*;
 
 /// A static string representing account type data.
 pub(crate) const ACCOUNT: &str = "account";
@@ -56,9 +49,11 @@ impl Validations {
         validation_file_path: Option<&PathBuf>,
     ) -> Result<Self, String> {
         if let Some(path) = validation_file_path {
-            // TODO handle these unwraps
-            let content = DATA_DIR.get_file(path).unwrap();
-            let mut config: Self = serde_json::from_str(content.contents_utf8().unwrap()).unwrap();
+            let content = DATA_DIR
+                .get_file(path)
+                .ok_or_else(|| format!("failed to get file `{}`", path.display()))?;
+            let mut config: Self = serde_json::from_str(content.contents_utf8().unwrap())
+                .map_err(|e| format!("failed to read `{}` file contents: {}", path.display(), e))?;
             return Ok(config);
         }
 
@@ -250,7 +245,7 @@ impl Asserter {
             genesis_block_identifier: Some(asserter.genesis_block.clone()),
             allowed_operation_types: self.operation_types.clone(),
             allowed_operation_statuses: allowed_operation_statuses.into_iter().map(Some).collect(),
-            allowed_errors: Vec::new(),
+            allowed_errors: vec![Some(MentatError::default_error())],
             allowed_timestamp_start_index: Some(asserter.timestamp_start_index),
         })
     }
@@ -301,10 +296,17 @@ impl Configuration {
     /// systems that error when updates to the server (more error types,
     /// more operations, etc.) significantly change how to parse the chain.
     /// The filePath provided is parsed relative to the current directory.
-    pub(crate) fn new_client_with_file(path: PathBuf) -> AssertResult<Asserter> {
-        // TODO handle these unwraps
-        let content = std::fs::File::open(path).unwrap();
-        let config: Self = serde_json::from_reader(content).unwrap();
+    pub(crate) fn new_client_with_file(path: &Path) -> AssertResult<Asserter> {
+        let content = File::open(path).map_err(|e| {
+            AsserterError::StringError(format!("failed to read file `{}`: {}", path.display(), e))
+        })?;
+        let config: Self = serde_json::from_reader(content).map_err(|e| {
+            AsserterError::StringError(format!(
+                "failed to read contents of file `{}`: {}",
+                path.display(),
+                e
+            ))
+        })?;
 
         Asserter::new_client_with_options(
             config.network_identifier,

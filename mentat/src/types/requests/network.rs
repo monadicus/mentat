@@ -17,3 +17,21 @@ pub struct NullableNetworkRequest {
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,
 }
+
+impl From<NetworkIdentifier> for NullableNetworkRequest {
+    fn from(net: NetworkIdentifier) -> Self {
+        Self {
+            network_identifier: Some(net),
+            ..Default::default()
+        }
+    }
+}
+
+impl From<Option<NetworkIdentifier>> for NullableNetworkRequest {
+    fn from(network_identifier: Option<NetworkIdentifier>) -> Self {
+        Self {
+            network_identifier,
+            ..Default::default()
+        }
+    }
+}

@@ -1,13 +1,17 @@
-//! TEMP DOC STRING
+//! Types module Util functions
 
-use std::{error::Error, fmt::Debug, str::FromStr};
+use std::{fmt::Debug, str::FromStr};
 
 use num_bigint_dig::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier, BlockIdentifier, NullableAmount, NullableCurrency, PartialBlockIdentifier,
+    AccountIdentifier,
+    BlockIdentifier,
+    NullableAmount,
+    NullableCurrency,
+    PartialBlockIdentifier,
     Sortable,
 };
 
@@ -39,6 +43,7 @@ where
 
         let json = match serde_json::to_string(&sorted) {
             Ok(json) => json,
+            // TODO this should log?
             Err(e) => panic!("{e}: unable to jsonify {hashable:?}"),
         };
 
@@ -62,17 +67,18 @@ pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> Part
 
 /// `amount_value` returns a [`BigInt`] representation of an
 /// Amount.Value or an error.
-pub(crate) fn amount_value(amount: &NullableAmount) -> Result<BigInt, Box<dyn Error>> {
-    Ok(BigInt::from_str(&amount.value)?)
+pub(crate) fn amount_value(amount: Option<&NullableAmount>) -> Result<BigInt, String> {
+    let amount = amount.ok_or("amount value cannot be nil")?;
+    BigInt::from_str(&amount.value).map_err(|_| format!("{} is not an integer", amount.value))
 }
 
 /// `account_string` returns a human-readable representation of a
 /// [`AccountIdentifier`].
 pub(crate) fn account_string(account: &AccountIdentifier) -> String {
-    let sub_account = if account.sub_account.is_none() {
-        return account.address.clone();
+    let sub_account = if let Some(sub_account) = account.sub_account.as_ref() {
+        sub_account
     } else {
-        account.sub_account.as_ref().unwrap()
+        return account.address.clone();
     };
 
     if sub_account.metadata.is_empty() {
@@ -98,49 +104,49 @@ pub(crate) fn currency_string(currency: &NullableCurrency) -> String {
 }
 
 /// `big_int` returns a *big.Int representation of a value.
-pub(crate) fn big_int(value: &str) -> Result<BigInt, Box<dyn Error>> {
-    let parsed_val = BigInt::from_str(value)?;
+pub(crate) fn big_int(value: &str) -> Result<BigInt, String> {
+    let parsed_val = BigInt::from_str(value).map_err(|_| format!("{value} is not an integer"))?;
     Ok(parsed_val)
 }
 
 /// `add_values` adds string amounts using
 /// big.Int.
-pub(crate) fn add_values(a: &str, b: &str) -> Result<String, Box<dyn Error>> {
-    let a_val = BigInt::from_str(a)?;
-    let b_val = BigInt::from_str(b)?;
+pub(crate) fn add_values(a: &str, b: &str) -> Result<String, String> {
+    let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
+    let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val + b_val;
     Ok(new_val.to_string())
 }
 
 /// `subtract_values` subtracts a-b using
 /// big.Int.
-pub(crate) fn sub_values(a: &str, b: &str) -> Result<String, Box<dyn Error>> {
-    let a_val = BigInt::from_str(a)?;
-    let b_val = BigInt::from_str(b)?;
+pub(crate) fn sub_values(a: &str, b: &str) -> Result<String, String> {
+    let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
+    let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val - b_val;
     Ok(new_val.to_string())
 }
 
 /// `multiply_values` multiplies a*b using
 /// big.Int.
-pub(crate) fn multiply_values(a: &str, b: &str) -> Result<String, Box<dyn Error>> {
-    let a_val = BigInt::from_str(a)?;
-    let b_val = BigInt::from_str(b)?;
+pub(crate) fn multiply_values(a: &str, b: &str) -> Result<String, String> {
+    let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
+    let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val * b_val;
     Ok(new_val.to_string())
 }
 
 /// `divide_values` divides a/b using
 /// big.Int.
-pub(crate) fn divide_values(a: &str, b: &str) -> Result<String, Box<dyn Error>> {
-    let a_val = BigInt::from_str(a)?;
-    let b_val = BigInt::from_str(b)?;
+pub(crate) fn divide_values(a: &str, b: &str) -> Result<String, String> {
+    let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
+    let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val % b_val;
     Ok(new_val.to_string())
 }
 
 /// `negate_value` flips the sign of a value.
-pub(crate) fn negative_value(val: &str) -> Result<String, Box<dyn Error>> {
+pub(crate) fn negate_value(val: &str) -> Result<String, String> {
     let existing = big_int(val)?;
     Ok((-existing).to_string())
 }
@@ -149,13 +155,13 @@ pub(crate) fn negative_value(val: &str) -> Result<String, Box<dyn Error>> {
 /// pertaining to an AccountAndCurrency.
 pub(crate) fn extract_amount(
     balances: &[Option<NullableAmount>],
-    currency: &NullableCurrency,
+    currency: Option<&NullableCurrency>,
 ) -> NullableAmount {
     balances
         .iter()
         .find(|amt| {
             if amt.is_some() && amt.as_ref().unwrap().currency.is_some() {
-                hash(amt.as_ref().unwrap().currency.as_ref()) == hash(Some(currency))
+                hash(amt.as_ref().unwrap().currency.as_ref()) == hash(currency)
             } else {
                 false
             }
@@ -164,7 +170,7 @@ pub(crate) fn extract_amount(
         .flatten()
         .unwrap_or(NullableAmount {
             value: "0".to_string(),
-            currency: Some(currency.clone()),
+            currency: currency.cloned(),
             ..Default::default()
         })
 }

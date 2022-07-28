@@ -1,7 +1,10 @@
 //! Validates that event data is correct.
 
 use super::{
-    block::block_identifier, errors::AssertResult, EventError, NullableBlockEvent,
+    block::block_identifier,
+    errors::AssertResult,
+    EventError,
+    NullableBlockEvent,
     NullableEventsBlocksResponse,
 };
 

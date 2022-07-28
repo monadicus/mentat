@@ -52,9 +52,9 @@ use crate::types::*;
 
 #[cfg(test)]
 #[path = ""]
-mod tests {
-    pub use super::*;
-    use crate::tests::Test;
+pub mod tests {
+    use super::*;
+    use crate::tests::{status_message, Test};
 
     mod account_test;
     mod asserter_tools_test;

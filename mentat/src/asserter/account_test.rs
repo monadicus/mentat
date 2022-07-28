@@ -2,6 +2,7 @@ use indexmap::{indexmap, IndexMap};
 use serde_json::{json, Value};
 
 use super::*;
+use crate::tests::AsserterEqualityTest;
 
 #[derive(Default)]
 struct ContainsCurrencyTest {

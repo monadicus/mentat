@@ -1124,6 +1124,11 @@ fn test_operation() {
 }
 
 #[derive(Default)]
+struct BlockTest {
+    block: Option<NullableBlock>,
+}
+
+#[derive(Default)]
 struct BlockTestExtras {
     genesis_index: i64,
     start_index: Option<i64>,
