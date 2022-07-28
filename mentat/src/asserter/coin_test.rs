@@ -2,9 +2,9 @@ use super::*;
 
 #[test]
 fn test_coin() {
-    let valid_amount = Amount {
+    let valid_amount = NullableAmount {
         value: "1000".to_string(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
@@ -15,7 +15,7 @@ fn test_coin() {
     let tests = [
         AsserterTest {
             name: "valid coin",
-            payload: Some(Coin {
+            payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
@@ -30,7 +30,7 @@ fn test_coin() {
         },
         AsserterTest {
             name: "invalid identifier",
-            payload: Some(Coin {
+            payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
                 }),
@@ -42,11 +42,11 @@ fn test_coin() {
         },
         AsserterTest {
             name: "invalid amount",
-            payload: Some(Coin {
+            payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
-                amount: Some(Amount {
+                amount: Some(NullableAmount {
                     value: "100".to_string(),
                     currency: None,
                     metadata: Default::default(),
@@ -56,7 +56,7 @@ fn test_coin() {
         },
         AsserterTest {
             name: "nil amount",
-            payload: Some(Coin {
+            payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
@@ -71,9 +71,9 @@ fn test_coin() {
 
 #[test]
 fn test_coins() {
-    let valid_amount = Amount {
+    let valid_amount = NullableAmount {
         value: "1000".to_string(),
-        currency: Some(Currency {
+        currency: Some(NullableCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
@@ -85,13 +85,13 @@ fn test_coins() {
         AsserterTest {
             name: "valid coins",
             payload: Some(vec![
-                Some(Coin {
+                Some(NullableCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
                     amount: Some(valid_amount.clone()),
                 }),
-                Some(Coin {
+                Some(NullableCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin2".to_string(),
                     }),
@@ -108,13 +108,13 @@ fn test_coins() {
         AsserterTest {
             name: "duplicate coins",
             payload: Some(vec![
-                Some(Coin {
+                Some(NullableCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
                     amount: Some(valid_amount.clone()),
                 }),
-                Some(Coin {
+                Some(NullableCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
@@ -134,11 +134,11 @@ fn test_coin_change() {
     let tests = [
         AsserterTest {
             name: "valid change",
-            payload: Some(CoinChange {
+            payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
-                coin_action: CoinAction::COIN_CREATED.into(),
+                coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
             err: None,
         },
@@ -149,17 +149,17 @@ fn test_coin_change() {
         },
         AsserterTest {
             name: "invalid identifier",
-            payload: Some(CoinChange {
+            payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
                 }),
-                coin_action: CoinAction::COIN_CREATED.into(),
+                coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
             err: Some(CoinError::IdentifierNotSet.into()),
         },
         AsserterTest {
             name: "invalid coin action",
-            payload: Some(CoinChange {
+            payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),

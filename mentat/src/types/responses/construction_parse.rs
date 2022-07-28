@@ -1,6 +1,7 @@
 //! The module defines the `ConstructionParseResponse` response.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 use serde::ser::SerializeStruct;
 
 use super::*;
@@ -8,10 +9,10 @@ use super::*;
 /// [`ConstructionParseResponse`] contains an array of operations that occur in
 /// a transaction blob. This should match the array of operations provided to
 /// `/construction/preprocess` and `/construction/payloads`.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct ConstructionParseResponse {
+#[derive(Clone, Debug, Default, PartialEq, Eq, Nullable)]
+pub struct NullableConstructionParseResponse {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub operations: Vec<Option<Operation>>,
+    pub operations: Vec<Option<NullableOperation>>,
     /// [DEPRECATED by `account_identifier_signers` in v1.4.4] All signers
     /// (addresses) of a particular transaction. If the transaction is unsigned,
     /// it should be empty.
@@ -22,7 +23,7 @@ pub struct ConstructionParseResponse {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl Serialize for ConstructionParseResponse {
+impl Serialize for NullableConstructionParseResponse {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -61,7 +62,7 @@ pub struct ConstructionParseResponsePre {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub operations: Vec<Option<Operation>>,
+    pub operations: Vec<Option<NullableOperation>>,
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
@@ -76,7 +77,7 @@ pub struct ConstructionParseResponsePre {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl<'de> Deserialize<'de> for ConstructionParseResponse {
+impl<'de> Deserialize<'de> for NullableConstructionParseResponse {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -98,7 +99,7 @@ impl<'de> Deserialize<'de> for ConstructionParseResponse {
                 pre.account_identifier_signers
             };
 
-        Ok(ConstructionParseResponse {
+        Ok(NullableConstructionParseResponse {
             operations: pre.operations,
             signers: Vec::new(),
             account_identifier_signers,

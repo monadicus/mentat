@@ -1,5 +1,6 @@
 //! The module defines the `SigningPayload` model.
 
+use mentat_macros::Nullable;
 use serde::ser::SerializeStruct;
 
 use super::*;
@@ -8,23 +9,25 @@ use super::*;
 /// an [`AccountIdentifier`] using the specified [`SignatureType`].
 /// [`SignatureType`] can be optionally populated if there is a restriction on
 /// the signature scheme that can be used to sign the payload.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct SigningPayload {
+#[derive(Clone, Debug, Default, PartialEq, Eq, Nullable)]
+pub struct NullableSigningPayload {
     /// [DEPRECATED by account_identifier in v1.4.4] The network-specific
     /// address of the account that should sign the payload.
+    #[retain]
     pub address: Option<String>,
     /// The `AccountIdentifier` uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
+    #[retain]
     pub account_identifier: Option<AccountIdentifier>,
     /// The hex bytes of the Signing Payload.
     pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
-    pub signature_type: SignatureType,
+    pub signature_type: NullableSignatureType,
 }
 
-impl Serialize for SigningPayload {
+impl Serialize for NullableSigningPayload {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -61,10 +64,10 @@ struct SigningPayloadPre {
         deserialize_with = "null_default_bytes_to_hex"
     )]
     pub bytes: Vec<u8>,
-    pub signature_type: SignatureType,
+    pub signature_type: NullableSignatureType,
 }
 
-impl<'de> Deserialize<'de> for SigningPayload {
+impl<'de> Deserialize<'de> for NullableSigningPayload {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -80,7 +83,7 @@ impl<'de> Deserialize<'de> for SigningPayload {
             })
         };
 
-        Ok(SigningPayload {
+        Ok(NullableSigningPayload {
             address: None,
             account_identifier,
             bytes: pre.bytes,

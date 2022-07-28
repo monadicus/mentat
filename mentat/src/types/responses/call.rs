@@ -1,11 +1,13 @@
 //! The module defines the `BlockTransactionResponse` response.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// [`CallResponse`] contains the result of a `/call` invocation.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct CallResponse {
+pub struct NullableCallResponse {
     /// Result contains the result of the `/call` invocation. This result will
     /// not be inspected or interpreted by Rosetta tooling and is left to
     /// the caller to decode.

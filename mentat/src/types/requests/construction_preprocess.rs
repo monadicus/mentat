@@ -1,6 +1,7 @@
 //! The module defines the `ConstructionPreprocessRequest` request.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
@@ -21,9 +22,9 @@ use super::*;
 /// minimum network fee (if applicable). In the case that the caller provides
 /// both a max fee and a suggested fee multiplier, the max fee will set an upper
 /// bound on the suggested fee (regardless of the multiplier provided).
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default, Nullable)]
 #[serde(default)]
-pub struct ConstructionPreprocessRequest {
+pub struct NullableConstructionPreprocessRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,7 +34,7 @@ pub struct ConstructionPreprocessRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub operations: Vec<Option<Operation>>,
+    pub operations: Vec<Option<NullableOperation>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
@@ -42,8 +43,9 @@ pub struct ConstructionPreprocessRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub max_fee: Vec<Option<Amount>>,
+    pub max_fee: Vec<Option<NullableAmount>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[retain]
     pub suggested_fee_multiplier: Option<f64>,
 }

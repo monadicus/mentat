@@ -1,13 +1,15 @@
 //! The module defines the `BlockTransactionResponse` request
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// A [`BlockTransactionResponse`] contains information about a block
 /// transaction.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct BlockTransactionResponse {
+pub struct NullableBlockTransactionResponse {
     /// [`Transaction`]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction: Option<Transaction>,
+    pub transaction: Option<NullableTransaction>,
 }

@@ -1,14 +1,15 @@
 //! The module defines the `BlockTransactionRequest` request.
 
 use from_tuple::FromTuple;
+use mentat_macros::Nullable;
 
 use super::*;
 
 /// A [`BlockRequest`] is utilized to make a block request on the `/block`
 /// endpoint.
-#[derive(Debug, Default, Deserialize, FromTuple, Serialize)]
+#[derive(Debug, Default, Deserialize, FromTuple, Serialize, Nullable)]
 #[serde(default)]
-pub struct BlockTransactionRequest {
+pub struct NullableBlockTransactionRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]

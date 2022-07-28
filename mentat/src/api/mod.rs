@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 use axum::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::{conf::Mode, server::RpcCaller, types::*};
+use crate::{asserter::*, conf::Mode, server::RpcCaller, types::*};
 
 mod optional;
 pub use optional::*;

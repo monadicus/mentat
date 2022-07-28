@@ -1,6 +1,7 @@
 //! The module defines the `Block` model.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
@@ -10,9 +11,9 @@ use super::*;
 /// requested and received a block identified by a specific [`BlockIdentifier`],
 /// all future calls for that same [`BlockIdentifier`] must return the same
 /// block contents.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct Block {
+pub struct NullableBlock {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,7 +31,7 @@ pub struct Block {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub transactions: Vec<Option<Transaction>>,
+    pub transactions: Vec<Option<NullableTransaction>>,
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,
 }

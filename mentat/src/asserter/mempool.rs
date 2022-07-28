@@ -6,7 +6,7 @@ use super::{transaction_identifier, AssertResult, TransactionIdentifier};
 /// [`TransactionIdentifier`] returns is missing a hash.
 /// The correctness of each populated [`MempoolTransaction`] is
 /// asserted by [`Transaction`].
-pub(crate) fn mempool_transactions(
+pub fn mempool_transactions(
     transactions: &[Option<TransactionIdentifier>],
 ) -> AssertResult<()> {
     transactions

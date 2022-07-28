@@ -1,12 +1,14 @@
 //! The module defines the `MempoolResponse` response.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// A [`MempoolResponse`] contains all transaction identifiers in the mempool
 /// for a particular `network_identifier`.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct MempoolResponse {
+pub struct NullableMempoolResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",

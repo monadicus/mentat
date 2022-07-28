@@ -1,6 +1,7 @@
 //! The module defines the `ConstructionPreprocessResponse` response.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
@@ -12,9 +13,9 @@ use super::*;
 /// `required_public_keys` with the [`AccountIdentifier`]s associated with the
 /// desired [`PublicKey`]s. If it is not necessary to retrieve any
 /// [`PublicKey`]s for construction, `required_public_keys` should be omitted.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct ConstructionPreprocessResponse {
+pub struct NullableConstructionPreprocessResponse {
     /// The options that will be sent directly to `/construction/metadata` by
     /// the caller.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]

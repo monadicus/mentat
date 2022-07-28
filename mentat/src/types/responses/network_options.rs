@@ -1,13 +1,15 @@
 //! The module defines the `NetworkOptionsResponse` response.
 
+use mentat_macros::Nullable;
+
 use super::*;
 use crate::types::Version;
 
 /// [`NetworkOptionsResponse`] contains information about the versioning of the
 /// node and the allowed operation statuses, operation types, and errors.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct NetworkOptionsResponse {
+pub struct NullableNetworkOptionsResponse {
     /// The [`Version`] object is utilized to inform the client of the versions
     /// of different components of the Rosetta implementation.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -19,5 +21,5 @@ pub struct NetworkOptionsResponse {
     /// receive some response that contains any of the above information
     /// that is not specified here.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub allow: Option<Allow>,
+    pub allow: Option<NullableAllow>,
 }

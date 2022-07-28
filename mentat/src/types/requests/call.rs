@@ -1,13 +1,14 @@
 //! The module defines the `CallRequest` request.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 
 use super::*;
 
 /// `CallRequest` is the input to the `/call` endpoint.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct CallRequest {
+pub struct NullableCallRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]

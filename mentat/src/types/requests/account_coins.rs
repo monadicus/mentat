@@ -1,12 +1,14 @@
 //! The module defines the AccountCoinsRequest request.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// `AccountCoinsRequest` is utilized to make a request on the `/account/coins`
 /// endpoint.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct AccountCoinsRequest {
+pub struct NullableAccountCoinsRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -29,5 +31,5 @@ pub struct AccountCoinsRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub currencies: Vec<Option<Currency>>,
+    pub currencies: Vec<Option<NullableCurrency>>,
 }

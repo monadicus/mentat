@@ -1,16 +1,18 @@
 //! The module defines the `ConstructionDeriveResponse` response.
 
 use indexmap::IndexMap;
+use mentat_macros::Nullable;
 use serde::ser::SerializeStruct;
 
 use super::*;
 
 /// [`ConstructionDeriveResponse`] is returned by the `/construction/derive`
 /// endpoint.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct ConstructionDeriveResponse {
+#[derive(Clone, Debug, Default, PartialEq, Eq, Nullable)]
+pub struct NullableConstructionDeriveResponse {
     /// [DEPRECATED by `account_identifier` in v1.4.4] Address in
     /// network-specific format.
+    #[retain]
     pub address: Option<String>,
     /// The [`AccountIdentifier`] uniquely identifies an account within a
     /// network. All fields in the `account_identifier` are utilized to
@@ -21,7 +23,7 @@ pub struct ConstructionDeriveResponse {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl Serialize for ConstructionDeriveResponse {
+impl Serialize for NullableConstructionDeriveResponse {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -56,7 +58,7 @@ pub struct ConstructionDeriveResponsePre {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl<'de> Deserialize<'de> for ConstructionDeriveResponse {
+impl<'de> Deserialize<'de> for NullableConstructionDeriveResponse {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -72,7 +74,7 @@ impl<'de> Deserialize<'de> for ConstructionDeriveResponse {
             })
         };
 
-        Ok(ConstructionDeriveResponse {
+        Ok(NullableConstructionDeriveResponse {
             address: None,
             account_identifier,
             metadata: pre.metadata,

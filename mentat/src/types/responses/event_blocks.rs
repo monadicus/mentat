@@ -1,12 +1,14 @@
 //! The module defines the `EventsBlocksResponse` response.
 
+use mentat_macros::Nullable;
+
 use super::*;
 
 /// `EventsBlocksResponse` contains an ordered collection of [`BlockEvent`]s and
 /// the max retrievable sequence.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
-pub struct EventsBlocksResponse {
+pub struct NullableEventsBlocksResponse {
     /// `max_sequence` is the maximum available sequence number to fetch.
     pub max_sequence: i64,
     /// events is an array of [`BlockEvent`]s indicating the order to add and
@@ -17,5 +19,5 @@ pub struct EventsBlocksResponse {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub events: Vec<Option<BlockEvent>>,
+    pub events: Vec<Option<NullableBlockEvent>>,
 }

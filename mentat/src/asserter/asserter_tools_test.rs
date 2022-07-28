@@ -10,8 +10,8 @@ use super::*;
 #[derive(Default)]
 struct TestNewExtras {
     network: Option<NetworkIdentifier>,
-    network_status: Option<NetworkStatusResponse>,
-    network_options: Option<NetworkOptionsResponse>,
+    network_status: Option<NullableNetworkStatusResponse>,
+    network_options: Option<NullableNetworkOptionsResponse>,
     validation_file_path: Option<PathBuf>,
     skip_load_test: bool,
 }
@@ -23,7 +23,7 @@ fn test_new() {
         network: "world".into(),
         sub_network_identifier: Default::default(),
     });
-    let valid_network_status = Some(NetworkStatusResponse {
+    let valid_network_status = Some(NullableNetworkStatusResponse {
         genesis_block_identifier: Some(BlockIdentifier {
             index: 0,
             hash: "block 0".into(),
@@ -39,7 +39,7 @@ fn test_new() {
         })],
         ..Default::default()
     });
-    let valid_network_status_sync_status = Some(NetworkStatusResponse {
+    let valid_network_status_sync_status = Some(NullableNetworkStatusResponse {
         genesis_block_identifier: Some(BlockIdentifier {
             index: 0,
             hash: "block 0".into(),
@@ -60,7 +60,7 @@ fn test_new() {
         }),
         oldest_block_identifier: None,
     });
-    let invalid_network_status = Some(NetworkStatusResponse {
+    let invalid_network_status = Some(NullableNetworkStatusResponse {
         current_block_identifier: Some(BlockIdentifier {
             index: 100,
             hash: "block 100".into(),
@@ -72,7 +72,7 @@ fn test_new() {
         })],
         ..Default::default()
     });
-    let invalid_network_status_sync_status = Some(NetworkStatusResponse {
+    let invalid_network_status_sync_status = Some(NullableNetworkStatusResponse {
         genesis_block_identifier: Some(BlockIdentifier {
             index: 0,
             hash: "block 0".into(),
@@ -93,13 +93,13 @@ fn test_new() {
         }),
         oldest_block_identifier: None,
     });
-    let valid_network_options = Some(NetworkOptionsResponse {
+    let valid_network_options = Some(NullableNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(Allow {
+        allow: Some(NullableAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
@@ -116,13 +116,13 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let valid_network_options_with_start_index = Some(NetworkOptionsResponse {
+    let valid_network_options_with_start_index = Some(NullableNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(Allow {
+        allow: Some(NullableAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
@@ -140,13 +140,13 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let invalid_network_options = Some(NetworkOptionsResponse {
+    let invalid_network_options = Some(NullableNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(Allow {
+        allow: Some(NullableAllow {
             operation_types: vec!["Transfer".to_string()],
             errors: vec![Some(MentatError {
                 status_code: 0,
@@ -158,13 +158,13 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let duplicate_statuses = Some(NetworkOptionsResponse {
+    let duplicate_statuses = Some(NullableNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(Allow {
+        allow: Some(NullableAllow {
             operation_statuses: vec![
                 Some(OperationStatus {
                     status: "Success".into(),
@@ -186,13 +186,13 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let duplicate_types = Some(NetworkOptionsResponse {
+    let duplicate_types = Some(NullableNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(Allow {
+        allow: Some(NullableAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
@@ -208,13 +208,13 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let negative_start_index = Some(NetworkOptionsResponse {
+    let negative_start_index = Some(NullableNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(Allow {
+        allow: Some(NullableAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
@@ -298,7 +298,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("no Allow.OperationStatuses found".into()),
+            err: Some("no NullableAllow.OperationStatuses found".into()),
         },
         AsserterTest {
             name: "duplicate operation statuses",
@@ -309,7 +309,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("Allow.OperationStatuses contains a duplicate Success".into()),
+            err: Some("NullableAllow.OperationStatuses contains a duplicate Success".into()),
         },
         AsserterTest {
             name: "duplicate operation types",
@@ -320,7 +320,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("Allow.OperationTypes contains a duplicate Transfer".into()),
+            err: Some("NullableAllow.OperationTypes contains a duplicate Transfer".into()),
         },
         AsserterTest {
             name: "invalid start index",
@@ -343,7 +343,7 @@ fn test_new() {
             payload.network.clone(),
             payload.network_status.clone(),
             payload.network_options.clone(),
-            payload.validation_file_path.as_deref(),
+            payload.validation_file_path.as_ref(),
         );
 
         if test.err.is_some() {
@@ -523,7 +523,7 @@ fn test_new() {
         valid_network.clone(),
         valid_network_status.clone(),
         valid_network_options.clone(),
-        Some(Path::new("blah")),
+        Some(&PathBuf::from("blah")),
     )
     .unwrap_err();
 

@@ -5,7 +5,7 @@ use thiserror::Error;
 /// Account Balance Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum AccountBalanceError {
+pub enum AccountBalanceError {
     #[error("request block hash does not match response block hash")]
     ReturnedBlockHashMismatch,
     #[error("request block index does not match response block index")]
@@ -15,7 +15,7 @@ pub(crate) enum AccountBalanceError {
 /// Block Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum BlockError {
+pub enum BlockError {
     #[error("Amount.Value is missing")]
     AmountValueMissing,
     #[error("Amount.Value is not an integer")]
@@ -103,7 +103,7 @@ pub(crate) enum BlockError {
 // Coin Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum CoinError {
+pub enum CoinError {
     #[error("coin cannot be nil")]
     IsNil,
     #[error("duplicate coin identifier detected")]
@@ -121,7 +121,7 @@ pub(crate) enum CoinError {
 /// Construction Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum ConstructionError {
+pub enum ConstructionError {
     #[error("ConstructionPreprocessResponse cannot be nil")]
     ConstructionPreprocessResponseIsNil,
     #[error("ConstructionMetadataResponse cannot be nil")]
@@ -187,7 +187,7 @@ pub(crate) enum ConstructionError {
 /// Network Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum NetworkError {
+pub enum NetworkError {
     #[error("NetworkIdentifier is nil")]
     SubNetworkIdentifierInvalid,
     #[error("NetworkIdentifier is nil")]
@@ -245,7 +245,7 @@ pub(crate) enum NetworkError {
 /// Server Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum ServerError {
+pub enum ServerError {
     #[error("no supported networks")]
     NoSupportedNetworks,
     #[error("supported network duplicate")]
@@ -323,7 +323,7 @@ pub(crate) enum ServerError {
 /// Event Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum EventError {
+pub enum EventError {
     #[error("max sequence invalid")]
     MaxSequenceInvalid,
     #[error("sequence invalid")]
@@ -337,7 +337,7 @@ pub(crate) enum EventError {
 /// Search Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum SearchError {
+pub enum SearchError {
     #[error("next offset invalid")]
     NextOffsetInvalid,
     #[error("total count invalid")]
@@ -347,7 +347,7 @@ pub(crate) enum SearchError {
 /// Error Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum ErrorError {
+pub enum ErrorError {
     #[error("Error is nil")]
     IsNil,
     #[error("Error.Code is negative")]
@@ -367,7 +367,7 @@ pub(crate) enum ErrorError {
 /// Asserter Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) enum AsserterError {
+pub enum AsserterError {
     // AsserterNotInitialized is returned when some call in the asserter
     // package requires the asserter to be initialized first.
     #[error("asserter not initialized")]
@@ -407,12 +407,12 @@ impl From<&str> for AsserterError {
 }
 
 /// The result type for any Asserter module errors.
-pub(crate) type AssertResult<T, E = AsserterError> = std::result::Result<T, E>;
+pub type AssertResult<T, E = AsserterError> = std::result::Result<T, E>;
 
 /// `err` takes an error as an argument and returns
 /// whether or not the error is one thrown by the asserter
 /// along with the specific source of the error
-pub(crate) fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
+pub fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
     if err.is::<AccountBalanceError>() {
         (true, "account balance error")
     } else if err.is::<BlockError>() {
