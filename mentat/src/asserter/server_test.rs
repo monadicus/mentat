@@ -278,7 +278,7 @@ fn test_new_with_options() {
                 call_methods: vec![],
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterTest {
             name: "duplicate operation types",
@@ -331,7 +331,7 @@ fn test_supported_networks() {
         AsserterTest {
             name: "valid networks",
             payload: Some(vec![valid_network_identifier(), wrong_network_identifier()]),
-            ..Default::default()
+            err: None,
         },
         AsserterTest {
             name: "no valid networks",
@@ -375,7 +375,8 @@ fn test_account_balance_request() {
                 account_identifier: valid_account_identifier(),
                 ..Default::default()
             }),
-            ..Default::default()
+            extras: false,
+            err: None,
         },
         CustomAsserterTest {
             name: "valid request with currencies",
@@ -396,7 +397,8 @@ fn test_account_balance_request() {
                 ],
                 ..Default::default()
             }),
-            ..Default::default()
+            extras: false,
+            err: None,
         },
         CustomAsserterTest {
             name: "valid request with duplicate currencies",
@@ -417,8 +419,8 @@ fn test_account_balance_request() {
                 ],
                 ..Default::default()
             }),
+            extras: false,
             err: Some(ServerError::DuplicateCurrency.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "invalid request wrong network",
@@ -427,14 +429,14 @@ fn test_account_balance_request() {
                 account_identifier: valid_account_identifier(),
                 ..Default::default()
             }),
+            extras: false,
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "nil request",
             payload: None,
+            extras: false,
             err: Some(ServerError::AccountBalanceRequestIsNil.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "missing network",
@@ -442,8 +444,8 @@ fn test_account_balance_request() {
                 account_identifier: valid_account_identifier(),
                 ..Default::default()
             }),
+            extras: false,
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "missing account",
@@ -451,8 +453,8 @@ fn test_account_balance_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
+            extras: false,
             err: Some(BlockError::AccountIsNil.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "valid historical request",
@@ -463,7 +465,7 @@ fn test_account_balance_request() {
                 ..Default::default()
             }),
             extras: true,
-            ..Default::default()
+            err: None,
         },
         CustomAsserterTest {
             name: "invalid historical request",
@@ -484,8 +486,8 @@ fn test_account_balance_request() {
                 block_identifier: Some(valid_partial_block_identifier()),
                 ..Default::default()
             }),
+            extras: false,
             err: Some(ServerError::AccountBalanceRequestHistoricalBalanceLookupNotSupported.into()),
-            ..Default::default()
         },
     ];
 
@@ -513,7 +515,7 @@ fn test_block_request() {
                 network_identifier: valid_network_identifier(),
                 block_identifier: Some(valid_partial_block_identifier()),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request for block 0",
@@ -524,7 +526,7 @@ fn test_block_request() {
                     ..Default::default()
                 }),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "nil request",
@@ -570,7 +572,7 @@ fn test_block_transaction_request() {
                 block_identifier: valid_block_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -635,7 +637,7 @@ fn test_construction_metadata_request() {
                 options: Some(Default::default()),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request with public keys",
@@ -647,7 +649,7 @@ fn test_construction_metadata_request() {
                     curve_type: CurveType::SECP256K1.into(),
                 })],
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -678,7 +680,7 @@ fn test_construction_metadata_request() {
                 options: None,
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request with public keys",
@@ -706,7 +708,7 @@ fn test_construction_submit_request() {
                 network_identifier: valid_network_identifier(),
                 signed_transaction: "tx".into(),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -740,7 +742,7 @@ fn test_mempool_transaction_request() {
                 network_identifier: valid_network_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -789,7 +791,7 @@ fn test_metadata_request() {
         AsserterRequestDefaultTest {
             name: "valid request",
             payload: Some(Default::default()),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "nil request",
@@ -810,7 +812,7 @@ fn test_network_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -852,7 +854,7 @@ fn test_construction_derive_request() {
                 public_key: Some(valid_public_key()),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -912,7 +914,7 @@ fn test_construction_preprocess_request() {
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request with suggested fee multiplier",
@@ -921,7 +923,7 @@ fn test_construction_preprocess_request() {
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request with max fee",
@@ -930,7 +932,7 @@ fn test_construction_preprocess_request() {
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request with suggested fee multiplier and max fee",
@@ -941,7 +943,7 @@ fn test_construction_preprocess_request() {
                 suggested_fee_multiplier: positive_fee_multiplier,
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -1047,7 +1049,7 @@ fn test_construction_payloads_request() {
                 metadata: indexmap!("test".into() => "hello".into()),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request with public keys",
@@ -1060,7 +1062,7 @@ fn test_construction_payloads_request() {
                     curve_type: CurveType::SECP256K1.into(),
                 })],
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -1145,7 +1147,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 signatures: valid_signatures(),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request 2",
@@ -1163,7 +1165,7 @@ fn test_construction_combine_request() {
                     bytes: "blah".into(),
                 })],
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request 3",
@@ -1181,7 +1183,7 @@ fn test_construction_combine_request() {
                     bytes: "hello".into(),
                 })],
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -1255,7 +1257,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 signatures: signature_type_match(),
             }),
-            ..Default::default()
+            err: None,
         },
     ];
 
@@ -1271,7 +1273,7 @@ fn test_construction_hash_request() {
                 network_identifier: valid_network_identifier(),
                 signed_transaction: "blah".into(),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -1316,7 +1318,7 @@ fn test_construction_parse_request() {
                 transaction: "blah".into(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -1354,7 +1356,7 @@ fn test_call_request() {
                 method: "eth_call".into(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request with params",
@@ -1363,7 +1365,7 @@ fn test_call_request() {
                 method: "eth_call".into(),
                 parameters: indexmap!("hello".into() => "test".into()),
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -1417,7 +1419,8 @@ fn test_account_coins_request() {
                 account_identifier: valid_account_identifier(),
                 ..Default::default()
             }),
-            ..Default::default()
+            extras: false,
+            err: None,
         },
         CustomAsserterTest {
             name: "valid request with currencies",
@@ -1438,7 +1441,8 @@ fn test_account_coins_request() {
                 ],
                 ..Default::default()
             }),
-            ..Default::default()
+            extras: false,
+            err: None,
         },
         CustomAsserterTest {
             name: "valid request with duplicate currencies",
@@ -1455,8 +1459,8 @@ fn test_account_coins_request() {
                 ],
                 ..Default::default()
             }),
+            extras: false,
             err: Some(ServerError::DuplicateCurrency.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "invalid request wrong network",
@@ -1465,14 +1469,14 @@ fn test_account_coins_request() {
                 account_identifier: valid_account_identifier(),
                 ..Default::default()
             }),
+            extras: false,
             err: Some(ServerError::RequestedNetworkNotSupported.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "nil request",
             payload: None,
+            extras: false,
             err: Some(ServerError::AccountCoinsRequestIsNil.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "missing network",
@@ -1480,8 +1484,8 @@ fn test_account_coins_request() {
                 account_identifier: valid_account_identifier(),
                 ..Default::default()
             }),
+            extras: false,
             err: Some(NetworkError::NetworkIdentifierIsNil.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "missing account",
@@ -1489,8 +1493,8 @@ fn test_account_coins_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
+            extras: false,
             err: Some(BlockError::AccountIsNil.into()),
-            ..Default::default()
         },
         CustomAsserterTest {
             name: "valid mempool lookup request",
@@ -1500,7 +1504,7 @@ fn test_account_coins_request() {
                 ..Default::default()
             }),
             extras: true,
-            ..Default::default()
+            err: None,
         },
         CustomAsserterTest {
             name: "valid mempool lookup request when not enabled",
@@ -1510,8 +1514,8 @@ fn test_account_coins_request() {
                 include_mempool: true,
                 ..Default::default()
             }),
+            extras: false,
             err: Some(ServerError::MempoolCoinsNotSupported.into()),
-            ..Default::default()
         },
     ];
 
@@ -1539,7 +1543,7 @@ fn test_event_blocks_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",
@@ -1593,7 +1597,7 @@ fn test_search_transactions_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "valid request",
@@ -1602,7 +1606,7 @@ fn test_search_transactions_request() {
                 operator: Some(Operator::AND.into()),
                 ..Default::default()
             }),
-            ..Default::default()
+            err: None,
         },
         AsserterRequestDefaultTest {
             name: "invalid request wrong network",

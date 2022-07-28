@@ -52,8 +52,8 @@ use crate::types::*;
 
 #[cfg(test)]
 #[path = ""]
-mod tests {
-    pub use super::*;
+pub mod tests {
+    use super::*;
     use crate::tests::Test;
 
     mod account_test;
@@ -69,5 +69,5 @@ mod tests {
     mod server_test;
     pub(crate) use server_test::*;
     mod test_utils;
-    pub(crate) use test_utils::*;
+    pub use test_utils::*;
 }
