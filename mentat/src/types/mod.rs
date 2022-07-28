@@ -1,5 +1,8 @@
 //! The types module as according to the rosetta sdk specification.
 
+// TODO this is temporary to help find relevant warnings faster
+#![allow(unused)]
+
 mod errors;
 pub use errors::*;
 mod identifiers;

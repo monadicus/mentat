@@ -59,10 +59,19 @@ impl From<(String, String, Option<String>)> for NetworkIdentifier {
     }
 }
 
-impl From<Option<NetworkIdentifier>> for NetworkRequest {
-    fn from(net: Option<NetworkIdentifier>) -> Self {
+impl From<NetworkIdentifier> for NetworkRequest {
+    fn from(net: NetworkIdentifier) -> Self {
         Self {
-            network_identifier: net,
+            network_identifier: Some(net),
+            ..Default::default()
+        }
+    }
+}
+
+impl From<Option<NetworkIdentifier>> for NetworkRequest {
+    fn from(network_identifier: Option<NetworkIdentifier>) -> Self {
+        Self {
+            network_identifier,
             ..Default::default()
         }
     }
