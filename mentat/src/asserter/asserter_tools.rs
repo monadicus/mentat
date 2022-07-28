@@ -62,7 +62,7 @@ impl Validations {
             let content = DATA_DIR
                 .get_file(path)
                 .ok_or_else(|| format!("failed to get file `{}`", path.display()))?;
-            let mut config: Self = serde_json::from_str(content.contents_utf8().unwrap())
+            let config: Self = serde_json::from_str(content.contents_utf8().unwrap())
                 .map_err(|e| format!("failed to read `{}` file contents: {}", path.display(), e))?;
             return Ok(config);
         }

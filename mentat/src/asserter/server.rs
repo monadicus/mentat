@@ -185,7 +185,7 @@ impl Asserter {
         &self,
         request: Option<&ConstructionPreprocessRequest>,
     ) -> AssertResult<()> {
-        let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
+        self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPreprocessRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         self.operations(&request.operations, true)?;
