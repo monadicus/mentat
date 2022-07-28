@@ -26,12 +26,3 @@ impl From<NetworkIdentifier> for NullableNetworkRequest {
         }
     }
 }
-
-impl From<Option<NetworkIdentifier>> for NullableNetworkRequest {
-    fn from(network_identifier: Option<NetworkIdentifier>) -> Self {
-        Self {
-            network_identifier,
-            ..Default::default()
-        }
-    }
-}

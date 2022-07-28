@@ -2,15 +2,11 @@
 
 use indexmap::IndexSet;
 
+use crate::macro_exports::NullableCoinAction;
+
 use super::{
-    amount,
-    errors::AsserterError,
-    AssertResult,
-    CoinAction,
-    CoinError,
-    CoinIdentifier,
-    NullableCoin,
-    NullableCoinChange,
+    amount, errors::AsserterError, AssertResult, CoinAction, CoinError, CoinIdentifier,
+    NullableCoin, NullableCoinChange,
 };
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
