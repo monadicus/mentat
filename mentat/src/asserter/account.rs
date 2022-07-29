@@ -3,8 +3,16 @@
 use std::collections::HashSet;
 
 use super::{
-    amount, block_identifier, coins, hash, AccountBalanceError, AssertResult,
-    NullableAccountBalanceResponse, NullableAccountCoinsResponse, NullableAmount, NullableCurrency,
+    amount,
+    block_identifier,
+    coins,
+    hash,
+    AccountBalanceError,
+    AssertResult,
+    NullableAccountBalanceResponse,
+    NullableAccountCoinsResponse,
+    NullableAmount,
+    NullableCurrency,
     PartialBlockIdentifier,
 };
 
@@ -33,10 +41,7 @@ pub fn contains_duplicate_currency<'a>(
 /// [`Currency`]. The check for equality takes
 /// into account everything within the [`Currency`]
 /// struct (including currency.Metadata).
-pub fn contains_currency(
-    currencies: &[NullableCurrency],
-    currency: &NullableCurrency,
-) -> bool {
+pub fn contains_currency(currencies: &[NullableCurrency], currency: &NullableCurrency) -> bool {
     currencies.iter().any(|other| other == currency)
 }
 

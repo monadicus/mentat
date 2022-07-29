@@ -21,30 +21,24 @@ pub struct NullableBlockRequest {
     pub block_identifier: Option<PartialBlockIdentifier>,
 }
 
-impl From<(Option<NetworkIdentifier>, Option<PartialBlockIdentifier>)> for NullableBlockRequest {
+impl From<(NetworkIdentifier, PartialBlockIdentifier)> for NullableBlockRequest {
     fn from(
-        (network_identifier, block_identifier): (
-            Option<NetworkIdentifier>,
-            Option<PartialBlockIdentifier>,
-        ),
+        (network_identifier, block_identifier): (NetworkIdentifier, PartialBlockIdentifier),
     ) -> Self {
         Self {
-            network_identifier,
-            block_identifier,
+            network_identifier: Some(network_identifier),
+            block_identifier: Some(block_identifier),
         }
     }
 }
 
-impl From<(Option<PartialBlockIdentifier>, Option<NetworkIdentifier>)> for NullableBlockRequest {
+impl From<(PartialBlockIdentifier, NetworkIdentifier)> for NullableBlockRequest {
     fn from(
-        (block_identifier, network_identifier): (
-            Option<PartialBlockIdentifier>,
-            Option<NetworkIdentifier>,
-        ),
+        (block_identifier, network_identifier): (PartialBlockIdentifier, NetworkIdentifier),
     ) -> Self {
         Self {
-            network_identifier,
-            block_identifier,
+            network_identifier: Some(network_identifier),
+            block_identifier: Some(block_identifier),
         }
     }
 }

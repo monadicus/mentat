@@ -86,144 +86,156 @@ impl Client {
     }
 
     /// Make a call to the /network/list Rosetta API endpoint.
-    pub async fn network_list(&self, request: MetadataRequest) -> Result<NetworkListResponse> {
+    pub async fn network_list(
+        &self,
+        request: NullableMetadataRequest,
+    ) -> Result<NullableNetworkListResponse> {
         let resp: NullableNetworkListResponse = self
             .post("network/list", &NullableMetadataRequest::from(request))
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /network/options Rosetta API endpoint.
-    pub async fn network_options(&self, request: NetworkRequest) -> Result<NetworkOptionsResponse> {
+    pub async fn network_options(
+        &self,
+        request: NullableNetworkRequest,
+    ) -> Result<NullableNetworkOptionsResponse> {
         let resp: NullableNetworkOptionsResponse = self
             .post("network/options", &NullableNetworkRequest::from(request))
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /network/status Rosetta API endpoint.
-    pub async fn network_status(&self, request: NetworkRequest) -> Result<NetworkStatusResponse> {
+    pub async fn network_status(
+        &self,
+        request: NullableNetworkRequest,
+    ) -> Result<NullableNetworkStatusResponse> {
         let resp: NullableNetworkStatusResponse = self
             .post("network/status", &NullableNetworkRequest::from(request))
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /account/balance Rosetta API endpoint.
     pub async fn account_balance(
         &self,
-        request: AccountBalanceRequest,
-    ) -> Result<AccountBalanceResponse> {
+        request: NullableAccountBalanceRequest,
+    ) -> Result<NullableAccountBalanceResponse> {
         let resp: NullableAccountBalanceResponse = self
             .post(
                 "account/balance",
                 &NullableAccountBalanceRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /account/coins Rosetta API endpoint.
     pub async fn account_coins(
         &self,
-        request: AccountCoinsRequest,
-    ) -> Result<AccountCoinsResponse> {
+        request: NullableAccountCoinsRequest,
+    ) -> Result<NullableAccountCoinsResponse> {
         let resp: NullableAccountCoinsResponse = self
             .post("account/coins", &NullableAccountCoinsRequest::from(request))
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /block Rosetta API endpoint.
-    pub async fn block(&self, request: BlockRequest) -> Result<BlockResponse> {
+    pub async fn block(&self, request: NullableBlockRequest) -> Result<NullableBlockResponse> {
         let resp: NullableBlockResponse = self
             .post("block", &NullableBlockRequest::from(request))
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /block/transaction Rosetta API endpoint.
     pub async fn block_transaction(
         &self,
-        request: BlockTransactionRequest,
-    ) -> Result<BlockTransactionResponse> {
+        request: NullableBlockTransactionRequest,
+    ) -> Result<NullableBlockTransactionResponse> {
         let resp: NullableBlockTransactionResponse = self
             .post(
                 "block/transaction",
                 &NullableBlockTransactionRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /mempool Rosetta API endpoint.
-    pub async fn mempool(&self, request: NetworkRequest) -> Result<MempoolResponse> {
+    pub async fn mempool(
+        &self,
+        request: NullableNetworkRequest,
+    ) -> Result<NullableMempoolResponse> {
         let resp: NullableMempoolResponse = self
             .post("mempool", &NullableNetworkRequest::from(request))
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /mempool/transaction Rosetta API endpoint.
     pub async fn mempool_transaction(
         &self,
-        request: MempoolTransactionRequest,
-    ) -> Result<MempoolTransactionResponse> {
+        request: NullableMempoolTransactionRequest,
+    ) -> Result<NullableMempoolTransactionResponse> {
         let resp: NullableMempoolTransactionResponse = self
             .post(
                 "mempool/transaction",
                 &NullableMempoolTransactionRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /construction/combine Rosetta API endpoint.
     pub async fn construction_combine(
         &self,
-        request: ConstructionCombineRequest,
-    ) -> Result<ConstructionCombineResponse> {
+        request: NullableConstructionCombineRequest,
+    ) -> Result<NullableConstructionCombineResponse> {
         let resp: NullableConstructionCombineResponse = self
             .post(
                 "construction/combine",
                 &NullableConstructionCombineRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /construction/derive Rosetta API endpoint.
     pub async fn construction_derive(
         &self,
-        request: ConstructionDeriveRequest,
-    ) -> Result<ConstructionDeriveResponse> {
+        request: NullableConstructionDeriveRequest,
+    ) -> Result<NullableConstructionDeriveResponse> {
         let resp: NullableConstructionDeriveResponse = self
             .post(
                 "construction/derive",
                 &NullableConstructionDeriveRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /construction/hash Rosetta API endpoint.
     pub async fn construction_hash(
         &self,
-        request: ConstructionHashRequest,
-    ) -> Result<TransactionIdentifierResponse> {
+        request: NullableConstructionHashRequest,
+    ) -> Result<NullableTransactionIdentifierResponse> {
         let resp: NullableTransactionIdentifierResponse = self
             .post(
                 "construction/hash",
                 &NullableConstructionHashRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /construction/metadata Rosetta API endpoint.
     pub async fn construction_metadata(
         &self,
-        request: ConstructionMetadataRequest,
+        request: NullableConstructionMetadataRequest,
     ) -> Result<ConstructionMetadataResponse> {
         let resp: NullableConstructionMetadataResponse = self
             .post(
@@ -237,81 +249,81 @@ impl Client {
     /// Make a call to the /construction/parse Rosetta API endpoint.
     pub async fn construction_parse(
         &self,
-        request: ConstructionParseRequest,
-    ) -> Result<ConstructionParseResponse> {
+        request: NullableConstructionParseRequest,
+    ) -> Result<NullableConstructionParseResponse> {
         let resp: NullableConstructionParseResponse = self
             .post(
                 "construction/parse",
                 &NullableConstructionParseRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /construction/payloads Rosetta API endpoint.
     pub async fn construction_payloads(
         &self,
-        request: ConstructionPayloadsRequest,
-    ) -> Result<ConstructionPayloadsResponse> {
+        request: NullableConstructionPayloadsRequest,
+    ) -> Result<NullableConstructionPayloadsResponse> {
         let resp: NullableConstructionPayloadsResponse = self
             .post(
                 "construction/payloads",
                 &NullableConstructionPayloadsRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /construction/preprocess Rosetta API endpoint.
     pub async fn construction_preprocess(
         &self,
-        request: ConstructionPreprocessRequest,
-    ) -> Result<ConstructionPreprocessResponse> {
+        request: NullableConstructionPreprocessRequest,
+    ) -> Result<NullableConstructionPreprocessResponse> {
         let resp: NullableConstructionPreprocessResponse = self
             .post(
                 "construction/preprocess",
                 &NullableConstructionPreprocessRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /construction/submit Rosetta API endpoint.
     pub async fn construction_submit(
         &self,
-        request: ConstructionSubmitRequest,
-    ) -> Result<TransactionIdentifierResponse> {
+        request: NullableConstructionSubmitRequest,
+    ) -> Result<NullableTransactionIdentifierResponse> {
         let resp: NullableTransactionIdentifierResponse = self
             .post(
                 "construction/submit",
                 &NullableConstructionSubmitRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /events/blocks Rosetta API endpoint.
     pub async fn events_blocks(
         &self,
-        request: EventsBlocksRequest,
-    ) -> Result<EventsBlocksResponse> {
+        request: NullableEventsBlocksRequest,
+    ) -> Result<NullableEventsBlocksResponse> {
         let resp: NullableEventsBlocksResponse = self
             .post("events/blocks", &NullableEventsBlocksRequest::from(request))
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 
     /// Make a call to the /search/transactions Rosetta API endpoint.
     pub async fn search_transactions(
         &self,
-        request: SearchTransactionsRequest,
-    ) -> Result<SearchTransactionsResponse> {
+        request: NullableSearchTransactionsRequest,
+    ) -> Result<NullableSearchTransactionsResponse> {
         let resp: NullableSearchTransactionsResponse = self
             .post(
                 "search/transactions",
                 &NullableSearchTransactionsRequest::from(request),
             )
             .await?;
-        Ok(resp.into())
+        Ok(resp)
     }
 }

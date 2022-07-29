@@ -5,14 +5,27 @@ use std::str::FromStr;
 use indexmap::IndexSet;
 use num_bigint_dig::{BigInt, Sign};
 
-use crate::macro_exports::NullableDirection;
-
 use super::{
-    asserter_tools::Asserter, coin_change, errors::AsserterError, hash, network_identifier,
-    AccountIdentifier, AssertResult, BlockError, BlockIdentifier, NullableAmount, NullableBlock,
-    NullableCurrency, NullableOperation, NullableRelatedTransaction, NullableTransaction,
-    OperationIdentifier, PartialBlockIdentifier, TransactionIdentifier,
+    asserter_tools::Asserter,
+    coin_change,
+    errors::AsserterError,
+    hash,
+    network_identifier,
+    AccountIdentifier,
+    AssertResult,
+    BlockError,
+    BlockIdentifier,
+    NullableAmount,
+    NullableBlock,
+    NullableCurrency,
+    NullableOperation,
+    NullableRelatedTransaction,
+    NullableTransaction,
+    OperationIdentifier,
+    PartialBlockIdentifier,
+    TransactionIdentifier,
 };
+use crate::macro_exports::NullableDirection;
 
 /// `currency` ensures a [`Currency`] is valid.
 pub fn currency(currency: Option<&NullableCurrency>) -> AssertResult<()> {

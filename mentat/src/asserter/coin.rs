@@ -2,12 +2,16 @@
 
 use indexmap::IndexSet;
 
-use crate::macro_exports::NullableCoinAction;
-
 use super::{
-    amount, errors::AsserterError, AssertResult, CoinError, CoinIdentifier, NullableCoin,
+    amount,
+    errors::AsserterError,
+    AssertResult,
+    CoinError,
+    CoinIdentifier,
+    NullableCoin,
     NullableCoinChange,
 };
+use crate::macro_exports::NullableCoinAction;
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
 pub fn coin(coin: Option<&NullableCoin>) -> AssertResult<()> {

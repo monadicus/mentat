@@ -87,7 +87,8 @@ mod server_exports {
     pub mod macro_exports {
         pub use axum::{
             extract::{self, ConnectInfo, Extension, Json},
-            routing, Router,
+            routing,
+            Router,
         };
         pub use tracing::Instrument;
 
@@ -98,7 +99,6 @@ mod server_exports {
             server::{RpcCaller, RpcResponse, Server},
             *,
         };
-
         pub use crate::types::*;
     }
 }

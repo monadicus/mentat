@@ -1,9 +1,16 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    decode_from_hex_string, AccountIdentifier, NullableConstructionDeriveResponse,
-    NullableConstructionParseResponse, NullableCurveType, NullablePublicKey, NullableSignature,
-    NullableSignatureType, NullableSigningPayload, SubAccountIdentifier,
+    decode_from_hex_string,
+    AccountIdentifier,
+    NullableConstructionDeriveResponse,
+    NullableConstructionParseResponse,
+    NullableCurveType,
+    NullablePublicKey,
+    NullableSignature,
+    NullableSignatureType,
+    NullableSigningPayload,
+    SubAccountIdentifier,
 };
 
 #[derive(Deserialize, Serialize)]

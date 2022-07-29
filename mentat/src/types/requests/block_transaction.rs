@@ -23,3 +23,21 @@ pub struct NullableBlockTransactionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_identifier: Option<TransactionIdentifier>,
 }
+
+impl From<(NetworkIdentifier, BlockIdentifier, TransactionIdentifier)>
+    for NullableBlockTransactionRequest
+{
+    fn from(
+        (network_identifier, block_identifier, transaction_identifier): (
+            NetworkIdentifier,
+            BlockIdentifier,
+            TransactionIdentifier,
+        ),
+    ) -> Self {
+        Self {
+            network_identifier: Some(network_identifier),
+            block_identifier: Some(block_identifier),
+            transaction_identifier: Some(transaction_identifier),
+        }
+    }
+}

@@ -29,9 +29,7 @@ pub fn block_event(event: Option<&NullableBlockEvent>) -> AssertResult<()> {
 
 /// events_blocks_response ensures a [`EventsBlocksResponse`]
 /// is valid.
-pub fn events_blocks_response(
-    response: Option<&NullableEventsBlocksResponse>,
-) -> AssertResult<()> {
+pub fn events_blocks_response(response: Option<&NullableEventsBlocksResponse>) -> AssertResult<()> {
     // TODO: coinbase never checks for nil
     let response = response.unwrap();
 

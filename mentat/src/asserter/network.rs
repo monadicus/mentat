@@ -3,10 +3,27 @@
 use indexmap::IndexSet;
 
 use super::{
-    block_identifier, currency, hash, string_array, timestamp, AssertResult, AsserterError,
-    BlockError, ErrorError, MentatError, NetworkError, NetworkIdentifier, NullableAllow,
-    NullableBalanceExemption, NullableNetworkListResponse, NullableNetworkOptionsResponse,
-    NullableNetworkStatusResponse, OperationStatus, Peer, SubNetworkIdentifier, SyncStatus,
+    block_identifier,
+    currency,
+    hash,
+    string_array,
+    timestamp,
+    AssertResult,
+    AsserterError,
+    BlockError,
+    ErrorError,
+    MentatError,
+    NetworkError,
+    NetworkIdentifier,
+    NullableAllow,
+    NullableBalanceExemption,
+    NullableNetworkListResponse,
+    NullableNetworkOptionsResponse,
+    NullableNetworkStatusResponse,
+    OperationStatus,
+    Peer,
+    SubNetworkIdentifier,
+    SyncStatus,
     Version,
 };
 
@@ -96,9 +113,7 @@ pub fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
 
 /// `network_status_response` ensures any [`NetworkStatusResponse`]
 /// is valid.
-pub fn network_status_response(
-    resp: Option<&NullableNetworkStatusResponse>,
-) -> AssertResult<()> {
+pub fn network_status_response(resp: Option<&NullableNetworkStatusResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkStatusResponseIsNil)?;
 
     block_identifier(resp.current_block_identifier.as_ref())?;
@@ -188,9 +203,7 @@ pub fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
 }
 
 /// `balance_exemptions` ensures [`BalanceExemption`]] in a slice is valid.
-pub fn balance_exemptions(
-    exemptions: &[Option<NullableBalanceExemption>],
-) -> AssertResult<()> {
+pub fn balance_exemptions(exemptions: &[Option<NullableBalanceExemption>]) -> AssertResult<()> {
     for (index, exemption) in exemptions.iter().enumerate() {
         let exemption = exemption.as_ref().ok_or(format!(
             "{} (index {})",
@@ -291,9 +304,7 @@ pub fn contains_network_identifier(
 }
 
 /// `network_list_response` ensures a [`NetworkListResponse`] object is valid.
-pub fn network_list_response(
-    resp: Option<&NullableNetworkListResponse>,
-) -> AssertResult<()> {
+pub fn network_list_response(resp: Option<&NullableNetworkListResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkListResponseIsNil)?;
     let mut seen = Vec::new();
     for network in &resp.network_identifiers {

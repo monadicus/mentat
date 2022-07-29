@@ -3,7 +3,9 @@
 use super::{
     block_identifier,
     errors::{AsserterError, SearchError},
-    AssertResult, Asserter, NullableSearchTransactionsResponse,
+    AssertResult,
+    Asserter,
+    NullableSearchTransactionsResponse,
 };
 
 impl Asserter {

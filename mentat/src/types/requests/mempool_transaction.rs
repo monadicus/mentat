@@ -19,3 +19,14 @@ pub struct NullableMempoolTransactionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_identifier: Option<TransactionIdentifier>,
 }
+
+impl From<(NetworkIdentifier, TransactionIdentifier)> for NullableMempoolTransactionRequest {
+    fn from(
+        (network_identifier, transaction_identifier): (NetworkIdentifier, TransactionIdentifier),
+    ) -> Self {
+        Self {
+            network_identifier: Some(network_identifier),
+            transaction_identifier: Some(transaction_identifier),
+        }
+    }
+}
