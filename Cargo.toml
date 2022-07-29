@@ -1,9 +1,11 @@
 [workspace]
 
 members = [
-        "mentat",
+        "crates/mentat-asserter",
+        "crates/mentat-test-utils",
+        "crates/mentat-types",
         "mentat-macros",
-        "examples/mentat-cli",
+        # "examples/mentat-cli",
 ]
 
 [profile.release]
