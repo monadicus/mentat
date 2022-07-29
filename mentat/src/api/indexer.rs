@@ -20,7 +20,7 @@ pub trait IndexerApi: Default {
         _caller: Caller,
         _data: EventsBlocksRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<EventsBlocksResponse> {
+    ) -> Result<EventsBlocksResponse> {
         MentatError::not_implemented()
     }
 
@@ -38,7 +38,7 @@ pub trait IndexerApi: Default {
         _caller: Caller,
         _data: SearchTransactionsRequest,
         _rpc_caller: RpcCaller,
-    ) -> MentatResponse<SearchTransactionsResponse> {
+    ) -> Result<SearchTransactionsResponse> {
         MentatError::not_implemented()
     }
 }
@@ -51,22 +51,42 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_events_blocks(
         &self,
+        asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
-        data: EventsBlocksRequest,
+        data: Option<NullableEventsBlocksRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<EventsBlocksResponse> {
-        self.events_blocks(caller, data, rpc_caller).await
+    ) -> MentatResponse<NullableEventsBlocksResponse> {
+        asserter.events_block_request(data.as_ref())?;
+        let resp = self
+            .events_blocks(caller, data.unwrap().into(), rpc_caller)
+            .await?
+            .into();
+        if assert_resp {
+            events_blocks_response(Some(&resp)).unwrap();
+        }
+        Ok(Json(resp))
     }
 
     /// This endpoint runs in both offline and online mode.
     async fn call_search_transactions(
         &self,
+        asserter: &Asserter,
+        assert_resp: bool,
         caller: Caller,
-        data: SearchTransactionsRequest,
+        data: Option<NullableSearchTransactionsRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<SearchTransactionsResponse> {
-        self.search_transactions(caller, data, rpc_caller).await
+    ) -> MentatResponse<NullableSearchTransactionsResponse> {
+        asserter.search_transactions_request(data.as_ref())?;
+        let resp = self
+            .search_transactions(caller, data.unwrap().into(), rpc_caller)
+            .await?
+            .into();
+        if assert_resp {
+            asserter.search_transaction_response(Some(&resp)).unwrap();
+        }
+        Ok(Json(resp))
     }
 }

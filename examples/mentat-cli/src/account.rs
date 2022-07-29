@@ -1,5 +1,5 @@
 use clap::Parser;
-use mentat::types::{AccountIdentifier, Currency};
+use mentat::types::{AccountIdentifier, NullableCurrency};
 
 #[derive(Parser, Clone)]
 pub(crate) struct AccountOpts {
@@ -19,7 +19,7 @@ impl AccountOpts {
         .into()
     }
 
-    pub(crate) fn get_currencies(&self) -> Vec<Option<Currency>> {
+    pub(crate) fn get_currencies(&self) -> Vec<Option<NullableCurrency>> {
         self.currencies
             .iter()
             .cloned()

@@ -1,52 +1,51 @@
 //! The asserter contains tools and methods to help validate the other types.
 
-#![allow(clippy::absurd_extreme_comparisons)]
-// TODO this is temporary to help find relevant warnings faster
-#![allow(unused)]
+#![allow(clippy::absurd_extreme_comparisons, unused)]
 
 use include_dir::{include_dir, Dir};
 
 /// Includes the data dir files;
-pub(crate) static DATA_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/asserter/data");
+#[allow(unused)]
+const DATA_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/asserter/data");
 
 mod account;
-pub(crate) use account::*;
+pub use account::*;
 
 mod asserter_tools;
-pub(crate) use asserter_tools::*;
+pub use asserter_tools::*;
 
 mod block;
-pub(crate) use block::*;
+pub use block::*;
 
 mod coin;
-pub(crate) use coin::*;
+pub use coin::*;
 
 mod construction;
-pub(crate) use construction::*;
+pub use construction::*;
 
 mod error;
-pub(crate) use error::*;
+pub use error::*;
 
 mod errors;
-pub(crate) use errors::*;
+pub use errors::*;
 
 mod events;
-pub(crate) use events::*;
+pub use events::*;
 
 mod mempool;
-pub(crate) use mempool::*;
+pub use mempool::*;
 
 mod network;
-pub(crate) use network::*;
+pub use network::*;
 
 mod search;
-pub(crate) use search::*;
+pub use search::*;
 
 mod server;
-pub(crate) use server::*;
+pub use server::*;
 
 mod util;
-pub(crate) use util::*;
+use util::*;
 
 use crate::types::*;
 
@@ -67,7 +66,7 @@ pub mod tests {
     mod network_test;
     mod search_test;
     mod server_test;
-    pub(crate) use server_test::*;
+    use server_test::*;
     mod test_utils;
-    pub use test_utils::*;
+    use test_utils::*;
 }

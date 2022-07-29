@@ -2,7 +2,7 @@ use clap::Parser;
 use mentat::{
     anyhow::Result,
     client::Client,
-    types::{MetadataRequest, NetworkIdentifier},
+    types::{NetworkIdentifier, NullableMetadataRequest},
 };
 
 #[derive(Parser)]
@@ -28,7 +28,7 @@ pub(crate) async fn get_network(
         if net_ident.blockchain.is_empty() && net_ident.network.is_empty() {
             // get the first network
             if let Some(net) = client
-                .network_list(&MetadataRequest::default())
+                .network_list(NullableMetadataRequest::default())
                 .await?
                 .network_identifiers
                 .first()

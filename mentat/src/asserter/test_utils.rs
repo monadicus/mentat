@@ -3,7 +3,7 @@ use std::fmt;
 use super::server_test::request_asserter;
 use crate::{
     asserter::{
-        asserter_tools::{Asserter, RequestAsserter},
+        asserter_tools::Asserter,
         errors::{AssertResult, AsserterError},
     },
     tests::{status_message, Test},

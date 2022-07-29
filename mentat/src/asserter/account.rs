@@ -8,19 +8,19 @@ use super::{
     coins,
     hash,
     AccountBalanceError,
-    AccountBalanceResponse,
-    AccountCoinsResponse,
-    Amount,
     AssertResult,
-    Currency,
+    NullableAccountBalanceResponse,
+    NullableAccountCoinsResponse,
+    NullableAmount,
+    NullableCurrency,
     PartialBlockIdentifier,
 };
 
 /// `contains_duplicate_currency` returns a boolean indicating
 /// if an array of [`Currency`] contains any duplicate currencies.
-pub(crate) fn contains_duplicate_currency<'a>(
-    currencies: &[Option<&'a Currency>],
-) -> Option<&'a Currency> {
+pub fn contains_duplicate_currency<'a>(
+    currencies: &[Option<&'a NullableCurrency>],
+) -> Option<&'a NullableCurrency> {
     let mut seen = HashSet::new();
 
     for currency in currencies.iter() {
@@ -41,7 +41,7 @@ pub(crate) fn contains_duplicate_currency<'a>(
 /// [`Currency`]. The check for equality takes
 /// into account everything within the [`Currency`]
 /// struct (including currency.Metadata).
-pub(crate) fn contains_currency(currencies: &[Currency], currency: &Currency) -> bool {
+pub fn contains_currency(currencies: &[NullableCurrency], currency: &NullableCurrency) -> bool {
     currencies.iter().any(|other| other == currency)
 }
 
@@ -49,7 +49,7 @@ pub(crate) fn contains_currency(currencies: &[Currency], currency: &Currency) ->
 /// of [`Amount`] is invalid. It is considered invalid if the same
 /// currency is returned multiple times (these should be
 /// consolidated) or if a [`Amount`] is considered invalid.
-pub(crate) fn assert_unique_amounts(amounts: &[Option<Amount>]) -> AssertResult<()> {
+pub fn assert_unique_amounts(amounts: &[Option<NullableAmount>]) -> AssertResult<()> {
     let mut seen = HashSet::new();
 
     for amt in amounts.iter().filter_map(|a| a.as_ref()) {
@@ -71,9 +71,9 @@ pub(crate) fn assert_unique_amounts(amounts: &[Option<Amount>]) -> AssertResult<
 /// [`PartialBlockIdentifier`] is invalid, if the requestBlock
 /// is not nil and not equal to the response block, or
 /// if the same currency is present in multiple amounts.
-pub(crate) fn account_balance_response(
+pub fn account_balance_response(
     request_block: Option<&PartialBlockIdentifier>,
-    response: &AccountBalanceResponse,
+    response: &NullableAccountBalanceResponse,
 ) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
@@ -107,7 +107,7 @@ pub(crate) fn account_balance_response(
 
 /// `account_coins` returns an error if the provided
 /// [`AccountCoinsResponse`] is invalid.
-pub(crate) fn account_coins(response: &AccountCoinsResponse) -> AssertResult<()> {
+pub fn account_coins(response: &NullableAccountCoinsResponse) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
     coins(&response.coins).map_err(|e| format!("{e}: coins are invalid"))?;

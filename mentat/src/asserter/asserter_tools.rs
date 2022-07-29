@@ -7,17 +7,7 @@ use std::{
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 
-use super::{
-    block::block_identifier,
-    errors::{AssertResult, AsserterError, BlockError, NetworkError, ServerError},
-    network::{
-        network_identifier, network_options_response, network_status_response, operation_statuses,
-        operation_types,
-    },
-    server::supported_networks,
-    BlockIdentifier, MentatError, NetworkIdentifier, NetworkOptionsResponse, NetworkStatusResponse,
-    OperationStatus, DATA_DIR,
-};
+use super::*;
 
 /// A static string representing account type data.
 pub(crate) const ACCOUNT: &str = "account";
@@ -56,7 +46,7 @@ pub(crate) struct Validations {
 impl Validations {
     /// Creates a new `Validations` struct given a config file.
     pub(crate) fn get_validation_config(
-        validation_file_path: Option<&Path>,
+        validation_file_path: Option<&PathBuf>,
     ) -> Result<Self, String> {
         if let Some(path) = validation_file_path {
             let content = DATA_DIR
@@ -96,7 +86,7 @@ pub(crate) struct RequestAsserter {
 #[derive(Debug)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[allow(clippy::large_enum_variant)]
-pub(crate) struct Asserter {
+pub struct Asserter {
     pub(crate) operation_types: Vec<String>,
     pub(crate) request: Option<RequestAsserter>,
     pub(crate) response: Option<ResponseAsserter>,
@@ -112,7 +102,7 @@ impl Asserter {
         supp_networks: Vec<NetworkIdentifier>,
         call_methods: Vec<String>,
         mempool_coins: bool,
-        validation_file_path: Option<&Path>,
+        validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
         operation_types(&supported_operation_types)?;
         supported_networks(&supp_networks.iter().cloned().map(Some).collect::<Vec<_>>())?;
@@ -210,9 +200,9 @@ impl Asserter {
     /// NetworkOptionsResponse.
     pub(crate) fn new_client_with_responses(
         network: Option<NetworkIdentifier>,
-        status: Option<NetworkStatusResponse>,
-        options: Option<NetworkOptionsResponse>,
-        validation_file_path: Option<&Path>,
+        status: Option<NullableNetworkStatusResponse>,
+        options: Option<NullableNetworkOptionsResponse>,
+        validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
         network_identifier(network.as_ref())?;
         network_status_response(status.as_ref())?;
@@ -263,7 +253,7 @@ impl Asserter {
     /// Says whether a given operation was successful or not.
     pub(crate) fn operation_successful(
         &self,
-        operation: Option<&crate::types::Operation>,
+        operation: Option<&crate::types::NullableOperation>,
     ) -> AssertResult<bool> {
         let asserter = self
             .response

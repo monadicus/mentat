@@ -7,26 +7,25 @@ use super::{
     asserter_tools::Asserter,
     block::transaction_identifier,
     bytes_array_zero,
-    errors::{AsserterError, BlockError},
+    errors::AsserterError,
     AssertResult,
-    ConstructionDeriveResponse,
     ConstructionError,
-    ConstructionMetadataResponse,
-    ConstructionParseResponse,
-    ConstructionPayloadsResponse,
-    ConstructionPreprocessResponse,
-    CurveType,
-    PublicKey,
-    ResponseAsserter,
-    Signature,
-    SignatureType,
-    SigningPayload,
+    NullableConstructionDeriveResponse,
+    NullableConstructionMetadataResponse,
+    NullableConstructionParseResponse,
+    NullableConstructionPayloadsResponse,
+    NullableConstructionPreprocessResponse,
+    NullableCurveType,
+    NullablePublicKey,
+    NullableSignature,
+    NullableSignatureType,
+    NullableSigningPayload,
 };
-use crate::types::{ConstructionCombineResponse, TransactionIdentifierResponse};
+use crate::types::{NullableConstructionCombineResponse, NullableTransactionIdentifierResponse};
 
 /// the request public keys are not valid AccountIdentifiers.
-pub(crate) fn construction_preprocess_response(
-    resp: Option<&ConstructionPreprocessResponse>,
+pub fn construction_preprocess_response(
+    resp: Option<&NullableConstructionPreprocessResponse>,
 ) -> AssertResult<()> {
     let resp = resp.ok_or(ConstructionError::ConstructionPreprocessResponseIsNil)?;
 
@@ -39,8 +38,8 @@ pub(crate) fn construction_preprocess_response(
 
 /// `construction_metadata_response` returns an error if
 /// the metadata is not a JSON object.
-pub(crate) fn construction_metadata_response(
-    resp: Option<&ConstructionMetadataResponse>,
+pub fn construction_metadata_response(
+    resp: Option<&NullableConstructionMetadataResponse>,
 ) -> AssertResult<()> {
     let resp = resp.ok_or(ConstructionError::ConstructionMetadataResponseIsNil)?;
 
@@ -57,8 +56,8 @@ pub(crate) fn construction_metadata_response(
 /// `TransactionIdentifierResponse` returns an error if
 /// the [`TransactionIdentifier`] in the response is not
 /// valid.
-pub(crate) fn transaction_identifier_response(
-    response: Option<&TransactionIdentifierResponse>,
+pub fn transaction_identifier_response(
+    response: Option<&NullableTransactionIdentifierResponse>,
 ) -> AssertResult<()> {
     let response = response.ok_or(ConstructionError::TxIdentifierResponseIsNil)?;
     transaction_identifier(response.transaction_identifier.as_ref())
@@ -67,8 +66,8 @@ pub(crate) fn transaction_identifier_response(
 /// `ConstructionCombineResponse` returns an error if
 /// a [`ConstructionCombineResponse`] does
 /// not have a populated [`SignedTransaction`].
-pub(crate) fn construction_combine_response(
-    response: Option<&ConstructionCombineResponse>,
+pub fn construction_combine_response(
+    response: Option<&NullableConstructionCombineResponse>,
 ) -> AssertResult<()> {
     let response = response.ok_or(ConstructionError::ConstructionCombineResponseIsNil)?;
     if response.signed_transaction.is_empty() {
@@ -81,8 +80,8 @@ pub(crate) fn construction_combine_response(
 /// `construction_derive_response` returns an error if
 /// a [`ConstructionDeriveResponse`] does
 /// not have a populated Address.
-pub(crate) fn construction_derive_response(
-    resp: Option<&ConstructionDeriveResponse>,
+pub fn construction_derive_response(
+    resp: Option<&NullableConstructionDeriveResponse>,
 ) -> AssertResult<()> {
     let resp = resp.ok_or(ConstructionError::ConstructionDeriveResponseIsNil)?;
 
@@ -101,9 +100,9 @@ impl Asserter {
     /// a *types.ConstructionParseResponse does
     /// not have a valid set of operations or
     /// if the signers is empty.
-    pub(crate) fn construction_parse_response(
+    pub fn construction_parse_response(
         &self,
-        resp: Option<&ConstructionParseResponse>,
+        resp: Option<&NullableConstructionParseResponse>,
         signed: bool,
     ) -> AssertResult<()> {
         self.response
@@ -156,8 +155,8 @@ impl Asserter {
 /// a [`ConstructionPayloadsResponse`] does
 /// not have an UnsignedTransaction or has no
 /// valid [`SigningPayload`].
-pub(crate) fn construction_payloads_response(
-    resp: Option<&ConstructionPayloadsResponse>,
+pub fn construction_payloads_response(
+    resp: Option<&NullableConstructionPayloadsResponse>,
 ) -> AssertResult<()> {
     let resp = resp.ok_or(ConstructionError::ConstructionPayloadsResponseIsNil)?;
 
@@ -183,7 +182,7 @@ pub(crate) fn construction_payloads_response(
 /// `public_key` returns an error if
 /// the [PublicKey] is nil, is not
 /// valid hex, or has an undefined CurveType.
-pub(crate) fn public_key(key: Option<&PublicKey>) -> AssertResult<()> {
+pub fn public_key(key: Option<&NullablePublicKey>) -> AssertResult<()> {
     let key = key.ok_or(ConstructionError::PublicKeyIsNil)?;
 
     if key.bytes.is_empty() {
@@ -202,7 +201,7 @@ pub(crate) fn public_key(key: Option<&PublicKey>) -> AssertResult<()> {
 
 /// `curve_type` returns an error if
 /// the curve is not a valid [CurveType].
-pub(crate) fn curve_type(curve: &CurveType) -> AssertResult<()> {
+pub fn curve_type(curve: &NullableCurveType) -> AssertResult<()> {
     if !curve.valid() {
         Err(format!(
             "{}: {}",
@@ -218,7 +217,7 @@ pub(crate) fn curve_type(curve: &CurveType) -> AssertResult<()> {
 /// if a [SigningPayload] is nil,
 /// has an empty address, has invalid hex,
 /// or has an invalid [SignatureType] (if populated).
-pub(crate) fn signing_payload(payload: Option<&SigningPayload>) -> AssertResult<()> {
+pub fn signing_payload(payload: Option<&NullableSigningPayload>) -> AssertResult<()> {
     let payload = payload.ok_or(ConstructionError::SigningPayloadIsNil)?;
 
     account_identifier(payload.account_identifier.as_ref())
@@ -245,7 +244,7 @@ pub(crate) fn signing_payload(payload: Option<&SigningPayload>) -> AssertResult<
 
 /// `signatures` returns an error if any
 /// [Signature] is invalid.
-pub(crate) fn signatures(signatures: &[Option<&Signature>]) -> AssertResult<()> {
+pub fn signatures(signatures: &[Option<&NullableSignature>]) -> AssertResult<()> {
     if signatures.is_empty() {
         Err(ConstructionError::SignaturesEmpty)?;
     }
@@ -282,7 +281,7 @@ pub(crate) fn signatures(signatures: &[Option<&Signature>]) -> AssertResult<()> 
 
 /// signature_type returns an error if
 /// signature is not a valid [`SignatureType`].
-pub(crate) fn signature_type(st: &SignatureType) -> AssertResult<()> {
+pub fn signature_type(st: &NullableSignatureType) -> AssertResult<()> {
     if !st.valid() {
         Err(AsserterError::from(format!(
             "{}: {}",

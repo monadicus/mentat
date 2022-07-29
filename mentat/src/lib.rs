@@ -2,7 +2,7 @@
 #![warn(clippy::todo)]
 #![doc = include_str!("../../README.md")]
 
-mod asserter;
+pub(crate) mod asserter;
 #[cfg(feature = "keys")]
 pub mod keys;
 
@@ -63,7 +63,7 @@ mod server_exports {
     /// If you prefer to use your own `main` function, consider using the
     /// [`macro@main`] macro instead.
     ///
-    /// ```no_run
+    /// ``` no_run
     /// #[mentat(DefaultCacheInner)]
     /// struct MentatBitcoin;
     ///
@@ -99,6 +99,7 @@ mod server_exports {
             server::{RpcCaller, RpcResponse, Server},
             *,
         };
+        pub use crate::types::*;
     }
 }
 

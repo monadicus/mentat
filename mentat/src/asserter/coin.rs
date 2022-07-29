@@ -6,15 +6,15 @@ use super::{
     amount,
     errors::AsserterError,
     AssertResult,
-    Coin,
-    CoinAction,
-    CoinChange,
     CoinError,
     CoinIdentifier,
+    NullableCoin,
+    NullableCoinChange,
 };
+use crate::macro_exports::NullableCoinAction;
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
-pub(crate) fn coin(coin: Option<&Coin>) -> AssertResult<()> {
+pub fn coin(coin: Option<&NullableCoin>) -> AssertResult<()> {
     let coin = coin.ok_or(CoinError::IsNil)?;
     coin_identifier(coin.coin_identifier.as_ref())
         .map_err(|e| format!("{e}: coin identifier is invalid"))?;
@@ -26,7 +26,7 @@ pub(crate) fn coin(coin: Option<&Coin>) -> AssertResult<()> {
 /// [`Coin`] is invalid. If there are any
 /// duplicate identifiers, this function
 /// will also return an error.
-pub(crate) fn coins(coins: &[Option<Coin>]) -> AssertResult<()> {
+pub fn coins(coins: &[Option<NullableCoin>]) -> AssertResult<()> {
     let mut ids = IndexSet::new();
     for c in coins {
         coin(c.as_ref()).map_err(|err| format!("{err}: coin is invalid"))?;
@@ -44,7 +44,7 @@ pub(crate) fn coins(coins: &[Option<Coin>]) -> AssertResult<()> {
 
 /// [`coin_identifier`] returns an error if the provided [`CoinIdentifier`]
 /// is invalid.
-pub(crate) fn coin_identifier(coin_identifier: Option<&CoinIdentifier>) -> AssertResult<()> {
+pub fn coin_identifier(coin_identifier: Option<&CoinIdentifier>) -> AssertResult<()> {
     let coin_identifier = coin_identifier.ok_or(CoinError::IdentifierIsNil)?;
     if coin_identifier.identifier.is_empty() {
         Err(CoinError::IdentifierNotSet)?
@@ -55,7 +55,7 @@ pub(crate) fn coin_identifier(coin_identifier: Option<&CoinIdentifier>) -> Asser
 
 /// `coin_change` returns an error if the provided [`CoinChange`]
 /// is invalid.
-pub(crate) fn coin_change(change: Option<&CoinChange>) -> AssertResult<()> {
+pub fn coin_change(change: Option<&NullableCoinChange>) -> AssertResult<()> {
     let change = change.ok_or(CoinError::ChangeIsNil)?;
 
     coin_identifier(change.coin_identifier.as_ref())
@@ -66,7 +66,7 @@ pub(crate) fn coin_change(change: Option<&CoinChange>) -> AssertResult<()> {
 
 /// coin_action returns an error if the provided [`CoinAction`]
 /// is invalid.
-pub(crate) fn coin_action(act: &CoinAction) -> AssertResult<()> {
+pub fn coin_action(act: &NullableCoinAction) -> AssertResult<()> {
     if !act.valid() {
         Err(AsserterError::from(format!(
             "{}: {}",

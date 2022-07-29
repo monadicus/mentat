@@ -8,18 +8,18 @@ use super::{
     hash,
     string_array,
     timestamp,
-    Allow,
     AssertResult,
     AsserterError,
-    BalanceExemption,
     BlockError,
     ErrorError,
     MentatError,
     NetworkError,
     NetworkIdentifier,
-    NetworkListResponse,
-    NetworkOptionsResponse,
-    NetworkStatusResponse,
+    NullableAllow,
+    NullableBalanceExemption,
+    NullableNetworkListResponse,
+    NullableNetworkOptionsResponse,
+    NullableNetworkStatusResponse,
     OperationStatus,
     Peer,
     SubNetworkIdentifier,
@@ -29,7 +29,7 @@ use super::{
 
 /// `sub_network_identifier` asserts a [`SubNetworkIdentifier`] is valid (if not
 /// nil).
-pub(crate) fn sub_network_identifier(
+pub fn sub_network_identifier(
     sub_network_identifier: Option<&SubNetworkIdentifier>,
 ) -> AssertResult<()> {
     let sub_network_identifier = match sub_network_identifier {
@@ -46,7 +46,7 @@ pub(crate) fn sub_network_identifier(
 
 /// `network_identifier` ensures a [`NetworkIdentifier`] has
 /// a valid blockchain and network.
-pub(crate) fn network_identifier(network: Option<&NetworkIdentifier>) -> AssertResult<()> {
+pub fn network_identifier(network: Option<&NetworkIdentifier>) -> AssertResult<()> {
     let network = network.ok_or(NetworkError::NetworkIdentifierIsNil)?;
 
     if network.blockchain.is_empty() {
@@ -61,7 +61,7 @@ pub(crate) fn network_identifier(network: Option<&NetworkIdentifier>) -> AssertR
 }
 
 /// peer ensures a [`Peer`] has a valid peer_id.
-pub(crate) fn peer(peer: Option<&Peer>) -> AssertResult<()> {
+pub fn peer(peer: Option<&Peer>) -> AssertResult<()> {
     let peer = peer.ok_or(NetworkError::PeerIDMissing)?;
 
     if peer.peer_id.is_empty() {
@@ -73,7 +73,7 @@ pub(crate) fn peer(peer: Option<&Peer>) -> AssertResult<()> {
 
 /// `version` ensures the [`Version`] of the node is
 /// returned.
-pub(crate) fn version(version: Option<&Version>) -> AssertResult<()> {
+pub fn version(version: Option<&Version>) -> AssertResult<()> {
     let version = version.ok_or(NetworkError::VersionIsNil)?;
 
     if version.node_version.is_empty() {
@@ -90,7 +90,7 @@ pub(crate) fn version(version: Option<&Version>) -> AssertResult<()> {
 }
 
 /// `sync_status` ensures any [`SyncStatus`] is valid.
-pub(crate) fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
+pub fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
     let status = match status {
         Some(s) => s,
         None => return Ok(()),
@@ -113,7 +113,7 @@ pub(crate) fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
 
 /// `network_status_response` ensures any [`NetworkStatusResponse`]
 /// is valid.
-pub(crate) fn network_status_response(resp: Option<&NetworkStatusResponse>) -> AssertResult<()> {
+pub fn network_status_response(resp: Option<&NullableNetworkStatusResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkStatusResponseIsNil)?;
 
     block_identifier(resp.current_block_identifier.as_ref())?;
@@ -129,7 +129,7 @@ pub(crate) fn network_status_response(resp: Option<&NetworkStatusResponse>) -> A
 /// `operation_statuses` ensures all [`OperationStatus`] in
 /// [`OperationStatuses`] are valid and that there exists at least 1
 /// successful status.
-pub(crate) fn operation_statuses(stats: &[Option<OperationStatus>]) -> AssertResult<()> {
+pub fn operation_statuses(stats: &[Option<OperationStatus>]) -> AssertResult<()> {
     if stats.is_empty() {
         Err(NetworkError::NoAllowedOperationStatuses)?;
     }
@@ -160,12 +160,12 @@ pub(crate) fn operation_statuses(stats: &[Option<OperationStatus>]) -> AssertRes
 
 /// `operation_types` ensures all items in Options.Allow.OperationStatuses
 /// are valid and that there are no repeats.
-pub(crate) fn operation_types(types: &[String]) -> AssertResult<()> {
+pub fn operation_types(types: &[String]) -> AssertResult<()> {
     string_array("Allow.OperationTypes", types).map_err(AsserterError::from)
 }
 
 /// `error` ensures a [`MentatError`] is valid.
-pub(crate) fn error(err: Option<&MentatError>) -> AssertResult<()> {
+pub fn error(err: Option<&MentatError>) -> AssertResult<()> {
     let err = err.ok_or(ErrorError::IsNil)?;
 
     if err.code < 0 {
@@ -181,7 +181,7 @@ pub(crate) fn error(err: Option<&MentatError>) -> AssertResult<()> {
 
 /// `errors` ensures each [`MentatError`] in a slice is valid
 /// and that there is no error code collision.
-pub(crate) fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
+pub fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
     let mut status_codes = IndexSet::new();
 
     for err in errors {
@@ -203,7 +203,7 @@ pub(crate) fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
 }
 
 /// `balance_exemptions` ensures [`BalanceExemption`]] in a slice is valid.
-pub(crate) fn balance_exemptions(exemptions: &[Option<BalanceExemption>]) -> AssertResult<()> {
+pub fn balance_exemptions(exemptions: &[Option<NullableBalanceExemption>]) -> AssertResult<()> {
     for (index, exemption) in exemptions.iter().enumerate() {
         let exemption = exemption.as_ref().ok_or(format!(
             "{} (index {})",
@@ -246,7 +246,7 @@ pub(crate) fn balance_exemptions(exemptions: &[Option<BalanceExemption>]) -> Ass
 }
 
 /// `call_methods` ensures Allow.CallMethods are valid.
-pub(crate) fn call_methods(methods: &[String]) -> AssertResult<()> {
+pub fn call_methods(methods: &[String]) -> AssertResult<()> {
     if methods.is_empty() {
         return Ok(());
     }
@@ -255,7 +255,7 @@ pub(crate) fn call_methods(methods: &[String]) -> AssertResult<()> {
 }
 
 /// `allow` ensures a [`Allow`] object is valid.
-pub(crate) fn allow(allowed: Option<&Allow>) -> AssertResult<()> {
+pub fn allow(allowed: Option<&NullableAllow>) -> AssertResult<()> {
     let allowed = allowed.ok_or(NetworkError::AllowIsNil)?;
 
     operation_statuses(&allowed.operation_statuses)?;
@@ -281,8 +281,8 @@ pub(crate) fn allow(allowed: Option<&Allow>) -> AssertResult<()> {
 
 /// `network_options_response` ensures a [`NetworkOptionsResponse`] object is
 /// valid.
-pub(crate) fn network_options_response(
-    options: Option<&NetworkOptionsResponse>,
+pub fn network_options_response(
+    options: Option<&NullableNetworkOptionsResponse>,
 ) -> AssertResult<()> {
     let options = options.ok_or(NetworkError::NetworkOptionsResponseIsNil)?;
     version(options.version.as_ref())?;
@@ -294,7 +294,7 @@ pub(crate) fn network_options_response(
 /// [`NetworkIdentifier`]. The check for equality takes
 /// into account everything within the NetworkIdentifier
 /// struct (including currency.Metadata).
-pub(crate) fn contains_network_identifier(
+pub fn contains_network_identifier(
     networks: &[NetworkIdentifier],
     network: Option<&NetworkIdentifier>,
 ) -> bool {
@@ -304,7 +304,7 @@ pub(crate) fn contains_network_identifier(
 }
 
 /// `network_list_response` ensures a [`NetworkListResponse`] object is valid.
-pub(crate) fn network_list_response(resp: Option<&NetworkListResponse>) -> AssertResult<()> {
+pub fn network_list_response(resp: Option<&NullableNetworkListResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkListResponseIsNil)?;
     let mut seen = Vec::new();
     for network in &resp.network_identifiers {
