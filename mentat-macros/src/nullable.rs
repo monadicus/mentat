@@ -1,21 +1,110 @@
 // TODO temporary
 #![allow(clippy::missing_docs_in_private_items)]
 
+use std::fmt::Debug;
+
 use proc_macro::TokenStream;
-use proc_macro2::{TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{
     parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
-    Ident, ItemImpl, ItemStruct, Type,
+    Ident, ItemImpl, ItemStruct, Meta, MetaList, NestedMeta, Type,
 };
+
+#[derive(Default, Debug)]
+enum Argument {
+    #[default]
+    None,
+    Retain,
+    Bytes,
+    OptionEnum,
+}
+
+impl From<&Ident> for Argument {
+    fn from(other: &Ident) -> Self {
+        if other == "retain" {
+            Self::Retain
+        } else if other == "bytes" {
+            Self::Bytes
+        } else if other == "option_enum" {
+            Self::OptionEnum
+        } else {
+            panic!("unsupported argument {}", other)
+        }
+    }
+}
+
+impl From<&Field> for Argument {
+    fn from(other: &Field) -> Self {
+        other
+            .attrs
+            .iter()
+            .find(|f| matches!(f.path.get_ident(), Some(i) if i == "nullable"))
+            .map(|f| match f.parse_meta().unwrap() {
+                Meta::List(MetaList { nested, .. }) => {
+                    if let NestedMeta::Meta(n) = &nested[0] {
+                        n.path().get_ident().unwrap().into()
+                    } else {
+                        panic!("unsupported argument")
+                    }
+                }
+                _ => panic!("unsupported argument"),
+            })
+            .unwrap_or_default()
+    }
+}
+
+#[derive(Debug)]
+enum FieldType {
+    VecOption,
+    Vec,
+    Option,
+    Other,
+}
+
+impl From<&[TokenTree]> for FieldType {
+    fn from(stream: &[TokenTree]) -> Self {
+        match stream.get(0).unwrap() {
+            TokenTree::Ident(id) if id == "Option" => Self::Option,
+            TokenTree::Ident(id)
+                if id == "Vec"
+                    && matches!(stream.get(2), Some(TokenTree::Ident(i)) if i == "Option") =>
+            {
+                Self::VecOption
+            }
+            TokenTree::Ident(id) if id == "Vec" => Self::Vec,
+            _ => Self::Other,
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq)]
 enum FieldBehavior {
     Retain,
-    Vec,
+    VecOption,
     Option,
-    RetainVec,
+    RetainVecOption,
     RetainOption,
+    Enum,
+    Bytes,
+}
+
+impl From<(FieldType, Argument)> for FieldBehavior {
+    fn from(other: (FieldType, Argument)) -> Self {
+        match other {
+            (FieldType::Other, Argument::None)
+            | (FieldType::Other, Argument::Retain)
+            | (FieldType::Vec, Argument::None)
+            | (FieldType::Vec, Argument::Retain) => FieldBehavior::Retain,
+            (FieldType::VecOption, Argument::None) => FieldBehavior::VecOption,
+            (FieldType::Option, Argument::None) => FieldBehavior::Option,
+            (FieldType::VecOption, Argument::Retain) => FieldBehavior::RetainVecOption,
+            (FieldType::Option, Argument::Retain) => FieldBehavior::RetainOption,
+            (FieldType::Other, Argument::OptionEnum) => FieldBehavior::Enum,
+            (FieldType::Vec, Argument::Bytes) => FieldBehavior::Bytes,
+            (f, a) => panic!("unsupported argument for field type: {f:?}, {a:?}"),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -29,15 +118,25 @@ impl FieldData {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
             FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
-            FieldBehavior::Vec => {
+            FieldBehavior::VecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| v.into()).collect())
             }
             FieldBehavior::Option => parse_quote!(#field_name: other.#field_name.unwrap().into()),
-            FieldBehavior::RetainVec => {
+            FieldBehavior::RetainVecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
             }
             FieldBehavior::RetainOption => {
                 parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
+            }
+            FieldBehavior::Enum => {
+                parse_quote!(#field_name: if other.#field_name.is_empty() {
+                    None
+                } else {
+                    Some(other.#field_name.into())
+                })
+            }
+            FieldBehavior::Bytes => {
+                parse_quote!(#field_name: crate::types::utils::encode_to_hex_string(&other.#field_name))
             }
         }
     }
@@ -45,21 +144,29 @@ impl FieldData {
     fn gen_to_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
-            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
-            FieldBehavior::Vec => {
+            FieldBehavior::Retain => {
+                parse_quote!(#field_name: other.#field_name.into())
+            }
+            FieldBehavior::VecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().map(|v| Some(v.into())).collect())
             }
             FieldBehavior::Option => parse_quote!(#field_name: Some(other.#field_name.into())),
-            FieldBehavior::RetainVec => {
+            FieldBehavior::RetainVecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
             }
             FieldBehavior::RetainOption => {
                 parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
             }
+            FieldBehavior::Enum => {
+                parse_quote!(#field_name: other.#field_name.unwrap_or_default().into())
+            }
+            FieldBehavior::Bytes => {
+                parse_quote!(#field_name: crate::types::utils::decode_from_hex_string(other.#field_name).unwrap())
+            }
         }
     }
 
-    fn mutate_type(ty: &Type, retain: bool) -> (Type, FieldBehavior) {
+    fn mutate_type(ty: &Type, arg: Argument) -> (Type, FieldBehavior) {
         let mut stream = ty
             .clone()
             .into_token_stream()
@@ -73,30 +180,28 @@ impl FieldData {
             })
             .collect::<Vec<_>>();
 
-        let behavior = match stream.get(0).unwrap() {
-            TokenTree::Ident(id) if id == "Option" => {
-                if retain {
-                    FieldBehavior::RetainOption
-                } else {
-                    stream.drain(0..2);
-                    stream.pop();
-                    FieldBehavior::Option
-                }
+        let field_type: FieldType = stream.as_slice().into();
+        let behavior = (field_type, arg).into();
+
+        match behavior {
+            FieldBehavior::Option => {
+                stream.drain(0..2);
+                stream.pop();
             }
-            TokenTree::Ident(id)
-                if id == "Vec"
-                    && matches!(stream.get(2), Some(TokenTree::Ident(i)) if i == "Option") =>
-            {
-                if retain {
-                    FieldBehavior::RetainVec
-                } else {
-                    stream.drain(2..4);
-                    stream.pop();
-                    FieldBehavior::Vec
-                }
+            FieldBehavior::VecOption => {
+                stream.drain(2..4);
+                stream.pop();
             }
-            _ => FieldBehavior::Retain,
-        };
+            FieldBehavior::Enum => {
+                stream.insert(0, TokenTree::Ident(Ident::new("Option", Span::call_site())));
+                stream.insert(1, TokenTree::Punct(Punct::new('<', Spacing::Alone)));
+                stream.push(TokenTree::Punct(Punct::new('>', Spacing::Alone)));
+            }
+            FieldBehavior::Bytes => {
+                stream = vec![TokenTree::Ident(Ident::new("String", Span::call_site()))]
+            }
+            _ => {}
+        }
 
         let stream = stream.into_iter().collect::<TokenStream2>();
 
@@ -106,10 +211,7 @@ impl FieldData {
 
 impl From<&Field> for FieldData {
     fn from(field: &Field) -> Self {
-        let retain = field
-            .attrs
-            .iter()
-            .any(|f| matches!(f.path.get_ident(), Some(i) if i == "retain"));
+        let arg = field.into();
 
         let attrs = field
             .attrs
@@ -118,7 +220,7 @@ impl From<&Field> for FieldData {
             .cloned()
             .collect();
 
-        let (ty, behavior) = FieldData::mutate_type(&field.ty, retain);
+        let (ty, behavior) = FieldData::mutate_type(&field.ty, arg);
 
         Self {
             field: Field {

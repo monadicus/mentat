@@ -20,6 +20,11 @@ impl NullableBlockEventType {
     pub fn valid(&self) -> bool {
         matches!(self.0.as_str(), Self::BLOCK_ADDED | Self::BLOCK_REMOVED)
     }
+    
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableBlockEventType {

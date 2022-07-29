@@ -12,12 +12,13 @@ use super::*;
 pub struct NullableConstructionDeriveResponse {
     /// [DEPRECATED by `account_identifier` in v1.4.4] Address in
     /// network-specific format.
-    #[retain]
+    #[nullable(retain)]
     pub address: Option<String>,
     /// The [`AccountIdentifier`] uniquely identifies an account within a
     /// network. All fields in the `account_identifier` are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
+    #[nullable(retain)]
     pub account_identifier: Option<AccountIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,

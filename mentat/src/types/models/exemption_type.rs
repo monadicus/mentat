@@ -31,6 +31,11 @@ impl NullableExemptionType {
             Self::GREATER_OR_EQUAL | Self::LESS_OR_EQUAL | Self::DYNAMIC
         )
     }
+
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableExemptionType {

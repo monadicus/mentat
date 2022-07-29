@@ -21,5 +21,6 @@ pub struct NullableBlockEvent {
     /// `BlockEventType` determines if a `BlockEvent` represents the addition or
     /// removal of a block.
     #[serde(rename = "type")]
+    #[nullable(option_enum)]
     pub type_: NullableBlockEventType,
 }

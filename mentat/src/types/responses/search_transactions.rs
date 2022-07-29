@@ -29,6 +29,6 @@ pub struct NullableSearchTransactionsResponse {
     /// transaction results. If this field is not populated, there are no more
     /// transactions to query.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub next_offset: Option<i64>,
 }

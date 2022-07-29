@@ -22,6 +22,11 @@ impl NullableDirection {
     pub fn valid(&self) -> bool {
         matches!(self.0.as_str(), Self::FORWARD | Self::BACKWARD)
     }
+
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableDirection {

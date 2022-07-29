@@ -13,17 +13,19 @@ use super::*;
 pub struct NullableSigningPayload {
     /// [DEPRECATED by account_identifier in v1.4.4] The network-specific
     /// address of the account that should sign the payload.
-    #[retain]
+    #[nullable(retain)]
     pub address: Option<String>,
     /// The `AccountIdentifier` uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
-    #[retain]
+    #[nullable(retain)]
     pub account_identifier: Option<AccountIdentifier>,
     /// The hex bytes of the Signing Payload.
+    #[nullable(bytes)]
     pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
+    #[nullable(option_enum)]
     pub signature_type: NullableSignatureType,
 }
 

@@ -26,6 +26,11 @@ impl NullableCurveType {
             Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE
         )
     }
+
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableCurveType {

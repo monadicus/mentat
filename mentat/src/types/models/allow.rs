@@ -46,7 +46,7 @@ pub struct NullableAllow {
     /// populated, block timestamps are assumed to be valid for all available
     /// blocks.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub timestamp_start_index: Option<i64>,
     /// All methods that are supported by the `/call` endpoint. Communicating
     /// which parameters should be provided to `/call` is the responsibility of

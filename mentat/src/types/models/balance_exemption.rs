@@ -28,7 +28,7 @@ pub struct NullableBalanceExemption {
     /// value is used to convert an Amount.Value from atomic units (Satoshis) to
     /// standard units (Bitcoins).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub currency: Option<NullableCurrency>,
     /// `ExemptionType` is used to indicate if the live balance for an account
     /// subject to a [`BalanceExemption`] could increase above, decrease below,
@@ -40,5 +40,6 @@ pub struct NullableBalanceExemption {
     /// to spendable on a vesting account. * dynamic: The live balance may
     /// increase above, decrease below, or equal the computed balance. This
     /// typically occurs with tokens that have a dynamic supply.
+    #[nullable(option_enum)]
     pub exemption_type: NullableExemptionType,
 }

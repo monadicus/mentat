@@ -34,7 +34,7 @@ pub struct NullableNetworkStatusResponse {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub oldest_block_identifier: Option<BlockIdentifier>,
     /// `SyncStatus` is used to provide additional context about an
     /// implementation's sync status. This object is often used by
@@ -42,7 +42,7 @@ pub struct NullableNetworkStatusResponse {
     /// queried until some sync phase completes or cannot be determined by
     /// comparing the timestamp of the most recent block with the current time.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub sync_status: Option<SyncStatus>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(

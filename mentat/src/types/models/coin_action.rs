@@ -20,6 +20,11 @@ impl NullableCoinAction {
     pub fn valid(&self) -> bool {
         matches!(self.0.as_str(), Self::COIN_CREATED | Self::COIN_SPENT)
     }
+
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableCoinAction {
@@ -46,16 +51,16 @@ impl From<&str> for NullableCoinAction {
 pub enum CoinAction {
     /// `CoinAction` indicating a Coin was created.
     #[default]
-    Created,
+    CoinCreated,
     /// `CoinAction` indicating a Coin was spent.
-    Spent,
+    CoinSpent,
 }
 
 impl From<NullableCoinAction> for CoinAction {
     fn from(other: NullableCoinAction) -> Self {
         match other.0.as_ref() {
-            NullableCoinAction::COIN_CREATED => Self::Created,
-            NullableCoinAction::COIN_SPENT => Self::Spent,
+            NullableCoinAction::COIN_CREATED => Self::CoinCreated,
+            NullableCoinAction::COIN_SPENT => Self::CoinSpent,
             i => panic!("unsupported CoinAction: {i}"),
         }
     }
@@ -64,8 +69,8 @@ impl From<NullableCoinAction> for CoinAction {
 impl From<CoinAction> for NullableCoinAction {
     fn from(other: CoinAction) -> Self {
         match other {
-            CoinAction::Created => Self::COIN_CREATED.into(),
-            CoinAction::Spent => Self::COIN_SPENT.into(),
+            CoinAction::CoinCreated => Self::COIN_CREATED.into(),
+            CoinAction::CoinSpent => Self::COIN_SPENT.into(),
         }
     }
 }

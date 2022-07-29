@@ -25,7 +25,7 @@ pub struct NullableConstructionMetadataRequest {
     /// populate an options object to limit the metadata returned to only the
     /// subset required.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub options: Option<Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
