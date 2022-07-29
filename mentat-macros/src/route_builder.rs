@@ -310,7 +310,7 @@ fn build_route(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
         );
-        method_args = quote!(req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&conf.asserter, req_data, &conf.mode, rpc_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
@@ -370,7 +370,7 @@ fn build_cached_route(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
         );
-        method_args = quote!(req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&conf.asserter, req_data, &conf.mode, rpc_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,

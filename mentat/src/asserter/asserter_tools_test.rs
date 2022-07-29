@@ -298,7 +298,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("no NullableAllow.OperationStatuses found".into()),
+            err: Some("no Allow.OperationStatuses found".into()),
         },
         AsserterTest {
             name: "duplicate operation statuses",
@@ -309,7 +309,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("NullableAllow.OperationStatuses contains a duplicate Success".into()),
+            err: Some("Allow.OperationStatuses contains a duplicate Success".into()),
         },
         AsserterTest {
             name: "duplicate operation types",
@@ -320,7 +320,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("NullableAllow.OperationTypes contains a duplicate Transfer".into()),
+            err: Some("Allow.OperationTypes contains a duplicate Transfer".into()),
         },
         AsserterTest {
             name: "invalid start index",

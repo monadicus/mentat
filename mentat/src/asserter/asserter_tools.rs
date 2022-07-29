@@ -14,7 +14,7 @@ pub(crate) const ACCOUNT: &str = "account";
 // pub(crate) const UTXO: &str = "utxo";
 
 /// The `AsserterOperation` data helps validate data.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct AsserterOperation {
     pub(crate) count: i64,
@@ -22,7 +22,7 @@ pub(crate) struct AsserterOperation {
 }
 
 /// The `ValidationOperation` data helps validate data.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct ValidationOperation {
     pub(crate) name: String,
@@ -32,7 +32,7 @@ pub(crate) struct ValidationOperation {
 /// Validations is used to define stricter validations
 /// on the transaction. Fore more details please refer to
 /// https://github.com/coinbase/rosetta-sdk-go/tree/master/asserter#readme
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[serde(default)]
 pub(crate) struct Validations {
@@ -62,7 +62,7 @@ impl Validations {
 }
 
 /// For response assertion.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct ResponseAsserter {
     pub(crate) network: NetworkIdentifier,
@@ -73,7 +73,7 @@ pub(crate) struct ResponseAsserter {
 }
 
 /// For request assertion.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct RequestAsserter {
     pub(crate) historical_balance_lookup: bool,
@@ -83,7 +83,7 @@ pub(crate) struct RequestAsserter {
 }
 /// Asserter contains all logic to perform static
 /// validation on Rosetta Server responses.
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[allow(clippy::large_enum_variant)]
 pub struct Asserter {
@@ -96,7 +96,7 @@ pub struct Asserter {
 impl Asserter {
     /// `new_server` constructs a new [`Asserter`] for use in the
     /// server package.
-    pub(crate) fn new_server(
+    pub fn new_server(
         supported_operation_types: Vec<String>,
         historical_balance_lookup: bool,
         supp_networks: Vec<NetworkIdentifier>,

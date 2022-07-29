@@ -52,7 +52,6 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     async fn call_events_blocks(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableEventsBlocksRequest>,
         _mode: &Mode,
@@ -63,9 +62,9 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
             .events_blocks(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            events_blocks_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     events_blocks_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -73,7 +72,6 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     async fn call_search_transactions(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableSearchTransactionsRequest>,
         _mode: &Mode,
@@ -84,9 +82,9 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
             .search_transactions(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            asserter.search_transaction_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     asserter.search_transaction_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 }

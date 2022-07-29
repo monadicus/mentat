@@ -193,7 +193,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_network_list(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableMetadataRequest>,
         _mode: &Mode,
@@ -204,9 +203,9 @@ pub trait CallerDataApi: Clone + DataApi {
             .network_list(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            network_list_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     network_list_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -214,7 +213,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_network_options(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableNetworkRequest>,
         _mode: &Mode,
@@ -225,9 +223,9 @@ pub trait CallerDataApi: Clone + DataApi {
             .network_options(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            network_options_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     network_options_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -235,7 +233,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_network_status(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableNetworkRequest>,
         mode: &Mode,
@@ -249,9 +246,9 @@ pub trait CallerDataApi: Clone + DataApi {
                 .network_status(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                network_status_response(Some(&resp)).unwrap();
-            }
+            // if assert_resp {
+            //     network_status_response(Some(&resp)).unwrap();
+            // }
             Ok(Json(resp))
         }
     }
@@ -260,7 +257,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_account_balance(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableAccountBalanceRequest>,
         mode: &Mode,
@@ -270,18 +266,18 @@ pub trait CallerDataApi: Clone + DataApi {
             MentatError::wrong_network(Some(mode))
         } else {
             asserter.account_balance_request(data.as_ref())?;
-            let ident = if assert_resp {
-                data.as_ref().unwrap().block_identifier.clone()
-            } else {
-                None
-            };
+            // let ident = if assert_resp {
+            //     data.as_ref().unwrap().block_identifier.clone()
+            // } else {
+            //     None
+            // };
             let resp = self
                 .account_balance(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                account_balance_response(ident.as_ref(), &resp).unwrap();
-            }
+            // if assert_resp {
+            //     account_balance_response(ident.as_ref(), &resp).unwrap();
+            // }
             Ok(Json(resp))
         }
     }
@@ -290,7 +286,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_account_coins(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableAccountCoinsRequest>,
         mode: &Mode,
@@ -304,9 +299,9 @@ pub trait CallerDataApi: Clone + DataApi {
                 .account_coins(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                account_coins(&resp).unwrap();
-            }
+            // if assert_resp {
+            //     account_coins(&resp).unwrap();
+            // }
             Ok(Json(resp))
         }
     }
@@ -315,7 +310,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_block(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableBlockRequest>,
         mode: &Mode,
@@ -329,9 +323,9 @@ pub trait CallerDataApi: Clone + DataApi {
                 .block(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                asserter.block(resp.block.as_ref()).unwrap();
-            }
+            // if assert_resp {
+            //     asserter.block(resp.block.as_ref()).unwrap();
+            // }
             Ok(Json(resp))
         }
     }
@@ -340,7 +334,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_block_transaction(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableBlockTransactionRequest>,
         mode: &Mode,
@@ -354,9 +347,9 @@ pub trait CallerDataApi: Clone + DataApi {
                 .block_transaction(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                asserter.transaction(resp.transaction.as_ref()).unwrap();
-            }
+            // if assert_resp {
+            //     asserter.transaction(resp.transaction.as_ref()).unwrap();
+            // }
             Ok(Json(resp))
         }
     }
@@ -365,7 +358,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_mempool(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableNetworkRequest>,
         mode: &Mode,
@@ -379,9 +371,9 @@ pub trait CallerDataApi: Clone + DataApi {
                 .mempool(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                mempool_transactions(&resp.transaction_identifiers).unwrap()
-            }
+            // if assert_resp {
+            //     mempool_transactions(&resp.transaction_identifiers).unwrap()
+            // }
             Ok(Json(resp))
         }
     }
@@ -390,7 +382,6 @@ pub trait CallerDataApi: Clone + DataApi {
     async fn call_mempool_transaction(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableMempoolTransactionRequest>,
         mode: &Mode,
@@ -404,9 +395,9 @@ pub trait CallerDataApi: Clone + DataApi {
                 .mempool_transaction(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                asserter.transaction(resp.transaction.as_ref()).unwrap();
-            }
+            // if assert_resp {
+            //     asserter.transaction(resp.transaction.as_ref()).unwrap();
+            // }
             Ok(Json(resp))
         }
     }

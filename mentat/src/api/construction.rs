@@ -138,7 +138,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_combine(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionCombineRequest>,
         _mode: &Mode,
@@ -149,9 +148,9 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .combine(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            construction_combine_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     construction_combine_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -159,7 +158,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_derive(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionDeriveRequest>,
         _mode: &Mode,
@@ -170,9 +168,9 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .derive(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            construction_derive_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     construction_derive_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -180,7 +178,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_hash(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionHashRequest>,
         _mode: &Mode,
@@ -191,9 +188,9 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .hash(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            transaction_identifier_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     transaction_identifier_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -201,7 +198,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_metadata(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionMetadataRequest>,
         mode: &Mode,
@@ -215,9 +211,9 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
                 .metadata(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                construction_metadata_response(Some(&resp)).unwrap();
-            }
+            // if assert_resp {
+            //     construction_metadata_response(Some(&resp)).unwrap();
+            // }
             Ok(Json(resp))
         }
     }
@@ -226,7 +222,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_parse(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionParseRequest>,
         _mode: &Mode,
@@ -234,13 +229,13 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     ) -> MentatResponse<NullableConstructionParseResponse> {
         asserter.construction_parse_request(data.as_ref())?;
         let data: ConstructionParseRequest = data.unwrap().into();
-        let signed = data.signed;
+        // let signed = data.signed;
         let resp = self.parse(caller, data, rpc_caller).await?.into();
-        if assert_resp {
-            asserter
-                .construction_parse_response(Some(&resp), signed)
-                .unwrap();
-        }
+        // if assert_resp {
+        //     asserter
+        //         .construction_parse_response(Some(&resp), signed)
+        //         .unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -248,7 +243,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_payloads(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionPayloadsRequest>,
         _mode: &Mode,
@@ -259,9 +253,9 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .payloads(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            construction_payloads_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     construction_payloads_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -269,7 +263,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_preprocess(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionPreprocessRequest>,
         _mode: &Mode,
@@ -280,9 +273,9 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .preprocess(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        if assert_resp {
-            construction_preprocess_response(Some(&resp)).unwrap();
-        }
+        // if assert_resp {
+        //     construction_preprocess_response(Some(&resp)).unwrap();
+        // }
         Ok(Json(resp))
     }
 
@@ -290,7 +283,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     async fn call_submit(
         &self,
         asserter: &Asserter,
-        assert_resp: bool,
         caller: Caller,
         data: Option<NullableConstructionSubmitRequest>,
         mode: &Mode,
@@ -304,9 +296,9 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
                 .submit(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            if assert_resp {
-                transaction_identifier_response(Some(&resp)).unwrap();
-            }
+            // if assert_resp {
+            //     transaction_identifier_response(Some(&resp)).unwrap();
+            // }
             Ok(Json(resp))
         }
     }

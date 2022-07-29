@@ -5,17 +5,8 @@ use proc_macro::TokenStream;
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{
-    parse_quote,
-    punctuated::Punctuated,
-    token::Brace,
-    Field,
-    FieldValue,
-    Fields,
-    FieldsNamed,
-    Ident,
-    ItemImpl,
-    ItemStruct,
-    Type,
+    parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
+    Ident, ItemImpl, ItemStruct, Type,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -23,18 +14,8 @@ enum FieldBehavior {
     Retain,
     Vec,
     Option,
-}
-
-impl From<&Ident> for FieldBehavior {
-    fn from(i: &Ident) -> Self {
-        if i == "Option" {
-            Self::Option
-        } else if i == "Vec" {
-            Self::Vec
-        } else {
-            Self::Retain
-        }
-    }
+    RetainVec,
+    RetainOption,
 }
 
 #[derive(Debug)]
@@ -52,6 +33,12 @@ impl FieldData {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| v.into()).collect())
             }
             FieldBehavior::Option => parse_quote!(#field_name: other.#field_name.unwrap().into()),
+            FieldBehavior::RetainVec => {
+                parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
+            }
+            FieldBehavior::RetainOption => {
+                parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
+            }
         }
     }
 
@@ -60,13 +47,19 @@ impl FieldData {
         match &self.behavior {
             FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
             FieldBehavior::Vec => {
-                parse_quote!(#field_name: other.#field_name.into_iter().map(|c| Some(c.into())).collect())
+                parse_quote!(#field_name: other.#field_name.into_iter().map(|v| Some(v.into())).collect())
             }
             FieldBehavior::Option => parse_quote!(#field_name: Some(other.#field_name.into())),
+            FieldBehavior::RetainVec => {
+                parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
+            }
+            FieldBehavior::RetainOption => {
+                parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
+            }
         }
     }
 
-    fn mutate_type(ty: &Type) -> (Type, FieldBehavior) {
+    fn mutate_type(ty: &Type, retain: bool) -> (Type, FieldBehavior) {
         let mut stream = ty
             .clone()
             .into_token_stream()
@@ -82,17 +75,25 @@ impl FieldData {
 
         let behavior = match stream.get(0).unwrap() {
             TokenTree::Ident(id) if id == "Option" => {
-                stream.drain(0..2);
-                stream.pop();
-                FieldBehavior::Option
+                if retain {
+                    FieldBehavior::RetainOption
+                } else {
+                    stream.drain(0..2);
+                    stream.pop();
+                    FieldBehavior::Option
+                }
             }
             TokenTree::Ident(id)
                 if id == "Vec"
                     && matches!(stream.get(2), Some(TokenTree::Ident(i)) if i == "Option") =>
             {
-                stream.drain(2..4);
-                stream.pop();
-                FieldBehavior::Vec
+                if retain {
+                    FieldBehavior::RetainVec
+                } else {
+                    stream.drain(2..4);
+                    stream.pop();
+                    FieldBehavior::Vec
+                }
             }
             _ => FieldBehavior::Retain,
         };
@@ -117,11 +118,7 @@ impl From<&Field> for FieldData {
             .cloned()
             .collect();
 
-        let (ty, behavior) = if retain {
-            (field.ty.clone(), FieldBehavior::Retain)
-        } else {
-            FieldData::mutate_type(&field.ty)
-        };
+        let (ty, behavior) = FieldData::mutate_type(&field.ty, retain);
 
         Self {
             field: Field {
