@@ -2,15 +2,12 @@
 #![warn(clippy::todo)]
 #![doc = include_str!("../../README.md")]
 
-pub mod errors;
-pub mod identifiers;
-pub mod misc;
-pub mod models;
-pub mod requests;
-pub mod responses;
-
-#[cfg(feature = "sdk")]
+pub(crate) mod asserter;
+#[cfg(feature = "keys")]
 pub mod keys;
+
+#[cfg(feature = "types")]
+pub mod types;
 
 #[allow(clippy::all, clippy::missing_docs_in_private_items)]
 #[cfg(feature = "server")]
@@ -66,7 +63,7 @@ mod server_exports {
     /// If you prefer to use your own `main` function, consider using the
     /// [`macro@main`] macro instead.
     ///
-    /// ```no_run
+    /// ``` no_run
     /// #[mentat(DefaultCacheInner)]
     /// struct MentatBitcoin;
     ///
@@ -102,7 +99,7 @@ mod server_exports {
             server::{RpcCaller, RpcResponse, Server},
             *,
         };
-        pub use crate::requests::*;
+        pub use crate::types::*;
     }
 }
 
@@ -123,3 +120,10 @@ mod client_rexport {
 
 #[cfg(feature = "client")]
 pub use client_rexport::*;
+
+#[cfg(test)]
+#[path = ""]
+mod tests {
+    mod test_utils;
+    pub(crate) use test_utils::*;
+}

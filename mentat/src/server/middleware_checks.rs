@@ -5,7 +5,7 @@ use hyper::{Body, Request};
 use serde_json::Value;
 
 use super::ServerType;
-use crate::errors::{MapErrMentat, Result};
+use crate::types::{MapErrMentat, Result};
 
 /// A function to do all middleware checks.
 pub async fn middleware_checks<Types: ServerType>(

@@ -2,10 +2,16 @@ use clap::Parser;
 use mentat::{
     anyhow,
     client::Client,
-    identifiers::{BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier},
-    requests::{AccountBalanceRequest, AccountCoinsRequest, MetadataRequest},
     serde_json::json,
     tokio,
+    types::{
+        BlockIdentifier,
+        NetworkIdentifier,
+        NullableAccountBalanceRequest,
+        NullableAccountCoinsRequest,
+        NullableMetadataRequest,
+        PartialBlockIdentifier,
+    },
 };
 
 use crate::{account::AccountSubCommand, network::NetworkSubCommand};
@@ -33,7 +39,7 @@ struct Opts {
     pub(crate) subnetwork: String,
 
     #[clap(long)]
-    pub(crate) index: Option<u64>,
+    pub(crate) index: Option<i64>,
     #[clap(long)]
     pub(crate) hash: Option<String>,
 }
@@ -102,32 +108,32 @@ async fn main() -> anyhow::Result<()> {
     match &main_opts.subcmd {
         MainSubCommand::Network(sub_opts) => match &sub_opts.subcmd {
             NetworkSubCommand::List => {
-                display!(client.network_list(&MetadataRequest::default()))
+                display!(client.network_list(NullableMetadataRequest::default()))
             }
             NetworkSubCommand::Options => {
                 let network = get_first_network().await?;
-                display!(client.network_options(&network.into()));
+                display!(client.network_options(network.into()));
             }
             NetworkSubCommand::Status => {
                 let network = get_first_network().await?;
-                display!(client.network_status(&network.into()));
+                display!(client.network_status(network.into()));
             }
         },
         MainSubCommand::Account(sub_opts) => match &sub_opts.subcmd {
             AccountSubCommand::Balance(_opts) => {
                 let network = get_first_network().await?;
-                display!(client.account_balance(&AccountBalanceRequest {
-                    network_identifier: network,
-                    account_identifier: sub_opts.account_id(),
+                display!(client.account_balance(NullableAccountBalanceRequest {
+                    network_identifier: Some(network),
+                    account_identifier: Some(sub_opts.account_id()),
                     currencies: sub_opts.get_currencies(),
                     block_identifier: main_opts.partial_block_id(),
                 }));
             }
             AccountSubCommand::Coins(_opts) => {
                 let network = get_first_network().await?;
-                display!(client.account_coins(&AccountCoinsRequest {
-                    network_identifier: network,
-                    account_identifier: sub_opts.account_id(),
+                display!(client.account_coins(NullableAccountCoinsRequest {
+                    network_identifier: Some(network),
+                    account_identifier: Some(sub_opts.account_id()),
                     currencies: sub_opts.get_currencies(),
                     ..Default::default()
                 }));
@@ -141,23 +147,23 @@ async fn main() -> anyhow::Result<()> {
                     .block_id()
                     .expect("Expected a block identifier (--hash, --index)");
                 display!(
-                    client.block_transaction(&(network, block, transaction.clone().into()).into())
+                    client.block_transaction((network, block, transaction.clone().into()).into())
                 );
             } else {
                 // find a specific block
                 let block = main_opts
                     .partial_block_id()
                     .expect("Expected a partial block identifier (--hash, --index)");
-                display!(client.block(&(network, block).into()));
+                display!(client.block((network, block).into()));
             }
         }
         MainSubCommand::Mempool(opts) => {
             let network = get_first_network().await?;
             // handle --transaction flag
             if let Some(transaction) = &opts.transaction {
-                display!(client.mempool_transaction(&(network, transaction.clone().into()).into()));
+                display!(client.mempool_transaction((network, transaction.clone().into()).into()));
             } else {
-                display!(client.mempool(&network.into()));
+                display!(client.mempool(network.into()));
             }
         }
     }
