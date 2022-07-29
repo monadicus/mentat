@@ -1,10 +1,11 @@
 //! The asserter contains tools and methods to help validate the other types.
 
-#![allow(clippy::absurd_extreme_comparisons)]
+#![allow(clippy::absurd_extreme_comparisons, unused)]
 
 use include_dir::{include_dir, Dir};
 
 /// Includes the data dir files;
+#[allow(unused)]
 const DATA_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/asserter/data");
 
 mod account;
