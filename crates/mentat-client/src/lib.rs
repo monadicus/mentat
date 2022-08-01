@@ -3,10 +3,9 @@
 use core::fmt;
 
 use anyhow::anyhow;
+use mentat_types::*;
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
-
-use crate::types::*;
 
 /// The client struct to call a rosetta API.
 pub struct Client {
@@ -59,7 +58,7 @@ impl Client {
         Self { inner, origin }
     }
 
-    /// Create a post request to a Rosetta API.
+    /// Create a post request AP.
     async fn post<Q: Serialize, R: DeserializeOwned>(&self, path: &str, request: &Q) -> Result<R> {
         let url = match self.origin.join(path) {
             Ok(url) => url.to_string(),
@@ -90,9 +89,7 @@ impl Client {
         &self,
         request: NullableMetadataRequest,
     ) -> Result<NullableNetworkListResponse> {
-        let resp: NullableNetworkListResponse = self
-            .post("network/list", &NullableMetadataRequest::from(request))
-            .await?;
+        let resp: NullableNetworkListResponse = self.post("network/list", &request).await?;
         Ok(resp)
     }
 
@@ -101,9 +98,7 @@ impl Client {
         &self,
         request: NullableNetworkRequest,
     ) -> Result<NullableNetworkOptionsResponse> {
-        let resp: NullableNetworkOptionsResponse = self
-            .post("network/options", &NullableNetworkRequest::from(request))
-            .await?;
+        let resp: NullableNetworkOptionsResponse = self.post("network/options", &request).await?;
         Ok(resp)
     }
 
@@ -112,9 +107,7 @@ impl Client {
         &self,
         request: NullableNetworkRequest,
     ) -> Result<NullableNetworkStatusResponse> {
-        let resp: NullableNetworkStatusResponse = self
-            .post("network/status", &NullableNetworkRequest::from(request))
-            .await?;
+        let resp: NullableNetworkStatusResponse = self.post("network/status", &request).await?;
         Ok(resp)
     }
 
@@ -123,12 +116,7 @@ impl Client {
         &self,
         request: NullableAccountBalanceRequest,
     ) -> Result<NullableAccountBalanceResponse> {
-        let resp: NullableAccountBalanceResponse = self
-            .post(
-                "account/balance",
-                &NullableAccountBalanceRequest::from(request),
-            )
-            .await?;
+        let resp: NullableAccountBalanceResponse = self.post("account/balance", &request).await?;
         Ok(resp)
     }
 
@@ -137,17 +125,13 @@ impl Client {
         &self,
         request: NullableAccountCoinsRequest,
     ) -> Result<NullableAccountCoinsResponse> {
-        let resp: NullableAccountCoinsResponse = self
-            .post("account/coins", &NullableAccountCoinsRequest::from(request))
-            .await?;
+        let resp: NullableAccountCoinsResponse = self.post("account/coins", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /block Rosetta API endpoint.
     pub async fn block(&self, request: NullableBlockRequest) -> Result<NullableBlockResponse> {
-        let resp: NullableBlockResponse = self
-            .post("block", &NullableBlockRequest::from(request))
-            .await?;
+        let resp: NullableBlockResponse = self.post("block", &request).await?;
         Ok(resp)
     }
 
@@ -156,12 +140,8 @@ impl Client {
         &self,
         request: NullableBlockTransactionRequest,
     ) -> Result<NullableBlockTransactionResponse> {
-        let resp: NullableBlockTransactionResponse = self
-            .post(
-                "block/transaction",
-                &NullableBlockTransactionRequest::from(request),
-            )
-            .await?;
+        let resp: NullableBlockTransactionResponse =
+            self.post("block/transaction", &request).await?;
         Ok(resp)
     }
 
@@ -170,9 +150,7 @@ impl Client {
         &self,
         request: NullableNetworkRequest,
     ) -> Result<NullableMempoolResponse> {
-        let resp: NullableMempoolResponse = self
-            .post("mempool", &NullableNetworkRequest::from(request))
-            .await?;
+        let resp: NullableMempoolResponse = self.post("mempool", &request).await?;
         Ok(resp)
     }
 
@@ -181,12 +159,8 @@ impl Client {
         &self,
         request: NullableMempoolTransactionRequest,
     ) -> Result<NullableMempoolTransactionResponse> {
-        let resp: NullableMempoolTransactionResponse = self
-            .post(
-                "mempool/transaction",
-                &NullableMempoolTransactionRequest::from(request),
-            )
-            .await?;
+        let resp: NullableMempoolTransactionResponse =
+            self.post("mempool/transaction", &request).await?;
         Ok(resp)
     }
 
@@ -195,12 +169,8 @@ impl Client {
         &self,
         request: NullableConstructionCombineRequest,
     ) -> Result<NullableConstructionCombineResponse> {
-        let resp: NullableConstructionCombineResponse = self
-            .post(
-                "construction/combine",
-                &NullableConstructionCombineRequest::from(request),
-            )
-            .await?;
+        let resp: NullableConstructionCombineResponse =
+            self.post("construction/combine", &request).await?;
         Ok(resp)
     }
 
@@ -209,12 +179,8 @@ impl Client {
         &self,
         request: NullableConstructionDeriveRequest,
     ) -> Result<NullableConstructionDeriveResponse> {
-        let resp: NullableConstructionDeriveResponse = self
-            .post(
-                "construction/derive",
-                &NullableConstructionDeriveRequest::from(request),
-            )
-            .await?;
+        let resp: NullableConstructionDeriveResponse =
+            self.post("construction/derive", &request).await?;
         Ok(resp)
     }
 
@@ -223,12 +189,8 @@ impl Client {
         &self,
         request: NullableConstructionHashRequest,
     ) -> Result<NullableTransactionIdentifierResponse> {
-        let resp: NullableTransactionIdentifierResponse = self
-            .post(
-                "construction/hash",
-                &NullableConstructionHashRequest::from(request),
-            )
-            .await?;
+        let resp: NullableTransactionIdentifierResponse =
+            self.post("construction/hash", &request).await?;
         Ok(resp)
     }
 
@@ -237,12 +199,8 @@ impl Client {
         &self,
         request: NullableConstructionMetadataRequest,
     ) -> Result<ConstructionMetadataResponse> {
-        let resp: NullableConstructionMetadataResponse = self
-            .post(
-                "construction/metadata",
-                &NullableConstructionMetadataRequest::from(request),
-            )
-            .await?;
+        let resp: NullableConstructionMetadataResponse =
+            self.post("construction/metadata", &request).await?;
         Ok(resp.into())
     }
 
@@ -251,12 +209,8 @@ impl Client {
         &self,
         request: NullableConstructionParseRequest,
     ) -> Result<NullableConstructionParseResponse> {
-        let resp: NullableConstructionParseResponse = self
-            .post(
-                "construction/parse",
-                &NullableConstructionParseRequest::from(request),
-            )
-            .await?;
+        let resp: NullableConstructionParseResponse =
+            self.post("construction/parse", &request).await?;
         Ok(resp)
     }
 
@@ -265,12 +219,8 @@ impl Client {
         &self,
         request: NullableConstructionPayloadsRequest,
     ) -> Result<NullableConstructionPayloadsResponse> {
-        let resp: NullableConstructionPayloadsResponse = self
-            .post(
-                "construction/payloads",
-                &NullableConstructionPayloadsRequest::from(request),
-            )
-            .await?;
+        let resp: NullableConstructionPayloadsResponse =
+            self.post("construction/payloads", &request).await?;
         Ok(resp)
     }
 
@@ -279,12 +229,8 @@ impl Client {
         &self,
         request: NullableConstructionPreprocessRequest,
     ) -> Result<NullableConstructionPreprocessResponse> {
-        let resp: NullableConstructionPreprocessResponse = self
-            .post(
-                "construction/preprocess",
-                &NullableConstructionPreprocessRequest::from(request),
-            )
-            .await?;
+        let resp: NullableConstructionPreprocessResponse =
+            self.post("construction/preprocess", &request).await?;
         Ok(resp)
     }
 
@@ -293,12 +239,8 @@ impl Client {
         &self,
         request: NullableConstructionSubmitRequest,
     ) -> Result<NullableTransactionIdentifierResponse> {
-        let resp: NullableTransactionIdentifierResponse = self
-            .post(
-                "construction/submit",
-                &NullableConstructionSubmitRequest::from(request),
-            )
-            .await?;
+        let resp: NullableTransactionIdentifierResponse =
+            self.post("construction/submit", &request).await?;
         Ok(resp)
     }
 
@@ -307,9 +249,7 @@ impl Client {
         &self,
         request: NullableEventsBlocksRequest,
     ) -> Result<NullableEventsBlocksResponse> {
-        let resp: NullableEventsBlocksResponse = self
-            .post("events/blocks", &NullableEventsBlocksRequest::from(request))
-            .await?;
+        let resp: NullableEventsBlocksResponse = self.post("events/blocks", &request).await?;
         Ok(resp)
     }
 
@@ -318,12 +258,8 @@ impl Client {
         &self,
         request: NullableSearchTransactionsRequest,
     ) -> Result<NullableSearchTransactionsResponse> {
-        let resp: NullableSearchTransactionsResponse = self
-            .post(
-                "search/transactions",
-                &NullableSearchTransactionsRequest::from(request),
-            )
-            .await?;
+        let resp: NullableSearchTransactionsResponse =
+            self.post("search/transactions", &request).await?;
         Ok(resp)
     }
 }
