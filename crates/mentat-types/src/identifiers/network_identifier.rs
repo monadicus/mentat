@@ -1,14 +1,6 @@
 //! The module defines the `NetworkIdentifier`.
 
-#[cfg(feature = "server")]
-use axum::http::Extensions;
-
 use super::*;
-#[cfg(feature = "server")]
-use crate::{
-    conf::{Configuration, Network, NodeConf},
-    server::ServerType,
-};
 
 /// The [`NetworkIdentifier`] specifies which network a particular object is
 /// associated with.
@@ -72,37 +64,5 @@ impl Sortable for NetworkIdentifier {
         let mut new = self.clone();
         new.sub_network_identifier = new.sub_network_identifier.map(|sni| sni.sort());
         new
-    }
-}
-
-#[cfg(feature = "server")]
-impl NetworkIdentifier {
-    /// A function to check if the server Blockchain specified matches the user
-    /// request specified blockchain.
-    pub fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {
-        let config = extensions
-            .get::<Configuration<Types::CustomConfig>>()
-            .unwrap();
-        if let Some(net_id) = json.get("network_identifier") {
-            let network_identifier = serde_json::from_value::<Self>(net_id.clone())?;
-            if network_identifier.blockchain.to_uppercase()
-                != Types::CustomConfig::BLOCKCHAIN.to_uppercase()
-            {
-                return Err(format!(
-                    "invalid blockchain ID: found `{}`, expected `{}`",
-                    network_identifier.blockchain.to_uppercase(),
-                    Types::CustomConfig::BLOCKCHAIN.to_uppercase()
-                )
-                .into());
-            } else if Network::from(network_identifier.network.to_uppercase()) != config.network {
-                return Err(format!(
-                    "invalid network ID: found `{}`, expected `{}`",
-                    network_identifier.network.to_uppercase(),
-                    config.network
-                )
-                .into());
-            }
-        }
-        Ok(())
     }
 }

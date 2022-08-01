@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.62.1"
 
-
 [dependencies]
 axum = { version = "0.5.1", default-features = false, features = ["json"] }
 from_tuple = "0.1.2"

@@ -1,8 +1,8 @@
 [package]
-name = "mentat"
+name = "mentat-asserter"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.59.0"
+rust-version = "1.62.1"
 
 [dependencies]
 indexmap = { version = "1.8.1", default-features = false, features = ["serde"] }

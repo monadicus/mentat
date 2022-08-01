@@ -1,8 +1,8 @@
 [package]
-name = "mentat"
+name = "mentat-client"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.59.0"
+rust-version = "1.62.1"
 
 [features]
 _network = ["indexmap", "serde", "serde_json", "reqwest", "types"]

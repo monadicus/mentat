@@ -90,6 +90,7 @@ pub trait OptionalApi: Clone + Default {
 /// on different modes.
 #[axum::async_trait]
 pub trait CallerOptionalApi: OptionalApi + Clone + Default {
+    /// For performing a health check on the server.
     async fn call_health(
         &self,
         _caller: Caller,

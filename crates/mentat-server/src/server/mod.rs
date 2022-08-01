@@ -10,17 +10,14 @@ mod rpc_caller;
 use std::net::SocketAddr;
 
 use axum::{extract::Extension, handler::Handler, http::Extensions, middleware, Router};
+use mentat_types::{MentatError, Result};
 pub use rpc_caller::*;
 use tracing::{info, Dispatch};
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;
 
-use self::middleware_checks::middleware_checks;
-use crate::{
-    api::*,
-    conf::*,
-    types::{MentatError, NetworkIdentifier, Result},
-};
+use self::middleware_checks::{middleware_checks, NetworkIdentifierCheck};
+use crate::{api::*, conf::*};
 
 /// Contains the types required to construct a mentat [`Server`].
 ///
@@ -53,8 +50,9 @@ pub trait ServerType: Sized + 'static {
     /// The nodes's `NodeConf` implementation.
     type CustomConfig: DeserializeOwned + NodeConf;
 
+    /// A function to implement middleware checks.
     fn middleware_checks(extensions: &Extensions, json: &Value) -> Result<()> {
-        NetworkIdentifier::check::<Self>(extensions, &json)
+        NetworkIdentifierCheck::check::<Self>(extensions, json)
     }
 
     /// Sets up a tracing subscriber dispatch
@@ -84,12 +82,19 @@ pub trait ServerType: Sized + 'static {
     }
 }
 
+/// The Struct for building a Server.
 pub struct ServerBuilder<Types: ServerType> {
+    /// The optional API endpoints.
     optional_api: Option<Types::OptionalApi>,
+    /// The call API endpoints.
     call_api: Option<Types::CallApi>,
+    /// The construction API endpoints.
     construction_api: Option<Types::ConstructionApi>,
+    /// The data API endpoints.
     data_api: Option<Types::DataApi>,
+    /// The indexer API endpoints.
     indexer_api: Option<Types::IndexerApi>,
+    /// The optional configuration details.
     configuration: Option<Configuration<Types::CustomConfig>>,
 }
 
@@ -107,6 +112,7 @@ impl<Types: ServerType> Default for ServerBuilder<Types> {
 }
 
 impl<Types: ServerType> ServerBuilder<Types> {
+    /// Builds the Server.
     pub fn build(self) -> Server<Types> {
         Server {
             optional_api: self
@@ -124,16 +130,19 @@ impl<Types: ServerType> ServerBuilder<Types> {
         }
     }
 
+    /// Sets the optional API on the builder.
     pub fn optional_api(mut self, a: Types::OptionalApi) -> Self {
         self.optional_api = Some(a);
         self
     }
 
+    /// Sets the call API on the builder.
     pub fn call_api(mut self, a: Types::CallApi) -> Self {
         self.call_api = Some(a);
         self
     }
 
+    /// Sets the custom configuration from a cli arg on the builder.
     pub fn custom_configuration_from_arg(self) -> Self {
         let args: Vec<String> = std::env::args().collect();
         if args.len() != 2 {
@@ -145,33 +154,44 @@ impl<Types: ServerType> ServerBuilder<Types> {
         self.custom_configuration(&path)
     }
 
+    /// Sets the custom configuration on the builder from a path.
     pub fn custom_configuration(mut self, path: &std::path::Path) -> Self {
         self.configuration = Some(Configuration::load(path));
         self
     }
 
+    /// Sets the construction API on the builder.
     pub fn construction_api(mut self, a: Types::ConstructionApi) -> Self {
         self.construction_api = Some(a);
         self
     }
 
+    /// Sets the data API on the builder.
     pub fn data_api(mut self, a: Types::DataApi) -> Self {
         self.data_api = Some(a);
         self
     }
 
+    /// Sets the indexer API on the builder.
     pub fn indexer_api(mut self, a: Types::IndexerApi) -> Self {
         self.indexer_api = Some(a);
         self
     }
 }
 
+/// The server struct for running the Rosetta server.
 pub struct Server<Types: ServerType> {
+    /// The optional API endpoints.
     pub optional_api: Types::OptionalApi,
+    /// The call API endpoints.
     pub call_api: Types::CallApi,
+    /// The configuration API endpoints.
     pub configuration: Configuration<Types::CustomConfig>,
+    /// The construction API endpoints.
     pub construction_api: Types::ConstructionApi,
+    /// The data API endpoints.
     pub data_api: Types::DataApi,
+    /// The indexer API endpoints.
     pub indexer_api: Types::IndexerApi,
 }
 

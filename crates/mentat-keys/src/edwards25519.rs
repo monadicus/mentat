@@ -1,4 +1,4 @@
-use ed25519_dalek::{Keypair, Signature, Signer, KEYPAIR_LENGTH};
+use ed25519_dalek_blake3::{Keypair, Signature, Signer, KEYPAIR_LENGTH};
 
 use super::{Keys, KeysError};
 
@@ -14,10 +14,10 @@ impl Keys for Ed25519Keys {
 
     fn import_private_key(bytes: &[u8]) -> Result<Self, KeysError> {
         if bytes.len() != KEYPAIR_LENGTH {
-            return Err(KeysError::InvalidPrivateKeyBytes);
+            return Err(KeysError::ErrPrivKeyLengthInvalid);
         }
 
-        let keypair = Keypair::from_bytes(bytes).map_err(|_| KeysError::InvalidPrivateKeyBytes)?;
+        let keypair = Keypair::from_bytes(bytes).map_err(|_| KeysError::ErrPrivKeyLengthInvalid)?;
         Ok(Self { keypair })
     }
 
@@ -32,7 +32,7 @@ impl Keys for Ed25519Keys {
 
 #[cfg(test)]
 mod tests {
-    use rand_old::{rngs::OsRng, Rng};
+    use rand::{rngs::OsRng, Rng};
 
     use super::*;
 
@@ -49,7 +49,7 @@ mod tests {
         let bytes = keypair.to_bytes();
         let keys = Ed25519Keys::import_private_key(&bytes).unwrap();
         let message = (0..32)
-            .map(|_| rand_old::thread_rng().gen::<u8>())
+            .map(|_| rand::thread_rng().gen::<u8>())
             .collect::<Vec<u8>>();
         let sig = keys.sign(&message).unwrap();
         assert!(keys.verify(&message, &sig).unwrap());

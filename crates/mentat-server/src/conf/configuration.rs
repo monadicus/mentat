@@ -19,6 +19,8 @@ use crate::asserter::Asserter;
 
 use super::*;
 
+/// A wrapper type around a Pid.
+/// So we can write our functionality around it.
 #[derive(Clone, Debug)]
 pub struct NodePid(pub Pid);
 

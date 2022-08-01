@@ -20,9 +20,9 @@ impl<H: Hashable> Keys for PallasKeys<H> {
 
     fn import_private_key(bytes: &[u8]) -> Result<Self, KeysError> {
         let hex_string =
-            std::str::from_utf8(bytes).map_err(|_| KeysError::InvalidPrivateKeyBytes)?;
+            std::str::from_utf8(bytes).map_err(|_| KeysError::ErrPrivKeyLengthInvalid)?;
         let keypair =
-            Keypair::from_hex(hex_string).map_err(|_| KeysError::InvalidPrivateKeyBytes)?;
+            Keypair::from_hex(hex_string).map_err(|_| KeysError::ErrPrivKeyLengthInvalid)?;
         Ok(Self {
             keypair,
             _phantom_data: PhantomData::default(),
@@ -48,7 +48,7 @@ const MEMO_BYTES: usize = 34;
 const TAG_BITS: usize = 3;
 
 /// A Mina transaction. Used for instantiation of the [`PallasKeys`].
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Transaction {
     // Common
     pub fee: u64,

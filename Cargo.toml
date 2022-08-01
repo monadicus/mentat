@@ -2,7 +2,11 @@
 
 members = [
         "crates/mentat-asserter",
+        # Disabled for now.
+        # Needs to be changed to match module.
+        # "crates/mentat-keys",
         "crates/mentat-test-utils",
+        "crates/mentat-server",
         "crates/mentat-types",
         "mentat-macros",
         # "examples/mentat-cli",

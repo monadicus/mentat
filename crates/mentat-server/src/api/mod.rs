@@ -1,11 +1,8 @@
 //! Defines the different API traits needed for Rosetta.
 
-use std::net::SocketAddr;
-
 use axum::Json;
-use serde::{Deserialize, Serialize};
 
-use crate::{asserter::*, conf::Mode, server::RpcCaller, types::*};
+use crate::{conf::Mode, server::RpcCaller};
 
 mod optional;
 pub use optional::*;
@@ -21,13 +18,5 @@ pub use data::*;
 
 mod indexer;
 pub use indexer::*;
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-/// The struct to represent the user who called the endpoint.
-pub struct Caller {
-    /// The socket address of the user who called the end point.
-    pub ip: SocketAddr,
-}
-
-/// A custom response type for the APIs to avoid duplicate and long types.
-pub type MentatResponse<T> = Result<Json<T>>;
+use mentat_asserter::*;
+use mentat_types::*;

@@ -26,7 +26,7 @@ impl<N: Network> Keys for AleoKeys<N> {
             <<N as Network>::AccountSignatureScheme as SignatureScheme>::PrivateKey::from_bytes_le(
                 bytes,
             )
-            .map_err(|_| KeysError::InvalidPrivateKeyBytes)?;
+            .map_err(|_| KeysError::ErrPrivKeyLengthInvalid)?;
         let pub_key = scheme.generate_public_key(&priv_key);
 
         Ok(Self {
@@ -40,13 +40,13 @@ impl<N: Network> Keys for AleoKeys<N> {
         let mut rng = rand::thread_rng();
         self.scheme
             .sign(&self.priv_key, message, &mut rng)
-            .map_err(|e| KeysError::SignatureFailed(format!("{:?}", e)))
+            .map_err(|e| KeysError::ErrVerifyFailed)
     }
 
     fn verify(&self, message: &Self::M, signature: &Self::S) -> Result<bool, KeysError> {
         self.scheme
             .verify(&self.pub_key, message, signature)
-            .map_err(|_| KeysError::InvalidSignature)
+            .map_err(|_| KeysError::ErrVerifyFailed)
     }
 }
 

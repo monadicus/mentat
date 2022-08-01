@@ -8,10 +8,10 @@ use std::{
     time::{Duration, Instant},
 };
 
+use mentat_types::{MapErrMentat, MentatResponse};
 use tokio::sync::{broadcast, Mutex};
 
 use super::CacheInner;
-use crate::{api::MentatResponse, types::MapErrMentat};
 
 /// A type to represent a async closure with some output.
 pub type BoxFut<'a, O> = Pin<Box<dyn Future<Output = O> + Send + 'a>>;

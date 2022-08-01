@@ -7,9 +7,8 @@ use std::{
 };
 
 use axum::Json;
+use mentat_types::{MentatError, MentatResponse};
 use tokio::sync::broadcast;
-
-use crate::{api::MentatResponse, types::MentatError};
 
 /// A cache `Entry`, stores when it was last accessed, and the `Json` of the
 /// data it has.

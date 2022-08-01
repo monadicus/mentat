@@ -1,8 +1,6 @@
 use p256::ecdsa::{
     signature::{Signer, Verifier},
-    Signature,
-    SigningKey,
-    VerifyingKey,
+    Signature, SigningKey, VerifyingKey,
 };
 
 use super::{Keys, KeysError};
@@ -19,7 +17,7 @@ impl Keys for Secp256r1Keys {
 
     fn import_private_key(bytes: &[u8]) -> Result<Self, KeysError> {
         let priv_key =
-            SigningKey::from_bytes(bytes).map_err(|_| KeysError::InvalidPrivateKeyBytes)?;
+            SigningKey::from_bytes(bytes).map_err(|_| KeysError::ErrPrivKeyLengthInvalid)?;
         let pub_key = VerifyingKey::from(&priv_key);
         Ok(Self { priv_key, pub_key })
     }

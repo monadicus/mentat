@@ -20,3 +20,10 @@ pub trait Keys: Sized {
     /// Verify a signature.
     fn verify(&self, message: &Self::M, signature: &Self::S) -> Result<bool, KeysError>;
 }
+
+#[cfg(test)]
+#[path = ""]
+mod tests {
+    mod errors_test;
+    mod keys_test;
+}

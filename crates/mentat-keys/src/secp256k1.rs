@@ -1,13 +1,6 @@
 use secp256k1::{
-    ecdsa::Signature,
-    hashes::sha256,
-    schnorr::Signature as SchnorrSignature,
-    KeyPair,
-    Message,
-    PublicKey,
-    Secp256k1,
-    SecretKey,
-    XOnlyPublicKey,
+    ecdsa::Signature, hashes::sha256, schnorr::Signature as SchnorrSignature, KeyPair, Message,
+    PublicKey, Secp256k1, SecretKey, XOnlyPublicKey,
 };
 
 use super::{Keys, KeysError};
@@ -27,12 +20,12 @@ macro_rules! impl_secp_scheme {
 
             fn import_private_key(bytes: &[u8]) -> Result<Self, KeysError> {
                 if bytes.len() != SECRET_KEY_LENGTH {
-                    return Err(KeysError::InvalidPrivateKeyBytes);
+                    return Err(KeysError::ErrPrivKeyLengthInvalid);
                 }
 
                 let secp = Secp256k1::new();
                 let priv_key =
-                    SecretKey::from_slice(bytes).map_err(|_| KeysError::InvalidPrivateKeyBytes)?;
+                    SecretKey::from_slice(bytes).map_err(|_| KeysError::ErrPrivKeyLengthInvalid)?;
                 let pub_key = PublicKey::from_secret_key(&secp, &priv_key);
                 Ok(Self { priv_key, pub_key })
             }
@@ -67,8 +60,7 @@ impl_secp_scheme!(
 impl_secp_scheme!(
     ECDSARecoverable,
     |secp: Secp256k1<_>, msg, priv_key| Ok(secp
-        .sign_ecdsa_recoverable(msg, &priv_key)
-        .to_standard()),
+        .sign_ecdsa_low_r(msg, &priv_key)),
     |secp: Secp256k1<_>, msg, signature, priv_key| {
         let pub_key = PublicKey::from_secret_key(&secp, &priv_key);
         Ok(secp.verify_ecdsa(msg, signature, &pub_key).is_ok())
@@ -79,7 +71,7 @@ impl_secp_scheme!(
     Schnorr,
     |secp: Secp256k1<_>, msg, priv_key| {
         let keypair = KeyPair::from_secret_key(&secp, priv_key);
-        Ok(secp.sign_schnorr(msg, &keypair))
+        Ok(secp.sign_schnorr_no_aux_rand(msg, &keypair))
     },
     |secp: Secp256k1<_>, msg, signature, priv_key| {
         let keypair = KeyPair::from_secret_key(&secp, priv_key);

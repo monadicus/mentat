@@ -1,11 +1,9 @@
 //! This modules contains the `RpcCaller` for mentat.
 
+use mentat_types::{MapErrMentat, Result};
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{
-    conf::{Configuration, NodeConf},
-    types::{MapErrMentat, Result},
-};
+use crate::conf::{Configuration, NodeConf};
 
 /// The `RpcCaller` struct is a wrapper to hold a rpc caller instance
 /// that holds a request client and the url for the RPC.
@@ -17,9 +15,13 @@ pub struct RpcCaller {
     pub node_rpc_url: reqwest::Url,
 }
 
+/// A trait for users to implement unwrapping their RPC response.
 pub trait RpcResponse: DeserializeOwned {
+    /// The input type.
     type I: Serialize;
+    /// The output type.
     type O;
+    /// A function unwrap the response to the output type.
     fn unwrap_response(self) -> Result<Self::O>;
 }
 
@@ -34,6 +36,7 @@ impl RpcCaller {
         }
     }
 
+    /// Makes the RPC call returning the expected output given the input type.
     pub async fn rpc_call<R: RpcResponse>(&self, req: R::I) -> Result<R::O> {
         let resp = self
             .client
