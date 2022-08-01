@@ -20,7 +20,7 @@ impl NullableBlockEventType {
     pub fn valid(&self) -> bool {
         matches!(self.0.as_str(), Self::BLOCK_ADDED | Self::BLOCK_REMOVED)
     }
-    
+
     /// returns true if the underlying string is empty
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
@@ -47,7 +47,7 @@ impl From<&str> for NullableBlockEventType {
 
 /// `BlockEventType` determines if a [`BlockEvent`] represents the addition or
 /// removal of a block.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub enum BlockEventType {
     #[default]
     /// A block was added to the canonical chain.

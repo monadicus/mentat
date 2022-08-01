@@ -47,7 +47,7 @@ impl From<&str> for NullableCoinAction {
 
 /// [`CoinAction`]s are different state changes that a Coin can undergo. It is
 /// assumed that a single Coin cannot be created or spent more than once.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub enum CoinAction {
     /// `CoinAction` indicating a Coin was created.
     #[default]

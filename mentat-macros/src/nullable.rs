@@ -11,7 +11,7 @@ use syn::{
     Ident, ItemImpl, ItemStruct, Meta, MetaList, NestedMeta, Type,
 };
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy)]
 enum Argument {
     #[default]
     None,
@@ -54,7 +54,7 @@ impl From<&Field> for Argument {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum FieldType {
     VecOption,
     Vec,
@@ -78,7 +78,7 @@ impl From<&[TokenTree]> for FieldType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum FieldBehavior {
     Retain,
     VecOption,
@@ -136,7 +136,7 @@ impl FieldData {
                 })
             }
             FieldBehavior::Bytes => {
-                parse_quote!(#field_name: crate::types::utils::encode_to_hex_string(&other.#field_name))
+                parse_quote!(hex_bytes: crate::types::utils::encode_to_hex_string(&other.bytes))
             }
         }
     }
@@ -161,7 +161,7 @@ impl FieldData {
                 parse_quote!(#field_name: other.#field_name.unwrap_or_default().into())
             }
             FieldBehavior::Bytes => {
-                parse_quote!(#field_name: crate::types::utils::decode_from_hex_string(other.#field_name).unwrap())
+                parse_quote!(bytes: crate::types::utils::decode_from_hex_string(other.hex_bytes).unwrap())
             }
         }
     }
@@ -213,20 +213,46 @@ impl From<&Field> for FieldData {
     fn from(field: &Field) -> Self {
         let arg = field.into();
 
-        let attrs = field
+        let (ty, behavior) = FieldData::mutate_type(&field.ty, arg);
+
+        let mut docs = field
             .attrs
             .iter()
-            .filter(|f| matches!(f.path.get_ident(), Some(i) if i == "doc"))
+            .filter(|a| matches!(a.path.get_ident(), Some(i) if i == "doc"))
             .cloned()
-            .collect();
+            .collect::<Vec<_>>();
 
-        let (ty, behavior) = FieldData::mutate_type(&field.ty, arg);
+        let attrs = match behavior {
+            FieldBehavior::Retain => field
+                .attrs
+                .iter()
+                .filter(|a| matches!(a.path.get_ident(), Some(i) if i != "nullable"))
+                .cloned()
+                .collect(),
+            FieldBehavior::VecOption | FieldBehavior::RetainVecOption => {
+                docs.push(parse_quote!(#[serde(skip_serializing_if = "Vec::is_empty")]));
+                docs
+            }
+            FieldBehavior::Option => docs,
+            FieldBehavior::Enum | FieldBehavior::RetainOption => {
+                docs.push(parse_quote!(#[serde(skip_serializing_if = "Option::is_none")]));
+                docs
+            }
+            FieldBehavior::Bytes => {
+                docs.push(parse_quote!(#[serde(skip_serializing_if = "String::is_empty")]));
+                docs
+            }
+        };
 
         Self {
             field: Field {
                 attrs,
                 vis: field.vis.clone(),
-                ident: field.ident.clone(),
+                ident: if FieldBehavior::Bytes == behavior {
+                    Some(Ident::new("hex_bytes", Span::call_site()))
+                } else {
+                    field.ident.clone()
+                },
                 colon_token: field.colon_token,
                 ty,
             },
@@ -257,7 +283,7 @@ impl StructBuilder {
 
     fn gen_struct(&self, original: &ItemStruct) -> ItemStruct {
         let tmp = ItemStruct {
-            attrs: Vec::new(),
+            attrs: original.attrs.clone(),
             vis: original.vis.clone(),
             struct_token: original.struct_token,
             ident: self.ident.clone(),
@@ -277,7 +303,7 @@ impl StructBuilder {
         // TODO hack to get around lazy macro expansion for attributes
         parse_quote!(
             #[allow(clippy::missing_docs_in_private_items)]
-            #[derive(Clone, Debug, Default)]
+            #[derive(Clone, Debug, Default, Serialize, Deserialize)]
             #tmp
         )
     }

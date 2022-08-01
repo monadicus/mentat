@@ -59,7 +59,7 @@ impl From<&str> for NullableExemptionType {
 /// `ExemptionType` is used to indicate if the live balance for an account
 /// subject to a `BalanceExemption` could increase above, decrease below, or
 /// equal the computed balance.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub enum ExemptionType {
     /// The live balance may increase above, decrease below, or equal the
     /// computed balance. This typically occurs with tokens that have a dynamic

@@ -52,7 +52,7 @@ impl From<&str> for NullableCurveType {
 }
 
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub enum CurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
     #[default]

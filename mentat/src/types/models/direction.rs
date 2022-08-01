@@ -51,7 +51,7 @@ impl From<&str> for NullableDirection {
 /// (i.e. cross-shard/cross-network sends may reference backward to an earlier
 /// transaction and async execution may reference forward). Can be used to
 /// indicate if a transaction relation is from child to parent or the reverse.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub enum Direction {
     /// Direction indicating a transaction relation is from child to parent.
     #[default]
