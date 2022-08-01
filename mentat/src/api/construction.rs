@@ -137,8 +137,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_combine(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionCombineRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -157,8 +157,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_derive(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionDeriveRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -177,8 +177,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_hash(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionHashRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -197,8 +197,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_metadata(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionMetadataRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
@@ -221,8 +221,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_parse(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionParseRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -242,8 +242,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_payloads(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionPayloadsRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -262,8 +262,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_preprocess(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionPreprocessRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -282,8 +282,8 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     /// This endpoint only runs in online mode.
     async fn call_submit(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableConstructionSubmitRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,

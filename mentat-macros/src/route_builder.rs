@@ -34,7 +34,7 @@ const ROUTES: &[ApiGroup] = &[
             routes: &[Route {
                 path: "call",
                 method: "call_call",
-                req_data: Some("CallRequest"),
+                req_data: Some("NullableCallRequest"),
                 req_method: "post",
                 never_cache: false,
             }],
@@ -48,56 +48,56 @@ const ROUTES: &[ApiGroup] = &[
                 Route {
                     path: "/combine",
                     method: "call_combine",
-                    req_data: Some("ConstructionCombineRequest"),
+                    req_data: Some("NullableConstructionCombineRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
                 Route {
                     path: "/derive",
                     method: "call_derive",
-                    req_data: Some("ConstructionDeriveRequest"),
+                    req_data: Some("NullableConstructionDeriveRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
                 Route {
                     path: "/hash",
                     method: "call_hash",
-                    req_data: Some("ConstructionHashRequest"),
+                    req_data: Some("NullableConstructionHashRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
                 Route {
                     path: "/metadata",
                     method: "call_metadata",
-                    req_data: Some("ConstructionMetadataRequest"),
+                    req_data: Some("NullableConstructionMetadataRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
                 Route {
                     path: "/parse",
                     method: "call_parse",
-                    req_data: Some("ConstructionParseRequest"),
+                    req_data: Some("NullableConstructionParseRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
                 Route {
                     path: "/payloads",
                     method: "call_payloads",
-                    req_data: Some("ConstructionPayloadsRequest"),
+                    req_data: Some("NullableConstructionPayloadsRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
                 Route {
                     path: "/preprocess",
                     method: "call_preprocess",
-                    req_data: Some("ConstructionPreprocessRequest"),
+                    req_data: Some("NullableConstructionPreprocessRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
                 Route {
                     path: "/submit",
                     method: "call_submit",
-                    req_data: Some("ConstructionSubmitRequest"),
+                    req_data: Some("NullableConstructionSubmitRequest"),
                     req_method: "post",
                     never_cache: false,
                 },
@@ -113,21 +113,21 @@ const ROUTES: &[ApiGroup] = &[
                     Route {
                         path: "/list",
                         method: "call_network_list",
-                        req_data: Some("MetadataRequest"),
+                        req_data: Some("NullableMetadataRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
                     Route {
                         path: "/options",
                         method: "call_network_options",
-                        req_data: Some("NetworkRequest"),
+                        req_data: Some("NullableNetworkRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
                     Route {
                         path: "/status",
                         method: "call_network_status",
-                        req_data: Some("NetworkRequest"),
+                        req_data: Some("NullableNetworkRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
@@ -139,14 +139,14 @@ const ROUTES: &[ApiGroup] = &[
                     Route {
                         path: "/balance",
                         method: "call_account_balance",
-                        req_data: Some("AccountBalanceRequest"),
+                        req_data: Some("NullableAccountBalanceRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
                     Route {
                         path: "/coins",
                         method: "call_account_coins",
-                        req_data: Some("AccountCoinsRequest"),
+                        req_data: Some("NullableAccountCoinsRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
@@ -158,14 +158,14 @@ const ROUTES: &[ApiGroup] = &[
                     Route {
                         path: "",
                         method: "call_block",
-                        req_data: Some("BlockRequest"),
+                        req_data: Some("NullableBlockRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
                     Route {
                         path: "/transaction",
                         method: "call_block_transaction",
-                        req_data: Some("BlockTransactionRequest"),
+                        req_data: Some("NullableBlockTransactionRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
@@ -177,14 +177,14 @@ const ROUTES: &[ApiGroup] = &[
                     Route {
                         path: "",
                         method: "call_mempool",
-                        req_data: Some("NetworkRequest"),
+                        req_data: Some("NullableNetworkRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
                     Route {
                         path: "/transaction",
                         method: "call_mempool_transaction",
-                        req_data: Some("MempoolTransactionRequest"),
+                        req_data: Some("NullableMempoolTransactionRequest"),
                         req_method: "post",
                         never_cache: false,
                     },
@@ -200,7 +200,7 @@ const ROUTES: &[ApiGroup] = &[
                 routes: &[Route {
                     path: "/blocks",
                     method: "call_events_blocks",
-                    req_data: Some("EventsBlocksRequest"),
+                    req_data: Some("NullableEventsBlocksRequest"),
                     req_method: "post",
                     never_cache: false,
                 }],
@@ -210,7 +210,7 @@ const ROUTES: &[ApiGroup] = &[
                 routes: &[Route {
                     path: "/transactions",
                     method: "call_search_transactions",
-                    req_data: Some("SearchTransactionsRequest"),
+                    req_data: Some("NullableSearchTransactionsRequest"),
                     req_method: "post",
                     never_cache: false,
                 }],
@@ -302,7 +302,7 @@ fn build_route(
     let method_args;
     if let Some(r) = &req_data {
         req_input = quote!(
-            Json(req_data): Json<#r>,
+            Json(req_data): Json<Option<#r>>,
             Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
             Extension(rpc_caller): Extension<RpcCaller>,
         );
@@ -362,7 +362,7 @@ fn build_cached_route(
     let method_args;
     if let Some(r) = &req_data {
         req_input = quote!(
-            Json(req_data): Json<#r>,
+            Json(req_data): Json<Option<#r>>,
             Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
             Extension(rpc_caller): Extension<RpcCaller>,
         );

@@ -192,8 +192,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_network_list(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableMetadataRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -212,8 +212,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_network_options(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableNetworkRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -232,8 +232,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint only runs in online mode.
     async fn call_network_status(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableNetworkRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
@@ -256,8 +256,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint only runs in online mode.
     async fn call_account_balance(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableAccountBalanceRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
@@ -285,8 +285,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint only runs in online mode.
     async fn call_account_coins(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableAccountCoinsRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
@@ -309,8 +309,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint only runs in online mode.
     async fn call_block(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableBlockRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
@@ -333,8 +333,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint only runs in online mode.
     async fn call_block_transaction(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableBlockTransactionRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
@@ -357,8 +357,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint only runs in online mode.
     async fn call_mempool(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableNetworkRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
@@ -381,8 +381,8 @@ pub trait CallerDataApi: Clone + DataApi {
     /// This endpoint only runs in online mode.
     async fn call_mempool_transaction(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableMempoolTransactionRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,

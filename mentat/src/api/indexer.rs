@@ -51,8 +51,8 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_events_blocks(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableEventsBlocksRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
@@ -71,8 +71,8 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_search_transactions(
         &self,
-        asserter: &Asserter,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableSearchTransactionsRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
