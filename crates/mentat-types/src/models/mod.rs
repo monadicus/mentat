@@ -75,4 +75,5 @@ mod signing_payload;
 pub use signing_payload::*;
 
 mod transaction;
+pub(crate) use mentat_macros::Nullable;
 pub use transaction::*;

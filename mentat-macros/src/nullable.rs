@@ -7,8 +7,20 @@ use proc_macro::TokenStream;
 use proc_macro2::{Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{
-    parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
-    Ident, ItemImpl, ItemStruct, Meta, MetaList, NestedMeta, Type,
+    parse_quote,
+    punctuated::Punctuated,
+    token::Brace,
+    Field,
+    FieldValue,
+    Fields,
+    FieldsNamed,
+    Ident,
+    ItemImpl,
+    ItemStruct,
+    Meta,
+    MetaList,
+    NestedMeta,
+    Type,
 };
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -136,7 +148,7 @@ impl FieldData {
                 })
             }
             FieldBehavior::Bytes => {
-                parse_quote!(hex_bytes: crate::types::utils::encode_to_hex_string(&other.bytes))
+                parse_quote!(#field_name: super::utils::encode_to_hex_string(&other.#field_name))
             }
         }
     }
@@ -161,7 +173,7 @@ impl FieldData {
                 parse_quote!(#field_name: other.#field_name.unwrap_or_default().into())
             }
             FieldBehavior::Bytes => {
-                parse_quote!(bytes: crate::types::utils::decode_from_hex_string(other.hex_bytes).unwrap())
+                parse_quote!(#field_name: super::utils::decode_from_hex_string(other.#field_name).unwrap())
             }
         }
     }

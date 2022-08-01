@@ -12,10 +12,9 @@ use std::{
 };
 
 use axum::async_trait;
+use mentat_asserter::Asserter;
 use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
-
-use crate::asserter::Asserter;
 
 use super::*;
 
