@@ -85,7 +85,7 @@ enum FieldBehavior {
     Option,
     RetainVecOption,
     RetainOption,
-    Enum,
+    OptionEnum,
     Bytes,
 }
 
@@ -100,7 +100,7 @@ impl From<(FieldType, Argument)> for FieldBehavior {
             (FieldType::Option, Argument::None) => FieldBehavior::Option,
             (FieldType::VecOption, Argument::Retain) => FieldBehavior::RetainVecOption,
             (FieldType::Option, Argument::Retain) => FieldBehavior::RetainOption,
-            (FieldType::Other, Argument::OptionEnum) => FieldBehavior::Enum,
+            (FieldType::Other, Argument::OptionEnum) => FieldBehavior::OptionEnum,
             (FieldType::Vec, Argument::Bytes) => FieldBehavior::Bytes,
             (f, a) => panic!("unsupported argument for field type: {f:?}, {a:?}"),
         }
@@ -117,7 +117,9 @@ impl FieldData {
     fn gen_from_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
-            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
+            FieldBehavior::Retain | FieldBehavior::Bytes => {
+                parse_quote!(#field_name: other.#field_name.into())
+            }
             FieldBehavior::VecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| v.into()).collect())
             }
@@ -128,15 +130,12 @@ impl FieldData {
             FieldBehavior::RetainOption => {
                 parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
             }
-            FieldBehavior::Enum => {
+            FieldBehavior::OptionEnum => {
                 parse_quote!(#field_name: if other.#field_name.is_empty() {
                     None
                 } else {
                     Some(other.#field_name.into())
                 })
-            }
-            FieldBehavior::Bytes => {
-                parse_quote!(hex_bytes: crate::types::utils::encode_to_hex_string(&other.bytes))
             }
         }
     }
@@ -144,7 +143,7 @@ impl FieldData {
     fn gen_to_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
-            FieldBehavior::Retain => {
+            FieldBehavior::Retain | FieldBehavior::Bytes => {
                 parse_quote!(#field_name: other.#field_name.into())
             }
             FieldBehavior::VecOption => {
@@ -157,11 +156,8 @@ impl FieldData {
             FieldBehavior::RetainOption => {
                 parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
             }
-            FieldBehavior::Enum => {
+            FieldBehavior::OptionEnum => {
                 parse_quote!(#field_name: other.#field_name.unwrap_or_default().into())
-            }
-            FieldBehavior::Bytes => {
-                parse_quote!(bytes: crate::types::utils::decode_from_hex_string(other.hex_bytes).unwrap())
             }
         }
     }
@@ -192,13 +188,10 @@ impl FieldData {
                 stream.drain(2..4);
                 stream.pop();
             }
-            FieldBehavior::Enum => {
+            FieldBehavior::OptionEnum => {
                 stream.insert(0, TokenTree::Ident(Ident::new("Option", Span::call_site())));
                 stream.insert(1, TokenTree::Punct(Punct::new('<', Spacing::Alone)));
                 stream.push(TokenTree::Punct(Punct::new('>', Spacing::Alone)));
-            }
-            FieldBehavior::Bytes => {
-                stream = vec![TokenTree::Ident(Ident::new("String", Span::call_site()))]
             }
             _ => {}
         }
@@ -234,12 +227,17 @@ impl From<&Field> for FieldData {
                 docs
             }
             FieldBehavior::Option => docs,
-            FieldBehavior::Enum | FieldBehavior::RetainOption => {
+            FieldBehavior::OptionEnum | FieldBehavior::RetainOption => {
                 docs.push(parse_quote!(#[serde(skip_serializing_if = "Option::is_none")]));
                 docs
             }
             FieldBehavior::Bytes => {
-                docs.push(parse_quote!(#[serde(skip_serializing_if = "String::is_empty")]));
+                docs.push(parse_quote!(#[serde(
+                    rename = "hex_bytes",
+                    skip_serializing_if = "Vec::is_empty",
+                    serialize_with = "bytes_to_hex_str",
+                    deserialize_with = "null_default_bytes_to_hex"
+                )]));
                 docs
             }
         };
@@ -248,11 +246,7 @@ impl From<&Field> for FieldData {
             field: Field {
                 attrs,
                 vis: field.vis.clone(),
-                ident: if FieldBehavior::Bytes == behavior {
-                    Some(Ident::new("hex_bytes", Span::call_site()))
-                } else {
-                    field.ident.clone()
-                },
+                ident: field.ident.clone(),
                 colon_token: field.colon_token,
                 ty,
             },

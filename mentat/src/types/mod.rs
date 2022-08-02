@@ -16,7 +16,7 @@ pub use requests::*;
 mod responses;
 pub use responses::*;
 mod utils;
-pub(crate) use utils::*;
+pub use utils::*;
 
 // TODO: are we missing case? https://github.dev/coinbase/rosetta-sdk-go/blob/136b591fb3f410ac0fd47f38f8eefb6a1a19e1d8/types/case.go
 

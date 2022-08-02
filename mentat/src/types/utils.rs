@@ -191,7 +191,7 @@ const HEXTABLE: &[char] = &[
 ];
 
 /// Encodes a slice of bytes to a hex string.
-pub(crate) fn encode_to_hex_string(bytes: &[u8]) -> String {
+pub fn encode_to_hex_string(bytes: &[u8]) -> String {
     let mut hex = String::with_capacity(bytes.len() * 2);
     for byte in bytes {
         hex.push(HEXTABLE[(byte >> 4) as usize]);
@@ -215,7 +215,7 @@ fn from_hex_char(byte: u8) -> (u8, bool) {
 }
 
 /// Encodes a slice of bytes to a hex string.
-pub(crate) fn decode_from_hex_string(hex: String) -> Result<Vec<u8>, u8> {
+pub fn decode_from_hex_string(hex: String) -> Result<Vec<u8>, u8> {
     let bytes = hex.as_bytes();
     let mut converted_bytes = Vec::with_capacity(bytes.len() / 2);
 

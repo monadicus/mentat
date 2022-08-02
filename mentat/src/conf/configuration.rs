@@ -59,7 +59,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     ///
     /// The user specified command for running a node.
     ///
-    /// ```no_run
+    /// ```ignore
     /// fn node_command(config: &Configuration<Self>) -> Command {
     ///     let mut command = Command::new(&config.node_path);
     ///     command.args(&[
