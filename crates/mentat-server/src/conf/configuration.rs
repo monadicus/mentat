@@ -17,7 +17,6 @@ use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 
 use super::*;
-use crate::asserter::Asserter;
 
 /// A wrapper type around a Pid.
 /// So we can write our functionality around it.
