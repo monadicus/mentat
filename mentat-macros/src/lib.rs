@@ -8,7 +8,7 @@ extern crate proc_macro;
 mod nullable;
 mod route_builder;
 
-use nullable::create_nullable_counterpart;
+use nullable::StructBuilder;
 use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
@@ -102,10 +102,10 @@ fn gen_main(
     let routes = route_builder::build_routes(server_type, cache_type);
 
     quote!(
-        use ::mentat::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
+        use ::mentat_server::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
         #[tokio::main]
         async fn main() {
-            use ::mentat::macro_exports::*;
+            use ::mentat_server::macro_exports::*;
             let server = #server_call;
             let mut app = Router::new();
             #routes
@@ -162,9 +162,20 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     out.into()
 }
 
-/// TODO doc
+/// creates a non-nullable struct from a nullable struct and implements `From`
+/// both ways
 #[proc_macro_derive(Nullable, attributes(nullable))]
 pub fn nullable(item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as ItemStruct);
-    create_nullable_counterpart(item)
+    let builder: StructBuilder = StructBuilder::new(&item);
+    let new_struct = builder.gen_struct(&item);
+    let from_null = builder.gen_from_nullable_impl(&item);
+    let to_null = builder.gen_to_nullable_impl(&item);
+
+    quote!(
+        #new_struct
+        #from_null
+        #to_null
+    )
+    .into()
 }

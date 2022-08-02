@@ -23,7 +23,7 @@ pub use indexmap;
 /// `Server::default()` then consider using the [`macro@mentat`] macro
 /// instead.
 ///
-/// ``` no_run
+/// ```ignore
 /// #[derive(Clone)]
 /// struct MentatSnarkos;
 ///
@@ -53,7 +53,7 @@ pub use mentat_macros::main;
 /// If you prefer to use your own `main` function, consider using the
 /// [`macro@main`] macro instead.
 ///
-/// ``` no_run
+/// ```ignore
 /// #[mentat(DefaultCacheInner)]
 /// struct MentatBitcoin;
 ///
