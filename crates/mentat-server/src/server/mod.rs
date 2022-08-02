@@ -26,7 +26,7 @@ use crate::{api::*, conf::*};
 /// [`super::mentat`] macro if a default instance using your custom types is
 /// preferred.
 ///
-/// ```no_run
+/// ```ignore
 /// struct MentatBitcoin;
 /// impl ServerType for MentatBitcoin {
 ///     type CallApi = call_api::BitcoinCallApi;
