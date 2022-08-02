@@ -31,6 +31,11 @@ impl NullableExemptionType {
             Self::GREATER_OR_EQUAL | Self::LESS_OR_EQUAL | Self::DYNAMIC
         )
     }
+
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableExemptionType {
@@ -54,7 +59,7 @@ impl From<&str> for NullableExemptionType {
 /// `ExemptionType` is used to indicate if the live balance for an account
 /// subject to a `BalanceExemption` could increase above, decrease below, or
 /// equal the computed balance.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub enum ExemptionType {
     /// The live balance may increase above, decrease below, or equal the
     /// computed balance. This typically occurs with tokens that have a dynamic

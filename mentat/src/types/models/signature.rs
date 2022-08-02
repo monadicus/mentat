@@ -24,6 +24,7 @@ pub struct NullableSignature {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub public_key: Option<NullablePublicKey>,
     /// [`SignatureType`] is the type of a cryptographic signature.
+    #[nullable(option_enum)]
     pub signature_type: NullableSignatureType,
     /// The hex bytes for the `Signature`.
     #[serde(
@@ -32,5 +33,6 @@ pub struct NullableSignature {
         serialize_with = "bytes_to_hex_str",
         deserialize_with = "null_default_bytes_to_hex"
     )]
+    #[nullable(bytes)]
     pub bytes: Vec<u8>,
 }

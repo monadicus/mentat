@@ -26,9 +26,8 @@ pub trait CallerCallApi: CallApi + Clone + Default {
     /// This endpoint only runs in online mode.
     async fn call_call(
         &self,
-        asserter: &Asserter,
-        _assert_resp: bool,
         caller: Caller,
+        asserter: &Asserter,
         data: Option<NullableCallRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,

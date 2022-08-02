@@ -24,7 +24,7 @@ pub struct NullableAccountBalanceRequest {
     /// specify the index or hash. If neither property is specified, it is
     /// assumed that the client is making a request at the current block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub block_identifier: Option<PartialBlockIdentifier>,
     /// In some cases, the caller may not want to retrieve all available
     /// balances for an [`AccountIdentifier`]. If the currencies field is

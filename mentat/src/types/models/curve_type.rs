@@ -26,6 +26,11 @@ impl NullableCurveType {
             Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE
         )
     }
+
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableCurveType {
@@ -47,7 +52,7 @@ impl From<&str> for NullableCurveType {
 }
 
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub enum CurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
     #[default]

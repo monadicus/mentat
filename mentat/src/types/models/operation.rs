@@ -47,19 +47,19 @@ pub struct NullableOperation {
     /// (operations yet to be included on-chain have not yet succeeded or
     /// failed).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub status: Option<String>,
     /// The [`AccountIdentifier`] uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub account: Option<AccountIdentifier>,
     /// [`Amount`] is some Value of a [`Currency`]. It is considered invalid to
     /// specify a Value without a [`Currency`].
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub amount: Option<NullableAmount>,
     /// `CoinChange` is used to represent a change in state of a some coin
     /// identified by a coin_identifier. This object is part of the
@@ -69,7 +69,7 @@ pub struct NullableOperation {
     /// the same blockchain (when a transfer is account-based, don't
     /// populate this model).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub coin_change: Option<NullableCoinChange>,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of

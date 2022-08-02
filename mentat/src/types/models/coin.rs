@@ -8,10 +8,11 @@ use super::*;
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
 #[serde(default)]
 pub struct NullableCoin {
+    /// [`Amount`] is some Value of a [`Currency`]. It is considered invalid to
+    /// specify a Value without a [`Currency`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub amount: Option<NullableAmount>,
     /// [`CoinIdentifier`] uniquely identifies a Coin.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub coin_identifier: Option<CoinIdentifier>,
-    /// [`Amount`] is some Value of a [`Currency`]. It is considered invalid to
-    /// specify a Value without a [`Currency`].
-    pub amount: Option<NullableAmount>,
 }

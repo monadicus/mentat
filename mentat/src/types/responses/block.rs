@@ -23,7 +23,7 @@ pub struct NullableBlockResponse {
     /// identified by a specific [`BlockIdentifier`], all future calls for
     /// that same [`BlockIdentifier`] must return the same block contents.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub block: Option<NullableBlock>,
     /// Some blockchains may require additional transactions to be fetched that
     /// weren't returned in the block response (ex: block only returns

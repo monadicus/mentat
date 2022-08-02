@@ -26,7 +26,7 @@ pub struct NullableConstructionPayloadsRequest {
     pub operations: Vec<Option<NullableOperation>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    #[retain]
+    #[nullable(retain)]
     pub metadata: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(

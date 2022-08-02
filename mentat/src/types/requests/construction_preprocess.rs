@@ -46,6 +46,6 @@ pub struct NullableConstructionPreprocessRequest {
     pub max_fee: Vec<Option<NullableAmount>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[retain]
+    #[nullable(retain)]
     pub suggested_fee_multiplier: Option<f64>,
 }

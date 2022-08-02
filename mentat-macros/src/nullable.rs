@@ -1,9 +1,9 @@
-// TODO temporary
-#![allow(clippy::missing_docs_in_private_items)]
+//! generates the non-nullable counterparts of a nullable struct
 
-use proc_macro::TokenStream;
-use proc_macro2::{TokenStream as TokenStream2, TokenTree};
-use quote::{quote, ToTokens};
+use std::fmt::Debug;
+
+use proc_macro2::{Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
+use quote::ToTokens;
 use syn::{
     parse_quote,
     punctuated::Punctuated,
@@ -15,58 +15,188 @@ use syn::{
     Ident,
     ItemImpl,
     ItemStruct,
+    Meta,
+    MetaList,
+    NestedMeta,
     Type,
 };
 
-#[derive(Debug, PartialEq, Eq)]
-enum FieldBehavior {
+/// the nullable argument over a struct field
+#[derive(Default, Debug, Clone, Copy)]
+enum Argument {
+    /// no argument
+    #[default]
+    None,
+    /// the field should not be changed
     Retain,
-    Vec,
-    Option,
+    /// the field contains bytes
+    Bytes,
+    /// the field should be converted to an Option<Enum>
+    OptionEnum,
 }
 
-impl From<&Ident> for FieldBehavior {
-    fn from(i: &Ident) -> Self {
-        if i == "Option" {
-            Self::Option
-        } else if i == "Vec" {
-            Self::Vec
-        } else {
+impl From<&Ident> for Argument {
+    fn from(other: &Ident) -> Self {
+        if other == "retain" {
             Self::Retain
+        } else if other == "bytes" {
+            Self::Bytes
+        } else if other == "option_enum" {
+            Self::OptionEnum
+        } else {
+            panic!("unsupported argument {}", other)
         }
     }
 }
 
+impl From<&Field> for Argument {
+    fn from(other: &Field) -> Self {
+        other
+            .attrs
+            .iter()
+            .find(|f| matches!(f.path.get_ident(), Some(i) if i == "nullable"))
+            .map(|f| match f.parse_meta().unwrap() {
+                Meta::List(MetaList { nested, .. }) => {
+                    if let NestedMeta::Meta(n) = &nested[0] {
+                        n.path().get_ident().unwrap().into()
+                    } else {
+                        panic!("unsupported argument")
+                    }
+                }
+                _ => panic!("unsupported argument"),
+            })
+            .unwrap_or_default()
+    }
+}
+
+/// the type contained within the field
+#[derive(Debug, Clone, Copy)]
+enum FieldType {
+    /// Vec<Option<T>>
+    VecOption,
+    /// Vec<T>
+    Vec,
+    /// Option<T>
+    Option,
+    /// none of the above
+    Other,
+}
+
+impl From<&[TokenTree]> for FieldType {
+    fn from(stream: &[TokenTree]) -> Self {
+        match stream.get(0).unwrap() {
+            TokenTree::Ident(id) if id == "Option" => Self::Option,
+            TokenTree::Ident(id)
+                if id == "Vec"
+                    && matches!(stream.get(2), Some(TokenTree::Ident(i)) if i == "Option") =>
+            {
+                Self::VecOption
+            }
+            TokenTree::Ident(id) if id == "Vec" => Self::Vec,
+            _ => Self::Other,
+        }
+    }
+}
+
+/// How the field should be changed
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum FieldBehavior {
+    /// T -> T
+    Retain,
+    /// Vec<Option<T>> -> Vec<T>
+    VecOption,
+    /// Option<T> -> T
+    Option,
+    /// Vec<Option<T>> -> Vec<Option<T>>
+    RetainVecOption,
+    /// Option<T> -> Option<T>
+    RetainOption,
+    /// Enum -> Option<Enum>
+    OptionEnum,
+    /// Vec<u8> -> Vec<u8>
+    Bytes,
+}
+
+impl From<(FieldType, Argument)> for FieldBehavior {
+    fn from(other: (FieldType, Argument)) -> Self {
+        match other {
+            (FieldType::Other, Argument::None)
+            | (FieldType::Other, Argument::Retain)
+            | (FieldType::Vec, Argument::None)
+            | (FieldType::Vec, Argument::Retain) => FieldBehavior::Retain,
+            (FieldType::VecOption, Argument::None) => FieldBehavior::VecOption,
+            (FieldType::Option, Argument::None) => FieldBehavior::Option,
+            (FieldType::VecOption, Argument::Retain) => FieldBehavior::RetainVecOption,
+            (FieldType::Option, Argument::Retain) => FieldBehavior::RetainOption,
+            (FieldType::Other, Argument::OptionEnum) => FieldBehavior::OptionEnum,
+            (FieldType::Vec, Argument::Bytes) => FieldBehavior::Bytes,
+            (f, a) => panic!("unsupported argument for field type: {f:?}, {a:?}"),
+        }
+    }
+}
+
+/// Data for each field element
 #[derive(Debug)]
 struct FieldData {
+    /// the target field
     field: Field,
+    /// the nullable behavior of the field
     behavior: FieldBehavior,
 }
 
 impl FieldData {
+    /// generates the `impl From<NullableT> for T` for the struct
     fn gen_from_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
-            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
-            FieldBehavior::Vec => {
+            FieldBehavior::Retain | FieldBehavior::Bytes => {
+                parse_quote!(#field_name: other.#field_name.into())
+            }
+            FieldBehavior::VecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| v.into()).collect())
             }
             FieldBehavior::Option => parse_quote!(#field_name: other.#field_name.unwrap().into()),
+            FieldBehavior::RetainVecOption => {
+                parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
+            }
+            FieldBehavior::RetainOption => {
+                parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
+            }
+            FieldBehavior::OptionEnum => {
+                parse_quote!(#field_name: if other.#field_name.is_empty() {
+                    None
+                } else {
+                    Some(other.#field_name.into())
+                })
+            }
         }
     }
 
+    /// generates the `impl From<T> for NullableT` for the struct
     fn gen_to_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
-            FieldBehavior::Retain => parse_quote!(#field_name: other.#field_name.into()),
-            FieldBehavior::Vec => {
-                parse_quote!(#field_name: other.#field_name.into_iter().map(|c| Some(c.into())).collect())
+            FieldBehavior::Retain | FieldBehavior::Bytes => {
+                parse_quote!(#field_name: other.#field_name.into())
+            }
+            FieldBehavior::VecOption => {
+                parse_quote!(#field_name: other.#field_name.into_iter().map(|v| Some(v.into())).collect())
             }
             FieldBehavior::Option => parse_quote!(#field_name: Some(other.#field_name.into())),
+            FieldBehavior::RetainVecOption => {
+                parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
+            }
+            FieldBehavior::RetainOption => {
+                parse_quote!(#field_name: other.#field_name.map(|v| v.into()))
+            }
+            FieldBehavior::OptionEnum => {
+                parse_quote!(#field_name: other.#field_name.unwrap_or_default().into())
+            }
         }
     }
 
-    fn mutate_type(ty: &Type) -> (Type, FieldBehavior) {
+    /// mutates the given field type and also gets its behavior
+    fn mutate_type(ty: &Type, arg: Argument) -> (Type, FieldBehavior) {
         let mut stream = ty
             .clone()
             .into_token_stream()
@@ -80,22 +210,25 @@ impl FieldData {
             })
             .collect::<Vec<_>>();
 
-        let behavior = match stream.get(0).unwrap() {
-            TokenTree::Ident(id) if id == "Option" => {
+        let field_type: FieldType = stream.as_slice().into();
+        let behavior = (field_type, arg).into();
+
+        match behavior {
+            FieldBehavior::Option => {
                 stream.drain(0..2);
                 stream.pop();
-                FieldBehavior::Option
             }
-            TokenTree::Ident(id)
-                if id == "Vec"
-                    && matches!(stream.get(2), Some(TokenTree::Ident(i)) if i == "Option") =>
-            {
+            FieldBehavior::VecOption => {
                 stream.drain(2..4);
                 stream.pop();
-                FieldBehavior::Vec
             }
-            _ => FieldBehavior::Retain,
-        };
+            FieldBehavior::OptionEnum => {
+                stream.insert(0, TokenTree::Ident(Ident::new("Option", Span::call_site())));
+                stream.insert(1, TokenTree::Punct(Punct::new('<', Spacing::Alone)));
+                stream.push(TokenTree::Punct(Punct::new('>', Spacing::Alone)));
+            }
+            _ => {}
+        }
 
         let stream = stream.into_iter().collect::<TokenStream2>();
 
@@ -105,22 +238,42 @@ impl FieldData {
 
 impl From<&Field> for FieldData {
     fn from(field: &Field) -> Self {
-        let retain = field
-            .attrs
-            .iter()
-            .any(|f| matches!(f.path.get_ident(), Some(i) if i == "retain"));
+        let arg = field.into();
 
-        let attrs = field
+        let (ty, behavior) = FieldData::mutate_type(&field.ty, arg);
+
+        let mut docs = field
             .attrs
             .iter()
-            .filter(|f| matches!(f.path.get_ident(), Some(i) if i == "doc"))
+            .filter(|a| matches!(a.path.get_ident(), Some(i) if i == "doc"))
             .cloned()
-            .collect();
+            .collect::<Vec<_>>();
 
-        let (ty, behavior) = if retain {
-            (field.ty.clone(), FieldBehavior::Retain)
-        } else {
-            FieldData::mutate_type(&field.ty)
+        let attrs = match behavior {
+            FieldBehavior::Retain => field
+                .attrs
+                .iter()
+                .filter(|a| matches!(a.path.get_ident(), Some(i) if i != "nullable"))
+                .cloned()
+                .collect(),
+            FieldBehavior::VecOption | FieldBehavior::RetainVecOption => {
+                docs.push(parse_quote!(#[serde(skip_serializing_if = "Vec::is_empty")]));
+                docs
+            }
+            FieldBehavior::Option => docs,
+            FieldBehavior::OptionEnum | FieldBehavior::RetainOption => {
+                docs.push(parse_quote!(#[serde(skip_serializing_if = "Option::is_none")]));
+                docs
+            }
+            FieldBehavior::Bytes => {
+                docs.push(parse_quote!(#[serde(
+                    rename = "hex_bytes",
+                    skip_serializing_if = "Vec::is_empty",
+                    serialize_with = "bytes_to_hex_str",
+                    deserialize_with = "null_default_bytes_to_hex"
+                )]));
+                docs
+            }
         };
 
         Self {
@@ -136,13 +289,17 @@ impl From<&Field> for FieldData {
     }
 }
 
-struct StructBuilder {
+/// contains info to generate the different parts of the the non-nullable struct
+pub struct StructBuilder {
+    /// the struct identifier, with `Nullable` removed
     ident: Ident,
+    /// the fields of the struct
     fields: Vec<FieldData>,
 }
 
 impl StructBuilder {
-    fn new(item: &ItemStruct) -> Self {
+    /// creates a new StructBuilder instance
+    pub fn new(item: &ItemStruct) -> Self {
         Self {
             ident: Ident::new(
                 item.ident
@@ -156,9 +313,10 @@ impl StructBuilder {
         }
     }
 
-    fn gen_struct(&self, original: &ItemStruct) -> ItemStruct {
+    /// generates the non-nullable struct
+    pub fn gen_struct(&self, original: &ItemStruct) -> ItemStruct {
         let tmp = ItemStruct {
-            attrs: Vec::new(),
+            attrs: original.attrs.clone(),
             vis: original.vis.clone(),
             struct_token: original.struct_token,
             ident: self.ident.clone(),
@@ -178,12 +336,13 @@ impl StructBuilder {
         // TODO hack to get around lazy macro expansion for attributes
         parse_quote!(
             #[allow(clippy::missing_docs_in_private_items)]
-            #[derive(Clone, Debug, Default)]
+            #[derive(Clone, Debug, Default, Serialize, Deserialize)]
             #tmp
         )
     }
 
-    fn gen_from_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
+    /// generates the `impl From<NullableT> for T` code
+    pub fn gen_from_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
         let nullable_ident = &original.ident;
         let self_ident = &self.ident;
         let fields = self.fields.iter().map(|f| f.gen_from_nullable());
@@ -198,7 +357,8 @@ impl StructBuilder {
         )
     }
 
-    fn gen_to_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
+    /// generates the `impl From<T> for NullableT` code
+    pub fn gen_to_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
         let nullable_ident = &original.ident;
         let self_ident = &self.ident;
         let fields = self.fields.iter().map(|f| f.gen_to_nullable());
@@ -212,18 +372,4 @@ impl StructBuilder {
             }
         )
     }
-}
-
-pub fn create_nullable_counterpart(item: ItemStruct) -> TokenStream {
-    let builder: StructBuilder = StructBuilder::new(&item);
-    let new_struct = builder.gen_struct(&item);
-    let from_null = builder.gen_from_nullable_impl(&item);
-    let to_null = builder.gen_to_nullable_impl(&item);
-
-    quote!(
-        #new_struct
-        #from_null
-        #to_null
-    )
-    .into()
 }

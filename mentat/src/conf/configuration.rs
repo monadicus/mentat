@@ -16,6 +16,7 @@ use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 
 use super::*;
+use crate::asserter::Asserter;
 
 #[derive(Clone, Debug)]
 pub struct NodePid(pub Pid);
@@ -28,6 +29,10 @@ pub struct NodePid(pub Pid);
 pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     /// The name of the blockchain run by the node.
     const BLOCKCHAIN: &'static str;
+
+    // TODO make this return a struct with asserter instances for each route
+    /// returns the asserter to be used when asserting requests
+    fn init_asserter(&self, network: &Network) -> Asserter;
 
     /// The command for loading the node `Configuration`.
     ///
@@ -144,15 +149,30 @@ pub struct Configuration<Custom: NodeConf> {
     /// The port that the node will bind to.
     pub node_rpc_port: u16,
     /// Configuration settings specific to the rosetta implementation
-    pub custom: Option<Custom>,
+    #[serde(
+        default,
+        skip_serializing_if = "Configuration::<Custom>::skip_serializing_custom"
+    )]
+    pub custom: Custom,
+    /// returns the asserter to be used when asserting requests
+    #[serde(skip)]
+    pub asserter: Asserter,
 }
 
 impl<Custom> Configuration<Custom>
 where
-    Custom: DeserializeOwned + NodeConf,
+    Custom: NodeConf,
 {
+    /// skips serializing the custom struct if it contains no fields
+    fn skip_serializing_custom(_: &Custom) -> bool {
+        std::mem::size_of::<Self>() != 0
+    }
+
     /// Loads a configuration file from the supplied path.
-    pub fn load(path: &Path) -> Self {
+    pub fn load(path: &Path) -> Self
+    where
+        Custom: DeserializeOwned,
+    {
         let path = path.with_extension("toml");
 
         if path.is_file() {
@@ -163,13 +183,15 @@ where
                     e
                 )
             });
-            let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
+            let mut config: Self = toml::from_str(&content).unwrap_or_else(|e| {
                 panic!(
                     "Failed to parse config file at path `{}`: {}",
                     path.display(),
                     e
                 )
             });
+
+            config.asserter = config.custom.init_asserter(&config.network);
 
             if !config.node_path.exists() {
                 panic!("Failed to find node at `{}`", config.node_path.display())
@@ -210,6 +232,7 @@ where
 
 impl<Custom: NodeConf> Default for Configuration<Custom> {
     fn default() -> Self {
+        let custom = <Custom>::default();
         Self {
             address: Ipv4Addr::new(0, 0, 0, 0),
             mode: Default::default(),
@@ -219,11 +242,8 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
-            custom: if std::mem::size_of::<Custom>() != 0 {
-                Some(Default::default())
-            } else {
-                None
-            },
+            asserter: custom.init_asserter(&Network::Testnet),
+            custom,
         }
     }
 }

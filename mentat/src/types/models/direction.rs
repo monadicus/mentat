@@ -22,6 +22,11 @@ impl NullableDirection {
     pub fn valid(&self) -> bool {
         matches!(self.0.as_str(), Self::FORWARD | Self::BACKWARD)
     }
+
+    /// returns true if the underlying string is empty
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl fmt::Display for NullableDirection {
@@ -46,7 +51,7 @@ impl From<&str> for NullableDirection {
 /// (i.e. cross-shard/cross-network sends may reference backward to an earlier
 /// transaction and async execution may reference forward). Can be used to
 /// indicate if a transaction relation is from child to parent or the reverse.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub enum Direction {
     /// Direction indicating a transaction relation is from child to parent.
     #[default]

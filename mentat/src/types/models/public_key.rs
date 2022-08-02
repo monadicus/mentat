@@ -18,9 +18,10 @@ pub struct NullablePublicKey {
         serialize_with = "bytes_to_hex_str",
         deserialize_with = "null_default_bytes_to_hex"
     )]
+    #[nullable(bytes)]
     pub bytes: Vec<u8>,
     /// [`CurveType`] is the type of cryptographic curve associated with a
     /// PublicKey.
-    #[serde(default = "NullableCurveType::default")]
+    #[nullable(option_enum)]
     pub curve_type: NullableCurveType,
 }
