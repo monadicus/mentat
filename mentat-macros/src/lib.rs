@@ -13,10 +13,19 @@ use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
-    self, parse_macro_input, AttributeArgs, GenericArgument, Ident, ItemFn, ItemStruct, Meta,
+    self,
+    parse_macro_input,
+    AttributeArgs,
+    GenericArgument,
+    Ident,
+    ItemFn,
+    ItemStruct,
+    Meta,
     NestedMeta,
     PathArguments::{self},
-    PathSegment, ReturnType, Type,
+    PathSegment,
+    ReturnType,
+    Type,
 };
 
 /// Matches the provided macro argument for the optional `CacheInner` type.
@@ -153,7 +162,8 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     out.into()
 }
 
-/// creates a non-nullable struct from a nullable struct and implements `From` both ways
+/// creates a non-nullable struct from a nullable struct and implements `From`
+/// both ways
 #[proc_macro_derive(Nullable, attributes(nullable))]
 pub fn nullable(item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as ItemStruct);
