@@ -20,7 +20,6 @@ pub struct NullablePublicKey {
     pub bytes: Vec<u8>,
     /// [`CurveType`] is the type of cryptographic curve associated with a
     /// PublicKey.
-    #[serde(default = "NullableCurveType::default")]
     #[nullable(option_enum)]
     pub curve_type: NullableCurveType,
 }
