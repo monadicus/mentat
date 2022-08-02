@@ -102,10 +102,10 @@ fn gen_main(
     let routes = route_builder::build_routes(server_type, cache_type);
 
     quote!(
-        use ::mentat::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
+        use ::mentat_server::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
         #[tokio::main]
         async fn main() {
-            use ::mentat::macro_exports::*;
+            use ::mentat_server::macro_exports::*;
             let server = #server_call;
             let mut app = Router::new();
             #routes
