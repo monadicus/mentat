@@ -15,9 +15,8 @@ use axum::async_trait;
 use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 
-use crate::asserter::Asserter;
-
 use super::*;
+use crate::asserter::Asserter;
 
 #[derive(Clone, Debug)]
 pub struct NodePid(pub Pid);

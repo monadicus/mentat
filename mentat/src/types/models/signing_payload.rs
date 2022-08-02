@@ -5,7 +5,8 @@ use serde::ser::SerializeStruct;
 
 use super::*;
 
-// TODO add `#[nullable(skip_serde)]` and copy paste serde impls for non-nullable struct
+// TODO add `#[nullable(skip_serde)]` and copy paste serde impls for
+// non-nullable struct
 /// [`SigningPayload`] is signed by the client with the keypair associated with
 /// an [`AccountIdentifier`] using the specified [`SignatureType`].
 /// [`SignatureType`] can be optionally populated if there is a restriction on

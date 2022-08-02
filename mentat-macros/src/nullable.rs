@@ -7,8 +7,20 @@ use proc_macro::TokenStream;
 use proc_macro2::{Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{
-    parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
-    Ident, ItemImpl, ItemStruct, Meta, MetaList, NestedMeta, Type,
+    parse_quote,
+    punctuated::Punctuated,
+    token::Brace,
+    Field,
+    FieldValue,
+    Fields,
+    FieldsNamed,
+    Ident,
+    ItemImpl,
+    ItemStruct,
+    Meta,
+    MetaList,
+    NestedMeta,
+    Type,
 };
 
 #[derive(Default, Debug, Clone, Copy)]
