@@ -1,0 +1,10 @@
+[package]
+name = "mentat-parser"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.62.1"
+
+[dependencies]
+mentat-types = { path = "../mentat-types" }
+serde = { version = "1.0.136", default-features = false, features = ["derive"] }
+thiserror = "1.0.31"

@@ -609,6 +609,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mentat-parser"
+version = "0.1.0"
+dependencies = [
+ "mentat-types",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "mentat-server"
 version = "0.1.0"
 dependencies = [
