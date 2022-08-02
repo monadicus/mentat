@@ -1,34 +1,24 @@
-// TODO temporary
-#![allow(clippy::missing_docs_in_private_items)]
+//! generates the non-nullable counterparts of a nullable struct
 
-use std::fmt::Debug;
-
-use proc_macro::TokenStream;
 use proc_macro2::{Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
-use quote::{quote, ToTokens};
+use quote::ToTokens;
+use std::fmt::Debug;
 use syn::{
-    parse_quote,
-    punctuated::Punctuated,
-    token::Brace,
-    Field,
-    FieldValue,
-    Fields,
-    FieldsNamed,
-    Ident,
-    ItemImpl,
-    ItemStruct,
-    Meta,
-    MetaList,
-    NestedMeta,
-    Type,
+    parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
+    Ident, ItemImpl, ItemStruct, Meta, MetaList, NestedMeta, Type,
 };
 
+/// the nullable argument over a struct field
 #[derive(Default, Debug, Clone, Copy)]
 enum Argument {
+    /// no argument
     #[default]
     None,
+    /// the field should not be changed
     Retain,
+    /// the field contains bytes
     Bytes,
+    /// the field should be converted to an Option<Enum>
     OptionEnum,
 }
 
@@ -66,11 +56,16 @@ impl From<&Field> for Argument {
     }
 }
 
+/// the type contained within the field
 #[derive(Debug, Clone, Copy)]
 enum FieldType {
+    /// Vec<Option<T>>
     VecOption,
+    /// Vec<T>
     Vec,
+    /// Option<T>
     Option,
+    /// none of the above
     Other,
 }
 
@@ -90,14 +85,22 @@ impl From<&[TokenTree]> for FieldType {
     }
 }
 
+/// How the field should be changed
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum FieldBehavior {
+    /// T -> T
     Retain,
+    /// Vec<Option<T>> -> Vec<T>
     VecOption,
+    /// Option<T> -> T
     Option,
+    /// Vec<Option<T>> -> Vec<Option<T>>
     RetainVecOption,
+    /// Option<T> -> Option<T>
     RetainOption,
+    /// Enum -> Option<Enum>
     OptionEnum,
+    /// Vec<u8> -> Vec<u8>
     Bytes,
 }
 
@@ -119,13 +122,17 @@ impl From<(FieldType, Argument)> for FieldBehavior {
     }
 }
 
+/// Data for each field element
 #[derive(Debug)]
 struct FieldData {
+    /// the target field
     field: Field,
+    /// the nullable behavior of the field
     behavior: FieldBehavior,
 }
 
 impl FieldData {
+    /// generates the `impl From<NullableT> for T` for the struct
     fn gen_from_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
@@ -152,6 +159,7 @@ impl FieldData {
         }
     }
 
+    /// generates the `impl From<T> for NullableT` for the struct
     fn gen_to_nullable(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
@@ -174,6 +182,7 @@ impl FieldData {
         }
     }
 
+    /// mutates the given field type and also gets its behavior
     fn mutate_type(ty: &Type, arg: Argument) -> (Type, FieldBehavior) {
         let mut stream = ty
             .clone()
@@ -267,13 +276,17 @@ impl From<&Field> for FieldData {
     }
 }
 
-struct StructBuilder {
+/// contains info to generate the different parts of the the non-nullable struct
+pub struct StructBuilder {
+    /// the struct identifier, with `Nullable` removed
     ident: Ident,
+    /// the fields of the struct
     fields: Vec<FieldData>,
 }
 
 impl StructBuilder {
-    fn new(item: &ItemStruct) -> Self {
+    /// creates a new StructBuilder instance
+    pub fn new(item: &ItemStruct) -> Self {
         Self {
             ident: Ident::new(
                 item.ident
@@ -287,7 +300,8 @@ impl StructBuilder {
         }
     }
 
-    fn gen_struct(&self, original: &ItemStruct) -> ItemStruct {
+    /// generates the non-nullable struct
+    pub fn gen_struct(&self, original: &ItemStruct) -> ItemStruct {
         let tmp = ItemStruct {
             attrs: original.attrs.clone(),
             vis: original.vis.clone(),
@@ -314,7 +328,8 @@ impl StructBuilder {
         )
     }
 
-    fn gen_from_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
+    /// generates the `impl From<NullableT> for T` code
+    pub fn gen_from_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
         let nullable_ident = &original.ident;
         let self_ident = &self.ident;
         let fields = self.fields.iter().map(|f| f.gen_from_nullable());
@@ -329,7 +344,8 @@ impl StructBuilder {
         )
     }
 
-    fn gen_to_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
+    /// generates the `impl From<T> for NullableT` code
+    pub fn gen_to_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
         let nullable_ident = &original.ident;
         let self_ident = &self.ident;
         let fields = self.fields.iter().map(|f| f.gen_to_nullable());
@@ -343,18 +359,4 @@ impl StructBuilder {
             }
         )
     }
-}
-
-pub fn create_nullable_counterpart(item: ItemStruct) -> TokenStream {
-    let builder: StructBuilder = StructBuilder::new(&item);
-    let new_struct = builder.gen_struct(&item);
-    let from_null = builder.gen_from_nullable_impl(&item);
-    let to_null = builder.gen_to_nullable_impl(&item);
-
-    quote!(
-        #new_struct
-        #from_null
-        #to_null
-    )
-    .into()
 }
