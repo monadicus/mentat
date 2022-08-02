@@ -33,7 +33,7 @@ mod server_exports {
     /// `Server::default()` then consider using the [`macro@mentat`] macro
     /// instead.
     ///
-    /// ``` no_run
+    /// ```ignore
     /// #[derive(Clone)]
     /// struct MentatSnarkos;
     ///
@@ -63,7 +63,7 @@ mod server_exports {
     /// If you prefer to use your own `main` function, consider using the
     /// [`macro@main`] macro instead.
     ///
-    /// ``` no_run
+    /// ```ignore
     /// #[mentat(DefaultCacheInner)]
     /// struct MentatBitcoin;
     ///
