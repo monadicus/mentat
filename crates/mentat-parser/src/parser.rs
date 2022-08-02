@@ -5,9 +5,9 @@ pub struct Parser<ExemptOperation>
 where
     ExemptOperation: FnOnce(Option<Operation>) -> bool,
 {
-    asserter: Option<Asserter>,
-    exempt_func: ExemptOperation,
-    balance_exemptions: Vec<Option<BalanceExemption>>,
+    pub asserter: Asserter,
+    pub exempt_func: ExemptOperation,
+    pub balance_exemptions: Vec<Option<BalanceExemption>>,
 }
 
 impl<ExemptOperation> Parser<ExemptOperation>
@@ -15,7 +15,7 @@ where
     ExemptOperation: FnOnce(Option<Operation>) -> bool,
 {
     pub fn new(
-        asserter: Option<Asserter>,
+        asserter: Asserter,
         exempt_func: ExemptOperation,
         balance_exemptions: Vec<Option<BalanceExemption>>,
     ) -> Self {

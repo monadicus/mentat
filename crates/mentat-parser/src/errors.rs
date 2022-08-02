@@ -77,3 +77,5 @@ pub enum ParserError {
     #[error(transparent)]
     MatchOperations(#[from] MatchOperationsError),
 }
+
+pub type ParserResult<T, E = ParserError> = Result<T, E>;

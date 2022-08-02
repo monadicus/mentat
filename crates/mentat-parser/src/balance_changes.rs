@@ -1,7 +1,7 @@
 use mentat_types::*;
 use serde::{Deserialize, Serialize};
 
-use crate::Parser;
+use crate::{Parser, ParserResult};
 
 /// `BalanceChange` represents a balance change that affected
 /// a [`AccountIdentifier`] and a [`Currency`].
@@ -20,7 +20,7 @@ impl<ExemptOperation> Parser<ExemptOperation>
 where
     ExemptOperation: FnOnce(Option<Operation>) -> bool,
 {
-    pub fn skip_operation(&self, op: Operation) -> Result<bool, ()> {
-        Ok(true)
-    }
+    // pub fn skip_operation(&self, op: Operation) -> ParserResult<bool> {
+    //     let op = self.asserter
+    // }
 }
