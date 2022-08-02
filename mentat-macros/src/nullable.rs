@@ -261,7 +261,7 @@ impl From<&Field> for FieldData {
                 attrs,
                 vis: field.vis.clone(),
                 ident: if FieldBehavior::Bytes == behavior {
-                    Some(Ident::new("hex_bytes", Span::call_site()))
+                    Some(Ident::new("bytes", Span::call_site()))
                 } else {
                     field.ident.clone()
                 },
