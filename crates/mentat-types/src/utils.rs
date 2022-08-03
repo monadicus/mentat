@@ -111,7 +111,7 @@ pub(crate) fn big_int(value: &str) -> Result<BigInt, String> {
 
 /// `add_values` adds string amounts using
 /// big.Int.
-pub(crate) fn add_values(a: &str, b: &str) -> Result<String, String> {
+pub fn add_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val + b_val;
@@ -146,7 +146,7 @@ pub(crate) fn divide_values(a: &str, b: &str) -> Result<String, String> {
 }
 
 /// `negate_value` flips the sign of a value.
-pub(crate) fn negate_value(val: &str) -> Result<String, String> {
+pub fn negate_value(val: &str) -> Result<String, String> {
     let existing = big_int(val)?;
     Ok((-existing).to_string())
 }

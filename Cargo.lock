@@ -612,6 +612,7 @@ dependencies = [
 name = "mentat-parser"
 version = "0.1.0"
 dependencies = [
+ "indexmap",
  "mentat-asserter",
  "mentat-types",
  "serde",

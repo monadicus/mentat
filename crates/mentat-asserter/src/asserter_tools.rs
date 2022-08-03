@@ -250,7 +250,7 @@ impl Asserter {
     }
 
     /// Says whether a given operation was successful or not.
-    pub(crate) fn operation_successful(
+    pub fn operation_successful(
         &self,
         operation: Option<&mentat_types::NullableOperation>,
     ) -> AssertResult<bool> {
