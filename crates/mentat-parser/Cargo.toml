@@ -5,6 +5,7 @@ edition = "2021"
 rust-version = "1.62.1"
 
 [dependencies]
+indexmap = "1.9.1"
 mentat-asserter = { path = "../mentat-asserter" }
 mentat-types = { path = "../mentat-types" }
 serde = { version = "1.0.136", default-features = false, features = ["derive"] }

@@ -1,3 +1,4 @@
+use mentat_asserter::AsserterError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -76,6 +77,22 @@ pub enum ParserError {
     Intent(#[from] IntentError),
     #[error(transparent)]
     MatchOperations(#[from] MatchOperationsError),
+    #[error(transparent)]
+    Asserter(#[from] AsserterError),
+    #[error("{0}")]
+    String(String),
+}
+
+impl From<String> for ParserError {
+    fn from(s: String) -> Self {
+        Self::String(s)
+    }
+}
+
+impl From<&str> for ParserError {
+    fn from(s: &str) -> Self {
+        Self::String(s.into())
+    }
 }
 
 pub type ParserResult<T, E = ParserError> = Result<T, E>;
