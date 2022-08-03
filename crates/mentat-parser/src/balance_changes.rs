@@ -1,3 +1,5 @@
+//! The balance change file contains code for parsing changed balances.
+
 use indexmap::IndexMap;
 use mentat_types::*;
 use serde::{Deserialize, Serialize};
@@ -8,12 +10,16 @@ use crate::{Parser, ParserResult};
 /// a [`AccountIdentifier`] and a [`Currency`].
 #[derive(Debug, Deserialize, Serialize)]
 pub struct BalanceChange {
+    /// The account identifier if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account: Option<AccountIdentifier>,
+    /// The currency if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub currency: Option<NullableCurrency>,
+    /// The block identifier if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<BlockIdentifier>,
+    /// Represents the changed balance of the txs.
     pub difference: String,
 }
 

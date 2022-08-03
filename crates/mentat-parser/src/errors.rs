@@ -1,7 +1,10 @@
+//! The errors for the Parser module.
+
 use mentat_asserter::AsserterError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub enum IntentError {
     #[error("intended account did not match observed account")]
     ExpectedOperationAccountMismatch,
@@ -18,6 +21,7 @@ pub enum IntentError {
 }
 
 #[derive(Debug, Error)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub enum MatchOperationsError {
     #[error("account is missing")]
     AccountMatchAccountMissing,
@@ -71,7 +75,9 @@ pub enum MatchOperationsError {
     MatchOperationsDescriptionNotMatched,
 }
 
+/// `ParserError` type.
 #[derive(Debug, Error)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub enum ParserError {
     #[error(transparent)]
     Intent(#[from] IntentError),
@@ -95,4 +101,5 @@ impl From<&str> for ParserError {
     }
 }
 
+/// The parser module result type.
 pub type ParserResult<T, E = ParserError> = Result<T, E>;

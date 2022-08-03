@@ -1,3 +1,8 @@
+//! The parser module
+
+#![deny(clippy::all, clippy::missing_docs_in_private_items)]
+#![warn(clippy::todo)]
+
 mod balance_changes;
 pub use balance_changes::*;
 

@@ -1,7 +1,10 @@
+//! The parser struct itself.
+
 use mentat_asserter::Asserter;
 use mentat_types::{BalanceExemption, NullableOperation};
 
 /// `Parser` provides support for parsing Rosetta blocks.
+#[allow(clippy::missing_docs_in_private_items)]
 pub struct Parser<ExemptOperation>
 where
     ExemptOperation: Fn(Option<&NullableOperation>) -> bool,
