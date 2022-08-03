@@ -615,7 +615,9 @@ dependencies = [
  "indexmap",
  "mentat-asserter",
  "mentat-types",
+ "num-bigint-dig",
  "serde",
+ "serde_json",
  "thiserror",
 ]
 

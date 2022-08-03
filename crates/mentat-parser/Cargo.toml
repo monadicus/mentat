@@ -10,3 +10,5 @@ mentat-asserter = { path = "../mentat-asserter" }
 mentat-types = { path = "../mentat-types" }
 serde = { version = "1.0.136", default-features = false, features = ["derive"] }
 thiserror = "1.0.31"
+num-bigint-dig = { version = "0.8.1" }
+serde_json = "1.0.82"

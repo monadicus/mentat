@@ -67,7 +67,7 @@ pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> Part
 
 /// `amount_value` returns a [`BigInt`] representation of an
 /// Amount.Value or an error.
-pub(crate) fn amount_value(amount: Option<&NullableAmount>) -> Result<BigInt, String> {
+pub fn amount_value(amount: Option<&NullableAmount>) -> Result<BigInt, String> {
     let amount = amount.ok_or("amount value cannot be nil")?;
     BigInt::from_str(&amount.value).map_err(|_| format!("{} is not an integer", amount.value))
 }
