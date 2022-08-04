@@ -11,26 +11,26 @@ pub(crate) struct CustomParserTest<Payload, AE, PE> {
 }
 
 impl<Payload, AE, PE> CustomParserTest<Payload, AE, PE> {
-    pub(crate) fn run<A, P, F, ExemptOperation>(tests: &[Self], asserter: A, parser: P, mut func: F)
+    pub(crate) fn run<A, P, F, ExemptOperation>(tests: Vec<Self>, asserter: A, parser: P, func: F)
     where
         A: Fn(AE) -> Asserter,
         P: Fn(Asserter, PE, Vec<Option<BalanceExemption>>) -> Parser<ExemptOperation>,
-        F: FnMut(Parser<ExemptOperation>, &Payload) -> bool,
         ExemptOperation: Fn(&Operation) -> bool,
+        F: Fn(&Parser<ExemptOperation>, &Payload) -> bool,
     {
+        let len = tests.len();
         let failed = tests
-            .iter()
+            .into_iter()
             .map(|test| {
                 print!("{test}: ");
                 let asserter = asserter(test.asserter_extras);
-                let parser: Parser<ExemptOperation> =
-                    parser(asserter, test.parser_extras, Vec::new());
-                func(parser, &test.payload)
+                let parser = parser(asserter, test.parser_extras, Vec::new());
+                func(&parser, &test.payload)
             })
             .filter(|t| !t)
             .count();
 
-        status_message(failed, tests.len());
+        status_message(failed, len);
     }
 }
 

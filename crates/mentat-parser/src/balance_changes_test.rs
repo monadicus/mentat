@@ -93,7 +93,7 @@ fn test_balance_changes() {
         operations: vec![
             empty_account_and_amount,
             empty_amount,
-            recipient_operation,
+            recipient_operation.clone(),
             recipient_failure_operation,
         ],
         ..Default::default()
@@ -109,40 +109,67 @@ fn test_balance_changes() {
         }),
     ];
 
-    let tests = [CustomParserTest {
-        name: "simple block",
-        payload: BalanceChangesTest {
-            block: Block {
-                block_identifier: BlockIdentifier {
-                    hash: "1".into(),
-                    index: 1,
+    let tests = vec![
+        CustomParserTest {
+            name: "simple block",
+            payload: BalanceChangesTest {
+                block: Block {
+                    block_identifier: BlockIdentifier {
+                        hash: "1".into(),
+                        index: 1,
+                    },
+                    parent_block_identifier: BlockIdentifier {
+                        hash: "0".into(),
+                        index: 0,
+                    },
+                    transactions: vec![recipient_transaction.clone()],
+                    timestamp: MIN_UNIX_EPOCH + 1,
+                    ..Default::default()
                 },
-                parent_block_identifier: BlockIdentifier {
-                    hash: "0".into(),
-                    index: 0,
-                },
-                transactions: vec![recipient_transaction],
-                timestamp: MIN_UNIX_EPOCH + 1,
-                ..Default::default()
+                orphan: false,
+                changes: vec![BalanceChange {
+                    account: recipient,
+                    currency: Some(currency),
+                    block: BlockIdentifier {
+                        hash: "1".into(),
+                        index: 1,
+                    },
+                    difference: "100".into(),
+                }],
             },
-            orphan: false,
-            changes: vec![BalanceChange {
-                account: recipient,
-                currency: Some(currency),
-                block: BlockIdentifier {
-                    hash: "1".into(),
-                    index: 1,
-                },
-                difference: "100".into(),
-            }],
+            asserter_extras: default_status.clone(),
+            parser_extras: None,
+            err: None,
         },
-        asserter_extras: default_status,
-        parser_extras: None,
-        err: None,
-    }];
+        CustomParserTest {
+            name: "simple block account exempt",
+            payload: BalanceChangesTest {
+                block: Block {
+                    block_identifier: BlockIdentifier {
+                        hash: "1".into(),
+                        index: 1,
+                    },
+                    parent_block_identifier: BlockIdentifier {
+                        hash: "0".into(),
+                        index: 0,
+                    },
+                    transactions: vec![recipient_transaction],
+                    timestamp: MIN_UNIX_EPOCH + 1,
+                    ..Default::default()
+                },
+                orphan: false,
+                changes: vec![],
+            },
+            asserter_extras: default_status,
+            parser_extras: Some(|op: &Operation| {
+                hash(op.account.as_ref()) == hash(recipient_operation.clone().account.as_ref())
+            }),
+            err: None,
+        },
+    ];
 
     CustomParserTest::run(
-        &tests,
+        tests,
         simple_asserter_configuration,
         Parser::new,
         |parser, payload| {
@@ -156,6 +183,7 @@ fn test_balance_changes() {
                 );
                 false
             } else {
+                println!("ok!");
                 true
             }
         },
