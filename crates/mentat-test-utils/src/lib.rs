@@ -1,4 +1,7 @@
-use std::fmt::{self};
+use std::{
+    error::Error,
+    fmt::{self},
+};
 
 pub trait Test<Input>: core::fmt::Display + Sized {
     fn run(tests: &[Self], input: Input);
@@ -65,6 +68,30 @@ where
             println!(
                 "test failed when it shouldn't have. returned error: `{res}`, but expected valued `{expected}`"
             );
+            false
+        }
+        _ => {
+            println!("ok!");
+            true
+        }
+    }
+}
+
+pub fn check_test_result<T, E>(err: &Option<E>, res: &Result<T, E>) -> bool
+where
+    E: Error,
+{
+    match (res, err) {
+        (Err(err), Some(exp)) if !err.to_string().contains(&exp.to_string()) => {
+            println!("expected text fragment `{exp}` not found in error: `{err}`");
+            false
+        }
+        (Err(err), None) => {
+            println!("test failed when it shouldn't have. returned error: `{err}`");
+            false
+        }
+        (Ok(_), Some(exp)) => {
+            println!("test passed when it shouldn't have. expected error: `{exp}`");
             false
         }
         _ => {

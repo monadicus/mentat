@@ -336,7 +336,7 @@ impl StructBuilder {
         // TODO hack to get around lazy macro expansion for attributes
         parse_quote!(
             #[allow(clippy::missing_docs_in_private_items)]
-            #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
             #tmp
         )
     }

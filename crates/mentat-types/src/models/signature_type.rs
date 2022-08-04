@@ -58,7 +58,7 @@ impl From<&str> for NullableSignatureType {
 }
 
 /// OperatorSignatureType is the type of a cryptographic signature.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SignatureType {
     /// r (32-bytes) + s (32-bytes)
     #[default]

@@ -614,6 +614,7 @@ version = "0.1.0"
 dependencies = [
  "indexmap",
  "mentat-asserter",
+ "mentat-test-utils",
  "mentat-types",
  "num-bigint-dig",
  "serde",

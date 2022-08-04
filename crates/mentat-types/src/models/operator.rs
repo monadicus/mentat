@@ -42,7 +42,7 @@ impl From<&str> for NullableOperator {
 
 /// [`Operator`] is used by query-related endpoints to determine how to apply
 /// conditions.
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Operator {
     #[default]
     /// If all conditions are satisfied, it is considered a match.

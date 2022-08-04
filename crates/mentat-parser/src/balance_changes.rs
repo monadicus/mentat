@@ -1,14 +1,11 @@
 //! The balance change file contains code for parsing changed balances.
 
-use indexmap::IndexMap;
-use mentat_types::*;
-use serde::{Deserialize, Serialize};
-
+use super::*;
 use crate::{Parser, ParserResult};
 
 /// `BalanceChange` represents a balance change that affected
 /// a [`AccountIdentifier`] and a [`Currency`].
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct BalanceChange {
     /// The account identifier if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -47,7 +47,7 @@ impl From<&str> for NullableBlockEventType {
 
 /// `BlockEventType` determines if a [`BlockEvent`] represents the addition or
 /// removal of a block.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum BlockEventType {
     #[default]
     /// A block was added to the canonical chain.

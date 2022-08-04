@@ -1,7 +1,6 @@
 //! The parser struct itself.
 
-use mentat_asserter::Asserter;
-use mentat_types::{BalanceExemption, Operation};
+use super::*;
 
 /// `Parser` provides support for parsing Rosetta blocks.
 #[allow(clippy::missing_docs_in_private_items)]

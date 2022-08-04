@@ -15,17 +15,17 @@ pub(crate) const ACCOUNT: &str = "account";
 /// The `AsserterOperation` data helps validate data.
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) struct AsserterOperation {
-    pub(crate) count: i64,
-    pub(crate) should_balance: bool,
+pub struct AsserterOperation {
+    pub count: i64,
+    pub should_balance: bool,
 }
 
 /// The `ValidationOperation` data helps validate data.
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
-pub(crate) struct ValidationOperation {
-    pub(crate) name: String,
-    pub(crate) operation: AsserterOperation,
+pub struct ValidationOperation {
+    pub name: String,
+    pub operation: AsserterOperation,
 }
 
 /// Validations is used to define stricter validations
@@ -34,12 +34,12 @@ pub(crate) struct ValidationOperation {
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[serde(default)]
-pub(crate) struct Validations {
-    pub(crate) enabled: bool,
-    pub(crate) related_ops_exists: bool,
-    pub(crate) chain_type: String,
-    pub(crate) payment: ValidationOperation,
-    pub(crate) fee: ValidationOperation,
+pub struct Validations {
+    pub enabled: bool,
+    pub related_ops_exists: bool,
+    pub chain_type: String,
+    pub payment: ValidationOperation,
+    pub fee: ValidationOperation,
 }
 
 impl Validations {
@@ -134,7 +134,7 @@ impl Asserter {
     /// `new_client_with_options` constructs a new [`Asserter`] using the
     /// provided arguments instead of using a NetworkStatusResponse and a
     /// NetworkOptionsResponse.
-    fn new_client_with_options(
+    pub fn new_client_with_options(
         network: Option<NetworkIdentifier>,
         genesis_block: Option<BlockIdentifier>,
         operation_types_: Vec<String>,

@@ -99,27 +99,3 @@ impl<P, E> fmt::Display for CustomAsserterTest<P, E> {
         write!(f, "test `{}`", self.name)
     }
 }
-
-pub(crate) fn check_test_result<T>(
-    err: &Option<AsserterError>,
-    res: &Result<T, AsserterError>,
-) -> bool {
-    match (res, err) {
-        (Err(err), Some(exp)) if !err.to_string().contains(&exp.to_string()) => {
-            println!("expected text fragment `{exp}` not found in error: `{err}`");
-            false
-        }
-        (Err(err), None) => {
-            println!("test failed when it shouldn't have. returned error: `{err}`");
-            false
-        }
-        (Ok(_), Some(exp)) => {
-            println!("test passed when it shouldn't have. expected error: `{exp}`");
-            false
-        }
-        _ => {
-            println!("ok!");
-            true
-        }
-    }
-}
