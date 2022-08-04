@@ -1103,10 +1103,9 @@ fn test_operation() {
             }
 
             if test.err.is_none() && !payload.construction {
+                let op = payload.operation.clone().unwrap().into();
                 print!("Testing operation successful: ");
-                let successful = asserter
-                    .operation_successful(payload.operation.as_ref())
-                    .unwrap();
+                let successful = asserter.operation_successful(&op).unwrap();
 
                 if payload.successful == successful {
                     println!("ok!");

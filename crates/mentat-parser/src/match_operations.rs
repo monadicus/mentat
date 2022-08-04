@@ -2,8 +2,14 @@
 
 use indexmap::IndexMap;
 use mentat_types::{
-    amount_value, hash, AccountIdentifier, NullableAmount, NullableCoinAction, NullableCoinChange,
-    NullableCurrency, NullableOperation,
+    amount_value,
+    hash,
+    AccountIdentifier,
+    NullableAmount,
+    NullableCoinAction,
+    NullableCoinChange,
+    NullableCurrency,
+    NullableOperation,
 };
 use num_bigint_dig::{BigInt, Sign};
 use serde_json::Value;
@@ -20,15 +26,15 @@ impl AmountSign {
     const ANY: AmountSign = AmountSign(0);
     /// `NEGATIVE` is a negative amount.
     const NEGATIVE: AmountSign = AmountSign(1);
-    /// `POSITIVE` is a positive amount.
-    const POSITIVE: AmountSign = AmountSign(2);
-    /// `POSITIVE_OR_ZERO` is a positive or zero amount.
-    const POSITIVE_OR_ZERO: AmountSign = AmountSign(3);
     /// `NEGATIVE_OR_ZERO` is a positive or zero amount.
     const NEGATIVE_OR_ZERO: AmountSign = AmountSign(4);
     /// OPPOSITES_LENGTH is the only allowed number of
     /// operations to compare as opposites.
     const OPPOSITES_LENGTH: AmountSign = AmountSign(2);
+    /// `POSITIVE` is a positive amount.
+    const POSITIVE: AmountSign = AmountSign(2);
+    /// `POSITIVE_OR_ZERO` is a positive or zero amount.
+    const POSITIVE_OR_ZERO: AmountSign = AmountSign(3);
 
     /// match_ returns a boolean indicating if an [`Amount`]
     /// has an [`AmountSign`].
@@ -104,8 +110,9 @@ pub struct OperationDescription {
     /// `Optional` indicates that not finding any operations that meet
     /// the description should not trigger an error.
     pub optional: bool,
-    /// `coin_action` indicates that an operation should have a [`NullableCoinChange`]
-    /// and that it should have the [`NullableCoinAction`]. If this is not populated,
+    /// `coin_action` indicates that an operation should have a
+    /// [`NullableCoinChange`] and that it should have the
+    /// [`NullableCoinAction`]. If this is not populated,
     /// [`NullableCoinChange`] is not checked.
     pub coin_action: NullableCoinAction,
 }
@@ -116,20 +123,24 @@ pub struct OperationDescription {
 pub struct Descriptions {
     pub operation_descriptions: Vec<Option<OperationDescription>>,
     /// `equal_amounts` are specified using the operation indices of
-    /// [`OperationDescription`]s to handle out of order matches. [`match_operations`]
-    /// will error if all groups of operations aren't equal.
+    /// [`OperationDescription`]s to handle out of order matches.
+    /// [`match_operations`] will error if all groups of operations aren't
+    /// equal.
     pub equal_amounts: Vec<Vec<usize>>,
     /// `opposite_amounts` are specified using the operation indices of
-    /// [`OperationDescription`]s to handle out of order matches. [`match_operations`]
-    /// will error if all groups of operations aren't opposites.
+    /// [`OperationDescription`]s to handle out of order matches.
+    /// [`match_operations`] will error if all groups of operations aren't
+    /// opposites.
     pub opposite_amounts: Vec<Vec<usize>>,
     /// `opposite_amounts` are specified using the operation indices of
-    /// [`OperationDescription`]s to handle out of order matches. [`match_operations`]
-    /// will error if all groups of operations aren't 0 or opposites.
+    /// [`OperationDescription`]s to handle out of order matches.
+    /// [`match_operations`] will error if all groups of operations aren't 0
+    /// or opposites.
     pub opposite_or_zero_amounts: Vec<Vec<usize>>,
     /// `equal_addresses` are specified using the operation indices of
-    /// [`OperationDescription`]s to handle out of order matches. [`match_operations`]
-    /// will error if all groups of operations addresses aren't equal.
+    /// [`OperationDescription`]s to handle out of order matches.
+    /// [`match_operations`] will error if all groups of operations
+    /// addresses aren't equal.
     pub equal_addresses: Vec<Vec<usize>>,
     /// `err_unmatched` indicates that an error should be returned
     /// if all operations cannot be matched to a description.
@@ -291,8 +302,8 @@ pub fn coin_action_match(
     }
 }
 
-/// [`operation_match`] returns an error if a [`NullableOperation`] does not match a
-/// [`OperationDescription`].
+/// [`operation_match`] returns an error if a [`NullableOperation`] does not
+/// match a [`OperationDescription`].
 pub fn operation_match(
     operation: Option<&NullableOperation>,
     descriptions: &[Option<Descriptions>],
@@ -316,8 +327,8 @@ pub fn opposite_amounts(
     todo!()
 }
 
-/// oppositeOrZeroAmounts returns an error if two operations do not have opposite
-/// amounts and both amounts are not zero.
+/// oppositeOrZeroAmounts returns an error if two operations do not have
+/// opposite amounts and both amounts are not zero.
 pub fn opposite_or_zero_amounts(
     a: Option<&NullableOperation>,
     b: Option<&NullableOperation>,
@@ -364,8 +375,8 @@ pub fn comparison_match(
     todo!()
 }
 
-/// `Match` contains all [`NullableOperation`] matching a given [`OperationDescription`] and
-/// their parsed [`BigInt`] amounts (if populated).
+/// `Match` contains all [`NullableOperation`] matching a given
+/// [`OperationDescription`] and their parsed [`BigInt`] amounts (if populated).
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct Match {
     pub operations: Vec<Option<NullableOperation>>,

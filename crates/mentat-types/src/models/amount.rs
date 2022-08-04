@@ -23,10 +23,10 @@ pub struct NullableAmount {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl Sortable for NullableAmount {
+impl Sortable for Amount {
     fn sort(&self) -> Self {
         let mut new = self.clone();
-        new.currency = new.currency.map(|nc| nc.sort());
+        new.currency = new.currency.sort();
         new.metadata.sort_keys();
         new
     }

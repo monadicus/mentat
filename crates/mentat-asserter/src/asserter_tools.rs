@@ -250,16 +250,12 @@ impl Asserter {
     }
 
     /// Says whether a given operation was successful or not.
-    pub fn operation_successful(
-        &self,
-        operation: Option<&mentat_types::NullableOperation>,
-    ) -> AssertResult<bool> {
+    pub fn operation_successful(&self, operation: &mentat_types::Operation) -> AssertResult<bool> {
         let asserter = self
             .response
             .as_ref()
             .ok_or(AsserterError::NotInitialized)?;
 
-        let operation = operation.unwrap();
         if operation.status.is_none() || operation.status.as_ref().unwrap().is_empty() {
             Err(BlockError::OperationStatusMissing)?;
         }

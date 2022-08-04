@@ -40,3 +40,11 @@ impl Sortable for NullableCurrency {
         new
     }
 }
+
+impl Sortable for Currency {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.metadata.sort_keys();
+        new
+    }
+}

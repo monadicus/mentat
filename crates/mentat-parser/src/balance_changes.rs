@@ -15,36 +15,32 @@ pub struct BalanceChange {
     pub account: Option<AccountIdentifier>,
     /// The currency if it exists.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub currency: Option<NullableCurrency>,
-    /// The block identifier if it exists.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub block: Option<BlockIdentifier>,
+    pub currency: Option<Currency>,
+    /// The block identifier.
+    pub block: BlockIdentifier,
     /// Represents the changed balance of the txs.
     pub difference: String,
 }
 
 impl<ExemptOperation> Parser<ExemptOperation>
 where
-    ExemptOperation: Fn(Option<&NullableOperation>) -> bool,
+    ExemptOperation: Fn(&Operation) -> bool,
 {
     /// `skip_operation` returns a boolean indicating whether
     /// an operation should be processed. An operation will
     /// not be processed if it is considered unsuccessful.
-    pub fn skip_operation(&self, op: Option<&NullableOperation>) -> ParserResult<bool> {
+    pub fn skip_operation(&self, op: &Operation) -> ParserResult<bool> {
         let successful = self.asserter.operation_successful(op)?;
 
         if !successful {
             return Ok(true);
         }
 
-        // Safe to unwrap
-        let op_ref = op.unwrap();
-
-        if op_ref.amount.is_none() {
+        if op.account.is_none() {
             return Ok(true);
         }
 
-        if op_ref.amount.is_none() {
+        if op.amount.is_none() {
             return Ok(true);
         }
 
@@ -66,24 +62,15 @@ where
         // TODO how do we replicate this?
         // its for green threading.
         _ctx: (),
-        block: Option<&NullableBlock>,
+        block: &Block,
         block_removed: bool,
     ) -> ParserResult<Vec<BalanceChange>> {
         let mut balance_changes: IndexMap<String, BalanceChange> = IndexMap::new();
 
         // TODO they don't check for nil here
-        for tx in block
-            .map(|b| b.transactions.as_slice())
-            .into_iter()
-            .flatten()
-        {
-            for op in tx
-                .as_ref()
-                .map(|tx| tx.operations.as_slice())
-                .into_iter()
-                .flatten()
-            {
-                let skip = self.skip_operation(op.as_ref())?;
+        for tx in block.transactions.iter() {
+            for op in tx.operations.iter() {
+                let skip = self.skip_operation(op)?;
 
                 if skip {
                     // Continue the inner loop.
@@ -93,11 +80,9 @@ where
                 // We create a copy of Amount.Value
                 // here to ensure we don't accidentally overwrite
                 // the value of op.Amount.
-                let mut amount_value = op
-                    .as_ref()
-                    .and_then(|op| op.amount.as_ref().map(|amt| amt.value.clone()))
-                    .unwrap_or_else(|| "0".to_string());
-                let block_ident = block.unwrap().block_identifier.clone();
+                // Safe to unwrap here otherwise we would have skipped.
+                let mut amount_value = op.amount.clone().unwrap().value;
+                let block_ident = block.block_identifier.clone();
 
                 if block_removed {
                     let negated_value = negate_value(&amount_value)?;
@@ -106,10 +91,8 @@ where
 
                 let key = format!(
                     "{}/{}",
-                    hash(op.as_ref().and_then(|op| op.amount.as_ref())),
-                    hash(op.as_ref().and_then(|op| {
-                        op.amount.as_ref().and_then(|amt| amt.currency.as_ref())
-                    })),
+                    hash(op.amount.as_ref()),
+                    hash(op.amount.as_ref().map(|amt| amt.currency.clone()).as_ref()),
                 );
 
                 let val = balance_changes.get_mut(&key);
@@ -117,10 +100,8 @@ where
                     balance_changes.insert(
                         key,
                         BalanceChange {
-                            account: op.as_ref().and_then(|op| op.account.clone()),
-                            currency: op.as_ref().and_then(|op| {
-                                op.amount.as_ref().and_then(|amt| amt.currency.clone())
-                            }),
+                            account: op.account.clone(),
+                            currency: op.amount.as_ref().map(|amt| amt.currency.clone()),
                             block: block_ident,
                             difference: amount_value,
                         },
