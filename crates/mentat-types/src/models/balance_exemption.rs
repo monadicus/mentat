@@ -21,6 +21,7 @@ pub struct NullableBalanceExemption {
     /// BalanceExemption applies to (regardless of the value of
     /// [`SubAccountIdentifier`].Metadata).
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[nullable(retain)]
     pub sub_account_address: Option<String>,
     /// `Currency` is composed of a canonical Symbol and Decimals. This Decimals
     /// value is used to convert an Amount.Value from atomic units (Satoshis) to
