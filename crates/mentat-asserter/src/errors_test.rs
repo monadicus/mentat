@@ -2,12 +2,6 @@ use std::{error::Error, fmt::Display};
 
 use super::*;
 
-struct ErrTest {
-    err: Box<dyn Error>,
-    is: bool,
-    source: String,
-}
-
 #[derive(Debug)]
 struct Blah {
     content: String,
@@ -21,54 +15,48 @@ impl Display for Blah {
 
 impl Error for Blah {}
 
-// TODO move this over to new test system
 #[test]
 fn test_err() {
-    let tests: IndexMap<&str, ErrTest> = indexmap!(
-      "account balance error" => ErrTest {
-        err: AccountBalanceError::ReturnedBlockHashMismatch.into(),
-        is: true,
-        source: "account balance error".to_string(),
-      },
-      "block error" => ErrTest {
-        err: BlockError::BlockIdentifierIsNil.into(),
-        is: true,
-        source: "block error".to_string(),
-      },
-      "coin error" => ErrTest {
-        err: CoinError::ChangeIsNil.into(),
-        is: true,
-        source: "coin error".to_string(),
-      },
-      "construction error" => ErrTest {
-        err: ConstructionError::ConstructionMetadataResponseIsNil.into(),
-        is: true,
-        source: "construction error".to_string(),
-      },
-      "network error" => ErrTest {
-        err: NetworkError::NetworkIdentifierIsNil.into(),
-        is: true,
-        source: "network error".to_string(),
-      },
-      "server error" => ErrTest {
-        err: ServerError::NoSupportedNetworks.into(),
-        is: true,
-        source: "server error".to_string(),
-      },
-      "not an assert error" => ErrTest {
-        err: Blah {
-          content: "blah".to_string()
-        }.into(),
-        is: false,
-        source: String::new(),
-      },
-    );
+    let tests = vec![
+        ErrorTest {
+            name: "account balance error",
+            err: AccountBalanceError::ReturnedBlockHashMismatch.into(),
+            is: true,
+        },
+        ErrorTest {
+            name: "block error",
+            err: BlockError::BlockIdentifierIsNil.into(),
+            is: true,
+        },
+        ErrorTest {
+            name: "coin error",
+            err: CoinError::ChangeIsNil.into(),
+            is: true,
+        },
+        ErrorTest {
+            name: "construction error",
+            err: ConstructionError::ConstructionMetadataResponseIsNil.into(),
+            is: true,
+        },
+        ErrorTest {
+            name: "network error",
+            err: NetworkError::NetworkIdentifierIsNil.into(),
+            is: true,
+        },
+        ErrorTest {
+            name: "server error",
+            err: ServerError::NoSupportedNetworks.into(),
+            is: true,
+        },
+        ErrorTest {
+            name: "",
+            err: Blah {
+                content: "blah".to_string(),
+            }
+            .into(),
+            is: false,
+        },
+    ];
 
-    tests.into_iter().for_each(|(name, test)| {
-        println!("test: {name}");
-
-        let (is, source) = err(test.err);
-        assert_eq!(is, test.is);
-        assert_eq!(source, &test.source);
-    });
+    ErrorTest::run(tests, crate::errors::err);
 }

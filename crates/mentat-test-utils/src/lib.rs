@@ -44,6 +44,46 @@ impl<P, R> fmt::Display for EqualityTest<P, R> {
     }
 }
 
+pub struct ErrorTest {
+    pub name: &'static str,
+    pub err: Box<dyn std::error::Error>,
+    pub is: bool,
+}
+
+impl ErrorTest {
+    pub fn run<Input>(tests: Vec<Self>, mut func: Input)
+    where
+        Input: FnMut(Box<dyn std::error::Error>) -> (bool, &'static str),
+    {
+        let len = tests.len();
+        let failed = tests
+            .into_iter()
+            .map(|test| {
+                print!("{test}: ");
+                let (is, name) = func(test.err);
+                if test.is != is && test.name != name {
+                    println!(
+                        "test returned wrong value: `{:?}` != `{:?}`",
+                        test.name, name
+                    );
+                    false
+                } else {
+                    true
+                }
+            })
+            .filter(|t| !t)
+            .count();
+
+        status_message(failed, len);
+    }
+}
+
+impl fmt::Display for ErrorTest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "test `{}`", self.name)
+    }
+}
+
 pub fn status_message(failed: usize, total: usize) {
     if failed == 0 {
         println!("all passed!")
