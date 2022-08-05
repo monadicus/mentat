@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Default)]
 struct ContainsCurrencyTest {
-    currencies: Vec<NullableCurrency>,
-    currency: NullableCurrency,
+    currencies: Vec<Currency>,
+    currency: Currency,
 }
 
 #[test]
@@ -12,12 +12,12 @@ fn test_contains_currency() {
         EqualityTest {
             name: "simple contains",
             payload: ContainsCurrencyTest {
-                currencies: vec![NullableCurrency {
+                currencies: vec![Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }],
-                currency: NullableCurrency {
+                currency: Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -28,12 +28,12 @@ fn test_contains_currency() {
         EqualityTest {
             name: "complex contains",
             payload: ContainsCurrencyTest {
-                currencies: vec![NullableCurrency {
+                currencies: vec![Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }],
-                currency: NullableCurrency {
+                currency: Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
@@ -44,12 +44,12 @@ fn test_contains_currency() {
         EqualityTest {
             name: "more complex contains",
             payload: ContainsCurrencyTest {
-                currencies: vec![NullableCurrency {
+                currencies: vec![Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 }],
-                currency: NullableCurrency {
+                currency: Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
@@ -61,7 +61,7 @@ fn test_contains_currency() {
             name: "empty",
             payload: ContainsCurrencyTest {
                 currencies: Vec::new(),
-                currency: NullableCurrency {
+                currency: Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -72,12 +72,12 @@ fn test_contains_currency() {
         EqualityTest {
             name: "symbol mismatch",
             payload: ContainsCurrencyTest {
-                currencies: vec![NullableCurrency {
+                currencies: vec![Currency {
                     symbol: "ERX".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }],
-                currency: NullableCurrency {
+                currency: Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -88,12 +88,12 @@ fn test_contains_currency() {
         EqualityTest {
             name: "decimal mismatch",
             payload: ContainsCurrencyTest {
-                currencies: vec![NullableCurrency {
+                currencies: vec![Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }],
-                currency: NullableCurrency {
+                currency: Currency {
                     symbol: "BTC".to_string(),
                     decimals: 6,
                     metadata: Default::default(),
@@ -104,12 +104,12 @@ fn test_contains_currency() {
         EqualityTest {
             name: "metadata mismatch",
             payload: ContainsCurrencyTest {
-                currencies: vec![NullableCurrency {
+                currencies: vec![Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }],
-                currency: NullableCurrency {
+                currency: Currency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("bye")),
