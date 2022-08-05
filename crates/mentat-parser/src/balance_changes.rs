@@ -64,7 +64,6 @@ where
     ) -> ParserResult<Vec<BalanceChange>> {
         let mut balance_changes: IndexMap<String, BalanceChange> = IndexMap::new();
 
-        // TODO they don't check for nil here
         for tx in block.transactions.iter() {
             for op in tx.operations.iter() {
                 let skip = self.skip_operation(op)?;
@@ -88,7 +87,7 @@ where
 
                 let key = format!(
                     "{}/{}",
-                    hash(op.amount.as_ref()),
+                    hash(op.account.as_ref()),
                     hash(op.amount.as_ref().map(|amt| amt.currency.clone()).as_ref()),
                 );
 
