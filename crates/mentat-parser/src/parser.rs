@@ -2,26 +2,23 @@
 
 use super::*;
 
+/// TODO
+pub type ExemptionFunc = Box<dyn Fn(&Operation) -> bool>;
+
 /// `Parser` provides support for parsing Rosetta blocks.
 #[allow(clippy::missing_docs_in_private_items)]
-pub struct Parser<ExemptOperation>
-where
-    ExemptOperation: Fn(&Operation) -> bool,
-{
-    pub asserter: Asserter,
-    pub exempt_func: Option<ExemptOperation>,
-    pub balance_exemptions: Vec<Option<BalanceExemption>>,
+pub struct Parser {
+    pub asserter: Option<Asserter>,
+    pub exempt_func: Option<ExemptionFunc>,
+    pub balance_exemptions: Vec<BalanceExemption>,
 }
 
-impl<ExemptOperation> Parser<ExemptOperation>
-where
-    ExemptOperation: Fn(&Operation) -> bool,
-{
+impl Parser {
     /// creates a new `Parser`.
     pub fn new(
-        asserter: Asserter,
-        exempt_func: Option<ExemptOperation>,
-        balance_exemptions: Vec<Option<BalanceExemption>>,
+        asserter: Option<Asserter>,
+        exempt_func: Option<ExemptionFunc>,
+        balance_exemptions: Vec<BalanceExemption>,
     ) -> Self {
         Self {
             asserter,

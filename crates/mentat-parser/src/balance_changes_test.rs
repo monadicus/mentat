@@ -1,26 +1,28 @@
 use super::*;
 
-fn simple_asserter_configuration(allowed_status: Vec<Option<OperationStatus>>) -> Asserter {
-    Asserter::new_client_with_options(
-        Some(NetworkIdentifier {
-            blockchain: "bitcoin".to_string(),
-            network: "mainnent".to_string(),
-            ..Default::default()
-        }),
-        Some(BlockIdentifier {
-            hash: "block 0".to_string(),
-            index: 0,
-        }),
-        vec!["Transfer".to_string()],
-        allowed_status,
-        Vec::new(),
-        None,
-        Validations {
-            enabled: false,
-            ..Default::default()
-        },
+fn simple_asserter_configuration(allowed_status: Vec<Option<OperationStatus>>) -> Option<Asserter> {
+    Some(
+        Asserter::new_client_with_options(
+            Some(NetworkIdentifier {
+                blockchain: "bitcoin".to_string(),
+                network: "mainnent".to_string(),
+                ..Default::default()
+            }),
+            Some(BlockIdentifier {
+                hash: "block 0".to_string(),
+                index: 0,
+            }),
+            vec!["Transfer".to_string()],
+            allowed_status,
+            Vec::new(),
+            None,
+            Validations {
+                enabled: false,
+                ..Default::default()
+            },
+        )
+        .unwrap(),
     )
-    .unwrap()
 }
 
 fn simple_transaction_factory(
@@ -190,9 +192,9 @@ fn test_balance_changes() {
                 changes: vec![],
             },
             asserter_extras: default_status.clone(),
-            parser_extras: Some(|op: &Operation| {
+            parser_extras: Some(Box::new(|op: &Operation| {
                 hash(op.account.as_ref()) == hash(recipient_operation.clone().account.as_ref())
-            }),
+            })),
             err: None,
         },
         CustomParserTest {
@@ -301,10 +303,10 @@ fn test_balance_changes() {
         },
     ];
 
-    CustomParserTest::run(
+    CustomParserTest::<BalanceChangesTest, Vec<Option<OperationStatus>>, Option<ExemptionFunc>>::run(
         tests,
         simple_asserter_configuration,
-        Parser::new,
+        |a, e| Parser::new(a, e, Vec::new()),
         |parser, payload| {
             let res = parser
                 .balance_changes((), &payload.block, payload.orphan)

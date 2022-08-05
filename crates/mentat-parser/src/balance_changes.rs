@@ -19,15 +19,13 @@ pub struct BalanceChange {
     pub difference: String,
 }
 
-impl<ExemptOperation> Parser<ExemptOperation>
-where
-    ExemptOperation: Fn(&Operation) -> bool,
-{
+impl Parser {
     /// `skip_operation` returns a boolean indicating whether
     /// an operation should be processed. An operation will
     /// not be processed if it is considered unsuccessful.
     pub fn skip_operation(&self, op: &Operation) -> ParserResult<bool> {
-        let successful = self.asserter.operation_successful(op)?;
+        // TODO they don't check nil here
+        let successful = self.asserter.as_ref().unwrap().operation_successful(op)?;
 
         if !successful {
             return Ok(true);
