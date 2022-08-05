@@ -317,7 +317,7 @@ fn test_amount_value() {
     let tests = &[
         EqualityTest {
             name: "positive integer",
-            payload: Some(NullableAmount {
+            payload: Some(Amount {
                 value: "100".into(),
                 ..Default::default()
             }),
@@ -325,7 +325,7 @@ fn test_amount_value() {
         },
         EqualityTest {
             name: "negative integer",
-            payload: Some(NullableAmount {
+            payload: Some(Amount {
                 value: "-100".into(),
                 ..Default::default()
             }),
@@ -338,7 +338,7 @@ fn test_amount_value() {
         },
         EqualityTest {
             name: "float",
-            payload: Some(NullableAmount {
+            payload: Some(Amount {
                 value: "100.1".into(),
                 ..Default::default()
             }),
@@ -346,7 +346,7 @@ fn test_amount_value() {
         },
         EqualityTest {
             name: "not number",
-            payload: Some(NullableAmount {
+            payload: Some(Amount {
                 value: "hello".into(),
                 ..Default::default()
             }),

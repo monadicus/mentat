@@ -7,12 +7,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier,
-    BlockIdentifier,
-    NullableAmount,
-    NullableCurrency,
-    PartialBlockIdentifier,
-    Sortable,
+    AccountIdentifier, Amount, BlockIdentifier, NullableAmount, NullableCurrency,
+    PartialBlockIdentifier, Sortable,
 };
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided
@@ -67,7 +63,7 @@ pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> Part
 
 /// `amount_value` returns a [`BigInt`] representation of an
 /// Amount.Value or an error.
-pub fn amount_value(amount: Option<&NullableAmount>) -> Result<BigInt, String> {
+pub fn amount_value(amount: Option<&Amount>) -> Result<BigInt, String> {
     let amount = amount.ok_or("amount value cannot be nil")?;
     BigInt::from_str(&amount.value).map_err(|_| format!("{} is not an integer", amount.value))
 }

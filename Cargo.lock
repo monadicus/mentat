@@ -617,6 +617,7 @@ dependencies = [
  "mentat-test-utils",
  "mentat-types",
  "num-bigint-dig",
+ "num-traits",
  "serde",
  "serde_json",
  "thiserror",

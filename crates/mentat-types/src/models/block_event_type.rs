@@ -47,20 +47,21 @@ impl From<&str> for NullableBlockEventType {
 
 /// `BlockEventType` determines if a [`BlockEvent`] represents the addition or
 /// removal of a block.
-#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum BlockEventType {
     #[default]
     /// A block was added to the canonical chain.
-    Added,
+    BlockAdded,
     /// A block was removed from the canonical chain in a reorg.
-    Removed,
+    BlockRemoved,
 }
 
 impl From<NullableBlockEventType> for BlockEventType {
     fn from(other: NullableBlockEventType) -> Self {
         match other.0.as_ref() {
-            NullableBlockEventType::BLOCK_ADDED => Self::Added,
-            NullableBlockEventType::BLOCK_REMOVED => Self::Removed,
+            NullableBlockEventType::BLOCK_ADDED => Self::BlockAdded,
+            NullableBlockEventType::BLOCK_REMOVED => Self::BlockRemoved,
             i => panic!("unsupported BlockEventType: {i}"),
         }
     }
@@ -69,8 +70,17 @@ impl From<NullableBlockEventType> for BlockEventType {
 impl From<BlockEventType> for NullableBlockEventType {
     fn from(other: BlockEventType) -> Self {
         match other {
-            BlockEventType::Added => Self::BLOCK_ADDED.into(),
-            BlockEventType::Removed => Self::BLOCK_REMOVED.into(),
+            BlockEventType::BlockAdded => Self::BLOCK_ADDED.into(),
+            BlockEventType::BlockRemoved => Self::BLOCK_REMOVED.into(),
+        }
+    }
+}
+
+impl fmt::Display for BlockEventType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BlockEventType::BlockAdded => write!(f, "block_added"),
+            BlockEventType::BlockRemoved => write!(f, "block_removed"),
         }
     }
 }

@@ -1,6 +1,8 @@
 //! TODO doc
 
 use num_bigint_dig::{BigInt, Sign};
+use num_traits::{sign::Signed, Zero};
+
 use serde_json::Value;
 
 use super::*;
@@ -20,7 +22,7 @@ impl AmountSign {
     const NEGATIVE_OR_ZERO: AmountSign = AmountSign(4);
     /// OPPOSITES_LENGTH is the only allowed number of
     /// operations to compare as opposites.
-    const OPPOSITES_LENGTH: AmountSign = AmountSign(2);
+    const OPPOSITES_LENGTH: usize = 2;
     /// `POSITIVE` is a positive amount.
     const POSITIVE: AmountSign = AmountSign(2);
     /// `POSITIVE_OR_ZERO` is a positive or zero amount.
@@ -28,7 +30,7 @@ impl AmountSign {
 
     /// match_ returns a boolean indicating if an [`Amount`]
     /// has an [`AmountSign`].
-    pub fn match_(self, amount: Option<&NullableAmount>) -> bool {
+    pub fn match_(self, amount: Option<&Amount>) -> bool {
         if self == Self::ANY {
             return true;
         }
@@ -82,10 +84,10 @@ pub struct AccountDescription {
 pub struct AmountDescription {
     pub exists: bool,
     pub sign: AmountSign,
-    pub currency: Option<NullableCurrency>,
+    pub currency: Option<Currency>,
 }
 
-/// OperationDescription is used to describe a [`NullableOperation`].
+/// OperationDescription is used to describe a [`Operation`].
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct OperationDescription {
     pub account: Option<AccountDescription>,
@@ -101,10 +103,10 @@ pub struct OperationDescription {
     /// the description should not trigger an error.
     pub optional: bool,
     /// `coin_action` indicates that an operation should have a
-    /// [`NullableCoinChange`] and that it should have the
-    /// [`NullableCoinAction`]. If this is not populated,
-    /// [`NullableCoinChange`] is not checked.
-    pub coin_action: NullableCoinAction,
+    /// [`CoinChange`] and that it should have the
+    /// [`CoinAction`]. If this is not populated,
+    /// [`CoinChange`] is not checked.
+    pub coin_action: CoinAction,
 }
 
 /// Descriptions contains a slice of [`OperationDescription`]s and
@@ -212,15 +214,12 @@ pub fn account_match(
     }
 
     metadata_match(&req.sub_account_metadata_keys, &sub_account.metadata)
-        .map_err(|e| ParserError::String(format!("{}: account metadata keys mismatch", e)))
+        .map_err(|e| ParserError::String(format!("{e}: account metadata keys mismatch")))
 }
 
 /// [`amount_match`] returns an error if an [`Amount`] does not meet an
 /// [`AmountDescription`].
-pub fn amount_match(
-    req: Option<&AmountDescription>,
-    amount: Option<&NullableAmount>,
-) -> ParserResult<()> {
+pub fn amount_match(req: Option<&AmountDescription>, amount: Option<&Amount>) -> ParserResult<()> {
     let req = if let Some(req) = req {
         req
     } else {
@@ -253,7 +252,9 @@ pub fn amount_match(
     };
 
     let amount = amount.unwrap();
-    if amount.currency.is_none() || hash(amount.currency.as_ref()) != hash(req.currency.as_ref()) {
+    // TODO redundant check
+    // if amount.currency.is_none() ||
+    if hash(Some(&amount.currency)) != hash(req.currency.as_ref()) {
         Err(ParserError::String(format!(
             "{}: expected {:?} but got {:?}",
             MatchOperationsError::AmountMatchUnexpectedCurrency,
@@ -267,24 +268,23 @@ pub fn amount_match(
 
 #[allow(clippy::missing_docs_in_private_items)]
 pub fn coin_action_match(
-    required_action: NullableCoinAction,
-    coin_change: Option<&NullableCoinChange>,
+    required_action: CoinAction,
+    coin_change: Option<&CoinChange>,
 ) -> ParserResult<()> {
-    if required_action.is_empty() {
-        return Ok(());
-    }
+    // TODO redundant check
+    // if required_action.is_empty() {
+    //     return Ok(());
+    // }
 
     let coin_change = coin_change.ok_or(format!(
-        "{}: expected {}",
-        MatchOperationsError::CoinActionMatchCoinChangeIsNil,
-        required_action
+        "{}: expected {required_action}",
+        MatchOperationsError::CoinActionMatchCoinChangeIsNil
     ))?;
 
     if coin_change.coin_action != required_action {
         Err(ParserError::String(format!(
-            "{}: expected {} but got {}",
+            "{}: expected {required_action} but got {}",
             MatchOperationsError::CoinActionMatchUnexpectedCoinAction,
-            required_action,
             coin_change.coin_action
         )))
     } else {
@@ -292,84 +292,277 @@ pub fn coin_action_match(
     }
 }
 
-/// [`operation_match`] returns an error if a [`NullableOperation`] does not
+/// [`operation_match`] returns an error if a [`Operation`] does not
 /// match a [`OperationDescription`].
 pub fn operation_match(
-    operation: Option<&NullableOperation>,
-    descriptions: &[Option<Descriptions>],
-    matches: &[Option<Match>],
+    operation: Option<Operation>,
+    descriptions: &[Option<OperationDescription>],
+    matches: &mut [Option<Match>],
 ) -> bool {
-    todo!()
+    // TODO coinbase never checks for null here
+    let operation = operation.unwrap();
+    for (i, des) in descriptions.iter().enumerate() {
+        // TODO: coinbase never checks for null here
+        let des = des.as_ref().unwrap();
+        if (matches[i].is_some() && !des.allow_repeats)
+            || (!des.type_.is_empty() && des.type_ != operation.type_)
+            || account_match(des.account.as_ref(), operation.account.as_ref()).is_err()
+            || amount_match(des.amount.as_ref(), operation.amount.as_ref()).is_err()
+            || metadata_match(&des.metadata, &operation.metadata).is_err()
+            || coin_action_match(des.coin_action, operation.coin_change.as_ref()).is_err()
+        {
+            continue;
+        }
+
+        if matches[i].is_none() {
+            matches[i] = Some(Match::default());
+        }
+
+        if operation.amount.is_some() {
+            let val = if let Ok(v) = amount_value(operation.amount.as_ref()) {
+                v
+            } else {
+                continue;
+            };
+            matches[i].as_mut().unwrap().amounts.push(Some(val));
+        } else {
+            matches[i].as_mut().unwrap().amounts.push(None);
+        }
+
+        // Wait to add operation to matches in case that we "continue" when
+        // parsing `operation.amount`.
+        matches[i]
+            .as_mut()
+            .unwrap()
+            .operations
+            .push(Some(operation));
+        return true;
+    }
+    false
 }
 
 /// equalAmounts returns an error if a slice of operations do not have
 /// equal amounts.
-pub fn equal_amounts(ops: &[Option<NullableOperation>]) -> ParserResult<()> {
-    todo!()
+pub fn equal_amounts(ops: &[Option<&Operation>]) -> ParserResult<()> {
+    if ops.is_empty() {
+        Err(MatchOperationsError::EqualAmountsNoOperations)?;
+    }
+
+    // TODO coinbase never checks nil
+    let val = amount_value(ops[0].unwrap().amount.as_ref())?;
+
+    for op in ops {
+        // TODO coinbase never checks nil
+        let other_val = amount_value(op.unwrap().amount.as_ref())?;
+
+        if val != other_val {
+            Err(format!(
+                "{}: {val} is not equal to {other_val}",
+                MatchOperationsError::EqualAmountsNotEqual,
+            ))?;
+        }
+    }
+
+    Ok(())
 }
 
 /// oppositeAmounts returns an error if two operations do not have opposite
 /// amounts.
-pub fn opposite_amounts(
-    a: Option<&NullableOperation>,
-    b: Option<&NullableOperation>,
-) -> ParserResult<()> {
-    todo!()
+pub fn opposite_amounts(a: Option<&Operation>, b: Option<&Operation>) -> ParserResult<()> {
+    // TODO coinbase never checks nil
+    let a_val = amount_value(a.as_ref().unwrap().amount.as_ref())?;
+    // TODO coinbase never checks nil
+    let b_val = amount_value(b.as_ref().unwrap().amount.as_ref())?;
+
+    if a_val.sign() == b_val.sign() {
+        Err(format!(
+            "{}: {a_val} and {b_val}",
+            MatchOperationsError::OppositeAmountsSameSign,
+        ))?
+    } else if a_val.abs() != b_val.abs() {
+        Err(format!(
+            "{a_val}: {} and {b_val}",
+            MatchOperationsError::OppositeAmountsAbsValMismatch,
+        ))?
+    } else {
+        Ok(())
+    }
 }
 
 /// oppositeOrZeroAmounts returns an error if two operations do not have
 /// opposite amounts and both amounts are not zero.
-pub fn opposite_or_zero_amounts(
-    a: Option<&NullableOperation>,
-    b: Option<&NullableOperation>,
-) -> ParserResult<()> {
-    todo!()
+pub fn opposite_or_zero_amounts(a: Option<&Operation>, b: Option<&Operation>) -> ParserResult<()> {
+    // TODO coinbase never checks nil
+    let a_val = amount_value(a.as_ref().unwrap().amount.as_ref())?;
+    // TODO coinbase never checks nil
+    let b_val = amount_value(b.as_ref().unwrap().amount.as_ref())?;
+
+    if a_val.is_zero() && b_val.is_zero() {
+        Ok(())
+    } else if a_val.sign() == b_val.sign() {
+        Err(format!(
+            "{}: {a_val} and {b_val}",
+            MatchOperationsError::OppositeAmountsSameSign,
+        ))?
+    } else if a_val.abs() != b_val.abs() {
+        Err(format!(
+            "{}: {a_val} and {b_val}",
+            MatchOperationsError::OppositeAmountsAbsValMismatch,
+        ))?
+    } else {
+        Ok(())
+    }
 }
 
 /// equalAddresses returns an error if a slice of operations do not have
 /// equal addresses.
-pub fn equal_addresses(ops: &[Option<NullableOperation>]) -> ParserResult<()> {
-    todo!()
+pub fn equal_addresses(ops: &[Option<&Operation>]) -> ParserResult<()> {
+    if ops.len() <= 1 {
+        Err(format!(
+            "{}: got {} operations",
+            MatchOperationsError::EqualAddressesTooFewOperations,
+            ops.len()
+        ))?;
+    }
+
+    let mut base = "";
+
+    for op in ops {
+        // TODO coinbase never checks nil
+        let op = op.unwrap();
+        let account = op
+            .account
+            .as_ref()
+            .ok_or(MatchOperationsError::EqualAddressesAccountIsNil)?;
+
+        if base.is_empty() {
+            base = &account.address;
+            continue;
+        } else if base != account.address {
+            Err(format!(
+                "{}: {base} is not equal to {}",
+                MatchOperationsError::EqualAddressesAddrMismatch,
+                account.address
+            ))?;
+        }
+    }
+
+    Ok(())
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
-pub fn match_index_valid(matches: &[Match], index: usize) -> ParserResult<()> {
-    todo!()
+pub fn match_index_valid(matches: &[Option<Match>], index: usize) -> ParserResult<()> {
+    match matches.get(index) {
+        None => Err(format!(
+            "{}: at index {index}",
+            MatchOperationsError::MatchIndexValidIndexOutOfRange,
+        ))?,
+        Some(None) => Err(format!(
+            "{}: at index {index}",
+            MatchOperationsError::MatchIndexValidIndexIsNil,
+        ))?,
+        Some(Some(_)) => Ok(()),
+    }
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
 pub fn check_ops(
     requests: &[Vec<usize>],
     matches: &[Option<Match>],
-    valid: fn(&[Option<NullableOperation>]) -> ParserResult<()>,
+    valid: fn(&[Option<&Operation>]) -> ParserResult<()>,
 ) -> ParserResult<()> {
-    todo!()
+    for batch in requests {
+        let mut ops = Vec::new();
+        for req_index in batch {
+            match_index_valid(matches, *req_index)
+                .map_err(|e| format!("{e}: index {req_index} not valid"))?;
+
+            ops.extend(
+                matches[*req_index]
+                    .as_ref()
+                    .unwrap()
+                    .operations
+                    .iter()
+                    .map(|o| o.as_ref()),
+            )
+        }
+        valid(&ops).map_err(|e| format!("{e} operations not valid"))?;
+    }
+
+    Ok(())
 }
 
-/// [`compare_opposite_matches`] ensures collections of [`NullableOperation`]
+/// [`compare_opposite_matches`] ensures collections of [`Operation`]
 /// that may have opposite amounts contain valid matching amounts
 pub fn compare_opposite_matches(
     amount_pairs: &[Vec<usize>],
     matches: &[Option<Match>],
-    amount_checker: fn(Option<&NullableOperation>, Option<&NullableOperation>) -> ParserResult<()>,
+    amount_checker: fn(Option<&Operation>, Option<&Operation>) -> ParserResult<()>,
 ) -> ParserResult<()> {
-    todo!()
+    for amount_match in amount_pairs {
+        if amount_match.len() != AmountSign::OPPOSITES_LENGTH {
+            // cannot have opposites without exactly 2
+            Err(format!(
+                "cannot check opposites of {} operations",
+                amount_match.len()
+            ))?;
+        }
+
+        // compare all possible pairs
+        match_index_valid(matches, amount_match[0])
+            .map_err(|e| format!("{e}: amount comparison error"))?;
+        match_index_valid(matches, amount_match[1])
+            .map_err(|e| format!("{e}: amount comparison error"))?;
+
+        let match_0_ops = &matches[amount_match[0]].as_ref().unwrap().operations;
+        let match_1_ops = &matches[amount_match[1]].as_ref().unwrap().operations;
+        let eq_amounts = |ops: &[Option<Operation>], amount_match| {
+            let ops = ops.iter().map(|v| v.as_ref()).collect::<Vec<_>>();
+            equal_amounts(&ops).map_err(|e| {
+                format!("{e}: amounts comparison error for match index {amount_match}",)
+            })
+        };
+        eq_amounts(match_0_ops, amount_match[0])?;
+        eq_amounts(match_1_ops, amount_match[1])?;
+
+        // only need to check amount for the very first operation from each
+        // matched operations group since we made sure all amounts within the same
+        // matched operation group are the same
+        amount_checker(match_0_ops[0].as_ref(), match_1_ops[0].as_ref())
+            .map_err(|e| format!("{e}: amounts do not match the amount_checker function"))?;
+    }
+
+    Ok(())
 }
 
-/// [`comparison_matches`] ensures collections of [`NullableOperation`]
+/// [`comparison_matches`] ensures collections of [`Operation`]
 /// have either equal or opposite amounts.
 pub fn comparison_match(
     descriptions: Option<&Descriptions>,
-    matches: &[Match],
+    matches: &[Option<Match>],
 ) -> ParserResult<()> {
-    todo!()
+    let descriptions = descriptions.unwrap();
+    check_ops(&descriptions.equal_amounts, matches, equal_amounts)
+        .map_err(|e| format!("{e}: operation amounts not equal"))?;
+    check_ops(&descriptions.equal_addresses, matches, equal_addresses)
+        .map_err(|e| format!("{e}: operation addresses not equal"))?;
+    compare_opposite_matches(&descriptions.opposite_amounts, matches, opposite_amounts)
+        .map_err(|e| format!("{e}: operation amounts not opposite"))?;
+    compare_opposite_matches(
+        &descriptions.opposite_or_zero_amounts,
+        matches,
+        opposite_or_zero_amounts,
+    )
+    .map_err(|e| format!("{e}: both operation amounts not opposite and not zero"))?;
+    Ok(())
 }
 
-/// `Match` contains all [`NullableOperation`] matching a given
+/// `Match` contains all [`Operation`] matching a given
 /// [`OperationDescription`] and their parsed [`BigInt`] amounts (if populated).
+#[derive(Default, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct Match {
-    pub operations: Vec<Option<NullableOperation>>,
+    pub operations: Vec<Option<Operation>>,
     /// `amounts` has the same length as [`Operations`]. If an operation has
     /// a populate `amount`, its corresponding [`BigInt`] will be non-nil.
     pub amounts: Vec<Option<BigInt>>,
@@ -379,8 +572,13 @@ impl Match {
     /// `first` is a convenience method that returns the first matched operation
     /// and amount (if they exist). This is used when parsing matches when
     /// `allow_repeats` is set to false.
-    pub fn first(m: Option<&Self>) -> (Option<NullableOperation>, Option<BigInt>) {
-        todo!()
+    pub fn first(m: Option<&Self>) -> (Option<&Operation>, Option<&BigInt>) {
+        match m {
+            Some(m) if !m.operations.is_empty() => {
+                (m.operations[0].as_ref(), m.amounts[0].as_ref())
+            }
+            _ => (None, None),
+        }
     }
 }
 
@@ -390,7 +588,50 @@ impl Match {
 /// mapped to the order of the descriptions is returned.
 fn match_operations(
     descriptions: Option<&Descriptions>,
-    operations: &[Option<NullableOperation>],
+    operations: Vec<Option<Operation>>,
 ) -> ParserResult<Vec<Option<Match>>> {
-    todo!()
+    // TODO coinbase never checks nil
+    let descriptions = descriptions.unwrap();
+    if operations.is_empty() {
+        Err(MatchOperationsError::MatchOperationsNoOperations)?;
+    } else if descriptions.operation_descriptions.is_empty() {
+        Err(MatchOperationsError::MatchOperationsDescriptionsMissing)?;
+    }
+
+    let operation_descriptions = &descriptions.operation_descriptions;
+    let mut matches = vec![None; operation_descriptions.len()];
+
+    // Match an Operation to each OperationDescription
+    for (i, op) in operations.into_iter().enumerate() {
+        let match_found = operation_match(op, operation_descriptions, &mut matches);
+        if !match_found && descriptions.err_unmatched {
+            Err(format!(
+                "{}: at index {i}",
+                MatchOperationsError::MatchOperationsMatchNotFound,
+            ))?;
+        }
+    }
+
+    // Error if any OperationDescription is not matched
+    for (i, m) in matches.iter().enumerate() {
+        // TODO coinbase never checks nil
+        if m.is_none()
+            && !descriptions.operation_descriptions[i]
+                .as_ref()
+                .unwrap()
+                .optional
+        {
+            Err(format!(
+                "{}: {i}",
+                MatchOperationsError::MatchOperationsDescriptionNotMatched,
+            ))?;
+        }
+    }
+
+    // Once matches are found, assert high-level descriptions between
+    // Operations
+    comparison_match(Some(descriptions), &matches)
+        .map_err(|e| format!("{e}: group descriptions not met"))?;
+
+    Ok(matches)
 }

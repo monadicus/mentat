@@ -42,7 +42,8 @@ impl From<&str> for NullableOperator {
 
 /// [`Operator`] is used by query-related endpoints to determine how to apply
 /// conditions.
-#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum Operator {
     #[default]
     /// If all conditions are satisfied, it is considered a match.
@@ -66,6 +67,15 @@ impl From<Operator> for NullableOperator {
         match other {
             Operator::And => Self::AND.into(),
             Operator::Or => Self::OR.into(),
+        }
+    }
+}
+
+impl fmt::Display for Operator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Operator::And => write!(f, "and"),
+            Operator::Or => write!(f, "or"),
         }
     }
 }
