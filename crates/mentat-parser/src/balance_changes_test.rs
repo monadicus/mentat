@@ -124,7 +124,7 @@ fn test_balance_changes() {
         operations: vec![
             empty_account_and_amount,
             empty_amount,
-            recipient_operation.clone(),
+            recipient_operation,
             recipient_failure_operation,
         ],
         ..Default::default()
@@ -159,7 +159,7 @@ fn test_balance_changes() {
                 },
                 orphan: false,
                 changes: vec![BalanceChange {
-                    account: recipient,
+                    account: recipient.clone(),
                     currency: Some(currency.clone()),
                     block: BlockIdentifier {
                         hash: "1".into(),
@@ -192,9 +192,9 @@ fn test_balance_changes() {
                 changes: vec![],
             },
             asserter_extras: default_status.clone(),
-            parser_extras: Some(Box::new(|op: &Operation| {
-                hash(op.account.as_ref()) == hash(recipient_operation.clone().account.as_ref())
-            })),
+            parser_extras: Some(Box::new(move |op: &Operation| {
+                hash(op.account.as_ref()) == hash(recipient.as_ref())
+            }) as Box<_>),
             err: None,
         },
         CustomParserTest {
