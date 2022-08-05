@@ -8,24 +8,130 @@ struct FindExemptionsTest {
 
 #[test]
 fn test_find_exemptions() {
-    let tests = vec![CustomParserTest {
-        name: "no exemptions",
-        payload: FindExemptionsTest {
-            account: AccountIdentifier {
-                address: "test".into(),
-                ..Default::default()
+    let tests = vec![
+        CustomParserTest {
+            name: "no exemptions",
+            payload: FindExemptionsTest {
+                account: AccountIdentifier {
+                    address: "test".into(),
+                    ..Default::default()
+                },
+                currency: Some(Currency {
+                    symbol: "BTC".into(),
+                    decimals: 8,
+                    metadata: Default::default(),
+                }),
+                expected: Vec::new(),
             },
-            currency: Some(Currency {
-                symbol: "BTC".into(),
-                decimals: 8,
-                metadata: Default::default(),
-            }),
-            expected: Vec::new(),
+            asserter_extras: (),
+            parser_extras: Vec::new(),
+            err: None,
         },
-        asserter_extras: (),
-        parser_extras: Vec::new(),
-        err: None,
-    }];
+        CustomParserTest {
+            name: "no matching exemption",
+            payload: FindExemptionsTest {
+                account: AccountIdentifier {
+                    address: "test".into(),
+                    ..Default::default()
+                },
+                currency: Some(Currency {
+                    symbol: "BTC".into(),
+                    decimals: 8,
+                    metadata: Default::default(),
+                }),
+                expected: Vec::new(),
+            },
+            asserter_extras: (),
+            parser_extras: vec![BalanceExemption {
+                currency: Some(Currency {
+                    symbol: "BTC".into(),
+                    decimals: 7,
+                    metadata: Default::default(),
+                }),
+                exemption_type: Some(ExemptionType::Dynamic),
+                ..Default::default()
+            }],
+            err: None,
+        },
+        CustomParserTest {
+            name: "no matching exemptions",
+            payload: FindExemptionsTest {
+                account: AccountIdentifier {
+                    address: "test".into(),
+                    ..Default::default()
+                },
+                currency: Some(Currency {
+                    symbol: "BTC".into(),
+                    decimals: 8,
+                    metadata: Default::default(),
+                }),
+                expected: Vec::new(),
+            },
+            asserter_extras: (),
+            parser_extras: vec![
+                BalanceExemption {
+                    currency: Some(Currency {
+                        symbol: "BTC".into(),
+                        decimals: 7,
+                        metadata: Default::default(),
+                    }),
+                    exemption_type: Some(ExemptionType::Dynamic),
+                    ..Default::default()
+                },
+                BalanceExemption {
+                    sub_account_address: Some("hello".into()),
+                    exemption_type: Some(ExemptionType::Dynamic),
+                    ..Default::default()
+                },
+            ],
+            err: None,
+        },
+        CustomParserTest {
+            name: "currency match",
+            payload: FindExemptionsTest {
+                account: AccountIdentifier {
+                    address: "test".into(),
+                    sub_account: Some(SubAccountIdentifier {
+                        address: "blah".into(),
+                        metadata: Default::default(),
+                    }),
+                    ..Default::default()
+                },
+                currency: Some(Currency {
+                    symbol: "BTC".into(),
+                    decimals: 8,
+                    metadata: Default::default(),
+                }),
+                expected: vec![BalanceExemption {
+                    currency: Some(Currency {
+                        symbol: "BTC".into(),
+                        decimals: 8,
+                        metadata: Default::default(),
+                    }),
+                    exemption_type: Some(ExemptionType::Dynamic),
+                    ..Default::default()
+                }],
+            },
+            asserter_extras: (),
+            parser_extras: vec![
+                BalanceExemption {
+                    currency: Some(Currency {
+                        symbol: "BTC".into(),
+                        decimals: 8,
+                        metadata: Default::default(),
+                    }),
+                    exemption_type: Some(ExemptionType::Dynamic),
+                    ..Default::default()
+                },
+                BalanceExemption {
+                    sub_account_address: Some("hello".into()),
+                    exemption_type: Some(ExemptionType::Dynamic),
+                    ..Default::default()
+                },
+            ],
+            err: None,
+        },
+    ];
 
     CustomParserTest::run(
         tests,

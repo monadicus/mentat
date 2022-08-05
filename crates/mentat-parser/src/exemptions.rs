@@ -2,7 +2,7 @@
 
 use std::str::FromStr;
 
-use num_bigint_dig::BigInt;
+use num_bigint_dig::*;
 
 use super::*;
 
@@ -20,11 +20,11 @@ pub fn match_balance_exemption(
     };
 
     matched_exemptions.into_iter().find(|e| {
-        matches!(e.exemption_type, Some(ExemptionType::Dynamic))
+        (matches!(e.exemption_type, Some(ExemptionType::Dynamic)))
             || (matches!(e.exemption_type, Some(ExemptionType::GreaterOrEqual))
-                && big >= BigInt::from(0))
+                && matches!(big.sign(), Sign::Plus))
             || (matches!(e.exemption_type, Some(ExemptionType::LessOrEqual))
-                && big <= BigInt::from(0))
+                && matches!(big.sign(), Sign::Minus))
     })
 }
 
@@ -39,11 +39,11 @@ impl Parser {
         let mut matches = Vec::new();
 
         for be in self.balance_exemptions.iter() {
-            if be.currency.is_some() && hash(be.currency.as_ref()) != hash(currency) {
+            if be.currency.is_some() && hash(currency) != hash(be.currency.as_ref()) {
                 continue;
             }
 
-            if be.sub_account_address.is_some()
+            if (be.sub_account_address.is_some())
                 && (account.sub_account.is_none()
                     || be.sub_account_address
                         != account.sub_account.as_ref().map(|sa| sa.address.clone()))
