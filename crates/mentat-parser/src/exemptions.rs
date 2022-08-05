@@ -22,9 +22,9 @@ pub fn match_balance_exemption(
     matched_exemptions.into_iter().find(|e| {
         (matches!(e.exemption_type, Some(ExemptionType::Dynamic)))
             || (matches!(e.exemption_type, Some(ExemptionType::GreaterOrEqual))
-                && matches!(big.sign(), Sign::Plus))
+                && matches!(big.sign(), Sign::Plus | Sign::NoSign))
             || (matches!(e.exemption_type, Some(ExemptionType::LessOrEqual))
-                && matches!(big.sign(), Sign::Minus))
+                && matches!(big.sign(), Sign::Minus | Sign::NoSign))
     })
 }
 
