@@ -131,13 +131,13 @@ fn test_sort_operation_groups() {
 
 #[test]
 fn test_group_operations() {
-    let tests = [
-        EqualityTest {
+    let tests = vec![
+        FnTest {
             name: "no ops",
             payload: Transaction::default(),
-            res: Vec::new(),
+            result: Vec::new(),
         },
-        EqualityTest {
+        FnTest {
             name: "unrelated ops",
             payload: Transaction {
                 operations: vec![
@@ -175,7 +175,7 @@ fn test_group_operations() {
                 ],
                 ..Default::default()
             },
-            res: vec![
+            result: vec![
                 OperationGroup {
                     type_: "op 0".into(),
                     operations: vec![Operation {
@@ -227,7 +227,7 @@ fn test_group_operations() {
                 },
             ],
         },
-        EqualityTest {
+        FnTest {
             name: "related ops",
             payload: Transaction {
                 operations: vec![
@@ -322,7 +322,7 @@ fn test_group_operations() {
                 ],
                 ..Default::default()
             },
-            res: vec![
+            result: vec![
                 OperationGroup {
                     type_: "type 0".into(),
                     operations: vec![
@@ -446,5 +446,5 @@ fn test_group_operations() {
         },
     ];
 
-    EqualityTest::run(&tests, group_operations);
+    FnTest::run_output_match(tests, |t| group_operations(&t));
 }

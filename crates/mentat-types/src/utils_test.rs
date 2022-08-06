@@ -77,7 +77,7 @@ where
             .map(|test| {
                 print!("{test}: ");
                 let res = func(test.a, test.b);
-                assert_results_correct(&test.result, &res)
+                check_results_match(&test.result, &res)
             })
             .filter(|t| !t)
             .count();
@@ -202,16 +202,16 @@ fn test_negative_value() {
 
 #[test]
 fn test_get_account_string() {
-    let tests = &[
-        EqualityTest {
+    let tests = vec![
+        FnTest {
             name: "simple account",
             payload: AccountIdentifier {
                 address: "hello".into(),
                 ..Default::default()
             },
-            res: "hello".to_string(),
+            result: "hello".to_string(),
         },
-        EqualityTest {
+        FnTest {
             name: "subaccount",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -221,9 +221,9 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            res: "hello:stake".to_string(),
+            result: "hello:stake".to_string(),
         },
-        EqualityTest {
+        FnTest {
             name: "subaccount with string metadata",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -233,9 +233,9 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            res: "hello:stake:{\"cool\": String(\"neat\")}".to_string(),
+            result: "hello:stake:{\"cool\": String(\"neat\")}".to_string(),
         },
-        EqualityTest {
+        FnTest {
             name: "subaccount with number metadata",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -245,9 +245,9 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            res: "hello:stake:{\"cool\": Number(1)}".to_string(),
+            result: "hello:stake:{\"cool\": Number(1)}".to_string(),
         },
-        EqualityTest {
+        FnTest {
             name: "subaccount with complex metadata",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -257,44 +257,44 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            res: "hello:stake:{\"cool\": Number(1), \"awesome\": String(\"neat\")}".to_string(),
+            result: "hello:stake:{\"cool\": Number(1), \"awesome\": String(\"neat\")}".to_string(),
         },
     ];
 
-    EqualityTest::run(tests, account_string);
+    FnTest::run_output_match(tests, |t| account_string(&t));
 }
 
 #[test]
 fn test_currency_string() {
-    let tests = &[
-        EqualityTest {
+    let tests = vec![
+        FnTest {
             name: "simple currency",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
                 decimals: 8,
                 ..Default::default()
             },
-            res: "BTC:8".to_string(),
+            result: "BTC:8".to_string(),
         },
-        EqualityTest {
+        FnTest {
             name: "currency with string metadata",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
                 decimals: 8,
                 metadata: [("issuer".into(), "satoshi".into())].into(),
             },
-            res: "BTC:8:{\"issuer\": String(\"satoshi\")}".to_string(),
+            result: "BTC:8:{\"issuer\": String(\"satoshi\")}".to_string(),
         },
-        EqualityTest {
+        FnTest {
             name: "currency with number metadata",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
                 decimals: 8,
                 metadata: [("issuer".into(), 1.into())].into(),
             },
-            res: "BTC:8:{\"issuer\": Number(1)}".to_string(),
+            result: "BTC:8:{\"issuer\": Number(1)}".to_string(),
         },
-        EqualityTest {
+        FnTest {
             name: "currency with complex metadata",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
@@ -305,56 +305,56 @@ fn test_currency_string() {
                 ]
                 .into(),
             },
-            res: "BTC:8:{\"issuer\": String(\"satoshi\"), \"count\": Number(10)}".to_string(),
+            result: "BTC:8:{\"issuer\": String(\"satoshi\"), \"count\": Number(10)}".to_string(),
         },
     ];
 
-    EqualityTest::run(tests, currency_string);
+    FnTest::run_output_match(tests, |t| currency_string(&t));
 }
 
 #[test]
 fn test_amount_value() {
-    let tests = &[
-        EqualityTest {
+    let tests = vec![
+        FnTest {
             name: "positive integer",
             payload: Some(Amount {
                 value: "100".into(),
                 ..Default::default()
             }),
-            res: Ok(100.into()),
+            result: Ok(100.into()),
         },
-        EqualityTest {
+        FnTest {
             name: "negative integer",
             payload: Some(Amount {
                 value: "-100".into(),
                 ..Default::default()
             }),
-            res: Ok((-100).into()),
+            result: Ok((-100).into()),
         },
-        EqualityTest {
+        FnTest {
             name: "nil",
             payload: None,
-            res: Err("amount value cannot be nil".to_string()),
+            result: Err("amount value cannot be nil".to_string()),
         },
-        EqualityTest {
+        FnTest {
             name: "float",
             payload: Some(Amount {
                 value: "100.1".into(),
                 ..Default::default()
             }),
-            res: Err("100.1 is not an integer".to_string()),
+            result: Err("100.1 is not an integer".to_string()),
         },
-        EqualityTest {
+        FnTest {
             name: "not number",
             payload: Some(Amount {
                 value: "hello".into(),
                 ..Default::default()
             }),
-            res: Err("hello is not an integer".to_string()),
+            result: Err("hello is not an integer".to_string()),
         },
     ];
 
-    EqualityTest::run(tests, |p| amount_value(p.as_ref()));
+    FnTest::run_result_match(tests, |p| amount_value(p.as_ref()));
 }
 
 #[test]

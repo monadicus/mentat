@@ -7,44 +7,6 @@ pub trait Test<Input>: core::fmt::Display + Sized {
     fn run(tests: &[Self], input: Input);
 }
 
-pub struct EqualityTest<P, R> {
-    pub name: &'static str,
-    pub payload: P,
-    pub res: R,
-}
-
-impl<P, Input, R> Test<Input> for EqualityTest<P, R>
-where
-    Input: FnMut(&P) -> R,
-    R: Eq + fmt::Debug,
-{
-    fn run(tests: &[Self], mut func: Input) {
-        let failed = tests
-            .iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(&test.payload);
-                if test.res != res {
-                    println!("test returned wrong value: `{:?}` != `{:?}`", test.res, res);
-                    false
-                } else {
-                    println!("ok!");
-                    true
-                }
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, tests.len());
-    }
-}
-
-impl<P, R> fmt::Display for EqualityTest<P, R> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "test `{}`", self.name)
-    }
-}
-
 pub struct ErrorTest {
     pub name: &'static str,
     pub err: Box<dyn std::error::Error>,
@@ -85,6 +47,102 @@ impl fmt::Display for ErrorTest {
     }
 }
 
+pub struct FnTest<Payload, Res> {
+    pub name: &'static str,
+    pub payload: Payload,
+    pub result: Res,
+}
+
+impl<Payload, Res> FnTest<Payload, Res> {
+    pub fn run_is_err<F, Ok, Err>(tests: Vec<Self>, func: F)
+    where
+        Res: PartialEq<bool>,
+        F: Fn(Payload) -> Result<Ok, Err>,
+        Ok: fmt::Debug,
+        Err: Error,
+    {
+        let len = tests.len();
+        let failed = tests
+            .into_iter()
+            .map(|test| {
+                print!("{test}: ");
+                let res = func(test.payload);
+                check_is_err(test.result, &res)
+            })
+            .filter(|t| !t)
+            .count();
+
+        status_message(failed, len);
+    }
+
+    pub fn run_err_match<F, Ok, Err>(tests: Vec<Self>, func: F)
+    where
+        Res: Into<Option<Err>>,
+        F: Fn(Payload) -> Result<Ok, Err>,
+        Ok: fmt::Debug,
+        Err: fmt::Display,
+    {
+        let len = tests.len();
+        let failed = tests
+            .into_iter()
+            .map(|test| {
+                print!("{test}: ");
+                let res = func(test.payload);
+                check_err_match(&test.result.into(), &res)
+            })
+            .filter(|t| !t)
+            .count();
+
+        status_message(failed, len);
+    }
+
+    pub fn run_result_match<F, Ok, Err>(tests: Vec<Self>, func: F)
+    where
+        Res: Into<Result<Ok, Err>>,
+        F: Fn(Payload) -> Res,
+        Ok: fmt::Debug + PartialEq,
+        Err: fmt::Debug + PartialEq,
+    {
+        let len = tests.len();
+        let failed = tests
+            .into_iter()
+            .map(|test| {
+                print!("{test}: ");
+                let res = func(test.payload);
+                check_results_match(&test.result.into(), &res.into())
+            })
+            .filter(|t| !t)
+            .count();
+
+        status_message(failed, len);
+    }
+
+    pub fn run_output_match<F>(tests: Vec<Self>, func: F)
+    where
+        Res: PartialEq + fmt::Debug,
+        F: Fn(Payload) -> Res,
+    {
+        let len = tests.len();
+        let failed = tests
+            .into_iter()
+            .map(|test| {
+                print!("{test}: ");
+                let res = func(test.payload);
+                check_output_match(&test.result, &res)
+            })
+            .filter(|t| !t)
+            .count();
+
+        status_message(failed, len);
+    }
+}
+
+impl<Payload, Res> fmt::Display for FnTest<Payload, Res> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "test `{}`", self.name)
+    }
+}
+
 pub fn status_message(failed: usize, total: usize) {
     if failed == 0 {
         println!("all passed!")
@@ -93,21 +151,58 @@ pub fn status_message(failed: usize, total: usize) {
     }
 }
 
-pub fn assert_results_correct<T, E>(expected: &Result<T, E>, res: &Result<T, E>) -> bool
+pub fn check_is_err<B, T, E>(err: B, res: &Result<T, E>) -> bool
 where
-    T: fmt::Display + Eq,
-    E: fmt::Display + Eq,
+    B: PartialEq<bool>,
+    T: fmt::Debug,
+    E: Error,
+{
+    if err == res.is_err() {
+        println!("ok!");
+        true
+    } else if err == true {
+        println!(
+            "test passed when it shouldn't have. returned error `{}`",
+            res.as_ref().unwrap_err()
+        );
+        false
+    } else {
+        println!(
+            "test failed when it shouldnt have. returned result `{:?}`",
+            res.as_ref().unwrap()
+        );
+        false
+    }
+}
+
+pub fn check_output_match<T>(expected: &T, res: &T) -> bool
+where
+    T: fmt::Debug + PartialEq,
+{
+    if expected == res {
+        println!("ok!");
+        true
+    } else {
+        println!("test returned wrong value: `{expected:?}` != `{res:?}`");
+        false
+    }
+}
+
+pub fn check_results_match<T, E>(expected: &Result<T, E>, res: &Result<T, E>) -> bool
+where
+    T: fmt::Debug + PartialEq,
+    E: fmt::Debug + PartialEq,
 {
     match (expected, res) {
         (Err(expected), Ok(res)) => {
             println!(
-                "test passed when it shouldn't have. returned value: `{res}`, but expected err: `{expected}`"
+                "test passed when it shouldn't have. returned value: `{res:?}`, but expected err: `{expected:?}`"
             );
             false
         }
         (Ok(expected), Err(res)) => {
             println!(
-                "test failed when it shouldn't have. returned error: `{res}`, but expected valued `{expected}`"
+                "test failed when it shouldn't have. returned error: `{res:?}`, but expected valued `{expected:?}`"
             );
             false
         }
@@ -118,9 +213,9 @@ where
     }
 }
 
-pub fn check_test_result<T, E>(err: &Option<E>, res: &Result<T, E>) -> bool
+pub fn check_err_match<T, E>(err: &Option<E>, res: &Result<T, E>) -> bool
 where
-    E: Error,
+    E: fmt::Display,
 {
     match (res, err) {
         (Err(err), Some(exp)) if !err.to_string().contains(&exp.to_string()) => {

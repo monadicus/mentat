@@ -2,23 +2,23 @@ use super::*;
 
 #[test]
 fn test_events_block_response() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "no events",
-            payload: Some(Default::default()),
-            err: None,
+            payload: Default::default(),
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid max",
-            payload: Some(NullableEventsBlocksResponse {
+            payload: NullableEventsBlocksResponse {
                 max_sequence: -1,
                 events: Vec::new(),
-            }),
-            err: Some(EventError::MaxSequenceInvalid.into()),
+            },
+            result: Some(EventError::MaxSequenceInvalid.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "valid event",
-            payload: Some(NullableEventsBlocksResponse {
+            payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
                     Some(NullableBlockEvent {
@@ -38,12 +38,12 @@ fn test_events_block_response() {
                         type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
-            }),
-            err: None,
+            },
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid identifier",
-            payload: Some(NullableEventsBlocksResponse {
+            payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
                     Some(NullableBlockEvent {
@@ -63,12 +63,12 @@ fn test_events_block_response() {
                         type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
-            }),
-            err: Some(BlockError::BlockIdentifierHashMissing.into()),
+            },
+            result: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid event type",
-            payload: Some(NullableEventsBlocksResponse {
+            payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
                     Some(NullableBlockEvent {
@@ -88,12 +88,12 @@ fn test_events_block_response() {
                         type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
-            }),
-            err: Some(EventError::BlockEventTypeInvalid.into()),
+            },
+            result: Some(EventError::BlockEventTypeInvalid.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "gap events",
-            payload: Some(NullableEventsBlocksResponse {
+            payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
                     Some(NullableBlockEvent {
@@ -113,12 +113,12 @@ fn test_events_block_response() {
                         type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
-            }),
-            err: Some(EventError::SequenceOutOfOrder.into()),
+            },
+            result: Some(EventError::SequenceOutOfOrder.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "gap events",
-            payload: Some(NullableEventsBlocksResponse {
+            payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
                     Some(NullableBlockEvent {
@@ -138,10 +138,10 @@ fn test_events_block_response() {
                         type_: NullableBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
-            }),
-            err: Some(EventError::SequenceInvalid.into()),
+            },
+            result: Some(EventError::SequenceInvalid.into()),
         },
     ];
 
-    AsserterTest::run(&tests, events_blocks_response);
+    FnTest::run_err_match(tests, |t| events_blocks_response(Some(&t)));
 }

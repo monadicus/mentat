@@ -234,7 +234,7 @@ fn test_new() {
     });
 
     let tests = [
-        AsserterTest {
+        FnTest {
             name: "valid responses",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -243,9 +243,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid responses (with sync status)",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -254,9 +254,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid responses (with start index)",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -265,9 +265,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid network status",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -276,9 +276,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("BlockIdentifier is nil".into()),
+            result: Some("BlockIdentifier is nil".into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid network status (with sync status)",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -287,9 +287,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: true,
             }),
-            err: Some("SyncStatus.CurrentIndex is negative".into()),
+            result: Some("SyncStatus.CurrentIndex is negative".into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid network options",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -298,9 +298,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("no Allow.OperationStatuses found".into()),
+            result: Some("no Allow.OperationStatuses found".into()),
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate operation statuses",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -309,9 +309,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("Allow.OperationStatuses contains a duplicate Success".into()),
+            result: Some("Allow.OperationStatuses contains a duplicate Success".into()),
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate operation types",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -320,9 +320,9 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("Allow.OperationTypes contains a duplicate Transfer".into()),
+            result: Some("Allow.OperationTypes contains a duplicate Transfer".into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid start index",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -331,7 +331,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            err: Some("TimestampStartIndex is invalid: -1".into()),
+            result: Some("TimestampStartIndex is invalid: -1".into()),
         },
     ];
 
@@ -346,8 +346,8 @@ fn test_new() {
             payload.validation_file_path.as_ref(),
         );
 
-        if test.err.is_some() {
-            assert!(check_test_result(&test.err, &res));
+        if test.result.is_some() {
+            assert!(check_err_match(&test.result, &res));
         } else {
             let asserter = res.unwrap();
 
@@ -468,9 +468,9 @@ fn test_new() {
 
             let asserter = Configuration::new_client_with_file(&tmp_file_path);
 
-            if let Some(e) = test.err {
+            if let Some(e) = test.result {
                 let err = asserter.unwrap_err();
-                assert!(check_test_result::<(), _>(&Some(err), &Err(e)))
+                assert!(check_err_match::<(), _>(&Some(err), &Err(e)))
             } else {
                 let configuration = asserter.unwrap().client_configuration().unwrap();
                 assert_eq!(payload.network, configuration.network_identifier);

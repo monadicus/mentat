@@ -2,37 +2,6 @@ use std::fmt;
 
 use super::*;
 
-pub(crate) struct AsserterTest<P> {
-    pub name: &'static str,
-    pub payload: Option<P>,
-    pub err: Option<AsserterError>,
-}
-
-impl<P, Input, O> Test<Input> for AsserterTest<P>
-where
-    Input: FnMut(Option<&P>) -> AssertResult<O>,
-{
-    fn run(tests: &[Self], mut func: Input) {
-        let failed = tests
-            .iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(test.payload.as_ref());
-                check_test_result(&test.err, &res)
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, tests.len());
-    }
-}
-
-impl<P> fmt::Display for AsserterTest<P> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "test `{}`", self.name)
-    }
-}
-
 pub(crate) struct AsserterRequestDefaultTest<P> {
     pub name: &'static str,
     pub payload: Option<P>,
@@ -51,7 +20,7 @@ where
             .map(|test| {
                 print!("{test}: ");
                 let res = func(&asserter, test.payload.as_ref());
-                check_test_result(&test.err, &res)
+                check_err_match(&test.err, &res)
             })
             .filter(|t| !t)
             .count();
@@ -85,7 +54,7 @@ impl<P, E> CustomAsserterTest<P, E> {
                 print!("{test}: ");
                 let asserter = asserter(&test.extras);
                 let res = func(&asserter, test.payload.as_ref());
-                check_test_result(&test.err, &res)
+                check_err_match(&test.err, &res)
             })
             .filter(|t| !t)
             .count();

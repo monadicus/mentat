@@ -234,16 +234,15 @@ struct NewWithOptionsTest {
 }
 
 impl NewWithOptionsTest {
-    fn run(&self) -> AssertResult<Asserter> {
+    fn run(self) -> AssertResult<Asserter> {
         Asserter::new_server(
-            self.supported_operation_types.clone(),
+            self.supported_operation_types,
             true,
             self.supported_networks
-                .clone()
                 .into_iter()
                 .map(|ni| ni.ok_or(NetworkError::NetworkIdentifierIsNil))
                 .collect::<Result<_, _>>()?,
-            self.call_methods.clone(),
+            self.call_methods,
             false,
             None,
         )
@@ -262,91 +261,91 @@ impl Default for NewWithOptionsTest {
 
 #[test]
 fn test_new_with_options() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "basic",
-            payload: Some(Default::default()),
-            err: None,
+            payload: Default::default(),
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "no call methods",
-            payload: Some(NewWithOptionsTest {
+            payload: NewWithOptionsTest {
                 call_methods: vec![],
                 ..Default::default()
-            }),
-            err: None,
+            },
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate operation types",
-            payload: Some(NewWithOptionsTest {
+            payload: NewWithOptionsTest {
                 supported_operation_types: vec!["PAYMENT".into(), "PAYMENT".into()],
                 ..Default::default()
-            }),
-            err: Some("Allow.OperationTypes contains a duplicate PAYMENT".into()),
+            },
+            result: Some("Allow.OperationTypes contains a duplicate PAYMENT".into()),
         },
-        AsserterTest {
+        FnTest {
             name: "empty operation type",
-            payload: Some(NewWithOptionsTest {
+            payload: NewWithOptionsTest {
                 supported_operation_types: vec!["PAYMENT".into(), "".into()],
                 ..Default::default()
-            }),
-            err: Some("Allow.OperationTypes has an empty string".into()),
+            },
+            result: Some("Allow.OperationTypes has an empty string".into()),
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate network identifier",
-            payload: Some(NewWithOptionsTest {
+            payload: NewWithOptionsTest {
                 supported_networks: vec![valid_network_identifier(), valid_network_identifier()],
                 ..Default::default()
-            }),
-            err: Some(ServerError::SupportedNetworksDuplicate.into()),
+            },
+            result: Some(ServerError::SupportedNetworksDuplicate.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "nil network identifier",
-            payload: Some(NewWithOptionsTest {
+            payload: NewWithOptionsTest {
                 supported_networks: vec![valid_network_identifier(), None],
                 ..Default::default()
-            }),
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            },
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "no supported networks",
-            payload: Some(NewWithOptionsTest {
+            payload: NewWithOptionsTest {
                 supported_networks: vec![],
                 ..Default::default()
-            }),
-            err: Some(ServerError::NoSupportedNetworks.into()),
+            },
+            result: Some(ServerError::NoSupportedNetworks.into()),
         },
     ];
 
-    AsserterTest::run(&tests, |t| t.unwrap().run());
+    FnTest::run_err_match(tests, NewWithOptionsTest::run);
 }
 
 #[test]
 fn test_supported_networks() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid networks",
-            payload: Some(vec![valid_network_identifier(), wrong_network_identifier()]),
-            err: None,
+            payload: vec![valid_network_identifier(), wrong_network_identifier()],
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "no valid networks",
-            payload: Some(Default::default()),
-            err: Some(ServerError::NoSupportedNetworks.into()),
+            payload: Default::default(),
+            result: Some(ServerError::NoSupportedNetworks.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid networks",
-            payload: Some(vec![Some(NetworkIdentifier {
+            payload: vec![Some(NetworkIdentifier {
                 blockchain: "blah".into(),
                 network: "".into(),
                 sub_network_identifier: None,
-            })]),
-            err: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
+            })],
+            result: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate networks",
-            payload: Some(vec![valid_network_identifier(), valid_network_identifier()]),
-            err: Some(
+            payload: vec![valid_network_identifier(), valid_network_identifier()],
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::SupportedNetworksDuplicate,
@@ -357,8 +356,7 @@ fn test_supported_networks() {
         },
     ];
 
-    // TODO: remove Some
-    AsserterTest::run(&tests, |test| supported_networks(test.unwrap()));
+    FnTest::run_err_match(tests, |test| supported_networks(&test));
 }
 
 #[test]

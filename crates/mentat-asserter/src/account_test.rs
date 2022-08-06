@@ -8,8 +8,8 @@ struct ContainsCurrencyTest {
 
 #[test]
 fn test_contains_currency() {
-    let tests = [
-        EqualityTest {
+    let tests = vec![
+        FnTest {
             name: "simple contains",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -23,9 +23,9 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            res: true,
+            result: true,
         },
-        EqualityTest {
+        FnTest {
             name: "complex contains",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -39,9 +39,9 @@ fn test_contains_currency() {
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 },
             },
-            res: true,
+            result: true,
         },
-        EqualityTest {
+        FnTest {
             name: "more complex contains",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -55,9 +55,9 @@ fn test_contains_currency() {
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 },
             },
-            res: true,
+            result: true,
         },
-        EqualityTest {
+        FnTest {
             name: "empty",
             payload: ContainsCurrencyTest {
                 currencies: Vec::new(),
@@ -67,9 +67,9 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            res: false,
+            result: false,
         },
-        EqualityTest {
+        FnTest {
             name: "symbol mismatch",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -83,9 +83,9 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            res: false,
+            result: false,
         },
-        EqualityTest {
+        FnTest {
             name: "decimal mismatch",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -99,9 +99,9 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            res: false,
+            result: false,
         },
-        EqualityTest {
+        FnTest {
             name: "metadata mismatch",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -115,19 +115,19 @@ fn test_contains_currency() {
                     metadata: indexmap!("blah".to_string() => json!("bye")),
                 },
             },
-            res: false,
+            result: false,
         },
     ];
 
-    EqualityTest::run(&tests, |test| {
+    FnTest::run_output_match(tests, |test| {
         contains_currency(&test.currencies, &test.currency)
     });
 }
 
 #[test]
 fn test_contains_duplicate_currency() {
-    let tests = [
-        EqualityTest {
+    let tests = vec![
+        FnTest {
             name: "simple contains",
             payload: vec![
                 Some(NullableCurrency {
@@ -141,9 +141,9 @@ fn test_contains_duplicate_currency() {
                     metadata: Default::default(),
                 }),
             ],
-            res: true,
+            result: true,
         },
-        EqualityTest {
+        FnTest {
             name: "complex contains",
             payload: vec![
                 Some(NullableCurrency {
@@ -157,9 +157,9 @@ fn test_contains_duplicate_currency() {
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }),
             ],
-            res: true,
+            result: true,
         },
-        EqualityTest {
+        FnTest {
             name: "more complex contains",
             payload: vec![
                 Some(NullableCurrency {
@@ -173,14 +173,14 @@ fn test_contains_duplicate_currency() {
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 }),
             ],
-            res: true,
+            result: true,
         },
-        EqualityTest {
+        FnTest {
             name: "empty",
             payload: Vec::new(),
-            res: false,
+            result: false,
         },
-        EqualityTest {
+        FnTest {
             name: "symbol mismatch",
             payload: vec![
                 Some(NullableCurrency {
@@ -194,9 +194,9 @@ fn test_contains_duplicate_currency() {
                     metadata: Default::default(),
                 }),
             ],
-            res: false,
+            result: false,
         },
-        EqualityTest {
+        FnTest {
             name: "decimal mismatch",
             payload: vec![
                 Some(NullableCurrency {
@@ -210,9 +210,9 @@ fn test_contains_duplicate_currency() {
                     metadata: Default::default(),
                 }),
             ],
-            res: false,
+            result: false,
         },
-        EqualityTest {
+        FnTest {
             name: "metadata mismatch",
             payload: vec![
                 Some(NullableCurrency {
@@ -226,11 +226,11 @@ fn test_contains_duplicate_currency() {
                     metadata: indexmap!("blah".to_string() => json!("bye")),
                 }),
             ],
-            res: false,
+            result: false,
         },
     ];
 
-    EqualityTest::run(&tests, |test| {
+    FnTest::run_output_match(tests, |test| {
         contains_duplicate_currency(&test.iter().map(|t| t.as_ref()).collect::<Vec<_>>()).is_some()
     });
 }
@@ -244,7 +244,7 @@ struct AccountBalanceTest {
 }
 
 impl AccountBalanceTest {
-    fn run(&self) -> AssertResult<()> {
+    fn run(self) -> AssertResult<()> {
         account_balance_response(
             self.request_block.as_ref(),
             &NullableAccountBalanceResponse {
@@ -280,46 +280,46 @@ fn test_account_balance() {
         metadata: Default::default(),
     });
 
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "simple balance",
-            payload: Some(AccountBalanceTest {
+            payload: AccountBalanceTest {
                 request_block: None,
                 response_block: valid_block.clone(),
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
-            }),
-            err: None,
+            },
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid block",
-            payload: Some(AccountBalanceTest {
+            payload: AccountBalanceTest {
                 request_block: None,
                 response_block: invalid_block,
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
-            }),
-            err: Some(AsserterError::from(format!(
+            },
+            result: Some(AsserterError::from(format!(
                 "{}: block identifier is invalid",
                 BlockError::BlockIdentifierHashMissing
             ))),
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate currency",
-            payload: Some(AccountBalanceTest {
+            payload: AccountBalanceTest {
                 request_block: None,
                 response_block: valid_block.clone(),
                 balances: vec![valid_amt.clone(), valid_amt.clone()],
                 _metadata: Default::default(),
-            }),
-            err: Some(AsserterError::from(format!(
+            },
+            result: Some(AsserterError::from(format!(
                 "currency {:?} used multiple times: balance amounts are invalid",
                 &valid_amt.as_ref().unwrap().currency
             ))),
         },
-        AsserterTest {
+        FnTest {
             name: "valid historical request index",
-            payload: Some(AccountBalanceTest {
+            payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
                     index: Some(valid_block.index),
                     hash: None,
@@ -327,12 +327,12 @@ fn test_account_balance() {
                 response_block: valid_block.clone(),
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
-            }),
-            err: None,
+            },
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid historical request hash",
-            payload: Some(AccountBalanceTest {
+            payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
                     index: None,
                     hash: Some(valid_block.hash.clone()),
@@ -340,12 +340,12 @@ fn test_account_balance() {
                 response_block: valid_block.clone(),
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
-            }),
-            err: None,
+            },
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid historical request index",
-            payload: Some(AccountBalanceTest {
+            payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
                     index: Some(invalid_index),
                     hash: Some(valid_block.hash.clone()),
@@ -353,16 +353,16 @@ fn test_account_balance() {
                 response_block: valid_block.clone(),
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
-            }),
-            err: Some(AsserterError::from(format!(
+            },
+            result: Some(AsserterError::from(format!(
                 "{}: requested block index {invalid_index} but got {}",
                 AccountBalanceError::ReturnedBlockIndexMismatch,
                 valid_block.index,
             ))),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid historical request hash",
-            payload: Some(AccountBalanceTest {
+            payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
                     index: Some(valid_block.index),
                     hash: Some(invalid_hash.to_string()),
@@ -370,8 +370,8 @@ fn test_account_balance() {
                 response_block: valid_block.clone(),
                 balances: vec![valid_amt],
                 _metadata: Default::default(),
-            }),
-            err: Some(AsserterError::from(format!(
+            },
+            result: Some(AsserterError::from(format!(
                 "{}: requested block hash {invalid_hash} but got {}",
                 AccountBalanceError::ReturnedBlockHashMismatch,
                 valid_block.hash,
@@ -379,5 +379,5 @@ fn test_account_balance() {
         },
     ];
 
-    AsserterTest::run(&tests, |t| t.unwrap().run());
+    FnTest::run_err_match(tests, AccountBalanceTest::run);
 }

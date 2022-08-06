@@ -2,40 +2,40 @@ use super::*;
 
 #[test]
 fn test_network_identifier() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
                 network: "mainnet".into(),
                 sub_network_identifier: Default::default(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "nil network",
             payload: None,
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid blockchain",
             payload: Some(NetworkIdentifier {
                 blockchain: Default::default(),
                 network: "mainnet".into(),
                 sub_network_identifier: Default::default(),
             }),
-            err: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
+            result: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
                 network: Default::default(),
                 sub_network_identifier: Default::default(),
             }),
-            err: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
+            result: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "valid sub_network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
@@ -45,20 +45,20 @@ fn test_network_identifier() {
                     metadata: Default::default(),
                 }),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid sub_network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
                 network: "mainnet".into(),
                 sub_network_identifier: Some(Default::default()),
             }),
-            err: Some(NetworkError::SubNetworkIdentifierInvalid.into()),
+            result: Some(NetworkError::SubNetworkIdentifierInvalid.into()),
         },
     ];
 
-    AsserterTest::run(&tests, network_identifier);
+    FnTest::run_err_match(tests, |t| network_identifier(t.as_ref()));
 }
 
 #[test]
@@ -68,17 +68,17 @@ fn test_version() {
     let rosetta_version = "1.4.0".to_string();
     let node_version = "1.0".to_string();
 
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid version",
             payload: Some(Version {
                 rosetta_version: rosetta_version.clone(),
                 node_version: node_version.clone(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid version with middleware",
             payload: Some(Version {
                 rosetta_version: rosetta_version.clone(),
@@ -86,32 +86,32 @@ fn test_version() {
                 middleware_version,
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "old RosettaVersion",
             payload: Some(Version {
                 rosetta_version: "1.2.0".to_string(),
                 node_version: node_version.clone(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "nil version",
             payload: None,
-            err: Some(NetworkError::VersionIsNil.into()),
+            result: Some(NetworkError::VersionIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid NodeVersion",
             payload: Some(Version {
                 rosetta_version: rosetta_version.clone(),
                 node_version: String::new(),
                 ..Default::default()
             }),
-            err: Some(NetworkError::VersionNodeVersionMissing.into()),
+            result: Some(NetworkError::VersionNodeVersionMissing.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid MiddlewareVersion",
             payload: Some(Version {
                 rosetta_version,
@@ -119,11 +119,11 @@ fn test_version() {
                 middleware_version: invalid_middleware_version,
                 ..Default::default()
             }),
-            err: Some(NetworkError::VersionMiddlewareVersionMissing.into()),
+            result: Some(NetworkError::VersionMiddlewareVersionMissing.into()),
         },
     ];
 
-    AsserterTest::run(&tests, version);
+    FnTest::run_err_match(tests, |t| version(t.as_ref()));
 }
 
 #[test]
@@ -152,17 +152,17 @@ fn test_allow() {
     let neg_index = Some(-1);
     let index = Some(100);
 
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid Allow",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid Allow with call methods and exemptions",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -173,9 +173,9 @@ fn test_allow() {
                 timestamp_start_index: index,
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid Allow with exemptions and no historical",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -184,9 +184,9 @@ fn test_allow() {
                 balance_exemptions: balance_exemptions.clone(),
                 ..Default::default()
             }),
-            err: Some(NetworkError::BalanceExemptionNoHistoricalLookup.into()),
+            result: Some(NetworkError::BalanceExemptionNoHistoricalLookup.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid timestamp start index",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -194,41 +194,41 @@ fn test_allow() {
                 timestamp_start_index: neg_index,
                 ..Default::default()
             }),
-            err: Some(NetworkError::TimestampStartIndexInvalid.into()),
+            result: Some(NetworkError::TimestampStartIndexInvalid.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "nil Allow",
             payload: None,
-            err: Some(NetworkError::AllowIsNil.into()),
+            result: Some(NetworkError::AllowIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "no OperationStatuses",
             payload: Some(NullableAllow {
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
-            err: Some(NetworkError::NoAllowedOperationStatuses.into()),
+            result: Some(NetworkError::NoAllowedOperationStatuses.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "no successful OperationStatuses",
             payload: Some(NullableAllow {
                 operation_statuses: vec![operation_statuses[1].clone()],
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
-            err: Some(NetworkError::NoSuccessfulAllowedOperationStatuses.into()),
+            result: Some(NetworkError::NoSuccessfulAllowedOperationStatuses.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "no OperationTypes",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
                 ..Default::default()
             }),
-            err: Some(AsserterError::from(
+            result: Some(AsserterError::from(
                 "no Allow.OperationTypes found".to_string(),
             )),
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate call methods",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -237,11 +237,11 @@ fn test_allow() {
                 balance_exemptions,
                 ..Default::default()
             }),
-            err: Some(AsserterError::from(
+            result: Some(AsserterError::from(
                 "Allow.CallMethods contains a duplicate call".to_string(),
             )),
         },
-        AsserterTest {
+        FnTest {
             name: "empty exemption",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -254,9 +254,9 @@ fn test_allow() {
                 })],
                 ..Default::default()
             }),
-            err: Some(NetworkError::BalanceExemptionMissingSubject.into()),
+            result: Some(NetworkError::BalanceExemptionMissingSubject.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid exemption type",
             payload: Some(NullableAllow {
                 operation_statuses,
@@ -269,59 +269,59 @@ fn test_allow() {
                 })],
                 ..Default::default()
             }),
-            err: Some(NetworkError::BalanceExemptionTypeInvalid.into()),
+            result: Some(NetworkError::BalanceExemptionTypeInvalid.into()),
         },
     ];
 
-    AsserterTest::run(&tests, allow);
+    FnTest::run_err_match(tests, |t| allow(t.as_ref()));
 }
 
 #[test]
 fn test_error() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid error",
             payload: Some(MentatError {
                 code: 12,
                 message: "signature invalid".into(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "nil error",
             payload: None,
-            err: Some(ErrorError::IsNil.into()),
+            result: Some(ErrorError::IsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "negative code",
             payload: Some(MentatError {
                 code: -1,
                 message: "signature invalid".into(),
                 ..Default::default()
             }),
-            err: Some(ErrorError::CodeIsNeg.into()),
+            result: Some(ErrorError::CodeIsNeg.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "empty message",
             payload: Some(MentatError {
                 code: 0,
                 message: String::new(),
                 ..Default::default()
             }),
-            err: Some(ErrorError::MessageMissing.into()),
+            result: Some(ErrorError::MessageMissing.into()),
         },
     ];
 
-    AsserterTest::run(&tests, error);
+    FnTest::run_err_match(tests, |t| error(t.as_ref()));
 }
 
 #[test]
 fn test_errors() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid errors",
-            payload: Some(vec![
+            payload: vec![
                 Some(MentatError {
                     code: 0,
                     message: "error 1".into(),
@@ -332,12 +332,12 @@ fn test_errors() {
                     message: "error 2".into(),
                     ..Default::default()
                 }),
-            ]),
-            err: None,
+            ],
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "details populated",
-            payload: Some(vec![
+            payload: vec![
                 Some(MentatError {
                     code: 0,
                     message: "error 1".into(),
@@ -351,12 +351,12 @@ fn test_errors() {
                     message: "error 2".into(),
                     ..Default::default()
                 }),
-            ]),
-            err: Some(NetworkError::ErrorDetailsPopulated.into()),
+            ],
+            result: Some(NetworkError::ErrorDetailsPopulated.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "duplicate error codes",
-            payload: Some(vec![
+            payload: vec![
                 Some(MentatError {
                     code: 0,
                     message: "error 1".into(),
@@ -367,12 +367,12 @@ fn test_errors() {
                     message: "error 2".into(),
                     ..Default::default()
                 }),
-            ]),
-            err: Some(NetworkError::ErrorCodeUsedMultipleTimes.into()),
+            ],
+            result: Some(NetworkError::ErrorCodeUsedMultipleTimes.into()),
         },
     ];
 
-    AsserterTest::run(&tests, |t| errors(t.unwrap()));
+    FnTest::run_err_match(tests, |t| errors(&t));
 }
 
 #[test]
@@ -399,34 +399,34 @@ fn test_network_list_response() {
         ..Default::default()
     });
 
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid network list",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1, network_1_sub.clone(), network_2],
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "nil network list",
             payload: None,
-            err: Some(NetworkError::NetworkListResponseIsNil.into()),
+            result: Some(NetworkError::NetworkListResponseIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "network list duplicate",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1_sub.clone(), network_1_sub],
             }),
-            err: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
+            result: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid network",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_3],
             }),
-            err: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
+            result: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
         },
     ];
 
-    AsserterTest::run(&tests, network_list_response);
+    FnTest::run_err_match(tests, |t| network_list_response(t.as_ref()));
 }

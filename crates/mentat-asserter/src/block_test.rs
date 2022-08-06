@@ -4,45 +4,45 @@ use super::*;
 
 #[test]
 fn test_block_identifier() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid identifier",
             payload: Some(BlockIdentifier {
                 index: 1,
                 hash: "block 1".into(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "nil identifier",
             payload: None,
-            err: Some(BlockError::BlockIdentifierIsNil.into()),
+            result: Some(BlockError::BlockIdentifierIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid index",
             payload: Some(BlockIdentifier {
                 index: -1,
                 hash: "block 1".into(),
             }),
-            err: Some(BlockError::BlockIdentifierIndexIsNeg.into()),
+            result: Some(BlockError::BlockIdentifierIndexIsNeg.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid hash",
             payload: Some(BlockIdentifier {
                 index: 1,
                 hash: String::new(),
             }),
-            err: Some(BlockError::BlockIdentifierHashMissing.into()),
+            result: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
     ];
 
-    AsserterTest::run(&tests, block_identifier);
+    FnTest::run_err_match(tests, |t| block_identifier(t.as_ref()));
 }
 
 #[test]
 fn test_amount() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid amount",
             payload: Some(NullableAmount {
                 value: "100000".into(),
@@ -53,9 +53,9 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid amount no decimals",
             payload: Some(NullableAmount {
                 value: "100000".into(),
@@ -66,9 +66,9 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "valid negative amount",
             payload: Some(NullableAmount {
                 value: "-100000".into(),
@@ -79,23 +79,23 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "nil amount",
             payload: None,
-            err: Some(BlockError::AmountValueMissing.into()),
+            result: Some(BlockError::AmountValueMissing.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "nil currency",
             payload: Some(NullableAmount {
                 value: "-100000".into(),
                 currency: None,
                 metadata: Default::default(),
             }),
-            err: Some(BlockError::AmountCurrencyIsNil.into()),
+            result: Some(BlockError::AmountCurrencyIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid non number",
             payload: Some(NullableAmount {
                 value: "blah".into(),
@@ -106,12 +106,12 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: Some(AsserterError::from(format!(
+            result: Some(AsserterError::from(format!(
                 "{}: blah",
                 BlockError::AmountIsNotInt
             ))),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid integer format",
             payload: Some(NullableAmount {
                 value: "1.0".into(),
@@ -122,12 +122,12 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: Some(AsserterError::from(format!(
+            result: Some(AsserterError::from(format!(
                 "{}: 1.0",
                 BlockError::AmountIsNotInt
             ))),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid non-integer",
             payload: Some(NullableAmount {
                 value: "1.1".into(),
@@ -138,12 +138,12 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: Some(AsserterError::from(format!(
+            result: Some(AsserterError::from(format!(
                 "{}: 1.1",
                 BlockError::AmountIsNotInt
             ))),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid symbol",
             payload: Some(NullableAmount {
                 value: "11".into(),
@@ -154,9 +154,9 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: Some(BlockError::AmountCurrencySymbolEmpty.into()),
+            result: Some(BlockError::AmountCurrencySymbolEmpty.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "invalid decimals",
             payload: Some(NullableAmount {
                 value: "111".into(),
@@ -167,11 +167,11 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            err: Some(BlockError::AmountCurrencyHasNegDecimals.into()),
+            result: Some(BlockError::AmountCurrencyHasNegDecimals.into()),
         },
     ];
 
-    AsserterTest::run(&tests, amount);
+    FnTest::run_err_match(tests, |t| amount(t.as_ref()));
 }
 
 #[derive(Default)]
@@ -191,8 +191,8 @@ fn test_operation_identifier() {
     let valid_network_index = 1;
     let invalid_network_index = -1;
 
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid identifier",
             payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
@@ -201,17 +201,17 @@ fn test_operation_identifier() {
                 }),
                 index: 0,
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "nil identifier",
             payload: Some(OperationIdentTest {
                 ident: None,
                 index: 0,
             }),
-            err: Some(BlockError::OperationIdentifierIndexIsNil.into()),
+            result: Some(BlockError::OperationIdentifierIndexIsNil.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "out-of-order index",
             payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
@@ -220,9 +220,9 @@ fn test_operation_identifier() {
                 }),
                 index: 1,
             }),
-            err: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
+            result: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "valid identifier with network index",
             payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
@@ -231,9 +231,9 @@ fn test_operation_identifier() {
                 }),
                 index: 0,
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid identifier with network index",
             payload: Some(OperationIdentTest {
                 ident: Some(OperationIdentifier {
@@ -242,35 +242,35 @@ fn test_operation_identifier() {
                 }),
                 index: 0,
             }),
-            err: Some(BlockError::OperationIdentifierNetworkIndexInvalid.into()),
+            result: Some(BlockError::OperationIdentifierNetworkIndexInvalid.into()),
         },
     ];
 
-    AsserterTest::run(&tests, |t| t.unwrap().run());
+    FnTest::run_err_match(tests, |t| t.unwrap().run());
 }
 
 #[test]
 fn test_account_identifier() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        FnTest {
             name: "valid identifier",
             payload: Some(AccountIdentifier {
                 address: "acct1".into(),
                 sub_account: None,
                 metadata: Default::default(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid identifier",
             payload: Some(AccountIdentifier {
                 address: Default::default(),
                 sub_account: None,
                 metadata: Default::default(),
             }),
-            err: Some(BlockError::AccountAddrMissing.into()),
+            result: Some(BlockError::AccountAddrMissing.into()),
         },
-        AsserterTest {
+        FnTest {
             name: "valid identifier with subaccount",
             payload: Some(AccountIdentifier {
                 address: "acct1".into(),
@@ -280,9 +280,9 @@ fn test_account_identifier() {
                 }),
                 metadata: Default::default(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterTest {
+        FnTest {
             name: "invalid identifier with subaccount",
             payload: Some(AccountIdentifier {
                 address: "acct1".into(),
@@ -292,11 +292,11 @@ fn test_account_identifier() {
                 }),
                 metadata: Default::default(),
             }),
-            err: Some(BlockError::AccountSubAccountAddrMissing.into()),
+            result: Some(BlockError::AccountSubAccountAddrMissing.into()),
         },
     ];
 
-    AsserterTest::run(&tests, account_identifier);
+    FnTest::run_err_match(tests, |t| account_identifier(t.as_ref()));
 }
 
 #[derive(Default)]
@@ -348,7 +348,7 @@ fn test_operations_validations() {
         ..Default::default()
     });
 
-    let tests = [
+    let tests = vec![
         CustomAsserterTest {
             name: "valid operations based on validation file",
             payload: Some(OperationValidationsTest {
@@ -798,7 +798,7 @@ fn test_operation() {
         ..Default::default()
     });
 
-    let tests = [
+    let tests = vec![
         CustomAsserterTest {
             name: "valid operation",
             payload: Some(OperationTest {
@@ -1091,7 +1091,7 @@ fn test_operation() {
             print!("Testing operation: ");
             let asserter = asserter(&test.extras);
             let payload = test.payload.as_ref().unwrap();
-            if !check_test_result(
+            if !check_err_match(
                 &test.err,
                 &asserter.operation(
                     payload.operation.as_ref(),
@@ -1479,7 +1479,7 @@ fn test_block() {
         ..Default::default()
     });
 
-    let tests = [
+    let tests = vec![
         CustomAsserterTest {
             name: "valid block",
             payload: Some(NullableBlock {

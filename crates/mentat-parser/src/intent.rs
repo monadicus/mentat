@@ -128,14 +128,13 @@ impl Parser {
 /// has different signers than what was observed (typically populated
 /// using the signers returned from parsing a transaction).
 pub fn expected_signers(
-    intent: &[Option<SigningPayload>],
-    observed: &[Option<AccountIdentifier>],
+    intent: &[SigningPayload],
+    observed: &[AccountIdentifier],
 ) -> ParserResult<()> {
-    // TODO coinbase never checks nil
     // De-duplicate required signers (ex: multiple UTXOs from same address)
     let intended_signers = intent
         .iter()
-        .map(|payload| hash(payload.as_ref().unwrap().account_identifier.as_ref()))
+        .map(|payload| hash(payload.account_identifier.as_ref()))
         .collect::<IndexSet<String>>();
 
     // Could exit here if len(intent) != len(observed) but
@@ -143,7 +142,7 @@ pub fn expected_signers(
     let mut seen_signers = IndexSet::new();
     let mut unmatched = Vec::new();
     for signer in observed {
-        let signer_hash = hash(signer.as_ref());
+        let signer_hash = hash(Some(signer));
         if intended_signers.contains(&signer_hash) {
             seen_signers.insert(signer_hash);
         } else {
@@ -154,8 +153,6 @@ pub fn expected_signers(
     // Check to see if there are any expected
     // signers that we could not find.
     for payload in intent {
-        // TODO coinbase never checks nil
-        let payload = payload.as_ref().unwrap();
         let hash = hash(payload.account_identifier.as_ref());
         if seen_signers.contains(&hash) {
             Err(format!(
