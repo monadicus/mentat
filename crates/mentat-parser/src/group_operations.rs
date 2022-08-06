@@ -122,7 +122,7 @@ pub fn group_operations(transaction: &Transaction) -> Vec<OperationGroup> {
             }
 
             let key = op_groups.len();
-            op_groups.insert(key, value).unwrap();
+            op_groups.insert(key, value);
             op_assignments[i] = key as i64;
             continue;
         }

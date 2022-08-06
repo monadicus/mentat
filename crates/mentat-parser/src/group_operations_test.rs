@@ -129,3 +129,322 @@ fn test_sort_operation_groups() {
     );
 }
 
+#[test]
+fn test_group_operations() {
+    let tests = [
+        EqualityTest {
+            name: "no ops",
+            payload: Transaction::default(),
+            res: Vec::new(),
+        },
+        EqualityTest {
+            name: "unrelated ops",
+            payload: Transaction {
+                operations: vec![
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 0,
+                            network_index: None,
+                        },
+                        type_: "op 0".into(),
+                        amount: Some(Amount {
+                            currency: Currency {
+                                symbol: "BTC".into(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    },
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 1,
+                            network_index: None,
+                        },
+                        type_: "op 1".into(),
+                        ..Default::default()
+                    },
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 2,
+                            network_index: None,
+                        },
+                        type_: "op 2".into(),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            res: vec![
+                OperationGroup {
+                    type_: "op 0".into(),
+                    operations: vec![Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 0,
+                            network_index: None,
+                        },
+                        type_: "op 0".into(),
+                        amount: Some(Amount {
+                            currency: Currency {
+                                symbol: "BTC".into(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }],
+                    currencies: vec![Currency {
+                        symbol: "BTC".into(),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+                OperationGroup {
+                    type_: "op 1".into(),
+                    nul_amount_present: true,
+                    operations: vec![Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 1,
+                            network_index: None,
+                        },
+                        type_: "op 1".into(),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+                OperationGroup {
+                    type_: "op 2".into(),
+                    nul_amount_present: true,
+                    operations: vec![Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 2,
+                            network_index: None,
+                        },
+                        type_: "op 2".into(),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+            ],
+        },
+        EqualityTest {
+            name: "related ops",
+            payload: Transaction {
+                operations: vec![
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 0,
+                            network_index: None,
+                        },
+                        type_: "type 0".into(),
+                        amount: Some(Amount {
+                            currency: Currency {
+                                symbol: "BTC".into(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    },
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 1,
+                            network_index: None,
+                        },
+                        type_: "type 1".into(),
+                        ..Default::default()
+                    },
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 2,
+                            network_index: None,
+                        },
+                        type_: "type 2".into(),
+                        amount: Some(Amount {
+                            currency: Currency {
+                                symbol: "BTC".into(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    },
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 3,
+                            network_index: None,
+                        },
+                        related_operations: vec![OperationIdentifier {
+                            index: 2,
+                            network_index: None,
+                        }],
+                        type_: "type 2".into(),
+                        amount: Some(Amount {
+                            currency: Currency {
+                                symbol: "ETH".into(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    },
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 4,
+                            network_index: None,
+                        },
+                        related_operations: vec![OperationIdentifier {
+                            index: 2,
+                            network_index: None,
+                        }],
+                        type_: "type 4".into(),
+                        ..Default::default()
+                    },
+                    Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 5,
+                            network_index: None,
+                        },
+                        related_operations: vec![OperationIdentifier {
+                            index: 0,
+                            network_index: None,
+                        }],
+                        type_: "type 0".into(),
+                        amount: Some(Amount {
+                            currency: Currency {
+                                symbol: "BTC".into(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            res: vec![
+                OperationGroup {
+                    type_: "type 0".into(),
+                    operations: vec![
+                        Operation {
+                            operation_identifier: OperationIdentifier {
+                                index: 0,
+                                network_index: None,
+                            },
+                            type_: "type 0".into(),
+                            amount: Some(Amount {
+                                currency: Currency {
+                                    symbol: "BTC".into(),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        },
+                        Operation {
+                            operation_identifier: OperationIdentifier {
+                                index: 5,
+                                network_index: None,
+                            },
+                            related_operations: vec![OperationIdentifier {
+                                index: 0,
+                                network_index: None,
+                            }],
+                            type_: "type 0".into(),
+                            amount: Some(Amount {
+                                currency: Currency {
+                                    symbol: "BTC".into(),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        },
+                    ],
+                    currencies: vec![Currency {
+                        symbol: "BTC".into(),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+                OperationGroup {
+                    type_: "type 1".into(),
+                    nul_amount_present: true,
+                    operations: vec![Operation {
+                        operation_identifier: OperationIdentifier {
+                            index: 1,
+                            network_index: None,
+                        },
+                        type_: "type 1".into(),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+                OperationGroup {
+                    type_: "".into(),
+                    nul_amount_present: true,
+                    currencies: vec![
+                        Currency {
+                            symbol: "BTC".into(),
+                            ..Default::default()
+                        },
+                        Currency {
+                            symbol: "ETH".into(),
+                            ..Default::default()
+                        },
+                    ],
+                    operations: vec![
+                        Operation {
+                            operation_identifier: OperationIdentifier {
+                                index: 2,
+                                network_index: None,
+                            },
+                            type_: "type 2".into(),
+                            amount: Some(Amount {
+                                currency: Currency {
+                                    symbol: "BTC".into(),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        },
+                        Operation {
+                            operation_identifier: OperationIdentifier {
+                                index: 3,
+                                network_index: None,
+                            },
+                            related_operations: vec![OperationIdentifier {
+                                index: 2,
+                                network_index: None,
+                            }],
+                            type_: "type 2".into(),
+                            amount: Some(Amount {
+                                currency: Currency {
+                                    symbol: "ETH".into(),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        },
+                        Operation {
+                            operation_identifier: OperationIdentifier {
+                                index: 4,
+                                network_index: None,
+                            },
+                            related_operations: vec![OperationIdentifier {
+                                index: 2,
+                                network_index: None,
+                            }],
+                            type_: "type 4".into(),
+                            ..Default::default()
+                        },
+                    ],
+                },
+            ],
+        },
+    ];
+
+    EqualityTest::run(&tests, group_operations);
+}

@@ -28,6 +28,7 @@ where
                     println!("test returned wrong value: `{:?}` != `{:?}`", test.res, res);
                     false
                 } else {
+                    println!("ok!");
                     true
                 }
             })
