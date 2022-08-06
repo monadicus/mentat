@@ -22,3 +22,12 @@ pub struct NullableAmount {
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }
+
+impl Sortable for Amount {
+    fn sort(&self) -> Self {
+        let mut new = self.clone();
+        new.currency = new.currency.sort();
+        new.metadata.sort_keys();
+        new
+    }
+}
