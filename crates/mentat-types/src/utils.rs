@@ -7,8 +7,13 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier, Amount, BlockIdentifier, NullableAmount, NullableCurrency,
-    PartialBlockIdentifier, Sortable,
+    AccountIdentifier,
+    Amount,
+    BlockIdentifier,
+    NullableAmount,
+    NullableCurrency,
+    PartialBlockIdentifier,
+    Sortable,
 };
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided

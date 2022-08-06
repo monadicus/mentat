@@ -12,14 +12,14 @@ pub struct NullableCurveType(String);
 impl NullableCurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
     pub const EDWARDS25519: &'static str = "edwards25519";
+    /// https://github.com/zcash/pasta
+    pub const PALLAS: &'static str = "pallas";
     /// <https://secg.org/sec1-v2.pdf#subsubsection.2.3.3>
     pub const SECP256K1: &'static str = "secp256k1";
     /// <https://secg.org/sec1-v2.pdf#subsubsection.2.3.3>
     pub const SECP256R1: &'static str = "secp256r1";
     /// <https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys>
     pub const TWEEDLE: &'static str = "tweedle";
-    /// https://github.com/zcash/pasta
-    pub const PALLAS: &'static str = "pallas";
 
     /// returns true if the `CurveType` is a valid type
     pub fn valid(&self) -> bool {

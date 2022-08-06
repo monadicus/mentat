@@ -4,13 +4,13 @@ use super::*;
 /// `OperationGroup` is a group of related operations
 /// If all operations in a group have the same operation.Type,
 /// the Type is also populated.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct OperationGroup {
-    type_: String,
-    operations: Vec<Operation>,
-    currencies: Vec<Currency>,
-    nul_amount_present: bool,
+    pub type_: String,
+    pub operations: Vec<Operation>,
+    pub currencies: Vec<Currency>,
+    pub nul_amount_present: bool,
 }
 
 impl OperationGroup {
@@ -46,11 +46,11 @@ impl OperationGroup {
 }
 
 // TODO actually takes IndexMap<T, Option<T>> and returns Vec<Option<T>>
-/// sortOperationGroups returns a slice of OperationGroups sorted by the lowest
-/// OperationIdentifier.Index in each group. This function also sorts all
-/// operations in each OperationGroup by OperationIdentifier.Index. It can be
-/// useful to consumers to have a deterministic ordering of groups and ops within
-/// each group.
+/// `sort_operation_groups` returns a slice of OperationGroups sorted by the
+/// lowest [`OperationIdentifier`].index in each group. This function also sorts
+/// all operations in each [`OperationGroup`] by OperationIdentifier.index. It
+/// can be useful to consumers to have a deterministic ordering of groups and
+/// ops within each group.
 pub fn sort_operation_groups(
     op_len: usize,
     op_groups: IndexMap<usize, OperationGroup>,
@@ -81,19 +81,20 @@ pub fn sort_operation_groups(
 }
 
 // TODO actually returns Vec<Option<T>>
-/// GroupOperations parses all of a transaction's operations and returns a slice
-/// of each group of related operations (assuming transitive relatedness). This
-/// should ONLY be called on operations that have already been asserted for
+/// `group_operations` parses all of a transaction's operations and returns a
+/// slice of each group of related operations (assuming transitive relatedness).
+/// This should ONLY be called on operations that have already been asserted for
 /// correctness. Assertion ensures there are no duplicate operation indexes,
 /// operations are sorted, and that operations only reference operations with
 /// an index less than theirs.
 ///
 /// OperationGroups are returned in ascending order based on the lowest
-/// OperationIdentifier.Index in the group. The operations in each OperationGroup
-/// are also sorted.
-pub fn group_operations(transaction: Option<&Transaction>) -> Vec<OperationGroup> {
-    // TODO coinbase never checks nil
-    let ops = &transaction.unwrap().operations;
+/// [`OperationIdentifier`].index in the group. The operations in each
+/// OperationGroup are also sorted.
+pub fn group_operations(transaction: &Transaction) -> Vec<OperationGroup> {
+    // TODO coinbase passes Nullable Transaction.
+    // But it should never be null.
+    let ops = &transaction.operations;
 
     // We use a map of ints to keep track of *OperationGroup instead of a slice
     // because merging groups involves removing and combing many items. While we

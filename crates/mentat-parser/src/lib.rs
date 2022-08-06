@@ -38,6 +38,7 @@ pub mod tests {
     mod balance_changes_test;
     mod errors_test;
     mod exemptions_test;
+    mod group_operations_test;
     mod intent_test;
     mod match_operations_test;
     mod test_utils;

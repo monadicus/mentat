@@ -1,8 +1,9 @@
 //! TODO
 
+use std::fmt::Write;
+
 use indexmap::IndexSet;
 use mentat_types::{hash, AccountIdentifier, Operation, SigningPayload};
-use std::fmt::Write;
 
 use crate::{IntentError, Parser, ParserResult};
 
