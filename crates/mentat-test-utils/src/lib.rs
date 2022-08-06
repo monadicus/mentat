@@ -54,12 +54,12 @@ pub struct FnTest<Payload, Res> {
 }
 
 impl<Payload, Res> FnTest<Payload, Res> {
-    pub fn run_is_err<F, Ok, Err>(tests: Vec<Self>, func: F)
+    fn runner<FnOut, F, Matcher, In1, In2>(tests: Vec<Self>, func: F, matcher: Matcher)
     where
-        Res: PartialEq<bool>,
-        F: Fn(Payload) -> Result<Ok, Err>,
-        Ok: fmt::Debug,
-        Err: Error,
+        Res: Into<In1>,
+        FnOut: Into<In2>,
+        F: Fn(Payload) -> FnOut,
+        Matcher: Fn(&In1, &In2) -> bool,
     {
         let len = tests.len();
         let failed = tests
@@ -67,12 +67,22 @@ impl<Payload, Res> FnTest<Payload, Res> {
             .map(|test| {
                 print!("{test}: ");
                 let res = func(test.payload);
-                check_is_err(test.result, &res)
+                matcher(&test.result.into(), &res.into())
             })
             .filter(|t| !t)
             .count();
 
         status_message(failed, len);
+    }
+
+    pub fn run_is_err<F, Ok, Err>(tests: Vec<Self>, func: F)
+    where
+        Res: PartialEq<bool>,
+        F: Fn(Payload) -> Result<Ok, Err>,
+        Ok: fmt::Debug,
+        Err: Error,
+    {
+        Self::runner(tests, func, check_is_err::<Res, Ok, Err>);
     }
 
     pub fn run_err_match<F, Ok, Err>(tests: Vec<Self>, func: F)
@@ -82,18 +92,7 @@ impl<Payload, Res> FnTest<Payload, Res> {
         Ok: fmt::Debug,
         Err: fmt::Display,
     {
-        let len = tests.len();
-        let failed = tests
-            .into_iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(test.payload);
-                check_err_match(&test.result.into(), &res)
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, len);
+        Self::runner(tests, func, check_err_match::<Ok, Err>);
     }
 
     pub fn run_result_match<F, Ok, Err>(tests: Vec<Self>, func: F)
@@ -103,18 +102,7 @@ impl<Payload, Res> FnTest<Payload, Res> {
         Ok: fmt::Debug + PartialEq,
         Err: fmt::Debug + PartialEq,
     {
-        let len = tests.len();
-        let failed = tests
-            .into_iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(test.payload);
-                check_results_match(&test.result.into(), &res.into())
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, len);
+        Self::runner(tests, func, check_results_match::<Ok, Err>);
     }
 
     pub fn run_output_match<F>(tests: Vec<Self>, func: F)
@@ -122,18 +110,7 @@ impl<Payload, Res> FnTest<Payload, Res> {
         Res: PartialEq + fmt::Debug,
         F: Fn(Payload) -> Res,
     {
-        let len = tests.len();
-        let failed = tests
-            .into_iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(test.payload);
-                check_output_match(&test.result, &res)
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, len);
+        Self::runner(tests, func, check_output_match::<Res>);
     }
 }
 
@@ -151,16 +128,16 @@ pub fn status_message(failed: usize, total: usize) {
     }
 }
 
-pub fn check_is_err<B, T, E>(err: B, res: &Result<T, E>) -> bool
+pub fn check_is_err<B, T, E>(err: &B, res: &Result<T, E>) -> bool
 where
     B: PartialEq<bool>,
     T: fmt::Debug,
     E: Error,
 {
-    if err == res.is_err() {
+    if *err == res.is_err() {
         println!("ok!");
         true
-    } else if err == true {
+    } else if *err == true {
         println!(
             "test passed when it shouldn't have. returned error `{}`",
             res.as_ref().unwrap_err()
