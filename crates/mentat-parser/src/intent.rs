@@ -11,14 +11,7 @@ use crate::{IntentError, Parser, ParserResult};
 /// differs from the intended operation. An operation is considered
 /// to be different from the intent if the [`AccountIdentifier`],
 /// [`Amount`], or [`Type`] has changed.
-pub fn expected_operation(
-    intent: Option<&Operation>,
-    observed: Option<&Operation>,
-) -> ParserResult<()> {
-    // TODO coinbase never checks nil here
-    let intent = intent.unwrap();
-    // TODO coinbase never checks nil here
-    let observed = observed.unwrap();
+pub fn expected_operation(intent: &Operation, observed: &Operation) -> ParserResult<()> {
     if hash(intent.account.as_ref()) != hash(observed.account.as_ref()) {
         Err(format!(
             "{}: expected {} but got {}",
@@ -53,8 +46,8 @@ impl Parser {
     /// successful.
     pub fn expected_operations(
         &self,
-        intent: &[Option<Operation>],
-        observed: &[Option<Operation>],
+        intent: &[Operation],
+        observed: &[Operation],
         err_extra: bool,
         confirm_success: bool,
     ) -> ParserResult<()> {
@@ -72,10 +65,9 @@ impl Parser {
                 // we don't care about the content of the error, we
                 // just care if it errors so we can evaluate the next
                 // operation for a match.
-                if expected_operation(intent.as_ref(), obs.as_ref()).is_err() {
+                if expected_operation(intent, obs).is_err() {
                     continue;
                 }
-                let obs = obs.as_ref().unwrap();
 
                 if confirm_success {
                     // TODO coinbase never checks if self is nil
