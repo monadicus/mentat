@@ -5,7 +5,7 @@ use super::*;
 #[derive(Default, PartialEq, Eq)]
 struct MatchOperationsTest {
     operations: Vec<Option<Operation>>,
-    descriptions: Option<Descriptions>,
+    descriptions: Descriptions,
     err: bool,
 }
 
@@ -40,7 +40,7 @@ fn test_match_operations() {
                     ..Default::default()
                 }),
             ],
-            descriptions: Some(Descriptions {
+            descriptions: Descriptions {
                 opposite_amounts: vec![vec![0, 1]],
                 operation_descriptions: vec![
                     Some(OperationDescription {
@@ -69,7 +69,7 @@ fn test_match_operations() {
                     }),
                 ],
                 ..Default::default()
-            }),
+            },
             err: false,
         },
         result: vec![
@@ -105,7 +105,7 @@ fn test_match_operations() {
     }];
 
     FnTest::run_output_match(tests, |payload| {
-        let res = match_operations(payload.descriptions.as_ref(), payload.operations);
+        let res = match_operations(payload.descriptions, payload.operations);
         if !payload.err {
             res.unwrap()
         } else {

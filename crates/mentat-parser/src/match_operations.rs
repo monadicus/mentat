@@ -540,11 +540,7 @@ pub fn compare_opposite_matches(
 
 /// [`comparison_matches`] ensures collections of [`Operation`]
 /// have either equal or opposite amounts.
-pub fn comparison_match(
-    descriptions: Option<&Descriptions>,
-    matches: &[Option<Match>],
-) -> ParserResult<()> {
-    let descriptions = descriptions.unwrap();
+pub fn comparison_match(descriptions: Descriptions, matches: &[Option<Match>]) -> ParserResult<()> {
     check_ops(&descriptions.equal_amounts, matches, equal_amounts)
         .map_err(|e| format!("{e}: operation amounts not equal"))?;
     check_ops(&descriptions.equal_addresses, matches, equal_addresses)
@@ -590,11 +586,10 @@ impl Match {
 /// desired). If matching succeeds, a slice of matching operations in the
 /// mapped to the order of the descriptions is returned.
 pub fn match_operations(
-    descriptions: Option<&Descriptions>,
+    descriptions: Descriptions,
     operations: Vec<Option<Operation>>,
 ) -> ParserResult<Vec<Option<Match>>> {
     // TODO coinbase never checks nil
-    let descriptions = descriptions.unwrap();
     if operations.is_empty() {
         Err(MatchOperationsError::MatchOperationsNoOperations)?;
     } else if descriptions.operation_descriptions.is_empty() {
@@ -633,7 +628,7 @@ pub fn match_operations(
 
     // Once matches are found, assert high-level descriptions between
     // Operations
-    comparison_match(Some(descriptions), &matches)
+    comparison_match(descriptions, &matches)
         .map_err(|e| format!("{e}: group descriptions not met"))?;
 
     Ok(matches)
