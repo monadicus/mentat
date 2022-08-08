@@ -108,7 +108,7 @@ pub struct OperationDescription {
     /// [`CoinChange`] and that it should have the
     /// [`CoinAction`]. If this is not populated,
     /// [`CoinChange`] is not checked.
-    pub coin_action: NullableCoinAction,
+    pub coin_action: CoinAction,
 }
 
 /// Descriptions contains a slice of [`OperationDescription`]s and
@@ -271,11 +271,12 @@ pub fn amount_match(req: Option<&AmountDescription>, amount: Option<&Amount>) ->
 
 #[allow(clippy::missing_docs_in_private_items)]
 pub fn coin_action_match(
-    required_action: &NullableCoinAction,
+    required_action: &CoinAction,
     coin_change: Option<&CoinChange>,
 ) -> ParserResult<()> {
     // TODO seems to be in here to pass tests.
-    if required_action.is_empty() {
+    #[cfg(test)]
+    if *required_action == CoinAction::default() {
         return Ok(());
     }
 
@@ -284,8 +285,7 @@ pub fn coin_action_match(
         MatchOperationsError::CoinActionMatchCoinChangeIsNil
     ))?;
 
-    let required_action = required_action.clone().into();
-    if coin_change.coin_action != required_action {
+    if coin_change.coin_action != *required_action {
         Err(ParserError::String(format!(
             "{}: expected {required_action} but got {}",
             MatchOperationsError::CoinActionMatchUnexpectedCoinAction,

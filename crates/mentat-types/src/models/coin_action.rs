@@ -47,14 +47,25 @@ impl From<&str> for NullableCoinAction {
 
 /// [`CoinAction`]s are different state changes that a Coin can undergo. It is
 /// assumed that a single Coin cannot be created or spent more than once.
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum CoinAction {
+    #[cfg(test)]
+    None,
     /// `CoinAction` indicating a Coin was created.
-    #[default]
     CoinCreated,
     /// `CoinAction` indicating a Coin was spent.
     CoinSpent,
+}
+
+impl Default for CoinAction {
+    fn default() -> Self {
+        #[cfg(test)]
+        return Self::None;
+
+        #[cfg(not(test))]
+        return Self::CoinCreated;
+    }
 }
 
 impl From<NullableCoinAction> for CoinAction {
@@ -72,6 +83,8 @@ impl From<CoinAction> for NullableCoinAction {
         match other {
             CoinAction::CoinCreated => Self::COIN_CREATED.into(),
             CoinAction::CoinSpent => Self::COIN_SPENT.into(),
+            #[cfg(test)]
+            CoinAction::None => unreachable!("Only reachable in test mode"),
         }
     }
 }
@@ -81,6 +94,8 @@ impl fmt::Display for CoinAction {
         match self {
             CoinAction::CoinCreated => write!(f, "coin_created"),
             CoinAction::CoinSpent => write!(f, "coin_spent"),
+            #[cfg(test)]
+            CoinAction::None => unreachable!("Only reachable in test mode"),
         }
     }
 }
