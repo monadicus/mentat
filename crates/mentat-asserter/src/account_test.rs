@@ -9,7 +9,7 @@ struct ContainsCurrencyTest {
 #[test]
 fn test_contains_currency() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "simple contains",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -25,7 +25,7 @@ fn test_contains_currency() {
             },
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "complex contains",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -41,7 +41,7 @@ fn test_contains_currency() {
             },
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "more complex contains",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -57,7 +57,7 @@ fn test_contains_currency() {
             },
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "empty",
             payload: ContainsCurrencyTest {
                 currencies: Vec::new(),
@@ -69,7 +69,7 @@ fn test_contains_currency() {
             },
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "symbol mismatch",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -85,7 +85,7 @@ fn test_contains_currency() {
             },
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "decimal mismatch",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -101,7 +101,7 @@ fn test_contains_currency() {
             },
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "metadata mismatch",
             payload: ContainsCurrencyTest {
                 currencies: vec![Currency {
@@ -119,7 +119,7 @@ fn test_contains_currency() {
         },
     ];
 
-    FnTest::run_output_match(tests, |test| {
+    TestCase::run_output_match(tests, |test| {
         contains_currency(&test.currencies, &test.currency)
     });
 }
@@ -127,7 +127,7 @@ fn test_contains_currency() {
 #[test]
 fn test_contains_duplicate_currency() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "simple contains",
             payload: vec![
                 Some(NullableCurrency {
@@ -143,7 +143,7 @@ fn test_contains_duplicate_currency() {
             ],
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "complex contains",
             payload: vec![
                 Some(NullableCurrency {
@@ -159,7 +159,7 @@ fn test_contains_duplicate_currency() {
             ],
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "more complex contains",
             payload: vec![
                 Some(NullableCurrency {
@@ -175,12 +175,12 @@ fn test_contains_duplicate_currency() {
             ],
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "empty",
             payload: Vec::new(),
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "symbol mismatch",
             payload: vec![
                 Some(NullableCurrency {
@@ -196,7 +196,7 @@ fn test_contains_duplicate_currency() {
             ],
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "decimal mismatch",
             payload: vec![
                 Some(NullableCurrency {
@@ -212,7 +212,7 @@ fn test_contains_duplicate_currency() {
             ],
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "metadata mismatch",
             payload: vec![
                 Some(NullableCurrency {
@@ -230,7 +230,7 @@ fn test_contains_duplicate_currency() {
         },
     ];
 
-    FnTest::run_output_match(tests, |test| {
+    TestCase::run_output_match(tests, |test| {
         contains_duplicate_currency(&test.iter().map(|t| t.as_ref()).collect::<Vec<_>>()).is_some()
     });
 }
@@ -281,7 +281,7 @@ fn test_account_balance() {
     });
 
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "simple balance",
             payload: AccountBalanceTest {
                 request_block: None,
@@ -291,7 +291,7 @@ fn test_account_balance() {
             },
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "invalid block",
             payload: AccountBalanceTest {
                 request_block: None,
@@ -304,7 +304,7 @@ fn test_account_balance() {
                 BlockError::BlockIdentifierHashMissing
             ))),
         },
-        FnTest {
+        TestCase {
             name: "duplicate currency",
             payload: AccountBalanceTest {
                 request_block: None,
@@ -317,7 +317,7 @@ fn test_account_balance() {
                 &valid_amt.as_ref().unwrap().currency
             ))),
         },
-        FnTest {
+        TestCase {
             name: "valid historical request index",
             payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
@@ -330,7 +330,7 @@ fn test_account_balance() {
             },
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "valid historical request hash",
             payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
@@ -343,7 +343,7 @@ fn test_account_balance() {
             },
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "invalid historical request index",
             payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
@@ -360,7 +360,7 @@ fn test_account_balance() {
                 valid_block.index,
             ))),
         },
-        FnTest {
+        TestCase {
             name: "invalid historical request hash",
             payload: AccountBalanceTest {
                 request_block: Some(PartialBlockIdentifier {
@@ -379,5 +379,5 @@ fn test_account_balance() {
         },
     ];
 
-    FnTest::run_err_match(tests, AccountBalanceTest::run);
+    TestCase::run_err_match(tests, AccountBalanceTest::run);
 }

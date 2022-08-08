@@ -41,6 +41,4 @@ pub mod tests {
     mod group_operations_test;
     mod intent_test;
     mod match_operations_test;
-    mod test_utils;
-    pub use test_utils::*;
 }

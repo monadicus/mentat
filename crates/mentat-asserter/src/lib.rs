@@ -70,6 +70,4 @@ pub mod tests {
     mod search_test;
     mod server_test;
     use server_test::*;
-    mod test_utils;
-    use test_utils::*;
 }

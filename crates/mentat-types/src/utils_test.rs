@@ -59,151 +59,116 @@ fn test_hash() {
     assert_eq!(hashed, hash(ai.as_ref()));
 }
 
-#[derive(Debug, Clone)]
-struct ValuesTest {
-    name: &'static str,
-    a: &'static str,
-    b: &'static str,
-    result: Result<String, String>,
-}
-
-impl<Input> Test<Input> for ValuesTest
-where
-    Input: FnMut(&'static str, &'static str) -> Result<String, String>,
-{
-    fn run(tests: &[Self], mut func: Input) {
-        let failed = tests
-            .iter()
-            .map(|test| {
-                print!("{test}: ");
-                let res = func(test.a, test.b);
-                check_results_match(&test.result, &res)
-            })
-            .filter(|t| !t)
-            .count();
-
-        status_message(failed, tests.len());
-    }
-}
-
-impl fmt::Display for ValuesTest {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "test `{}`", self.name)
-    }
-}
-
 #[test]
 fn test_add_values() {
-    let tests = &[
-        ValuesTest {
+    let tests = vec![
+        TestCase {
             name: "simple",
-            a: "1",
-            b: "1",
+            payload: ("1", "1"),
             result: Ok("2".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "large",
-            a: "1000000000000000000000000",
-            b: "100000000000000000000000000000000",
+            payload: (
+                "1000000000000000000000000",
+                "100000000000000000000000000000000",
+            ),
             result: Ok("100000001000000000000000000000000".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "decimal",
-            a: "10000000000000000000000.01",
-            b: "100000000000000000000000000000000",
+            payload: (
+                "10000000000000000000000.01",
+                "100000000000000000000000000000000",
+            ),
             result: Err("10000000000000000000000.01 is not an integer".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "negative",
-            a: "-13213",
-            b: "12332",
+            payload: ("-13213", "12332"),
             result: Ok("-881".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "invalid number",
-            a: "-13213",
-            b: "hello",
+            payload: ("-13213", "hello"),
             result: Err("hello is not an integer".into()),
         },
     ];
 
-    ValuesTest::run(tests, add_values)
+    TestCase::run_result_match(tests, |t| add_values(t.0, t.1))
 }
 
 #[test]
 fn test_subtract_values() {
-    let tests = &[
-        ValuesTest {
+    let tests = vec![
+        TestCase {
             name: "simple",
-            a: "1",
-            b: "1",
+            payload: ("1", "1"),
             result: Ok("0".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "large",
-            a: "1000000000000000000000000",
-            b: "100000000000000000000000000000000",
+            payload: (
+                "1000000000000000000000000",
+                "100000000000000000000000000000000",
+            ),
             result: Ok("-99999999000000000000000000000000".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "decimal",
-            a: "10000000000000000000000.01",
-            b: "100000000000000000000000000000000",
+            payload: (
+                "10000000000000000000000.01",
+                "100000000000000000000000000000000",
+            ),
             result: Err("10000000000000000000000.01 is not an integer".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "negative",
-            a: "-13213",
-            b: "12332",
+            payload: ("-13213", "12332"),
             result: Ok("-25545".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "invalid number",
-            a: "-13213",
-            b: "hello",
+            payload: ("-13213", "hello"),
             result: Err("hello is not an integer".into()),
         },
     ];
 
-    ValuesTest::run(tests, sub_values);
+    TestCase::run_result_match(tests, |t| sub_values(t.0, t.1));
 }
 
 #[test]
 fn test_negative_value() {
-    let tests = &[
-        ValuesTest {
+    let tests = vec![
+        TestCase {
             name: "positive number",
-            a: "100",
-            b: "",
+            payload: "100",
             result: Ok("-100".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "negative number",
-            a: "-100",
-            b: "",
+            payload: "-100",
             result: Ok("100".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "decimal number",
-            a: "-100.1",
-            b: "",
+            payload: "-100.1",
             result: Err("-100.1 is not an integer".into()),
         },
-        ValuesTest {
+        TestCase {
             name: "non-number",
-            a: "hello",
-            b: "",
+            payload: "hello",
             result: Err("hello is not an integer".into()),
         },
     ];
 
-    ValuesTest::run(tests, |a, _| negate_value(a));
+    TestCase::run_result_match(tests, negate_value);
 }
 
 #[test]
 fn test_get_account_string() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "simple account",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -211,7 +176,7 @@ fn test_get_account_string() {
             },
             result: "hello".to_string(),
         },
-        FnTest {
+        TestCase {
             name: "subaccount",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -223,7 +188,7 @@ fn test_get_account_string() {
             },
             result: "hello:stake".to_string(),
         },
-        FnTest {
+        TestCase {
             name: "subaccount with string metadata",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -235,7 +200,7 @@ fn test_get_account_string() {
             },
             result: "hello:stake:{\"cool\": String(\"neat\")}".to_string(),
         },
-        FnTest {
+        TestCase {
             name: "subaccount with number metadata",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -247,7 +212,7 @@ fn test_get_account_string() {
             },
             result: "hello:stake:{\"cool\": Number(1)}".to_string(),
         },
-        FnTest {
+        TestCase {
             name: "subaccount with complex metadata",
             payload: AccountIdentifier {
                 address: "hello".into(),
@@ -261,13 +226,13 @@ fn test_get_account_string() {
         },
     ];
 
-    FnTest::run_output_match(tests, |t| account_string(&t));
+    TestCase::run_output_match(tests, |t| account_string(&t));
 }
 
 #[test]
 fn test_currency_string() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "simple currency",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
@@ -276,7 +241,7 @@ fn test_currency_string() {
             },
             result: "BTC:8".to_string(),
         },
-        FnTest {
+        TestCase {
             name: "currency with string metadata",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
@@ -285,7 +250,7 @@ fn test_currency_string() {
             },
             result: "BTC:8:{\"issuer\": String(\"satoshi\")}".to_string(),
         },
-        FnTest {
+        TestCase {
             name: "currency with number metadata",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
@@ -294,7 +259,7 @@ fn test_currency_string() {
             },
             result: "BTC:8:{\"issuer\": Number(1)}".to_string(),
         },
-        FnTest {
+        TestCase {
             name: "currency with complex metadata",
             payload: NullableCurrency {
                 symbol: "BTC".into(),
@@ -309,13 +274,13 @@ fn test_currency_string() {
         },
     ];
 
-    FnTest::run_output_match(tests, |t| currency_string(&t));
+    TestCase::run_output_match(tests, |t| currency_string(&t));
 }
 
 #[test]
 fn test_amount_value() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "positive integer",
             payload: Some(Amount {
                 value: "100".into(),
@@ -323,7 +288,7 @@ fn test_amount_value() {
             }),
             result: Ok(100.into()),
         },
-        FnTest {
+        TestCase {
             name: "negative integer",
             payload: Some(Amount {
                 value: "-100".into(),
@@ -331,12 +296,12 @@ fn test_amount_value() {
             }),
             result: Ok((-100).into()),
         },
-        FnTest {
+        TestCase {
             name: "nil",
             payload: None,
             result: Err("amount value cannot be nil".to_string()),
         },
-        FnTest {
+        TestCase {
             name: "float",
             payload: Some(Amount {
                 value: "100.1".into(),
@@ -344,7 +309,7 @@ fn test_amount_value() {
             }),
             result: Err("100.1 is not an integer".to_string()),
         },
-        FnTest {
+        TestCase {
             name: "not number",
             payload: Some(Amount {
                 value: "hello".into(),
@@ -354,7 +319,7 @@ fn test_amount_value() {
         },
     ];
 
-    FnTest::run_result_match(tests, |p| amount_value(p.as_ref()));
+    TestCase::run_result_match(tests, |p| amount_value(p.as_ref()));
 }
 
 #[test]

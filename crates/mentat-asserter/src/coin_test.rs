@@ -13,7 +13,7 @@ fn test_coin() {
     };
 
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid coin",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -23,12 +23,12 @@ fn test_coin() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "valid coin",
             payload: None,
             result: Some(CoinError::IsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid identifier",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -40,7 +40,7 @@ fn test_coin() {
                 "coin identifier cannot be empty: coin identifier is invalid".to_string(),
             )),
         },
-        FnTest {
+        TestCase {
             name: "invalid amount",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -54,7 +54,7 @@ fn test_coin() {
             }),
             result: Some(AsserterError::from("amount is invalid".to_string())),
         },
-        FnTest {
+        TestCase {
             name: "nil amount",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -66,7 +66,7 @@ fn test_coin() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| coin(t.as_ref()));
+    TestCase::run_err_match(tests, |t| coin(t.as_ref()));
 }
 
 #[test]
@@ -82,7 +82,7 @@ fn test_coins() {
     };
 
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid coins",
             payload: vec![
                 Some(NullableCoin {
@@ -100,12 +100,12 @@ fn test_coins() {
             ],
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "nil",
             payload: Vec::new(),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "duplicate coins",
             payload: vec![
                 Some(NullableCoin {
@@ -125,13 +125,13 @@ fn test_coins() {
         },
     ];
 
-    FnTest::run_err_match(tests, |test| coins(&test));
+    TestCase::run_err_match(tests, |test| coins(&test));
 }
 
 #[test]
 fn test_coin_change() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid change",
             payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
@@ -141,12 +141,12 @@ fn test_coin_change() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "nil",
             payload: None,
             result: Some(CoinError::ChangeIsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid identifier",
             payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
@@ -156,7 +156,7 @@ fn test_coin_change() {
             }),
             result: Some(CoinError::IdentifierNotSet.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid coin action",
             payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
@@ -168,5 +168,5 @@ fn test_coin_change() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| coin_change(t.as_ref()));
+    TestCase::run_err_match(tests, |t| coin_change(t.as_ref()));
 }

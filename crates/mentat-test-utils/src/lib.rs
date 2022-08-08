@@ -47,13 +47,18 @@ impl fmt::Display for ErrorTest {
     }
 }
 
-pub struct FnTest<Payload, Res> {
+pub struct MethodPayload<C, P> {
+    pub caller: C,
+    pub payload: P,
+}
+
+pub struct TestCase<Payload, Res> {
     pub name: &'static str,
     pub payload: Payload,
     pub result: Res,
 }
 
-impl<Payload, Res> FnTest<Payload, Res> {
+impl<Payload, Res> TestCase<Payload, Res> {
     fn runner<FnOut, F, Matcher, In1, In2>(tests: Vec<Self>, func: F, matcher: Matcher)
     where
         Res: Into<In1>,
@@ -114,7 +119,7 @@ impl<Payload, Res> FnTest<Payload, Res> {
     }
 }
 
-impl<Payload, Res> fmt::Display for FnTest<Payload, Res> {
+impl<Payload, Res> fmt::Display for TestCase<Payload, Res> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "test `{}`", self.name)
     }

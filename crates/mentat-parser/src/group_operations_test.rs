@@ -132,12 +132,12 @@ fn test_sort_operation_groups() {
 #[test]
 fn test_group_operations() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "no ops",
             payload: Transaction::default(),
             result: Vec::new(),
         },
-        FnTest {
+        TestCase {
             name: "unrelated ops",
             payload: Transaction {
                 operations: vec![
@@ -227,7 +227,7 @@ fn test_group_operations() {
                 },
             ],
         },
-        FnTest {
+        TestCase {
             name: "related ops",
             payload: Transaction {
                 operations: vec![
@@ -446,5 +446,5 @@ fn test_group_operations() {
         },
     ];
 
-    FnTest::run_output_match(tests, |t| group_operations(&t));
+    TestCase::run_output_match(tests, |t| group_operations(&t));
 }

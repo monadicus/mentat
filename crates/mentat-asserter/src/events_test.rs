@@ -3,12 +3,12 @@ use super::*;
 #[test]
 fn test_events_block_response() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "no events",
             payload: Default::default(),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "invalid max",
             payload: NullableEventsBlocksResponse {
                 max_sequence: -1,
@@ -16,7 +16,7 @@ fn test_events_block_response() {
             },
             result: Some(EventError::MaxSequenceInvalid.into()),
         },
-        FnTest {
+        TestCase {
             name: "valid event",
             payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
@@ -41,7 +41,7 @@ fn test_events_block_response() {
             },
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "invalid identifier",
             payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
@@ -66,7 +66,7 @@ fn test_events_block_response() {
             },
             result: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid event type",
             payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
@@ -91,7 +91,7 @@ fn test_events_block_response() {
             },
             result: Some(EventError::BlockEventTypeInvalid.into()),
         },
-        FnTest {
+        TestCase {
             name: "gap events",
             payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
@@ -116,7 +116,7 @@ fn test_events_block_response() {
             },
             result: Some(EventError::SequenceOutOfOrder.into()),
         },
-        FnTest {
+        TestCase {
             name: "gap events",
             payload: NullableEventsBlocksResponse {
                 max_sequence: 100,
@@ -143,5 +143,5 @@ fn test_events_block_response() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| events_blocks_response(Some(&t)));
+    TestCase::run_err_match(tests, |t| events_blocks_response(Some(&t)));
 }

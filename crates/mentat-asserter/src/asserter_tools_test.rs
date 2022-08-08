@@ -234,7 +234,7 @@ fn test_new() {
     });
 
     let tests = [
-        FnTest {
+        TestCase {
             name: "valid responses",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -245,7 +245,7 @@ fn test_new() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "valid responses (with sync status)",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -256,7 +256,7 @@ fn test_new() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "valid responses (with start index)",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -267,7 +267,7 @@ fn test_new() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "invalid network status",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -278,7 +278,7 @@ fn test_new() {
             }),
             result: Some("BlockIdentifier is nil".into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid network status (with sync status)",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -289,7 +289,7 @@ fn test_new() {
             }),
             result: Some("SyncStatus.CurrentIndex is negative".into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid network options",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -300,7 +300,7 @@ fn test_new() {
             }),
             result: Some("no Allow.OperationStatuses found".into()),
         },
-        FnTest {
+        TestCase {
             name: "duplicate operation statuses",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -311,7 +311,7 @@ fn test_new() {
             }),
             result: Some("Allow.OperationStatuses contains a duplicate Success".into()),
         },
-        FnTest {
+        TestCase {
             name: "duplicate operation types",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),
@@ -322,7 +322,7 @@ fn test_new() {
             }),
             result: Some("Allow.OperationTypes contains a duplicate Transfer".into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid start index",
             payload: Some(TestNewExtras {
                 network: valid_network.clone(),

@@ -262,12 +262,12 @@ impl Default for NewWithOptionsTest {
 #[test]
 fn test_new_with_options() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "basic",
             payload: Default::default(),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "no call methods",
             payload: NewWithOptionsTest {
                 call_methods: vec![],
@@ -275,7 +275,7 @@ fn test_new_with_options() {
             },
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "duplicate operation types",
             payload: NewWithOptionsTest {
                 supported_operation_types: vec!["PAYMENT".into(), "PAYMENT".into()],
@@ -283,7 +283,7 @@ fn test_new_with_options() {
             },
             result: Some("Allow.OperationTypes contains a duplicate PAYMENT".into()),
         },
-        FnTest {
+        TestCase {
             name: "empty operation type",
             payload: NewWithOptionsTest {
                 supported_operation_types: vec!["PAYMENT".into(), "".into()],
@@ -291,7 +291,7 @@ fn test_new_with_options() {
             },
             result: Some("Allow.OperationTypes has an empty string".into()),
         },
-        FnTest {
+        TestCase {
             name: "duplicate network identifier",
             payload: NewWithOptionsTest {
                 supported_networks: vec![valid_network_identifier(), valid_network_identifier()],
@@ -299,7 +299,7 @@ fn test_new_with_options() {
             },
             result: Some(ServerError::SupportedNetworksDuplicate.into()),
         },
-        FnTest {
+        TestCase {
             name: "nil network identifier",
             payload: NewWithOptionsTest {
                 supported_networks: vec![valid_network_identifier(), None],
@@ -307,7 +307,7 @@ fn test_new_with_options() {
             },
             result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "no supported networks",
             payload: NewWithOptionsTest {
                 supported_networks: vec![],
@@ -317,23 +317,23 @@ fn test_new_with_options() {
         },
     ];
 
-    FnTest::run_err_match(tests, NewWithOptionsTest::run);
+    TestCase::run_err_match(tests, NewWithOptionsTest::run);
 }
 
 #[test]
 fn test_supported_networks() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid networks",
             payload: vec![valid_network_identifier(), wrong_network_identifier()],
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "no valid networks",
             payload: Default::default(),
             result: Some(ServerError::NoSupportedNetworks.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid networks",
             payload: vec![Some(NetworkIdentifier {
                 blockchain: "blah".into(),
@@ -342,7 +342,7 @@ fn test_supported_networks() {
             })],
             result: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
         },
-        FnTest {
+        TestCase {
             name: "duplicate networks",
             payload: vec![valid_network_identifier(), valid_network_identifier()],
             result: Some(
@@ -356,139 +356,15 @@ fn test_supported_networks() {
         },
     ];
 
-    FnTest::run_err_match(tests, |test| supported_networks(&test));
+    TestCase::run_err_match(tests, |test| supported_networks(&test));
 }
 
 #[test]
 fn test_account_balance_request() {
-    let tests = [
-        CustomAsserterTest {
-            name: "valid request",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: None,
-        },
-        CustomAsserterTest {
-            name: "valid request with currencies",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                currencies: vec![
-                    Some(NullableCurrency {
-                        symbol: "BTC".into(),
-                        decimals: 8,
-                        ..Default::default()
-                    }),
-                    Some(NullableCurrency {
-                        symbol: "ETH".into(),
-                        decimals: 18,
-                        ..Default::default()
-                    }),
-                ],
-                ..Default::default()
-            }),
-            extras: false,
-            err: None,
-        },
-        CustomAsserterTest {
-            name: "valid request with duplicate currencies",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                currencies: vec![
-                    Some(NullableCurrency {
-                        symbol: "BTC".into(),
-                        decimals: 8,
-                        ..Default::default()
-                    }),
-                    Some(NullableCurrency {
-                        symbol: "BTC".into(),
-                        decimals: 8,
-                        ..Default::default()
-                    }),
-                ],
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(ServerError::DuplicateCurrency.into()),
-        },
-        CustomAsserterTest {
-            name: "invalid request wrong network",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: wrong_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(ServerError::RequestedNetworkNotSupported.into()),
-        },
-        CustomAsserterTest {
-            name: "nil request",
-            payload: None,
-            extras: false,
-            err: Some(ServerError::AccountBalanceRequestIsNil.into()),
-        },
-        CustomAsserterTest {
-            name: "missing network",
-            payload: Some(NullableAccountBalanceRequest {
-                account_identifier: valid_account_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
-        },
-        CustomAsserterTest {
-            name: "missing account",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(BlockError::AccountIsNil.into()),
-        },
-        CustomAsserterTest {
-            name: "valid historical request",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                block_identifier: Some(valid_partial_block_identifier()),
-                ..Default::default()
-            }),
-            extras: true,
-            err: None,
-        },
-        CustomAsserterTest {
-            name: "invalid historical request",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                block_identifier: Some(PartialBlockIdentifier::default()),
-                ..Default::default()
-            }),
-            extras: true,
-            err: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
-        },
-        CustomAsserterTest {
-            name: "valid historical request when not enabled",
-            payload: Some(NullableAccountBalanceRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                block_identifier: Some(valid_partial_block_identifier()),
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(ServerError::AccountBalanceRequestHistoricalBalanceLookupNotSupported.into()),
-        },
-    ];
-
-    let asserter = |allow_historical: &bool| {
+    let asserter = |allow_historical: bool| {
         Asserter::new_server(
             vec!["PAYMENT".into()],
-            *allow_historical,
+            allow_historical,
             vec![valid_network_identifier().unwrap()],
             vec![],
             false,
@@ -497,21 +373,169 @@ fn test_account_balance_request() {
         .unwrap()
     };
 
-    CustomAsserterTest::custom_asserter_tests(&tests, asserter, Asserter::account_balance_request);
+    let tests = vec![
+        TestCase {
+            name: "valid request",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: None,
+        },
+        TestCase {
+            name: "valid request with currencies",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    currencies: vec![
+                        Some(NullableCurrency {
+                            symbol: "BTC".into(),
+                            decimals: 8,
+                            ..Default::default()
+                        }),
+                        Some(NullableCurrency {
+                            symbol: "ETH".into(),
+                            decimals: 18,
+                            ..Default::default()
+                        }),
+                    ],
+                    ..Default::default()
+                }),
+            },
+            result: None,
+        },
+        TestCase {
+            name: "valid request with duplicate currencies",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    currencies: vec![
+                        Some(NullableCurrency {
+                            symbol: "BTC".into(),
+                            decimals: 8,
+                            ..Default::default()
+                        }),
+                        Some(NullableCurrency {
+                            symbol: "BTC".into(),
+                            decimals: 8,
+                            ..Default::default()
+                        }),
+                    ],
+                    ..Default::default()
+                }),
+            },
+            result: Some(ServerError::DuplicateCurrency.into()),
+        },
+        TestCase {
+            name: "invalid request wrong network",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: wrong_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: Some(ServerError::RequestedNetworkNotSupported.into()),
+        },
+        TestCase {
+            name: "nil request",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: None,
+            },
+            result: Some(ServerError::AccountBalanceRequestIsNil.into()),
+        },
+        TestCase {
+            name: "missing network",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountBalanceRequest {
+                    account_identifier: valid_account_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+        },
+        TestCase {
+            name: "missing account",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: valid_network_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: Some(BlockError::AccountIsNil.into()),
+        },
+        TestCase {
+            name: "valid historical request",
+            payload: MethodPayload {
+                caller: asserter(true),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    block_identifier: Some(valid_partial_block_identifier()),
+                    ..Default::default()
+                }),
+            },
+            result: None,
+        },
+        TestCase {
+            name: "invalid historical request",
+            payload: MethodPayload {
+                caller: asserter(true),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    block_identifier: Some(PartialBlockIdentifier::default()),
+                    ..Default::default()
+                }),
+            },
+            result: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
+        },
+        TestCase {
+            name: "valid historical request when not enabled",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountBalanceRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    block_identifier: Some(valid_partial_block_identifier()),
+                    ..Default::default()
+                }),
+            },
+            result: Some(
+                ServerError::AccountBalanceRequestHistoricalBalanceLookupNotSupported.into(),
+            ),
+        },
+    ];
+
+    TestCase::run_err_match(tests, |t| {
+        t.caller.account_balance_request(t.payload.as_ref())
+    });
 }
 
 #[test]
 fn test_block_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableBlockRequest {
                 network_identifier: valid_network_identifier(),
                 block_identifier: Some(valid_partial_block_identifier()),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request for block 0",
             payload: Some(NullableBlockRequest {
                 network_identifier: valid_network_identifier(),
@@ -520,62 +544,64 @@ fn test_block_request() {
                     ..Default::default()
                 }),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::BlockRequestIsNil.into()),
+            result: Some(ServerError::BlockRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing network",
             payload: Some(NullableBlockRequest {
                 block_identifier: Some(valid_partial_block_identifier()),
                 ..Default::default()
             }),
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing block identifier",
             payload: Some(NullableBlockRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(BlockError::PartialBlockIdentifierIsNil.into()),
+            result: Some(BlockError::PartialBlockIdentifierIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid PartialBlockIdentifier request",
             payload: Some(NullableBlockRequest {
                 network_identifier: valid_network_identifier(),
                 block_identifier: Some(PartialBlockIdentifier::default()),
             }),
-            err: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
+            result: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::block_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.block_request(t.as_ref()));
 }
 
 #[test]
 fn test_block_transaction_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableBlockTransactionRequest {
                 network_identifier: valid_network_identifier(),
                 block_identifier: valid_block_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableBlockTransactionRequest {
                 network_identifier: wrong_network_identifier(),
                 block_identifier: valid_block_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -584,56 +610,58 @@ fn test_block_transaction_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::BlockTransactionRequestIsNil.into()),
+            result: Some(ServerError::BlockTransactionRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing network",
             payload: Some(NullableBlockTransactionRequest {
                 block_identifier: valid_block_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             }),
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing block identifier",
             payload: Some(NullableBlockTransactionRequest {
                 network_identifier: valid_network_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             }),
-            err: Some(BlockError::BlockIdentifierIsNil.into()),
+            result: Some(BlockError::BlockIdentifierIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid BlockIdentifier request",
             payload: Some(NullableBlockTransactionRequest {
                 network_identifier: valid_network_identifier(),
                 block_identifier: Some(BlockIdentifier::default()),
                 ..Default::default()
             }),
-            err: Some(BlockError::BlockIdentifierHashMissing.into()),
+            result: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::block_transaction_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.block_transaction_request(t.as_ref()));
 }
 
 #[test]
 fn test_construction_metadata_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
                 options: Some(Default::default()),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request with public keys",
             payload: Some(NullableConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
@@ -643,40 +671,40 @@ fn test_construction_metadata_request() {
                     curve_type: NullableCurveType::SECP256K1.into(),
                 })],
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionMetadataRequest {
                 network_identifier: wrong_network_identifier(),
                 options: Some(Default::default()),
                 ..Default::default()
             }),
-            err: Some(ServerError::RequestedNetworkNotSupported.into()),
+            result: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionMetadataRequestIsNil.into()),
+            result: Some(ServerError::ConstructionMetadataRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing network",
             payload: Some(NullableConstructionMetadataRequest {
                 options: Some(Default::default()),
                 ..Default::default()
             }),
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing options",
             payload: Some(NullableConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
                 options: None,
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request with public keys",
             payload: Some(NullableConstructionMetadataRequest {
                 network_identifier: valid_network_identifier(),
@@ -686,65 +714,71 @@ fn test_construction_metadata_request() {
                     ..Default::default()
                 })],
             }),
-            err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+            result: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_metadata_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| {
+        asserter.construction_metadata_request(t.as_ref())
+    });
 }
 
 #[test]
 fn test_construction_submit_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionSubmitRequest {
                 network_identifier: valid_network_identifier(),
                 signed_transaction: "tx".into(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionSubmitRequest {
                 network_identifier: wrong_network_identifier(),
                 signed_transaction: "tx".into(),
             }),
-            err: Some(ServerError::RequestedNetworkNotSupported.into()),
+            result: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionSubmitRequestIsNil.into()),
+            result: Some(ServerError::ConstructionSubmitRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty tx",
             payload: Some(Default::default()),
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_submit_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.construction_submit_request(t.as_ref()));
 }
 
 #[test]
 fn test_mempool_transaction_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableMempoolTransactionRequest {
                 network_identifier: valid_network_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableMempoolTransactionRequest {
                 network_identifier: wrong_network_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -753,68 +787,72 @@ fn test_mempool_transaction_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::MempoolTransactionRequestIsNil.into()),
+            result: Some(ServerError::MempoolTransactionRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing network",
             payload: Some(NullableMempoolTransactionRequest {
                 transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             }),
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid TransactionIdentifier request",
             payload: Some(NullableMempoolTransactionRequest {
                 network_identifier: valid_network_identifier(),
                 transaction_identifier: Some(Default::default()),
             }),
-            err: Some(BlockError::TxIdentifierHashMissing.into()),
+            result: Some(BlockError::TxIdentifierHashMissing.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::mempool_transaction_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.mempool_transaction_request(t.as_ref()));
 }
 
 #[test]
 fn test_metadata_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(Default::default()),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::MetadataRequestIsNil.into()),
+            result: Some(ServerError::MetadataRequestIsNil.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::metadata_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.metadata_request(t.as_ref()));
 }
 
 #[test]
 fn test_network_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableNetworkRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableNetworkRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -823,40 +861,42 @@ fn test_network_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::NetworkRequestIsNil.into()),
+            result: Some(ServerError::NetworkRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "missing network",
             payload: Some(Default::default()),
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::network_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.network_request(t.as_ref()));
 }
 
 #[test]
 fn test_construction_derive_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionDeriveRequest {
                 network_identifier: valid_network_identifier(),
                 public_key: Some(valid_public_key()),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionDeriveRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -865,20 +905,20 @@ fn test_construction_derive_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionDeriveRequestIsNil.into()),
+            result: Some(ServerError::ConstructionDeriveRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil public key",
             payload: Some(NullableConstructionDeriveRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(ConstructionError::PublicKeyIsNil.into()),
+            result: Some(ConstructionError::PublicKeyIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty public key bytes",
             payload: Some(NullableConstructionDeriveRequest {
                 network_identifier: valid_network_identifier(),
@@ -888,11 +928,13 @@ fn test_construction_derive_request() {
                 }),
                 ..Default::default()
             }),
-            err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+            result: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_derive_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.construction_derive_request(t.as_ref()));
 }
 
 #[test]
@@ -900,35 +942,35 @@ fn test_construction_preprocess_request() {
     let positive_fee_multiplier = Some(1.1f64);
     let negative_fee_multiplier = Some(-1.1f64);
 
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request with suggested fee multiplier",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request with max fee",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request with suggested fee multiplier and max fee",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -937,15 +979,15 @@ fn test_construction_preprocess_request() {
                 suggested_fee_multiplier: positive_fee_multiplier,
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -954,47 +996,47 @@ fn test_construction_preprocess_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionPreprocessRequestIsNil.into()),
+            result: Some(ServerError::ConstructionPreprocessRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil operations",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(BlockError::NoOperationsForConstruction.into()),
+            result: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty operations",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: Vec::new(),
                 ..Default::default()
             }),
-            err: Some(BlockError::NoOperationsForConstruction.into()),
+            result: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "unsupported operation type",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: unsupported_type_ops(),
                 ..Default::default()
             }),
-            err: Some(BlockError::OperationTypeInvalid.into()),
+            result: Some(BlockError::OperationTypeInvalid.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid operations",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
                 operations: invalid_ops(),
                 ..Default::default()
             }),
-            err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
+            result: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "negative suggested fee multiplier",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1002,7 +1044,7 @@ fn test_construction_preprocess_request() {
                 suggested_fee_multiplier: negative_fee_multiplier,
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {}",
                     ServerError::ConstructionPreprocessRequestSuggestedFeeMultiplierIsNeg,
@@ -1011,7 +1053,7 @@ fn test_construction_preprocess_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "max fee with duplicate currency",
             payload: Some(NullableConstructionPreprocessRequest {
                 network_identifier: valid_network_identifier(),
@@ -1019,7 +1061,7 @@ fn test_construction_preprocess_request() {
                 max_fee: vec![valid_amount(), valid_amount()],
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "currency {:?} used multiple times",
                     valid_amount().unwrap().currency
@@ -1029,13 +1071,17 @@ fn test_construction_preprocess_request() {
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_preprocess_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| {
+        asserter.construction_preprocess_request(t.as_ref())
+    });
 }
 
 #[test]
 fn test_construction_payloads_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1043,9 +1089,9 @@ fn test_construction_payloads_request() {
                 metadata: indexmap!("test".into() => "hello".into()),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request with public keys",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1056,15 +1102,15 @@ fn test_construction_payloads_request() {
                     curve_type: NullableCurveType::SECP256K1.into(),
                 })],
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1073,47 +1119,47 @@ fn test_construction_payloads_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
+            result: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil operations",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(BlockError::NoOperationsForConstruction.into()),
+            result: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty operations",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
                 operations: vec![],
                 ..Default::default()
             }),
-            err: Some(BlockError::NoOperationsForConstruction.into()),
+            result: Some(BlockError::NoOperationsForConstruction.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "unsupported operation type",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
                 operations: unsupported_type_ops(),
                 ..Default::default()
             }),
-            err: Some(BlockError::OperationTypeInvalid.into()),
+            result: Some(BlockError::OperationTypeInvalid.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid operations",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
                 operations: invalid_ops(),
                 ..Default::default()
             }),
-            err: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
+            result: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request with public keys",
             payload: Some(NullableConstructionPayloadsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1124,26 +1170,28 @@ fn test_construction_payloads_request() {
                     ..Default::default()
                 })],
             }),
-            err: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+            result: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_payload_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.construction_payload_request(t.as_ref()));
 }
 
 #[test]
 fn test_construction_combine_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
                 signatures: valid_signatures(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request 2",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1159,9 +1207,9 @@ fn test_construction_combine_request() {
                     bytes: "blah".into(),
                 })],
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request 3",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
@@ -1177,15 +1225,15 @@ fn test_construction_combine_request() {
                     bytes: "hello".into(),
                 })],
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1194,88 +1242,90 @@ fn test_construction_combine_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionCombineRequestIsNil.into()),
+            result: Some(ServerError::ConstructionCombineRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty unsigned transaction",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 signatures: valid_signatures(),
                 ..Default::default()
             }),
-            err: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
+            result: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil signatures",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
                 ..Default::default()
             }),
-            err: Some(ConstructionError::SignaturesEmpty.into()),
+            result: Some(ConstructionError::SignaturesEmpty.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty signatures",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
                 signatures: vec![],
             }),
-            err: Some(ConstructionError::SignaturesEmpty.into()),
+            result: Some(ConstructionError::SignaturesEmpty.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "signature type mismatch",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
                 signatures: signature_type_mismatch(),
             }),
-            err: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
+            result: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty signature",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
                 signatures: empty_signature(),
             }),
-            err: Some(ConstructionError::SignatureBytesEmpty.into()),
+            result: Some(ConstructionError::SignatureBytesEmpty.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "signature type match",
             payload: Some(NullableConstructionCombineRequest {
                 network_identifier: valid_network_identifier(),
                 unsigned_transaction: "blah".into(),
                 signatures: signature_type_match(),
             }),
-            err: None,
+            result: None,
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_combine_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.construction_combine_request(t.as_ref()));
 }
 
 #[test]
 fn test_construction_hash_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionHashRequest {
                 network_identifier: valid_network_identifier(),
                 signed_transaction: "blah".into(),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionHashRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1284,90 +1334,94 @@ fn test_construction_hash_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionHashRequestIsNil.into()),
+            result: Some(ServerError::ConstructionHashRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty signed transaction",
             payload: Some(NullableConstructionHashRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(ServerError::ConstructionHashRequestSignedTxEmpty.into()),
+            result: Some(ServerError::ConstructionHashRequestSignedTxEmpty.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_hash_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.construction_hash_request(t.as_ref()));
 }
 
 #[test]
 fn test_construction_parse_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableConstructionParseRequest {
                 network_identifier: valid_network_identifier(),
                 transaction: "blah".into(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableConstructionParseRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(ServerError::RequestedNetworkNotSupported.into()),
+            result: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::ConstructionParseRequestIsNil.into()),
+            result: Some(ServerError::ConstructionParseRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty signed transaction",
             payload: Some(NullableConstructionParseRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(ServerError::ConstructionParseRequestEmpty.into()),
+            result: Some(ServerError::ConstructionParseRequestEmpty.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::construction_parse_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.construction_parse_request(t.as_ref()));
 }
 
 #[test]
 fn test_call_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableCallRequest {
                 network_identifier: valid_network_identifier(),
                 method: "eth_call".into(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request with params",
             payload: Some(NullableCallRequest {
                 network_identifier: valid_network_identifier(),
                 method: "eth_call".into(),
                 parameters: indexmap!("hello".into() => "test".into()),
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableCallRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1376,176 +1430,198 @@ fn test_call_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "unsupported method",
             payload: Some(NullableCallRequest {
                 network_identifier: valid_network_identifier(),
                 method: "eth_debug".into(),
                 ..Default::default()
             }),
-            err: Some(ServerError::CallMethodUnsupported.into()),
+            result: Some(ServerError::CallMethodUnsupported.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::CallRequestIsNil.into()),
+            result: Some(ServerError::CallRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "empty method",
             payload: Some(NullableCallRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(ServerError::CallMethodEmpty.into()),
+            result: Some(ServerError::CallMethodEmpty.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::call_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.call_request(t.as_ref()));
 }
 
 #[test]
 fn test_account_coins_request() {
-    let tests = [
-        CustomAsserterTest {
-            name: "valid request",
-            payload: Some(NullableAccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: None,
-        },
-        CustomAsserterTest {
-            name: "valid request with currencies",
-            payload: Some(NullableAccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                currencies: vec![
-                    Some(NullableCurrency {
-                        symbol: "BTC".into(),
-                        decimals: 8,
-                        ..Default::default()
-                    }),
-                    Some(NullableCurrency {
-                        symbol: "ETH".into(),
-                        decimals: 18,
-                        ..Default::default()
-                    }),
-                ],
-                ..Default::default()
-            }),
-            extras: false,
-            err: None,
-        },
-        CustomAsserterTest {
-            name: "valid request with duplicate currencies",
-            payload: Some(NullableAccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                currencies: vec![
-                    Some(NullableCurrency {
-                        symbol: "BTC".into(),
-                        decimals: 8,
-                        ..Default::default()
-                    });
-                    2
-                ],
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(ServerError::DuplicateCurrency.into()),
-        },
-        CustomAsserterTest {
-            name: "invalid request wrong network",
-            payload: Some(NullableAccountCoinsRequest {
-                network_identifier: wrong_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(ServerError::RequestedNetworkNotSupported.into()),
-        },
-        CustomAsserterTest {
-            name: "nil request",
-            payload: None,
-            extras: false,
-            err: Some(ServerError::AccountCoinsRequestIsNil.into()),
-        },
-        CustomAsserterTest {
-            name: "missing network",
-            payload: Some(NullableAccountCoinsRequest {
-                account_identifier: valid_account_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(NetworkError::NetworkIdentifierIsNil.into()),
-        },
-        CustomAsserterTest {
-            name: "missing account",
-            payload: Some(NullableAccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(BlockError::AccountIsNil.into()),
-        },
-        CustomAsserterTest {
-            name: "valid mempool lookup request",
-            payload: Some(NullableAccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                ..Default::default()
-            }),
-            extras: true,
-            err: None,
-        },
-        CustomAsserterTest {
-            name: "valid mempool lookup request when not enabled",
-            payload: Some(NullableAccountCoinsRequest {
-                network_identifier: valid_network_identifier(),
-                account_identifier: valid_account_identifier(),
-                include_mempool: true,
-                ..Default::default()
-            }),
-            extras: false,
-            err: Some(ServerError::MempoolCoinsNotSupported.into()),
-        },
-    ];
-
-    let asserter = |allow_mempool: &bool| {
+    let asserter = |allow_mempool: bool| {
         Asserter::new_server(
             vec!["PAYMENT".into()],
             true,
             vec![valid_network_identifier().unwrap()],
             vec![],
-            *allow_mempool,
+            allow_mempool,
             None,
         )
         .unwrap()
     };
 
-    CustomAsserterTest::custom_asserter_tests(&tests, asserter, Asserter::account_coins_request);
+    let tests = vec![
+        TestCase {
+            name: "valid request",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountCoinsRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: None,
+        },
+        TestCase {
+            name: "valid request with currencies",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountCoinsRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    currencies: vec![
+                        Some(NullableCurrency {
+                            symbol: "BTC".into(),
+                            decimals: 8,
+                            ..Default::default()
+                        }),
+                        Some(NullableCurrency {
+                            symbol: "ETH".into(),
+                            decimals: 18,
+                            ..Default::default()
+                        }),
+                    ],
+                    ..Default::default()
+                }),
+            },
+            result: None,
+        },
+        TestCase {
+            name: "valid request with duplicate currencies",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountCoinsRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    currencies: vec![
+                        Some(NullableCurrency {
+                            symbol: "BTC".into(),
+                            decimals: 8,
+                            ..Default::default()
+                        });
+                        2
+                    ],
+                    ..Default::default()
+                }),
+            },
+            result: Some(ServerError::DuplicateCurrency.into()),
+        },
+        TestCase {
+            name: "invalid request wrong network",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountCoinsRequest {
+                    network_identifier: wrong_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: Some(ServerError::RequestedNetworkNotSupported.into()),
+        },
+        TestCase {
+            name: "nil request",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: None,
+            },
+            result: Some(ServerError::AccountCoinsRequestIsNil.into()),
+        },
+        TestCase {
+            name: "missing network",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountCoinsRequest {
+                    account_identifier: valid_account_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+        },
+        TestCase {
+            name: "missing account",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountCoinsRequest {
+                    network_identifier: valid_network_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: Some(BlockError::AccountIsNil.into()),
+        },
+        TestCase {
+            name: "valid mempool lookup request",
+            payload: MethodPayload {
+                caller: asserter(true),
+                payload: Some(NullableAccountCoinsRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    ..Default::default()
+                }),
+            },
+            result: None,
+        },
+        TestCase {
+            name: "valid mempool lookup request when not enabled",
+            payload: MethodPayload {
+                caller: asserter(false),
+                payload: Some(NullableAccountCoinsRequest {
+                    network_identifier: valid_network_identifier(),
+                    account_identifier: valid_account_identifier(),
+                    include_mempool: true,
+                    ..Default::default()
+                }),
+            },
+            result: Some(ServerError::MempoolCoinsNotSupported.into()),
+        },
+    ];
+
+    TestCase::run_err_match(tests, |t| {
+        t.caller.account_coins_request(t.payload.as_ref())
+    });
 }
 
 #[test]
 fn test_event_blocks_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request",
             payload: Some(NullableEventsBlocksRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableEventsBlocksRequest {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1554,62 +1630,64 @@ fn test_event_blocks_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::EventsBlocksRequestIsNil.into()),
+            result: Some(ServerError::EventsBlocksRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "negative offset",
             payload: Some(NullableEventsBlocksRequest {
                 network_identifier: valid_network_identifier(),
                 offset: Some(-1),
                 ..Default::default()
             }),
-            err: Some(ServerError::OffsetIsNegative.into()),
+            result: Some(ServerError::OffsetIsNegative.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "negative limit",
             payload: Some(NullableEventsBlocksRequest {
                 network_identifier: valid_network_identifier(),
                 limit: Some(-1),
                 ..Default::default()
             }),
-            err: Some(ServerError::LimitIsNegative.into()),
+            result: Some(ServerError::LimitIsNegative.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::events_block_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.events_block_request(t.as_ref()));
 }
 
 #[test]
 fn test_search_transactions_request() {
-    let tests = [
-        AsserterRequestDefaultTest {
+    let tests = vec![
+        TestCase {
             name: "valid request no operator",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "valid request",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
                 operator: Some(NullableOperator::AND.into()),
                 ..Default::default()
             }),
-            err: None,
+            result: None,
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid request wrong network",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: wrong_network_identifier(),
                 operator: Some(NullableOperator::OR.into()),
                 ..Default::default()
             }),
-            err: Some(
+            result: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1618,12 +1696,12 @@ fn test_search_transactions_request() {
                 .into(),
             ),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "nil request",
             payload: None,
-            err: Some(ServerError::SearchTransactionsRequestIsNil.into()),
+            result: Some(ServerError::SearchTransactionsRequestIsNil.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "negative max block",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1631,9 +1709,9 @@ fn test_search_transactions_request() {
                 max_block: Some(-1),
                 ..Default::default()
             }),
-            err: Some(ServerError::MaxBlockInvalid.into()),
+            result: Some(ServerError::MaxBlockInvalid.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "negative offset",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1641,9 +1719,9 @@ fn test_search_transactions_request() {
                 offset: Some(-1),
                 ..Default::default()
             }),
-            err: Some(ServerError::OffsetIsNegative.into()),
+            result: Some(ServerError::OffsetIsNegative.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "negative limit",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
@@ -1651,18 +1729,20 @@ fn test_search_transactions_request() {
                 limit: Some(-1),
                 ..Default::default()
             }),
-            err: Some(ServerError::LimitIsNegative.into()),
+            result: Some(ServerError::LimitIsNegative.into()),
         },
-        AsserterRequestDefaultTest {
+        TestCase {
             name: "invalid operator",
             payload: Some(NullableSearchTransactionsRequest {
                 network_identifier: valid_network_identifier(),
                 operator: Some("nor".into()),
                 ..Default::default()
             }),
-            err: Some(ServerError::OperatorInvalid.into()),
+            result: Some(ServerError::OperatorInvalid.into()),
         },
     ];
 
-    AsserterRequestDefaultTest::run(&tests, Asserter::search_transactions_request);
+    let asserter = request_asserter();
+
+    TestCase::run_err_match(tests, |t| asserter.search_transactions_request(t.as_ref()));
 }

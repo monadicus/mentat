@@ -37,144 +37,130 @@ fn test_search_transactions_response() {
         ..Default::default()
     });
 
-    let tests = [
-        CustomAsserterTest {
+    let tests = vec![
+        TestCase {
             name: "no transactions",
-            payload: Some(Default::default()),
-            extras: (),
-            err: None,
+            payload: Default::default(),
+            result: None,
         },
-        CustomAsserterTest {
+        TestCase {
             name: "valid next",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: NullableSearchTransactionsResponse {
                 next_offset: Some(1),
                 ..Default::default()
-            }),
-            extras: (),
-            err: None,
+            },
+            result: None,
         },
-        CustomAsserterTest {
+        TestCase {
             name: "invalid next",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: NullableSearchTransactionsResponse {
                 next_offset: Some(-1),
                 ..Default::default()
-            }),
-            extras: (),
-            err: Some(SearchError::NextOffsetInvalid.into()),
+            },
+            result: Some(SearchError::NextOffsetInvalid.into()),
         },
-        CustomAsserterTest {
+        TestCase {
             name: "valid count",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: NullableSearchTransactionsResponse {
                 total_count: 0,
                 ..Default::default()
-            }),
-            extras: (),
-            err: None,
+            },
+            result: None,
         },
-        CustomAsserterTest {
+        TestCase {
             name: "invalid count",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: NullableSearchTransactionsResponse {
                 total_count: -1,
                 ..Default::default()
-            }),
-            extras: (),
-            err: Some(SearchError::TotalCountInvalid.into()),
+            },
+            result: Some(SearchError::TotalCountInvalid.into()),
         },
-        CustomAsserterTest {
+        TestCase {
             name: "valid next + transaction",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: NullableSearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![Some(NullableBlockTransaction {
                     block_identifier: valid_block_identifier(),
                     transaction: valid_transaction.clone(),
                 })],
                 ..Default::default()
-            }),
-            extras: (),
-            err: None,
+            },
+            result: None,
         },
-        CustomAsserterTest {
+        TestCase {
             name: "valid next + invalid blockIdentifier",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: NullableSearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![Some(NullableBlockTransaction {
                     block_identifier: Some(Default::default()),
                     transaction: valid_transaction,
                 })],
                 ..Default::default()
-            }),
-            extras: (),
-            err: Some(BlockError::BlockIdentifierHashMissing.into()),
+            },
+            result: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
-        CustomAsserterTest {
+        TestCase {
             name: "valid next + invalid transaction",
-            payload: Some(NullableSearchTransactionsResponse {
+            payload: NullableSearchTransactionsResponse {
                 next_offset: Some(1),
                 transactions: vec![Some(NullableBlockTransaction {
                     block_identifier: valid_block_identifier(),
                     transaction: Some(Default::default()),
                 })],
                 ..Default::default()
-            }),
-            extras: (),
-            err: Some(BlockError::TxIdentifierIsNil.into()),
+            },
+            result: Some(BlockError::TxIdentifierIsNil.into()),
         },
     ];
 
-    let asserter = |_: &()| {
-        Asserter::new_client_with_responses(
-            Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
-                sub_network_identifier: None,
+    let asserter = Asserter::new_client_with_responses(
+        Some(NetworkIdentifier {
+            blockchain: "hello".into(),
+            network: "world".into(),
+            sub_network_identifier: None,
+        }),
+        Some(NullableNetworkStatusResponse {
+            current_block_identifier: Some(BlockIdentifier {
+                index: 100,
+                hash: "block 100".into(),
             }),
-            Some(NullableNetworkStatusResponse {
-                current_block_identifier: Some(BlockIdentifier {
-                    index: 100,
-                    hash: "block 100".into(),
-                }),
-                current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: Some(BlockIdentifier {
-                    index: 0,
-                    hash: "block 0".into(),
-                }),
-                oldest_block_identifier: None,
-                sync_status: None,
-                peers: vec![Some(Peer {
-                    peer_id: "peer 1".into(),
-                    metadata: Default::default(),
-                })],
+            current_block_timestamp: MIN_UNIX_EPOCH + 1,
+            genesis_block_identifier: Some(BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
             }),
-            Some(NullableNetworkOptionsResponse {
-                version: Some(Version {
-                    rosetta_version: "1.4.0".into(),
-                    node_version: "1.0".into(),
-                    middleware_version: None,
-                    metadata: Default::default(),
-                }),
-                allow: Some(NullableAllow {
-                    operation_statuses: vec![
-                        Some(OperationStatus {
-                            status: "SUCCESS".into(),
-                            successful: true,
-                        }),
-                        Some(OperationStatus {
-                            status: "FAILURE".into(),
-                            successful: false,
-                        }),
-                    ],
-                    operation_types: vec!["PAYMENT".into()],
-                    ..Default::default()
-                }),
+            oldest_block_identifier: None,
+            sync_status: None,
+            peers: vec![Some(Peer {
+                peer_id: "peer 1".into(),
+                metadata: Default::default(),
+            })],
+        }),
+        Some(NullableNetworkOptionsResponse {
+            version: Some(Version {
+                rosetta_version: "1.4.0".into(),
+                node_version: "1.0".into(),
+                middleware_version: None,
+                metadata: Default::default(),
             }),
-            None,
-        )
-        .unwrap()
-    };
+            allow: Some(NullableAllow {
+                operation_statuses: vec![
+                    Some(OperationStatus {
+                        status: "SUCCESS".into(),
+                        successful: true,
+                    }),
+                    Some(OperationStatus {
+                        status: "FAILURE".into(),
+                        successful: false,
+                    }),
+                ],
+                operation_types: vec!["PAYMENT".into()],
+                ..Default::default()
+            }),
+        }),
+        None,
+    )
+    .unwrap();
 
-    CustomAsserterTest::custom_asserter_tests(
-        &tests,
-        asserter,
-        Asserter::search_transaction_response,
-    );
+    TestCase::run_err_match(tests, |t| asserter.search_transaction_response(Some(&t)));
 }

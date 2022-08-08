@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn test_expected_operation() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "simple match",
             payload: (
                 Operation {
@@ -46,7 +46,7 @@ fn test_expected_operation() {
             ),
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "account mismatch",
             payload: (
                 Operation {
@@ -89,7 +89,7 @@ fn test_expected_operation() {
             ),
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "amount mismatch",
             payload: (
                 Operation {
@@ -132,7 +132,7 @@ fn test_expected_operation() {
             ),
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "type mismatch",
             payload: (
                 Operation {
@@ -177,7 +177,7 @@ fn test_expected_operation() {
         },
     ];
 
-    FnTest::run_is_err(tests, |t| expected_operation(&t.0, &t.1));
+    TestCase::run_is_err(tests, |t| expected_operation(&t.0, &t.1));
 }
 
 #[test]
@@ -188,7 +188,7 @@ fn test_expected_operations() {
 #[test]
 fn test_expected_signers() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "simple match",
             payload: (
                 vec![
@@ -227,7 +227,7 @@ fn test_expected_signers() {
             ),
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "complex match",
             payload: (
                 vec![
@@ -274,7 +274,7 @@ fn test_expected_signers() {
             ),
             result: false,
         },
-        FnTest {
+        TestCase {
             name: "missing observed signer",
             payload: (
                 vec![
@@ -307,7 +307,7 @@ fn test_expected_signers() {
             ),
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "complex mismatch",
             payload: (
                 vec![
@@ -350,7 +350,7 @@ fn test_expected_signers() {
             ),
             result: true,
         },
-        FnTest {
+        TestCase {
             name: "extra observed signer",
             payload: (
                 vec![SigningPayload {
@@ -375,5 +375,5 @@ fn test_expected_signers() {
         },
     ];
 
-    FnTest::run_is_err(tests, |t| expected_signers(&t.0, &t.1))
+    TestCase::run_is_err(tests, |t| expected_signers(&t.0, &t.1))
 }

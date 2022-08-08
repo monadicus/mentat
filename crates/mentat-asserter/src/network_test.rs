@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn test_network_identifier() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
@@ -12,12 +12,12 @@ fn test_network_identifier() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "nil network",
             payload: None,
             result: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid blockchain",
             payload: Some(NetworkIdentifier {
                 blockchain: Default::default(),
@@ -26,7 +26,7 @@ fn test_network_identifier() {
             }),
             result: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
@@ -35,7 +35,7 @@ fn test_network_identifier() {
             }),
             result: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
         },
-        FnTest {
+        TestCase {
             name: "valid sub_network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
@@ -47,7 +47,7 @@ fn test_network_identifier() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "invalid sub_network",
             payload: Some(NetworkIdentifier {
                 blockchain: "bitcoin".into(),
@@ -58,7 +58,7 @@ fn test_network_identifier() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| network_identifier(t.as_ref()));
+    TestCase::run_err_match(tests, |t| network_identifier(t.as_ref()));
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn test_version() {
     let node_version = "1.0".to_string();
 
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid version",
             payload: Some(Version {
                 rosetta_version: rosetta_version.clone(),
@@ -78,7 +78,7 @@ fn test_version() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "valid version with middleware",
             payload: Some(Version {
                 rosetta_version: rosetta_version.clone(),
@@ -88,7 +88,7 @@ fn test_version() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "old RosettaVersion",
             payload: Some(Version {
                 rosetta_version: "1.2.0".to_string(),
@@ -97,12 +97,12 @@ fn test_version() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "nil version",
             payload: None,
             result: Some(NetworkError::VersionIsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid NodeVersion",
             payload: Some(Version {
                 rosetta_version: rosetta_version.clone(),
@@ -111,7 +111,7 @@ fn test_version() {
             }),
             result: Some(NetworkError::VersionNodeVersionMissing.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid MiddlewareVersion",
             payload: Some(Version {
                 rosetta_version,
@@ -123,7 +123,7 @@ fn test_version() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| version(t.as_ref()));
+    TestCase::run_err_match(tests, |t| version(t.as_ref()));
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn test_allow() {
     let index = Some(100);
 
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid Allow",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -162,7 +162,7 @@ fn test_allow() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "valid Allow with call methods and exemptions",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -175,7 +175,7 @@ fn test_allow() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "valid Allow with exemptions and no historical",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -186,7 +186,7 @@ fn test_allow() {
             }),
             result: Some(NetworkError::BalanceExemptionNoHistoricalLookup.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid timestamp start index",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -196,12 +196,12 @@ fn test_allow() {
             }),
             result: Some(NetworkError::TimestampStartIndexInvalid.into()),
         },
-        FnTest {
+        TestCase {
             name: "nil Allow",
             payload: None,
             result: Some(NetworkError::AllowIsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "no OperationStatuses",
             payload: Some(NullableAllow {
                 operation_types: operation_types.clone(),
@@ -209,7 +209,7 @@ fn test_allow() {
             }),
             result: Some(NetworkError::NoAllowedOperationStatuses.into()),
         },
-        FnTest {
+        TestCase {
             name: "no successful OperationStatuses",
             payload: Some(NullableAllow {
                 operation_statuses: vec![operation_statuses[1].clone()],
@@ -218,7 +218,7 @@ fn test_allow() {
             }),
             result: Some(NetworkError::NoSuccessfulAllowedOperationStatuses.into()),
         },
-        FnTest {
+        TestCase {
             name: "no OperationTypes",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -228,7 +228,7 @@ fn test_allow() {
                 "no Allow.OperationTypes found".to_string(),
             )),
         },
-        FnTest {
+        TestCase {
             name: "duplicate call methods",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -241,7 +241,7 @@ fn test_allow() {
                 "Allow.CallMethods contains a duplicate call".to_string(),
             )),
         },
-        FnTest {
+        TestCase {
             name: "empty exemption",
             payload: Some(NullableAllow {
                 operation_statuses: operation_statuses.clone(),
@@ -256,7 +256,7 @@ fn test_allow() {
             }),
             result: Some(NetworkError::BalanceExemptionMissingSubject.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid exemption type",
             payload: Some(NullableAllow {
                 operation_statuses,
@@ -273,13 +273,13 @@ fn test_allow() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| allow(t.as_ref()));
+    TestCase::run_err_match(tests, |t| allow(t.as_ref()));
 }
 
 #[test]
 fn test_error() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid error",
             payload: Some(MentatError {
                 code: 12,
@@ -288,12 +288,12 @@ fn test_error() {
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "nil error",
             payload: None,
             result: Some(ErrorError::IsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "negative code",
             payload: Some(MentatError {
                 code: -1,
@@ -302,7 +302,7 @@ fn test_error() {
             }),
             result: Some(ErrorError::CodeIsNeg.into()),
         },
-        FnTest {
+        TestCase {
             name: "empty message",
             payload: Some(MentatError {
                 code: 0,
@@ -313,13 +313,13 @@ fn test_error() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| error(t.as_ref()));
+    TestCase::run_err_match(tests, |t| error(t.as_ref()));
 }
 
 #[test]
 fn test_errors() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid errors",
             payload: vec![
                 Some(MentatError {
@@ -335,7 +335,7 @@ fn test_errors() {
             ],
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "details populated",
             payload: vec![
                 Some(MentatError {
@@ -354,7 +354,7 @@ fn test_errors() {
             ],
             result: Some(NetworkError::ErrorDetailsPopulated.into()),
         },
-        FnTest {
+        TestCase {
             name: "duplicate error codes",
             payload: vec![
                 Some(MentatError {
@@ -372,7 +372,7 @@ fn test_errors() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| errors(&t));
+    TestCase::run_err_match(tests, |t| errors(&t));
 }
 
 #[test]
@@ -400,26 +400,26 @@ fn test_network_list_response() {
     });
 
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "valid network list",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1, network_1_sub.clone(), network_2],
             }),
             result: None,
         },
-        FnTest {
+        TestCase {
             name: "nil network list",
             payload: None,
             result: Some(NetworkError::NetworkListResponseIsNil.into()),
         },
-        FnTest {
+        TestCase {
             name: "network list duplicate",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1_sub.clone(), network_1_sub],
             }),
             result: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
         },
-        FnTest {
+        TestCase {
             name: "invalid network",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_3],
@@ -428,5 +428,5 @@ fn test_network_list_response() {
         },
     ];
 
-    FnTest::run_err_match(tests, |t| network_list_response(t.as_ref()));
+    TestCase::run_err_match(tests, |t| network_list_response(t.as_ref()));
 }

@@ -11,7 +11,7 @@ struct MatchOperationsTest {
 
 #[test]
 fn test_match_operations() {
-    let tests = vec![FnTest {
+    let tests = vec![TestCase {
         name: "simple transfer (with extra op)",
         payload: MatchOperationsTest {
             operations: vec![
@@ -104,7 +104,7 @@ fn test_match_operations() {
         ],
     }];
 
-    FnTest::run_output_match(tests, |payload| {
+    TestCase::run_output_match(tests, |payload| {
         let res = match_operations(payload.descriptions, payload.operations);
         if !payload.err {
             res.unwrap()
@@ -132,17 +132,17 @@ impl From<(Option<&Operation>, Option<&BigInt>)> for MatchTestResult {
 #[test]
 fn test_match() {
     let tests = vec![
-        FnTest {
+        TestCase {
             name: "nil match",
             payload: None,
             result: MatchTestResult::default(),
         },
-        FnTest {
+        TestCase {
             name: "empty match",
             payload: Some(Match::default()),
             result: MatchTestResult::default(),
         },
-        FnTest {
+        TestCase {
             name: "single op match",
             payload: Some(Match {
                 operations: vec![Some(Operation {
@@ -165,7 +165,7 @@ fn test_match() {
                 amt: Some(BigInt::from(100)),
             },
         },
-        FnTest {
+        TestCase {
             name: "multi-op match",
             payload: Some(Match {
                 operations: vec![
@@ -197,7 +197,7 @@ fn test_match() {
                 amt: Some(BigInt::from(100)),
             },
         },
-        FnTest {
+        TestCase {
             name: "single op match with nil amount",
             payload: Some(Match {
                 operations: vec![Some(Operation {
@@ -222,5 +222,5 @@ fn test_match() {
         },
     ];
 
-    FnTest::run_output_match(tests, |test| Match::first(test.as_ref()).into());
+    TestCase::run_output_match(tests, |test| Match::first(test.as_ref()).into());
 }
