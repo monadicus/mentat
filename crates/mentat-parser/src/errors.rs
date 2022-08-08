@@ -3,7 +3,7 @@
 use mentat_asserter::AsserterError;
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum IntentError {
     #[error("intended account did not match observed account")]
@@ -20,7 +20,7 @@ pub enum IntentError {
     ExpectedSignerMissing,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum MatchOperationsError {
     #[error("account is missing")]
@@ -76,7 +76,7 @@ pub enum MatchOperationsError {
 }
 
 /// `ParserError` type.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum ParserError {
     #[error(transparent)]

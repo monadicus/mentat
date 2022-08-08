@@ -8,23 +8,23 @@ use super::*;
 
 /// AmountSign is used to represent possible signedness
 /// of an amount.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct AmountSign(pub usize);
 
 impl AmountSign {
     /// `ANY` is a positive or negative amount.
-    const ANY: AmountSign = AmountSign(0);
+    pub(crate) const ANY: AmountSign = AmountSign(0);
     /// `NEGATIVE` is a negative amount.
-    const NEGATIVE: AmountSign = AmountSign(1);
+    pub(crate) const NEGATIVE: AmountSign = AmountSign(1);
     /// `NEGATIVE_OR_ZERO` is a positive or zero amount.
-    const NEGATIVE_OR_ZERO: AmountSign = AmountSign(4);
+    pub(crate) const NEGATIVE_OR_ZERO: AmountSign = AmountSign(4);
     /// OPPOSITES_LENGTH is the only allowed number of
     /// operations to compare as opposites.
-    const OPPOSITES_LENGTH: usize = 2;
+    pub(crate) const OPPOSITES_LENGTH: usize = 2;
     /// `POSITIVE` is a positive amount.
-    const POSITIVE: AmountSign = AmountSign(2);
+    pub(crate) const POSITIVE: AmountSign = AmountSign(2);
     /// `POSITIVE_OR_ZERO` is a positive or zero amount.
-    const POSITIVE_OR_ZERO: AmountSign = AmountSign(3);
+    pub(crate) const POSITIVE_OR_ZERO: AmountSign = AmountSign(3);
 
     /// match_ returns a boolean indicating if an [`Amount`]
     /// has an [`AmountSign`].
@@ -62,6 +62,7 @@ impl AmountSign {
 
 /// MetadataDescription is used to check if a `IndexMap<String, Value>`
 /// has certain keys and values of a certain kind.
+#[derive(Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
@@ -69,6 +70,7 @@ pub struct MetadataDescription {
 }
 
 /// AccountDescription is used to describe a [`AccountIdentifier`].
+#[derive(Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct AccountDescription {
     pub exists: bool,
@@ -78,6 +80,7 @@ pub struct AccountDescription {
 }
 
 /// AmountDescription is used to describe a [`Amount`].
+#[derive(Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct AmountDescription {
     pub exists: bool,
@@ -86,6 +89,7 @@ pub struct AmountDescription {
 }
 
 /// OperationDescription is used to describe a [`Operation`].
+#[derive(Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct OperationDescription {
     pub account: Option<AccountDescription>,
@@ -108,7 +112,8 @@ pub struct OperationDescription {
 }
 
 /// Descriptions contains a slice of [`OperationDescription`]s and
-/// high-level requirements enforced across multiple [`Operations`].
+/// high-level requirements enforced across multiple [`Operation`]s.
+#[derive(Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct Descriptions {
     pub operation_descriptions: Vec<Option<OperationDescription>>,
@@ -557,7 +562,7 @@ pub fn comparison_match(
 
 /// `Match` contains all [`Operation`] matching a given
 /// [`OperationDescription`] and their parsed [`BigInt`] amounts (if populated).
-#[derive(Default, Clone)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct Match {
     pub operations: Vec<Option<Operation>>,
@@ -584,7 +589,7 @@ impl Match {
 /// [`OperationDescription`]s (high-level descriptions of what operations are
 /// desired). If matching succeeds, a slice of matching operations in the
 /// mapped to the order of the descriptions is returned.
-fn match_operations(
+pub fn match_operations(
     descriptions: Option<&Descriptions>,
     operations: Vec<Option<Operation>>,
 ) -> ParserResult<Vec<Option<Match>>> {
