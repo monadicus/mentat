@@ -154,7 +154,7 @@ pub fn expected_signers(
     // signers that we could not find.
     for payload in intent {
         let hash = hash(payload.account_identifier.as_ref());
-        if seen_signers.contains(&hash) {
+        if !seen_signers.contains(&hash) {
             Err(format!(
                 "{}: {}",
                 IntentError::ExpectedSignerMissing,

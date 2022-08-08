@@ -144,14 +144,14 @@ where
         true
     } else if *err == true {
         println!(
-            "test passed when it shouldn't have. returned error `{}`",
-            res.as_ref().unwrap_err()
+            "test passed when it shouldn't have. returned result `{:?}`",
+            res.as_ref().unwrap()
         );
         false
     } else {
         println!(
-            "test failed when it shouldnt have. returned result `{:?}`",
-            res.as_ref().unwrap()
+            "test failed when it shouldnt have. returned error {}`",
+            res.as_ref().unwrap_err()
         );
         false
     }

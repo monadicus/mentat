@@ -1,6 +1,8 @@
 use super::*;
 
-fn simple_asserter_configuration(allowed_status: Vec<Option<OperationStatus>>) -> Option<Asserter> {
+pub fn simple_asserter_configuration(
+    allowed_status: Vec<Option<OperationStatus>>,
+) -> Option<Asserter> {
     Some(
         Asserter::new_client_with_options(
             Some(NetworkIdentifier {
