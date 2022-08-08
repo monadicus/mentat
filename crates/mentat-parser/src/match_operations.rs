@@ -108,7 +108,7 @@ pub struct OperationDescription {
     /// [`CoinChange`] and that it should have the
     /// [`CoinAction`]. If this is not populated,
     /// [`CoinChange`] is not checked.
-    pub coin_action: CoinAction,
+    pub coin_action: NullableCoinAction,
 }
 
 /// Descriptions contains a slice of [`OperationDescription`]s and
@@ -271,19 +271,20 @@ pub fn amount_match(req: Option<&AmountDescription>, amount: Option<&Amount>) ->
 
 #[allow(clippy::missing_docs_in_private_items)]
 pub fn coin_action_match(
-    required_action: CoinAction,
+    required_action: &NullableCoinAction,
     coin_change: Option<&CoinChange>,
 ) -> ParserResult<()> {
-    // TODO redundant check
-    // if required_action.is_empty() {
-    //     return Ok(());
-    // }
+    // TODO seems to be in here to pass tests.
+    if required_action.is_empty() {
+        return Ok(());
+    }
 
     let coin_change = coin_change.ok_or(format!(
         "{}: expected {required_action}",
         MatchOperationsError::CoinActionMatchCoinChangeIsNil
     ))?;
 
+    let required_action = required_action.clone().into();
     if coin_change.coin_action != required_action {
         Err(ParserError::String(format!(
             "{}: expected {required_action} but got {}",
@@ -312,7 +313,7 @@ pub fn operation_match(
             || account_match(des.account.as_ref(), operation.account.as_ref()).is_err()
             || amount_match(des.amount.as_ref(), operation.amount.as_ref()).is_err()
             || metadata_match(&des.metadata, &operation.metadata).is_err()
-            || coin_action_match(des.coin_action, operation.coin_change.as_ref()).is_err()
+            || coin_action_match(&des.coin_action, operation.coin_change.as_ref()).is_err()
         {
             continue;
         }
