@@ -6,7 +6,6 @@ use super::*;
 struct MatchOperationsTest {
     operations: Vec<Option<Operation>>,
     descriptions: Descriptions,
-    err: bool,
 }
 
 #[test]
@@ -70,9 +69,8 @@ fn test_match_operations() {
                 ],
                 ..Default::default()
             },
-            err: false,
         },
-        result: vec![
+        result: Some(vec![
             Some(Match {
                 operations: vec![Some(Operation {
                     account: Some(AccountIdentifier {
@@ -101,16 +99,11 @@ fn test_match_operations() {
                 })],
                 amounts: vec![Some(BigInt::from(100))],
             }),
-        ],
+        ]),
     }];
 
-    TestCase::run_output_match(tests, |payload| {
-        let res = match_operations(payload.descriptions, payload.operations);
-        if !payload.err {
-            res.unwrap()
-        } else {
-            Vec::new()
-        }
+    TestCase::run_ok_match(tests, |payload| {
+        match_operations(payload.descriptions, payload.operations)
     });
 }
 

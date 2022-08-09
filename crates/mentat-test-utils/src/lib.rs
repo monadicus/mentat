@@ -82,7 +82,7 @@ impl<Payload, Res> TestCase<Payload, Res> {
 
     pub fn run_is_err<F, Ok, Err>(tests: Vec<Self>, func: F)
     where
-        Res: PartialEq<bool>,
+        Res: Into<bool>,
         F: Fn(Payload) -> Result<Ok, Err>,
         Ok: fmt::Debug,
         Err: Error,
@@ -98,6 +98,16 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Err: fmt::Display,
     {
         Self::runner(tests, func, check_err_match::<Ok, Err>);
+    }
+
+    pub fn run_ok_match<F, Ok, Err>(tests: Vec<Self>, func: F)
+    where
+        Res: Into<Option<Ok>>,
+        F: Fn(Payload) -> Result<Ok, Err>,
+        Ok: fmt::Debug + PartialEq,
+        Err: fmt::Display,
+    {
+        Self::runner(tests, func, check_ok_match::<Ok, Err>);
     }
 
     pub fn run_result_match<F, Ok, Err>(tests: Vec<Self>, func: F)
@@ -133,27 +143,24 @@ pub fn status_message(failed: usize, total: usize) {
     }
 }
 
-pub fn check_is_err<B, T, E>(err: &B, res: &Result<T, E>) -> bool
+pub fn check_is_err<B, T, E>(is_err: &bool, res: &Result<T, E>) -> bool
 where
-    B: PartialEq<bool>,
     T: fmt::Debug,
     E: Error,
 {
-    if *err == res.is_err() {
-        println!("ok!");
-        true
-    } else if *err == true {
-        println!(
-            "test passed when it shouldn't have. returned result `{:?}`",
-            res.as_ref().unwrap()
-        );
-        false
-    } else {
-        println!(
-            "test failed when it shouldnt have. returned error {}`",
-            res.as_ref().unwrap_err()
-        );
-        false
+    match (is_err, res) {
+        (false, Err(e)) => {
+            println!("test failed when it shouldnt have. returned error `{e}`",);
+            false
+        }
+        (true, Ok(v)) => {
+            println!("test passed when it shouldn't have. returned result `{v:?}`",);
+            false
+        }
+        _ => {
+            println!("ok!");
+            true
+        }
     }
 }
 
@@ -161,12 +168,12 @@ pub fn check_output_match<T>(expected: &T, res: &T) -> bool
 where
     T: fmt::Debug + PartialEq,
 {
-    if expected == res {
-        println!("ok!");
-        true
-    } else {
+    if expected != res {
         println!("test returned wrong value: `{expected:?}` != `{res:?}`");
         false
+    } else {
+        println!("ok!");
+        true
     }
 }
 
@@ -176,16 +183,20 @@ where
     E: fmt::Debug + PartialEq,
 {
     match (expected, res) {
-        (Err(expected), Ok(res)) => {
-            println!(
-                "test passed when it shouldn't have. returned value: `{res:?}`, but expected err: `{expected:?}`"
-            );
+        (Err(_), Ok(res)) => {
+            println!("test passed when it shouldn't have. returned value: `{res:?}`");
             false
         }
-        (Ok(expected), Err(res)) => {
-            println!(
-                "test failed when it shouldn't have. returned error: `{res:?}`, but expected valued `{expected:?}`"
-            );
+        (Ok(_), Err(res)) => {
+            println!("test failed when it shouldn't have. returned error: `{res:?}`");
+            false
+        }
+        (Ok(exp), Ok(res)) if exp != res => {
+            println!("test returned wrong value: `{expected:?}` != `{res:?}`");
+            false
+        }
+        (Err(exp), Err(res)) if exp != res => {
+            println!("test returned wrong value: `{expected:?}` != `{res:?}`");
             false
         }
         _ => {
@@ -197,6 +208,7 @@ where
 
 pub fn check_err_match<T, E>(err: &Option<E>, res: &Result<T, E>) -> bool
 where
+    T: fmt::Debug,
     E: fmt::Display,
 {
     match (res, err) {
@@ -208,8 +220,33 @@ where
             println!("test failed when it shouldn't have. returned error: `{err}`");
             false
         }
-        (Ok(_), Some(exp)) => {
-            println!("test passed when it shouldn't have. expected error: `{exp}`");
+        (Ok(r), Some(_)) => {
+            println!("test passed when it shouldn't have. returned result: `{r:?}`");
+            false
+        }
+        _ => {
+            println!("ok!");
+            true
+        }
+    }
+}
+
+pub fn check_ok_match<T, E>(ok: &Option<T>, res: &Result<T, E>) -> bool
+where
+    T: fmt::Debug + PartialEq,
+    E: fmt::Display,
+{
+    match (res, ok) {
+        (Ok(r), Some(v)) if r != v => {
+            println!("test returned wrong value: `{r:?}` != `{v:?}`");
+            false
+        }
+        (Ok(r), None) => {
+            println!("test passed when it shouldn't have. returned result: `{r:?}`");
+            false
+        }
+        (Err(e), Some(_)) => {
+            println!("test failed when it shouldn't have. returned error: `{e}`");
             false
         }
         _ => {
