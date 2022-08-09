@@ -1,5 +1,18 @@
 use super::*;
 
+/// `err` takes an error as an argument and returns
+/// whether or not the error is one thrown by the asserter
+/// along with the specific source of the error
+pub fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
+    if err.is::<IntentError>() {
+        (true, "account balance error")
+    } else if err.is::<MatchOperationsError>() {
+        (true, "match error")
+    } else {
+        (false, "")
+    }
+}
+
 #[test]
 fn test_err() {
     let tests = vec![
@@ -15,5 +28,5 @@ fn test_err() {
         },
     ];
 
-    ErrorTest::run(tests, crate::errors::err);
+    ErrorTest::run(tests, err);
 }

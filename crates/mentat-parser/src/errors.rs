@@ -103,16 +103,3 @@ impl From<&str> for ParserError {
 
 /// The parser module result type.
 pub type ParserResult<T, E = ParserError> = Result<T, E>;
-
-/// `err` takes an error as an argument and returns
-/// whether or not the error is one thrown by the asserter
-/// along with the specific source of the error
-pub fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
-    if err.is::<IntentError>() {
-        (true, "account balance error")
-    } else if err.is::<MatchOperationsError>() {
-        (true, "match error")
-    } else {
-        (false, "")
-    }
-}
