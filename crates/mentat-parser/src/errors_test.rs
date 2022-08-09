@@ -1,3 +1,5 @@
+//! these tests are useless in Rust, but added anyways so we can say we match the original Go tests
+
 use super::*;
 
 /// `err` takes an error as an argument and returns
@@ -16,17 +18,17 @@ pub fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
 #[test]
 fn test_err() {
     let tests = vec![
-        ErrorTest {
+        TestCase {
             name: "intent error",
-            err: IntentError::ExpectedOperationAccountMismatch.into(),
-            is: true,
+            payload: IntentError::ExpectedOperationAccountMismatch.into(),
+            result: (true, "intent error"),
         },
-        ErrorTest {
+        TestCase {
             name: "match operations error",
-            err: MatchOperationsError::AccountMatchAccountMissing.into(),
-            is: true,
+            payload: MatchOperationsError::AccountMatchAccountMissing.into(),
+            result: (true, "match operations error"),
         },
     ];
 
-    ErrorTest::run(tests, err);
+    TestCase::run_output_match(tests, err);
 }
