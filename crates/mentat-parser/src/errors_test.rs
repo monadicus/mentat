@@ -8,9 +8,9 @@ use super::*;
 /// along with the specific source of the error
 pub fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
     if err.is::<IntentError>() {
-        (true, "account balance error")
+        (true, "intent error")
     } else if err.is::<MatchOperationsError>() {
-        (true, "match error")
+        (true, "match operations error")
     } else {
         (false, "")
     }
