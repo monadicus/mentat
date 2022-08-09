@@ -243,7 +243,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid responses (with sync status)",
@@ -254,7 +254,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid responses (with start index)",
@@ -265,7 +265,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid network status",
@@ -276,7 +276,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: Some("BlockIdentifier is nil".into()),
+            criteria: Some("BlockIdentifier is nil".into()),
         },
         TestCase {
             name: "invalid network status (with sync status)",
@@ -287,7 +287,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: true,
             }),
-            result: Some("SyncStatus.CurrentIndex is negative".into()),
+            criteria: Some("SyncStatus.CurrentIndex is negative".into()),
         },
         TestCase {
             name: "invalid network options",
@@ -298,7 +298,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: Some("no Allow.OperationStatuses found".into()),
+            criteria: Some("no Allow.OperationStatuses found".into()),
         },
         TestCase {
             name: "duplicate operation statuses",
@@ -309,7 +309,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: Some("Allow.OperationStatuses contains a duplicate Success".into()),
+            criteria: Some("Allow.OperationStatuses contains a duplicate Success".into()),
         },
         TestCase {
             name: "duplicate operation types",
@@ -320,7 +320,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: Some("Allow.OperationTypes contains a duplicate Transfer".into()),
+            criteria: Some("Allow.OperationTypes contains a duplicate Transfer".into()),
         },
         TestCase {
             name: "invalid start index",
@@ -331,7 +331,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            result: Some("TimestampStartIndex is invalid: -1".into()),
+            criteria: Some("TimestampStartIndex is invalid: -1".into()),
         },
     ];
 
@@ -346,8 +346,8 @@ fn test_new() {
             payload.validation_file_path.as_ref(),
         );
 
-        if test.result.is_some() {
-            assert!(check_err_match(&test.result, &res));
+        if test.criteria.is_some() {
+            assert!(check_err_match(&test.criteria, &res));
         } else {
             let asserter = res.unwrap();
 
@@ -468,7 +468,7 @@ fn test_new() {
 
             let asserter = Configuration::new_client_with_file(&tmp_file_path);
 
-            if let Some(e) = test.result {
+            if let Some(e) = test.criteria {
                 let err = asserter.unwrap_err();
                 assert!(check_err_match::<(), _>(&Some(err), &Err(e)))
             } else {

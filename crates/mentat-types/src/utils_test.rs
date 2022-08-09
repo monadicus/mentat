@@ -65,7 +65,7 @@ fn test_add_values() {
         TestCase {
             name: "simple",
             payload: ("1", "1"),
-            result: Ok("2".into()),
+            criteria: Ok("2".into()),
         },
         TestCase {
             name: "large",
@@ -73,7 +73,7 @@ fn test_add_values() {
                 "1000000000000000000000000",
                 "100000000000000000000000000000000",
             ),
-            result: Ok("100000001000000000000000000000000".into()),
+            criteria: Ok("100000001000000000000000000000000".into()),
         },
         TestCase {
             name: "decimal",
@@ -81,17 +81,17 @@ fn test_add_values() {
                 "10000000000000000000000.01",
                 "100000000000000000000000000000000",
             ),
-            result: Err("10000000000000000000000.01 is not an integer".into()),
+            criteria: Err("10000000000000000000000.01 is not an integer".into()),
         },
         TestCase {
             name: "negative",
             payload: ("-13213", "12332"),
-            result: Ok("-881".into()),
+            criteria: Ok("-881".into()),
         },
         TestCase {
             name: "invalid number",
             payload: ("-13213", "hello"),
-            result: Err("hello is not an integer".into()),
+            criteria: Err("hello is not an integer".into()),
         },
     ];
 
@@ -104,7 +104,7 @@ fn test_subtract_values() {
         TestCase {
             name: "simple",
             payload: ("1", "1"),
-            result: Ok("0".into()),
+            criteria: Ok("0".into()),
         },
         TestCase {
             name: "large",
@@ -112,7 +112,7 @@ fn test_subtract_values() {
                 "1000000000000000000000000",
                 "100000000000000000000000000000000",
             ),
-            result: Ok("-99999999000000000000000000000000".into()),
+            criteria: Ok("-99999999000000000000000000000000".into()),
         },
         TestCase {
             name: "decimal",
@@ -120,17 +120,17 @@ fn test_subtract_values() {
                 "10000000000000000000000.01",
                 "100000000000000000000000000000000",
             ),
-            result: Err("10000000000000000000000.01 is not an integer".into()),
+            criteria: Err("10000000000000000000000.01 is not an integer".into()),
         },
         TestCase {
             name: "negative",
             payload: ("-13213", "12332"),
-            result: Ok("-25545".into()),
+            criteria: Ok("-25545".into()),
         },
         TestCase {
             name: "invalid number",
             payload: ("-13213", "hello"),
-            result: Err("hello is not an integer".into()),
+            criteria: Err("hello is not an integer".into()),
         },
     ];
 
@@ -143,22 +143,22 @@ fn test_negative_value() {
         TestCase {
             name: "positive number",
             payload: "100",
-            result: Ok("-100".into()),
+            criteria: Ok("-100".into()),
         },
         TestCase {
             name: "negative number",
             payload: "-100",
-            result: Ok("100".into()),
+            criteria: Ok("100".into()),
         },
         TestCase {
             name: "decimal number",
             payload: "-100.1",
-            result: Err("-100.1 is not an integer".into()),
+            criteria: Err("-100.1 is not an integer".into()),
         },
         TestCase {
             name: "non-number",
             payload: "hello",
-            result: Err("hello is not an integer".into()),
+            criteria: Err("hello is not an integer".into()),
         },
     ];
 
@@ -174,7 +174,7 @@ fn test_get_account_string() {
                 address: "hello".into(),
                 ..Default::default()
             },
-            result: "hello".to_string(),
+            criteria: "hello".to_string(),
         },
         TestCase {
             name: "subaccount",
@@ -186,7 +186,7 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            result: "hello:stake".to_string(),
+            criteria: "hello:stake".to_string(),
         },
         TestCase {
             name: "subaccount with string metadata",
@@ -198,7 +198,7 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            result: "hello:stake:{\"cool\": String(\"neat\")}".to_string(),
+            criteria: "hello:stake:{\"cool\": String(\"neat\")}".to_string(),
         },
         TestCase {
             name: "subaccount with number metadata",
@@ -210,7 +210,7 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            result: "hello:stake:{\"cool\": Number(1)}".to_string(),
+            criteria: "hello:stake:{\"cool\": Number(1)}".to_string(),
         },
         TestCase {
             name: "subaccount with complex metadata",
@@ -222,7 +222,8 @@ fn test_get_account_string() {
                 }),
                 ..Default::default()
             },
-            result: "hello:stake:{\"cool\": Number(1), \"awesome\": String(\"neat\")}".to_string(),
+            criteria: "hello:stake:{\"cool\": Number(1), \"awesome\": String(\"neat\")}"
+                .to_string(),
         },
     ];
 
@@ -239,7 +240,7 @@ fn test_currency_string() {
                 decimals: 8,
                 ..Default::default()
             },
-            result: "BTC:8".to_string(),
+            criteria: "BTC:8".to_string(),
         },
         TestCase {
             name: "currency with string metadata",
@@ -248,7 +249,7 @@ fn test_currency_string() {
                 decimals: 8,
                 metadata: [("issuer".into(), "satoshi".into())].into(),
             },
-            result: "BTC:8:{\"issuer\": String(\"satoshi\")}".to_string(),
+            criteria: "BTC:8:{\"issuer\": String(\"satoshi\")}".to_string(),
         },
         TestCase {
             name: "currency with number metadata",
@@ -257,7 +258,7 @@ fn test_currency_string() {
                 decimals: 8,
                 metadata: [("issuer".into(), 1.into())].into(),
             },
-            result: "BTC:8:{\"issuer\": Number(1)}".to_string(),
+            criteria: "BTC:8:{\"issuer\": Number(1)}".to_string(),
         },
         TestCase {
             name: "currency with complex metadata",
@@ -270,7 +271,7 @@ fn test_currency_string() {
                 ]
                 .into(),
             },
-            result: "BTC:8:{\"issuer\": String(\"satoshi\"), \"count\": Number(10)}".to_string(),
+            criteria: "BTC:8:{\"issuer\": String(\"satoshi\"), \"count\": Number(10)}".to_string(),
         },
     ];
 
@@ -286,7 +287,7 @@ fn test_amount_value() {
                 value: "100".into(),
                 ..Default::default()
             }),
-            result: Ok(100.into()),
+            criteria: Ok(100.into()),
         },
         TestCase {
             name: "negative integer",
@@ -294,12 +295,12 @@ fn test_amount_value() {
                 value: "-100".into(),
                 ..Default::default()
             }),
-            result: Ok((-100).into()),
+            criteria: Ok((-100).into()),
         },
         TestCase {
             name: "nil",
             payload: None,
-            result: Err("amount value cannot be nil".to_string()),
+            criteria: Err("amount value cannot be nil".to_string()),
         },
         TestCase {
             name: "float",
@@ -307,7 +308,7 @@ fn test_amount_value() {
                 value: "100.1".into(),
                 ..Default::default()
             }),
-            result: Err("100.1 is not an integer".to_string()),
+            criteria: Err("100.1 is not an integer".to_string()),
         },
         TestCase {
             name: "not number",
@@ -315,7 +316,7 @@ fn test_amount_value() {
                 value: "hello".into(),
                 ..Default::default()
             }),
-            result: Err("hello is not an integer".to_string()),
+            criteria: Err("hello is not an integer".to_string()),
         },
     ];
 

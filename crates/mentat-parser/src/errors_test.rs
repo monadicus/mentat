@@ -1,4 +1,5 @@
-//! these tests are useless in Rust, but added anyways so we can say we match the original Go tests
+//! these tests are useless in Rust, but added anyways so we can say we match
+//! the original Go tests
 
 use super::*;
 
@@ -21,12 +22,12 @@ fn test_err() {
         TestCase {
             name: "intent error",
             payload: IntentError::ExpectedOperationAccountMismatch.into(),
-            result: (true, "intent error"),
+            criteria: (true, "intent error"),
         },
         TestCase {
             name: "match operations error",
             payload: MatchOperationsError::AccountMatchAccountMissing.into(),
-            result: (true, "match operations error"),
+            criteria: (true, "match operations error"),
         },
     ];
 

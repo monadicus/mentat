@@ -8,7 +8,7 @@ fn test_construction_preprocess_response() {
             payload: Some(NullableConstructionPreprocessResponse {
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid response with accounts",
@@ -19,7 +19,7 @@ fn test_construction_preprocess_response() {
                 })],
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid response with accounts",
@@ -30,12 +30,12 @@ fn test_construction_preprocess_response() {
                 })],
                 ..Default::default()
             }),
-            result: Some(BlockError::AccountAddrMissing.into()),
+            criteria: Some(BlockError::AccountAddrMissing.into()),
         },
         TestCase {
             name: "nil response",
             payload: None,
-            result: Some(ConstructionError::ConstructionPreprocessResponseIsNil.into()),
+            criteria: Some(ConstructionError::ConstructionPreprocessResponseIsNil.into()),
         },
     ];
 
@@ -51,7 +51,7 @@ fn test_construction_metadata_response() {
                 metadata: Some(Default::default()),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "with suggested fee",
@@ -59,7 +59,7 @@ fn test_construction_metadata_response() {
                 metadata: Some(Default::default()),
                 suggested_fee: vec![valid_amount()],
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "with duplicate suggested fee",
@@ -67,7 +67,7 @@ fn test_construction_metadata_response() {
                 metadata: Some(Default::default()),
                 suggested_fee: vec![valid_amount(), valid_amount()],
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "currency {:?} used multiple times",
                     valid_amount().unwrap().currency
@@ -78,12 +78,12 @@ fn test_construction_metadata_response() {
         TestCase {
             name: "nil response",
             payload: None,
-            result: Some(ConstructionError::ConstructionMetadataResponseIsNil.into()),
+            criteria: Some(ConstructionError::ConstructionMetadataResponseIsNil.into()),
         },
         TestCase {
             name: "invalid metadata",
             payload: Some(Default::default()),
-            result: Some(ConstructionError::ConstructionMetadataResponseMetadataMissing.into()),
+            criteria: Some(ConstructionError::ConstructionMetadataResponseMetadataMissing.into()),
         },
     ];
 
@@ -99,17 +99,17 @@ fn test_transaction_identifier_response() {
                 transaction_identifier: Some(TransactionIdentifier { hash: "tx1".into() }),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil response",
             payload: None,
-            result: Some(ConstructionError::TxIdentifierResponseIsNil.into()),
+            criteria: Some(ConstructionError::TxIdentifierResponseIsNil.into()),
         },
         TestCase {
             name: "invalid transaction identifier",
             payload: Some(Default::default()),
-            result: Some(BlockError::TxIdentifierIsNil.into()),
+            criteria: Some(BlockError::TxIdentifierIsNil.into()),
         },
     ];
 
@@ -124,17 +124,17 @@ fn test_construction_combine_response() {
             payload: Some(NullableConstructionCombineResponse {
                 signed_transaction: "signed tx".into(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil response",
             payload: None,
-            result: Some(ConstructionError::ConstructionCombineResponseIsNil.into()),
+            criteria: Some(ConstructionError::ConstructionCombineResponseIsNil.into()),
         },
         TestCase {
             name: "empty signed transaction",
             payload: Some(Default::default()),
-            result: Some(ConstructionError::SignedTxEmpty.into()),
+            criteria: Some(ConstructionError::SignedTxEmpty.into()),
         },
     ];
 
@@ -154,12 +154,12 @@ fn test_construction_derive_response() {
                 }),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil response",
             payload: None,
-            result: Some(ConstructionError::ConstructionDeriveResponseIsNil.into()),
+            criteria: Some(ConstructionError::ConstructionDeriveResponseIsNil.into()),
         },
         TestCase {
             name: "empty address",
@@ -167,7 +167,7 @@ fn test_construction_derive_response() {
                 metadata: [("name".into(), "hello".into())].into(),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::ConstructionDeriveResponseAddrEmpty.into()),
+            criteria: Some(ConstructionError::ConstructionDeriveResponseAddrEmpty.into()),
         },
     ];
 
@@ -219,7 +219,7 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "duplicate signer",
@@ -260,12 +260,12 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
-            result: Some(ConstructionError::ConstructionParseResponseDuplicateSigner.into()),
+            criteria: Some(ConstructionError::ConstructionParseResponseDuplicateSigner.into()),
         },
         TestCase {
             name: "nil response",
             payload: Some(Default::default()),
-            result: Some(ConstructionError::ConstructionParseResponseIsNil.into()),
+            criteria: Some(ConstructionError::ConstructionParseResponseIsNil.into()),
         },
         TestCase {
             name: "no operations",
@@ -277,7 +277,7 @@ fn test_construction_parse_response() {
                 }),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::ConstructionParseResponseOperationsEmpty.into()),
+            criteria: Some(ConstructionError::ConstructionParseResponseOperationsEmpty.into()),
         },
         TestCase {
             name: "invalid operation ordering",
@@ -299,7 +299,7 @@ fn test_construction_parse_response() {
                 }),
                 ..Default::default()
             }),
-            result: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
+            criteria: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         TestCase {
             name: "no signers",
@@ -336,7 +336,9 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
-            result: Some(ConstructionError::ConstructionParseResponseSignersEmptyOnSignedTx.into()),
+            criteria: Some(
+                ConstructionError::ConstructionParseResponseSignersEmptyOnSignedTx.into(),
+            ),
         },
         TestCase {
             name: "empty account identifier signer",
@@ -374,7 +376,7 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
-            result: Some(ConstructionError::ConstructionParseResponseSignerEmpty.into()),
+            criteria: Some(ConstructionError::ConstructionParseResponseSignerEmpty.into()),
         },
         TestCase {
             name: "invalid signer unsigned",
@@ -412,7 +414,7 @@ fn test_construction_parse_response() {
                 }),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 ConstructionError::ConstructionParseResponseSignersNonEmptyOnUnsignedTx.into(),
             ),
         },
@@ -451,7 +453,7 @@ fn test_construction_parse_response() {
                 }),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
     ];
 
@@ -524,12 +526,12 @@ fn test_construction_payloads_response() {
                     ..Default::default()
                 })],
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil response",
             payload: None,
-            result: Some(ConstructionError::ConstructionPayloadsResponseIsNil.into()),
+            criteria: Some(ConstructionError::ConstructionPayloadsResponseIsNil.into()),
         },
         TestCase {
             name: "empty unsigned transaction",
@@ -544,7 +546,7 @@ fn test_construction_payloads_response() {
                 })],
                 ..Default::default()
             }),
-            result: Some(ConstructionError::ConstructionPayloadsResponseUnsignedTxEmpty.into()),
+            criteria: Some(ConstructionError::ConstructionPayloadsResponseUnsignedTxEmpty.into()),
         },
         TestCase {
             name: "empty signing payloads",
@@ -552,7 +554,7 @@ fn test_construction_payloads_response() {
                 unsigned_transaction: "tx blob".into(),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::ConstructionPayloadsResponsePayloadsEmpty.into()),
+            criteria: Some(ConstructionError::ConstructionPayloadsResponsePayloadsEmpty.into()),
         },
         TestCase {
             name: "invalid signing payload",
@@ -563,7 +565,7 @@ fn test_construction_payloads_response() {
                     ..Default::default()
                 })],
             }),
-            result: Some(ConstructionError::SigningPayloadAddrEmpty.into()),
+            criteria: Some(ConstructionError::SigningPayloadAddrEmpty.into()),
         },
     ];
 
@@ -579,7 +581,7 @@ fn test_public_key() {
                 bytes: "blah".into(),
                 curve_type: NullableCurveType::SECP256K1.into(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "zero public key",
@@ -587,12 +589,12 @@ fn test_public_key() {
                 bytes: vec![0; 4],
                 curve_type: NullableCurveType::SECP256K1.into(),
             }),
-            result: Some(ConstructionError::PublicKeyBytesZero.into()),
+            criteria: Some(ConstructionError::PublicKeyBytesZero.into()),
         },
         TestCase {
             name: "nil public key",
             payload: None,
-            result: Some(ConstructionError::PublicKeyIsNil.into()),
+            criteria: Some(ConstructionError::PublicKeyIsNil.into()),
         },
         TestCase {
             name: "invalid bytes",
@@ -600,7 +602,7 @@ fn test_public_key() {
                 curve_type: NullableCurveType::SECP256K1.into(),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+            criteria: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
         TestCase {
             name: "invalid curve",
@@ -608,7 +610,7 @@ fn test_public_key() {
                 bytes: "hello".into(),
                 curve_type: "test".into(),
             }),
-            result: Some(ConstructionError::CurveTypeNotSupported.into()),
+            criteria: Some(ConstructionError::CurveTypeNotSupported.into()),
         },
     ];
 
@@ -628,7 +630,7 @@ fn test_signing_payload() {
                 bytes: "blah".into(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid signing payload with signature type",
@@ -641,12 +643,12 @@ fn test_signing_payload() {
                 signature_type: NullableSignatureType::ED25519.into(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil signing payload",
             payload: None,
-            result: Some(ConstructionError::SigningPayloadIsNil.into()),
+            criteria: Some(ConstructionError::SigningPayloadIsNil.into()),
         },
         TestCase {
             name: "empty address",
@@ -654,7 +656,7 @@ fn test_signing_payload() {
                 bytes: "blah".into(),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::SigningPayloadAddrEmpty.into()),
+            criteria: Some(ConstructionError::SigningPayloadAddrEmpty.into()),
         },
         TestCase {
             name: "zero signing payload",
@@ -666,7 +668,7 @@ fn test_signing_payload() {
                 bytes: vec![0; 4],
                 ..Default::default()
             }),
-            result: Some(ConstructionError::SigningPayloadBytesZero.into()),
+            criteria: Some(ConstructionError::SigningPayloadBytesZero.into()),
         },
         TestCase {
             name: "empty bytes",
@@ -677,7 +679,7 @@ fn test_signing_payload() {
                 }),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::SigningPayloadBytesEmpty.into()),
+            criteria: Some(ConstructionError::SigningPayloadBytesEmpty.into()),
         },
         TestCase {
             name: "invalid signature",
@@ -690,7 +692,7 @@ fn test_signing_payload() {
                 signature_type: "blah".into(),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::SignatureTypeNotSupported.into()),
+            criteria: Some(ConstructionError::SignatureTypeNotSupported.into()),
         },
     ];
 
@@ -724,7 +726,7 @@ fn test_signatures() {
                     bytes: "hello".into(),
                 }),
             ],
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "signature type match",
@@ -739,12 +741,12 @@ fn test_signatures() {
                 signature_type: NullableSignatureType::ED25519.into(),
                 bytes: "hello".into(),
             })],
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil signatures",
             payload: Vec::new(),
-            result: Some(ConstructionError::SignaturesEmpty.into()),
+            criteria: Some(ConstructionError::SignaturesEmpty.into()),
         },
         TestCase {
             name: "empty signature",
@@ -771,7 +773,7 @@ fn test_signatures() {
                     ..Default::default()
                 }),
             ],
-            result: Some(ConstructionError::SignatureBytesEmpty.into()),
+            criteria: Some(ConstructionError::SignatureBytesEmpty.into()),
         },
         TestCase {
             name: "signature zero bytes",
@@ -786,7 +788,7 @@ fn test_signatures() {
                 signature_type: NullableSignatureType::ED25519.into(),
                 bytes: vec![0],
             })],
-            result: Some(ConstructionError::SignatureBytesZero.into()),
+            criteria: Some(ConstructionError::SignatureBytesZero.into()),
         },
         TestCase {
             name: "signature type mismatch",
@@ -801,7 +803,7 @@ fn test_signatures() {
                 signature_type: NullableSignatureType::ED25519.into(),
                 bytes: "hello".into(),
             })],
-            result: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
+            criteria: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
         },
     ];
 

@@ -6,7 +6,7 @@ fn test_events_block_response() {
         TestCase {
             name: "no events",
             payload: Default::default(),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid max",
@@ -14,7 +14,7 @@ fn test_events_block_response() {
                 max_sequence: -1,
                 events: Vec::new(),
             },
-            result: Some(EventError::MaxSequenceInvalid.into()),
+            criteria: Some(EventError::MaxSequenceInvalid.into()),
         },
         TestCase {
             name: "valid event",
@@ -39,7 +39,7 @@ fn test_events_block_response() {
                     }),
                 ],
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid identifier",
@@ -64,7 +64,7 @@ fn test_events_block_response() {
                     }),
                 ],
             },
-            result: Some(BlockError::BlockIdentifierHashMissing.into()),
+            criteria: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         TestCase {
             name: "invalid event type",
@@ -89,7 +89,7 @@ fn test_events_block_response() {
                     }),
                 ],
             },
-            result: Some(EventError::BlockEventTypeInvalid.into()),
+            criteria: Some(EventError::BlockEventTypeInvalid.into()),
         },
         TestCase {
             name: "gap events",
@@ -114,7 +114,7 @@ fn test_events_block_response() {
                     }),
                 ],
             },
-            result: Some(EventError::SequenceOutOfOrder.into()),
+            criteria: Some(EventError::SequenceOutOfOrder.into()),
         },
         TestCase {
             name: "gap events",
@@ -139,7 +139,7 @@ fn test_events_block_response() {
                     }),
                 ],
             },
-            result: Some(EventError::SequenceInvalid.into()),
+            criteria: Some(EventError::SequenceInvalid.into()),
         },
     ];
 

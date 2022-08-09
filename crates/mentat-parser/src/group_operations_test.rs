@@ -135,7 +135,7 @@ fn test_group_operations() {
         TestCase {
             name: "no ops",
             payload: Transaction::default(),
-            result: Vec::new(),
+            criteria: Vec::new(),
         },
         TestCase {
             name: "unrelated ops",
@@ -175,7 +175,7 @@ fn test_group_operations() {
                 ],
                 ..Default::default()
             },
-            result: vec![
+            criteria: vec![
                 OperationGroup {
                     type_: "op 0".into(),
                     operations: vec![Operation {
@@ -322,7 +322,7 @@ fn test_group_operations() {
                 ],
                 ..Default::default()
             },
-            result: vec![
+            criteria: vec![
                 OperationGroup {
                     type_: "type 0".into(),
                     operations: vec![

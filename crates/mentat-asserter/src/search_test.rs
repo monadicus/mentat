@@ -41,7 +41,7 @@ fn test_search_transactions_response() {
         TestCase {
             name: "no transactions",
             payload: Default::default(),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid next",
@@ -49,7 +49,7 @@ fn test_search_transactions_response() {
                 next_offset: Some(1),
                 ..Default::default()
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid next",
@@ -57,7 +57,7 @@ fn test_search_transactions_response() {
                 next_offset: Some(-1),
                 ..Default::default()
             },
-            result: Some(SearchError::NextOffsetInvalid.into()),
+            criteria: Some(SearchError::NextOffsetInvalid.into()),
         },
         TestCase {
             name: "valid count",
@@ -65,7 +65,7 @@ fn test_search_transactions_response() {
                 total_count: 0,
                 ..Default::default()
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid count",
@@ -73,7 +73,7 @@ fn test_search_transactions_response() {
                 total_count: -1,
                 ..Default::default()
             },
-            result: Some(SearchError::TotalCountInvalid.into()),
+            criteria: Some(SearchError::TotalCountInvalid.into()),
         },
         TestCase {
             name: "valid next + transaction",
@@ -85,7 +85,7 @@ fn test_search_transactions_response() {
                 })],
                 ..Default::default()
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid next + invalid blockIdentifier",
@@ -97,7 +97,7 @@ fn test_search_transactions_response() {
                 })],
                 ..Default::default()
             },
-            result: Some(BlockError::BlockIdentifierHashMissing.into()),
+            criteria: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         TestCase {
             name: "valid next + invalid transaction",
@@ -109,7 +109,7 @@ fn test_search_transactions_response() {
                 })],
                 ..Default::default()
             },
-            result: Some(BlockError::TxIdentifierIsNil.into()),
+            criteria: Some(BlockError::TxIdentifierIsNil.into()),
         },
     ];
 

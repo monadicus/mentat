@@ -168,7 +168,7 @@ fn test_balance_changes() {
                     orphan: false,
                 },
             },
-            result: vec![BalanceChange {
+            criteria: vec![BalanceChange {
                 account: recipient.clone(),
                 currency: Some(currency.clone()),
                 block: BlockIdentifier {
@@ -204,7 +204,7 @@ fn test_balance_changes() {
                     orphan: false,
                 },
             },
-            result: vec![],
+            criteria: vec![],
         },
         TestCase {
             name: "single account sum block",
@@ -231,7 +231,7 @@ fn test_balance_changes() {
                     orphan: false,
                 },
             },
-            result: vec![
+            criteria: vec![
                 BalanceChange {
                     account: Some(AccountIdentifier {
                         address: "addr1".into(),
@@ -283,7 +283,7 @@ fn test_balance_changes() {
                     orphan: true,
                 },
             },
-            result: vec![
+            criteria: vec![
                 BalanceChange {
                     account: Some(AccountIdentifier {
                         address: "addr1".into(),

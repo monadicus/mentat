@@ -10,12 +10,12 @@ fn test_network_identifier() {
                 network: "mainnet".into(),
                 sub_network_identifier: Default::default(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil network",
             payload: None,
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "invalid blockchain",
@@ -24,7 +24,7 @@ fn test_network_identifier() {
                 network: "mainnet".into(),
                 sub_network_identifier: Default::default(),
             }),
-            result: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
+            criteria: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
         },
         TestCase {
             name: "invalid network",
@@ -33,7 +33,7 @@ fn test_network_identifier() {
                 network: Default::default(),
                 sub_network_identifier: Default::default(),
             }),
-            result: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
+            criteria: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
         },
         TestCase {
             name: "valid sub_network",
@@ -45,7 +45,7 @@ fn test_network_identifier() {
                     metadata: Default::default(),
                 }),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid sub_network",
@@ -54,7 +54,7 @@ fn test_network_identifier() {
                 network: "mainnet".into(),
                 sub_network_identifier: Some(Default::default()),
             }),
-            result: Some(NetworkError::SubNetworkIdentifierInvalid.into()),
+            criteria: Some(NetworkError::SubNetworkIdentifierInvalid.into()),
         },
     ];
 
@@ -76,7 +76,7 @@ fn test_version() {
                 node_version: node_version.clone(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid version with middleware",
@@ -86,7 +86,7 @@ fn test_version() {
                 middleware_version,
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "old RosettaVersion",
@@ -95,12 +95,12 @@ fn test_version() {
                 node_version: node_version.clone(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil version",
             payload: None,
-            result: Some(NetworkError::VersionIsNil.into()),
+            criteria: Some(NetworkError::VersionIsNil.into()),
         },
         TestCase {
             name: "invalid NodeVersion",
@@ -109,7 +109,7 @@ fn test_version() {
                 node_version: String::new(),
                 ..Default::default()
             }),
-            result: Some(NetworkError::VersionNodeVersionMissing.into()),
+            criteria: Some(NetworkError::VersionNodeVersionMissing.into()),
         },
         TestCase {
             name: "invalid MiddlewareVersion",
@@ -119,7 +119,7 @@ fn test_version() {
                 middleware_version: invalid_middleware_version,
                 ..Default::default()
             }),
-            result: Some(NetworkError::VersionMiddlewareVersionMissing.into()),
+            criteria: Some(NetworkError::VersionMiddlewareVersionMissing.into()),
         },
     ];
 
@@ -160,7 +160,7 @@ fn test_allow() {
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid Allow with call methods and exemptions",
@@ -173,7 +173,7 @@ fn test_allow() {
                 timestamp_start_index: index,
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid Allow with exemptions and no historical",
@@ -184,7 +184,7 @@ fn test_allow() {
                 balance_exemptions: balance_exemptions.clone(),
                 ..Default::default()
             }),
-            result: Some(NetworkError::BalanceExemptionNoHistoricalLookup.into()),
+            criteria: Some(NetworkError::BalanceExemptionNoHistoricalLookup.into()),
         },
         TestCase {
             name: "invalid timestamp start index",
@@ -194,12 +194,12 @@ fn test_allow() {
                 timestamp_start_index: neg_index,
                 ..Default::default()
             }),
-            result: Some(NetworkError::TimestampStartIndexInvalid.into()),
+            criteria: Some(NetworkError::TimestampStartIndexInvalid.into()),
         },
         TestCase {
             name: "nil Allow",
             payload: None,
-            result: Some(NetworkError::AllowIsNil.into()),
+            criteria: Some(NetworkError::AllowIsNil.into()),
         },
         TestCase {
             name: "no OperationStatuses",
@@ -207,7 +207,7 @@ fn test_allow() {
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
-            result: Some(NetworkError::NoAllowedOperationStatuses.into()),
+            criteria: Some(NetworkError::NoAllowedOperationStatuses.into()),
         },
         TestCase {
             name: "no successful OperationStatuses",
@@ -216,7 +216,7 @@ fn test_allow() {
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
-            result: Some(NetworkError::NoSuccessfulAllowedOperationStatuses.into()),
+            criteria: Some(NetworkError::NoSuccessfulAllowedOperationStatuses.into()),
         },
         TestCase {
             name: "no OperationTypes",
@@ -224,7 +224,7 @@ fn test_allow() {
                 operation_statuses: operation_statuses.clone(),
                 ..Default::default()
             }),
-            result: Some(AsserterError::from(
+            criteria: Some(AsserterError::from(
                 "no Allow.OperationTypes found".to_string(),
             )),
         },
@@ -237,7 +237,7 @@ fn test_allow() {
                 balance_exemptions,
                 ..Default::default()
             }),
-            result: Some(AsserterError::from(
+            criteria: Some(AsserterError::from(
                 "Allow.CallMethods contains a duplicate call".to_string(),
             )),
         },
@@ -254,7 +254,7 @@ fn test_allow() {
                 })],
                 ..Default::default()
             }),
-            result: Some(NetworkError::BalanceExemptionMissingSubject.into()),
+            criteria: Some(NetworkError::BalanceExemptionMissingSubject.into()),
         },
         TestCase {
             name: "invalid exemption type",
@@ -269,7 +269,7 @@ fn test_allow() {
                 })],
                 ..Default::default()
             }),
-            result: Some(NetworkError::BalanceExemptionTypeInvalid.into()),
+            criteria: Some(NetworkError::BalanceExemptionTypeInvalid.into()),
         },
     ];
 
@@ -286,12 +286,12 @@ fn test_error() {
                 message: "signature invalid".into(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil error",
             payload: None,
-            result: Some(ErrorError::IsNil.into()),
+            criteria: Some(ErrorError::IsNil.into()),
         },
         TestCase {
             name: "negative code",
@@ -300,7 +300,7 @@ fn test_error() {
                 message: "signature invalid".into(),
                 ..Default::default()
             }),
-            result: Some(ErrorError::CodeIsNeg.into()),
+            criteria: Some(ErrorError::CodeIsNeg.into()),
         },
         TestCase {
             name: "empty message",
@@ -309,7 +309,7 @@ fn test_error() {
                 message: String::new(),
                 ..Default::default()
             }),
-            result: Some(ErrorError::MessageMissing.into()),
+            criteria: Some(ErrorError::MessageMissing.into()),
         },
     ];
 
@@ -333,7 +333,7 @@ fn test_errors() {
                     ..Default::default()
                 }),
             ],
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "details populated",
@@ -352,7 +352,7 @@ fn test_errors() {
                     ..Default::default()
                 }),
             ],
-            result: Some(NetworkError::ErrorDetailsPopulated.into()),
+            criteria: Some(NetworkError::ErrorDetailsPopulated.into()),
         },
         TestCase {
             name: "duplicate error codes",
@@ -368,7 +368,7 @@ fn test_errors() {
                     ..Default::default()
                 }),
             ],
-            result: Some(NetworkError::ErrorCodeUsedMultipleTimes.into()),
+            criteria: Some(NetworkError::ErrorCodeUsedMultipleTimes.into()),
         },
     ];
 
@@ -405,26 +405,26 @@ fn test_network_list_response() {
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1, network_1_sub.clone(), network_2],
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil network list",
             payload: None,
-            result: Some(NetworkError::NetworkListResponseIsNil.into()),
+            criteria: Some(NetworkError::NetworkListResponseIsNil.into()),
         },
         TestCase {
             name: "network list duplicate",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_1_sub.clone(), network_1_sub],
             }),
-            result: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
+            criteria: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
         },
         TestCase {
             name: "invalid network",
             payload: Some(NullableNetworkListResponse {
                 network_identifiers: vec![network_3],
             }),
-            result: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
+            criteria: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
         },
     ];
 

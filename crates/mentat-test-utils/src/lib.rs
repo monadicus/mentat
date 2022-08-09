@@ -3,18 +3,28 @@ use std::{
     fmt::{self},
 };
 
+/// helper struct used to hold custom instances during method tests
 pub struct MethodPayload<C, P> {
+    /// the instance making the method call
     pub caller: C,
+    /// the payload being passed to the method call
     pub payload: P,
 }
 
+/// a test case in a rosetta test
 pub struct TestCase<Payload, Res> {
+    /// the name of the test
     pub name: &'static str,
+    /// the data being passed into the test function
     pub payload: Payload,
-    pub result: Res,
+    /// the criteria that the test's result should satisfy.
+    /// this field requires different behavior depending which run method is
+    /// used
+    pub criteria: Res,
 }
 
 impl<Payload, Res> TestCase<Payload, Res> {
+    /// runs the tests using the given function and criteria matcher
     fn runner<FnOut, F, Matcher, In1, In2>(tests: Vec<Self>, func: F, matcher: Matcher)
     where
         Res: Into<In1>,
@@ -28,7 +38,7 @@ impl<Payload, Res> TestCase<Payload, Res> {
             .map(|test| {
                 print!("{test}: ");
                 let res = func(test.payload);
-                matcher(&test.result.into(), &res.into())
+                matcher(&test.criteria.into(), &res.into())
             })
             .filter(|t| !t)
             .count();
@@ -36,6 +46,11 @@ impl<Payload, Res> TestCase<Payload, Res> {
         status_message(failed, len);
     }
 
+    /// Runs all tests with the given function and asserts the following:
+    ///     if `self.criteria` is true then the function should return `Err`.
+    ///     if `self.criteria` is false then the function should return `Ok`.
+    /// Requires `self.criteria` to either be a `bool` or support `Into<bool>`.
+    /// Will panic if any tests fail to match the expected criteria.
     pub fn run_is_err<F, Ok, Err>(tests: Vec<Self>, func: F)
     where
         Res: Into<bool>,
@@ -46,6 +61,13 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Self::runner(tests, func, check_is_err::<Res, Ok, Err>);
     }
 
+    /// Runs all tests with the given function and asserts the following:
+    ///     if `self.criteria` is `Some` then the function should return `Err`
+    /// with content that contains the text from the error in criteria.
+    ///     if `self.criteria` is `None` then the function should return `Ok`.
+    /// Requires `self.criteria` to be `Option<E>` where `E` matches the
+    /// `Result::Err` type of the given test function. Will panic if any
+    /// tests fail to match the expected criteria.
     pub fn run_err_match<F, Ok, Err>(tests: Vec<Self>, func: F)
     where
         Res: Into<Option<Err>>,
@@ -56,6 +78,13 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Self::runner(tests, func, check_err_match::<Ok, Err>);
     }
 
+    /// Runs all tests with the given function and asserts the following:
+    ///     if `self.criteria` is `Some` then the function should return `Ok`
+    /// with content that matches the criteria.     if `self.criteria` is
+    /// `None` then the function should return `Err`. Requires `self.
+    /// criteria` to be `Option<T>` where `T` matches the `Result::Ok` type of
+    /// the given test function. Will panic if any tests fail to match the
+    /// expected criteria.
     pub fn run_ok_match<F, Ok, Err>(tests: Vec<Self>, func: F)
     where
         Res: Into<Option<Ok>>,
@@ -66,6 +95,12 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Self::runner(tests, func, check_ok_match::<Ok, Err>);
     }
 
+    /// Runs all tests with the given function and asserts the output exactly
+    /// matches `self.criteria`. Requires `self.criteria` to be a `Result`
+    /// type with the same type's as the output of the given test function.
+    /// Will panic if any tests fail to match the expected criteria.
+    /// If you want to match something other that a `Result` or don't care about
+    /// having a detailed error message then try [`TestCase::run_output_match`].
     pub fn run_result_match<F, Ok, Err>(tests: Vec<Self>, func: F)
     where
         Res: Into<Result<Ok, Err>>,
@@ -76,6 +111,12 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Self::runner(tests, func, check_results_match::<Ok, Err>);
     }
 
+    /// Runs all tests with the given function and asserts the output exactly
+    /// matches `self.criteria`. Requires `self.criteria` to be the same
+    /// type as the output of the given test function. Will panic if any
+    /// tests fail to match the expected criteria. If you're matching a
+    /// `Result` and want a more detailed error message, then try
+    /// [`TestCase::run_result_match`]
     pub fn run_output_match<F>(tests: Vec<Self>, func: F)
     where
         Res: PartialEq + fmt::Debug,
@@ -91,6 +132,7 @@ impl<Payload, Res> fmt::Display for TestCase<Payload, Res> {
     }
 }
 
+/// asserts `failed` == `total` then prints the corresponding status message
 pub fn status_message(failed: usize, total: usize) {
     if failed == 0 {
         println!("all passed!")
@@ -99,6 +141,8 @@ pub fn status_message(failed: usize, total: usize) {
     }
 }
 
+/// checks if `res.is_err() == is_err` then prints the corresponding status
+/// message
 pub fn check_is_err<B, T, E>(is_err: &bool, res: &Result<T, E>) -> bool
 where
     T: fmt::Debug,
@@ -120,6 +164,7 @@ where
     }
 }
 
+/// checks if `res == expected` then prints the corresponding status message
 pub fn check_output_match<T>(expected: &T, res: &T) -> bool
 where
     T: fmt::Debug + PartialEq,
@@ -133,6 +178,7 @@ where
     }
 }
 
+/// checks if `res == expected` then prints the corresponding status message
 pub fn check_results_match<T, E>(expected: &Result<T, E>, res: &Result<T, E>) -> bool
 where
     T: fmt::Debug + PartialEq,
@@ -162,6 +208,8 @@ where
     }
 }
 
+/// checks if `res` is an error and that text from `err` or that `res.is_ok()`
+/// and `err.is_none()` then prints the corresponding status message
 pub fn check_err_match<T, E>(err: &Option<E>, res: &Result<T, E>) -> bool
 where
     T: fmt::Debug,
@@ -187,6 +235,9 @@ where
     }
 }
 
+/// checks if `res` is Ok and that the inner value matches `res` or that
+/// `res.is_err()` and `res.is_none()` then prints the corresponding status
+/// message
 pub fn check_ok_match<T, E>(ok: &Option<T>, res: &Result<T, E>) -> bool
 where
     T: fmt::Debug + PartialEq,

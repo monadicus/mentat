@@ -44,7 +44,7 @@ fn test_expected_operation() {
                     ..Default::default()
                 },
             ),
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "account mismatch",
@@ -87,7 +87,7 @@ fn test_expected_operation() {
                     ..Default::default()
                 },
             ),
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "amount mismatch",
@@ -130,7 +130,7 @@ fn test_expected_operation() {
                     ..Default::default()
                 },
             ),
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "type mismatch",
@@ -173,7 +173,7 @@ fn test_expected_operation() {
                     ..Default::default()
                 },
             ),
-            result: true,
+            criteria: true,
         },
     ];
 
@@ -233,7 +233,7 @@ fn test_expected_operations() {
                 }],
                 ..Default::default()
             },
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "simple unbroadcast match",
@@ -312,7 +312,7 @@ fn test_expected_operations() {
                 ],
                 ..Default::default()
             },
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "simple match (confirm success)",
@@ -394,7 +394,7 @@ fn test_expected_operations() {
                 confirm_success: true,
                 ..Default::default()
             },
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "simple match (confirm success) errors",
@@ -476,7 +476,7 @@ fn test_expected_operations() {
                 confirm_success: true,
                 ..Default::default()
             },
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "errors extra",
@@ -540,7 +540,7 @@ fn test_expected_operations() {
                 err_extra: true,
                 ..Default::default()
             },
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "missing match",
@@ -602,7 +602,7 @@ fn test_expected_operations() {
                 }],
                 ..Default::default()
             },
-            result: true,
+            criteria: true,
         },
     ];
 
@@ -663,7 +663,7 @@ fn test_expected_signers() {
                     },
                 ],
             ),
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "complex match",
@@ -710,7 +710,7 @@ fn test_expected_signers() {
                     },
                 ],
             ),
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "missing observed signer",
@@ -743,7 +743,7 @@ fn test_expected_signers() {
                     ..Default::default()
                 }],
             ),
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "complex mismatch",
@@ -786,7 +786,7 @@ fn test_expected_signers() {
                     },
                 ],
             ),
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "extra observed signer",
@@ -809,7 +809,7 @@ fn test_expected_signers() {
                     },
                 ],
             ),
-            result: true,
+            criteria: true,
         },
     ];
 

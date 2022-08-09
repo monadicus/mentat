@@ -15,7 +15,7 @@ fn test_error_map() {
                   "hello".to_string() => "goodbye".into()
                 ),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "empty description",
@@ -29,7 +29,7 @@ fn test_error_map() {
                   "hello".to_string() => "goodbye".into()
                 ),
             },
-            result: Some(ErrorError::DescriptionEmpty.into()),
+            criteria: Some(ErrorError::DescriptionEmpty.into()),
         },
         TestCase {
             name: "negative error",
@@ -43,7 +43,7 @@ fn test_error_map() {
                   "hello".to_string() => "goodbye".into()
                 ),
             },
-            result: Some(ErrorError::CodeIsNeg.into()),
+            criteria: Some(ErrorError::CodeIsNeg.into()),
         },
         TestCase {
             name: "retriable error",
@@ -57,7 +57,7 @@ fn test_error_map() {
                   "hello".to_string() => "goodbye".into()
                 ),
             },
-            result: Some(ErrorError::RetriableMismatch.into()),
+            criteria: Some(ErrorError::RetriableMismatch.into()),
         },
         TestCase {
             name: "code mismatch",
@@ -71,7 +71,7 @@ fn test_error_map() {
                   "hello".to_string() => "goodbye".into()
                 ),
             },
-            result: Some(ErrorError::UnexpectedCode.into()),
+            criteria: Some(ErrorError::UnexpectedCode.into()),
         },
         TestCase {
             name: "code mismatch",
@@ -85,7 +85,7 @@ fn test_error_map() {
                   "hello".to_string() => "goodbye".into()
                 ),
             },
-            result: Some(ErrorError::MessageMismatch.into()),
+            criteria: Some(ErrorError::MessageMismatch.into()),
         },
     ];
 

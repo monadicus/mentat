@@ -265,7 +265,7 @@ fn test_new_with_options() {
         TestCase {
             name: "basic",
             payload: Default::default(),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "no call methods",
@@ -273,7 +273,7 @@ fn test_new_with_options() {
                 call_methods: vec![],
                 ..Default::default()
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "duplicate operation types",
@@ -281,7 +281,7 @@ fn test_new_with_options() {
                 supported_operation_types: vec!["PAYMENT".into(), "PAYMENT".into()],
                 ..Default::default()
             },
-            result: Some("Allow.OperationTypes contains a duplicate PAYMENT".into()),
+            criteria: Some("Allow.OperationTypes contains a duplicate PAYMENT".into()),
         },
         TestCase {
             name: "empty operation type",
@@ -289,7 +289,7 @@ fn test_new_with_options() {
                 supported_operation_types: vec!["PAYMENT".into(), "".into()],
                 ..Default::default()
             },
-            result: Some("Allow.OperationTypes has an empty string".into()),
+            criteria: Some("Allow.OperationTypes has an empty string".into()),
         },
         TestCase {
             name: "duplicate network identifier",
@@ -297,7 +297,7 @@ fn test_new_with_options() {
                 supported_networks: vec![valid_network_identifier(), valid_network_identifier()],
                 ..Default::default()
             },
-            result: Some(ServerError::SupportedNetworksDuplicate.into()),
+            criteria: Some(ServerError::SupportedNetworksDuplicate.into()),
         },
         TestCase {
             name: "nil network identifier",
@@ -305,7 +305,7 @@ fn test_new_with_options() {
                 supported_networks: vec![valid_network_identifier(), None],
                 ..Default::default()
             },
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "no supported networks",
@@ -313,7 +313,7 @@ fn test_new_with_options() {
                 supported_networks: vec![],
                 ..Default::default()
             },
-            result: Some(ServerError::NoSupportedNetworks.into()),
+            criteria: Some(ServerError::NoSupportedNetworks.into()),
         },
     ];
 
@@ -326,12 +326,12 @@ fn test_supported_networks() {
         TestCase {
             name: "valid networks",
             payload: vec![valid_network_identifier(), wrong_network_identifier()],
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "no valid networks",
             payload: Default::default(),
-            result: Some(ServerError::NoSupportedNetworks.into()),
+            criteria: Some(ServerError::NoSupportedNetworks.into()),
         },
         TestCase {
             name: "invalid networks",
@@ -340,12 +340,12 @@ fn test_supported_networks() {
                 network: "".into(),
                 sub_network_identifier: None,
             })],
-            result: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
+            criteria: Some(NetworkError::NetworkIdentifierNetworkMissing.into()),
         },
         TestCase {
             name: "duplicate networks",
             payload: vec![valid_network_identifier(), valid_network_identifier()],
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::SupportedNetworksDuplicate,
@@ -384,7 +384,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with currencies",
@@ -408,7 +408,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with duplicate currencies",
@@ -432,7 +432,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(ServerError::DuplicateCurrency.into()),
+            criteria: Some(ServerError::DuplicateCurrency.into()),
         },
         TestCase {
             name: "invalid request wrong network",
@@ -444,7 +444,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(ServerError::RequestedNetworkNotSupported.into()),
+            criteria: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
         TestCase {
             name: "nil request",
@@ -452,7 +452,7 @@ fn test_account_balance_request() {
                 caller: asserter(false),
                 payload: None,
             },
-            result: Some(ServerError::AccountBalanceRequestIsNil.into()),
+            criteria: Some(ServerError::AccountBalanceRequestIsNil.into()),
         },
         TestCase {
             name: "missing network",
@@ -463,7 +463,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "missing account",
@@ -474,7 +474,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::AccountIsNil.into()),
+            criteria: Some(BlockError::AccountIsNil.into()),
         },
         TestCase {
             name: "valid historical request",
@@ -487,7 +487,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid historical request",
@@ -500,7 +500,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
+            criteria: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
         },
         TestCase {
             name: "valid historical request when not enabled",
@@ -513,7 +513,7 @@ fn test_account_balance_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(
+            criteria: Some(
                 ServerError::AccountBalanceRequestHistoricalBalanceLookupNotSupported.into(),
             ),
         },
@@ -533,7 +533,7 @@ fn test_block_request() {
                 network_identifier: valid_network_identifier(),
                 block_identifier: Some(valid_partial_block_identifier()),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request for block 0",
@@ -544,12 +544,12 @@ fn test_block_request() {
                     ..Default::default()
                 }),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::BlockRequestIsNil.into()),
+            criteria: Some(ServerError::BlockRequestIsNil.into()),
         },
         TestCase {
             name: "missing network",
@@ -557,7 +557,7 @@ fn test_block_request() {
                 block_identifier: Some(valid_partial_block_identifier()),
                 ..Default::default()
             }),
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "missing block identifier",
@@ -565,7 +565,7 @@ fn test_block_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(BlockError::PartialBlockIdentifierIsNil.into()),
+            criteria: Some(BlockError::PartialBlockIdentifierIsNil.into()),
         },
         TestCase {
             name: "invalid PartialBlockIdentifier request",
@@ -573,7 +573,7 @@ fn test_block_request() {
                 network_identifier: valid_network_identifier(),
                 block_identifier: Some(PartialBlockIdentifier::default()),
             }),
-            result: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
+            criteria: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
         },
     ];
 
@@ -592,7 +592,7 @@ fn test_block_transaction_request() {
                 block_identifier: valid_block_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -601,7 +601,7 @@ fn test_block_transaction_request() {
                 block_identifier: valid_block_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -613,7 +613,7 @@ fn test_block_transaction_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::BlockTransactionRequestIsNil.into()),
+            criteria: Some(ServerError::BlockTransactionRequestIsNil.into()),
         },
         TestCase {
             name: "missing network",
@@ -622,7 +622,7 @@ fn test_block_transaction_request() {
                 transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             }),
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "missing block identifier",
@@ -631,7 +631,7 @@ fn test_block_transaction_request() {
                 transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             }),
-            result: Some(BlockError::BlockIdentifierIsNil.into()),
+            criteria: Some(BlockError::BlockIdentifierIsNil.into()),
         },
         TestCase {
             name: "invalid BlockIdentifier request",
@@ -640,7 +640,7 @@ fn test_block_transaction_request() {
                 block_identifier: Some(BlockIdentifier::default()),
                 ..Default::default()
             }),
-            result: Some(BlockError::BlockIdentifierHashMissing.into()),
+            criteria: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
     ];
 
@@ -659,7 +659,7 @@ fn test_construction_metadata_request() {
                 options: Some(Default::default()),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with public keys",
@@ -671,7 +671,7 @@ fn test_construction_metadata_request() {
                     curve_type: NullableCurveType::SECP256K1.into(),
                 })],
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -680,12 +680,12 @@ fn test_construction_metadata_request() {
                 options: Some(Default::default()),
                 ..Default::default()
             }),
-            result: Some(ServerError::RequestedNetworkNotSupported.into()),
+            criteria: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionMetadataRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionMetadataRequestIsNil.into()),
         },
         TestCase {
             name: "missing network",
@@ -693,7 +693,7 @@ fn test_construction_metadata_request() {
                 options: Some(Default::default()),
                 ..Default::default()
             }),
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "missing options",
@@ -702,7 +702,7 @@ fn test_construction_metadata_request() {
                 options: None,
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request with public keys",
@@ -714,7 +714,7 @@ fn test_construction_metadata_request() {
                     ..Default::default()
                 })],
             }),
-            result: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+            criteria: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
     ];
 
@@ -734,7 +734,7 @@ fn test_construction_submit_request() {
                 network_identifier: valid_network_identifier(),
                 signed_transaction: "tx".into(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -742,17 +742,17 @@ fn test_construction_submit_request() {
                 network_identifier: wrong_network_identifier(),
                 signed_transaction: "tx".into(),
             }),
-            result: Some(ServerError::RequestedNetworkNotSupported.into()),
+            criteria: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionSubmitRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionSubmitRequestIsNil.into()),
         },
         TestCase {
             name: "empty tx",
             payload: Some(Default::default()),
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
     ];
 
@@ -770,7 +770,7 @@ fn test_mempool_transaction_request() {
                 network_identifier: valid_network_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -778,7 +778,7 @@ fn test_mempool_transaction_request() {
                 network_identifier: wrong_network_identifier(),
                 transaction_identifier: Some(valid_transaction_identifier()),
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -790,7 +790,7 @@ fn test_mempool_transaction_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::MempoolTransactionRequestIsNil.into()),
+            criteria: Some(ServerError::MempoolTransactionRequestIsNil.into()),
         },
         TestCase {
             name: "missing network",
@@ -798,7 +798,7 @@ fn test_mempool_transaction_request() {
                 transaction_identifier: Some(valid_transaction_identifier()),
                 ..Default::default()
             }),
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "invalid TransactionIdentifier request",
@@ -806,7 +806,7 @@ fn test_mempool_transaction_request() {
                 network_identifier: valid_network_identifier(),
                 transaction_identifier: Some(Default::default()),
             }),
-            result: Some(BlockError::TxIdentifierHashMissing.into()),
+            criteria: Some(BlockError::TxIdentifierHashMissing.into()),
         },
     ];
 
@@ -821,12 +821,12 @@ fn test_metadata_request() {
         TestCase {
             name: "valid request",
             payload: Some(Default::default()),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::MetadataRequestIsNil.into()),
+            criteria: Some(ServerError::MetadataRequestIsNil.into()),
         },
     ];
 
@@ -844,7 +844,7 @@ fn test_network_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -852,7 +852,7 @@ fn test_network_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -864,12 +864,12 @@ fn test_network_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::NetworkRequestIsNil.into()),
+            criteria: Some(ServerError::NetworkRequestIsNil.into()),
         },
         TestCase {
             name: "missing network",
             payload: Some(Default::default()),
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
     ];
 
@@ -888,7 +888,7 @@ fn test_construction_derive_request() {
                 public_key: Some(valid_public_key()),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -896,7 +896,7 @@ fn test_construction_derive_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -908,7 +908,7 @@ fn test_construction_derive_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionDeriveRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionDeriveRequestIsNil.into()),
         },
         TestCase {
             name: "nil public key",
@@ -916,7 +916,7 @@ fn test_construction_derive_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::PublicKeyIsNil.into()),
+            criteria: Some(ConstructionError::PublicKeyIsNil.into()),
         },
         TestCase {
             name: "empty public key bytes",
@@ -928,7 +928,7 @@ fn test_construction_derive_request() {
                 }),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+            criteria: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
     ];
 
@@ -950,7 +950,7 @@ fn test_construction_preprocess_request() {
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with suggested fee multiplier",
@@ -959,7 +959,7 @@ fn test_construction_preprocess_request() {
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with max fee",
@@ -968,7 +968,7 @@ fn test_construction_preprocess_request() {
                 operations: valid_ops(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with suggested fee multiplier and max fee",
@@ -979,7 +979,7 @@ fn test_construction_preprocess_request() {
                 suggested_fee_multiplier: positive_fee_multiplier,
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -987,7 +987,7 @@ fn test_construction_preprocess_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -999,7 +999,7 @@ fn test_construction_preprocess_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionPreprocessRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionPreprocessRequestIsNil.into()),
         },
         TestCase {
             name: "nil operations",
@@ -1007,7 +1007,7 @@ fn test_construction_preprocess_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(BlockError::NoOperationsForConstruction.into()),
+            criteria: Some(BlockError::NoOperationsForConstruction.into()),
         },
         TestCase {
             name: "empty operations",
@@ -1016,7 +1016,7 @@ fn test_construction_preprocess_request() {
                 operations: Vec::new(),
                 ..Default::default()
             }),
-            result: Some(BlockError::NoOperationsForConstruction.into()),
+            criteria: Some(BlockError::NoOperationsForConstruction.into()),
         },
         TestCase {
             name: "unsupported operation type",
@@ -1025,7 +1025,7 @@ fn test_construction_preprocess_request() {
                 operations: unsupported_type_ops(),
                 ..Default::default()
             }),
-            result: Some(BlockError::OperationTypeInvalid.into()),
+            criteria: Some(BlockError::OperationTypeInvalid.into()),
         },
         TestCase {
             name: "invalid operations",
@@ -1034,7 +1034,7 @@ fn test_construction_preprocess_request() {
                 operations: invalid_ops(),
                 ..Default::default()
             }),
-            result: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
+            criteria: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
         TestCase {
             name: "negative suggested fee multiplier",
@@ -1044,7 +1044,7 @@ fn test_construction_preprocess_request() {
                 suggested_fee_multiplier: negative_fee_multiplier,
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {}",
                     ServerError::ConstructionPreprocessRequestSuggestedFeeMultiplierIsNeg,
@@ -1061,7 +1061,7 @@ fn test_construction_preprocess_request() {
                 max_fee: vec![valid_amount(), valid_amount()],
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "currency {:?} used multiple times",
                     valid_amount().unwrap().currency
@@ -1089,7 +1089,7 @@ fn test_construction_payloads_request() {
                 metadata: indexmap!("test".into() => "hello".into()),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with public keys",
@@ -1102,7 +1102,7 @@ fn test_construction_payloads_request() {
                     curve_type: NullableCurveType::SECP256K1.into(),
                 })],
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1110,7 +1110,7 @@ fn test_construction_payloads_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1122,7 +1122,7 @@ fn test_construction_payloads_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionPayloadsRequestIsNil.into()),
         },
         TestCase {
             name: "nil operations",
@@ -1130,7 +1130,7 @@ fn test_construction_payloads_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(BlockError::NoOperationsForConstruction.into()),
+            criteria: Some(BlockError::NoOperationsForConstruction.into()),
         },
         TestCase {
             name: "empty operations",
@@ -1139,7 +1139,7 @@ fn test_construction_payloads_request() {
                 operations: vec![],
                 ..Default::default()
             }),
-            result: Some(BlockError::NoOperationsForConstruction.into()),
+            criteria: Some(BlockError::NoOperationsForConstruction.into()),
         },
         TestCase {
             name: "unsupported operation type",
@@ -1148,7 +1148,7 @@ fn test_construction_payloads_request() {
                 operations: unsupported_type_ops(),
                 ..Default::default()
             }),
-            result: Some(BlockError::OperationTypeInvalid.into()),
+            criteria: Some(BlockError::OperationTypeInvalid.into()),
         },
         TestCase {
             name: "invalid operations",
@@ -1157,7 +1157,7 @@ fn test_construction_payloads_request() {
                 operations: invalid_ops(),
                 ..Default::default()
             }),
-            result: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
+            criteria: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
         TestCase {
             name: "invalid request with public keys",
@@ -1170,7 +1170,7 @@ fn test_construction_payloads_request() {
                     ..Default::default()
                 })],
             }),
-            result: Some(ConstructionError::PublicKeyBytesEmpty.into()),
+            criteria: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
     ];
 
@@ -1189,7 +1189,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 signatures: valid_signatures(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request 2",
@@ -1207,7 +1207,7 @@ fn test_construction_combine_request() {
                     bytes: "blah".into(),
                 })],
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request 3",
@@ -1225,7 +1225,7 @@ fn test_construction_combine_request() {
                     bytes: "hello".into(),
                 })],
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1233,7 +1233,7 @@ fn test_construction_combine_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1245,7 +1245,7 @@ fn test_construction_combine_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionCombineRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionCombineRequestIsNil.into()),
         },
         TestCase {
             name: "empty unsigned transaction",
@@ -1254,7 +1254,7 @@ fn test_construction_combine_request() {
                 signatures: valid_signatures(),
                 ..Default::default()
             }),
-            result: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
+            criteria: Some(ServerError::ConstructionCombineRequestUnsignedTxEmpty.into()),
         },
         TestCase {
             name: "nil signatures",
@@ -1263,7 +1263,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 ..Default::default()
             }),
-            result: Some(ConstructionError::SignaturesEmpty.into()),
+            criteria: Some(ConstructionError::SignaturesEmpty.into()),
         },
         TestCase {
             name: "empty signatures",
@@ -1272,7 +1272,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 signatures: vec![],
             }),
-            result: Some(ConstructionError::SignaturesEmpty.into()),
+            criteria: Some(ConstructionError::SignaturesEmpty.into()),
         },
         TestCase {
             name: "signature type mismatch",
@@ -1281,7 +1281,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 signatures: signature_type_mismatch(),
             }),
-            result: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
+            criteria: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),
         },
         TestCase {
             name: "empty signature",
@@ -1290,7 +1290,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 signatures: empty_signature(),
             }),
-            result: Some(ConstructionError::SignatureBytesEmpty.into()),
+            criteria: Some(ConstructionError::SignatureBytesEmpty.into()),
         },
         TestCase {
             name: "signature type match",
@@ -1299,7 +1299,7 @@ fn test_construction_combine_request() {
                 unsigned_transaction: "blah".into(),
                 signatures: signature_type_match(),
             }),
-            result: None,
+            criteria: None,
         },
     ];
 
@@ -1317,7 +1317,7 @@ fn test_construction_hash_request() {
                 network_identifier: valid_network_identifier(),
                 signed_transaction: "blah".into(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1325,7 +1325,7 @@ fn test_construction_hash_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1337,7 +1337,7 @@ fn test_construction_hash_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionHashRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionHashRequestIsNil.into()),
         },
         TestCase {
             name: "empty signed transaction",
@@ -1345,7 +1345,7 @@ fn test_construction_hash_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(ServerError::ConstructionHashRequestSignedTxEmpty.into()),
+            criteria: Some(ServerError::ConstructionHashRequestSignedTxEmpty.into()),
         },
     ];
 
@@ -1364,7 +1364,7 @@ fn test_construction_parse_request() {
                 transaction: "blah".into(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1372,12 +1372,12 @@ fn test_construction_parse_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(ServerError::RequestedNetworkNotSupported.into()),
+            criteria: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::ConstructionParseRequestIsNil.into()),
+            criteria: Some(ServerError::ConstructionParseRequestIsNil.into()),
         },
         TestCase {
             name: "empty signed transaction",
@@ -1385,7 +1385,7 @@ fn test_construction_parse_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(ServerError::ConstructionParseRequestEmpty.into()),
+            criteria: Some(ServerError::ConstructionParseRequestEmpty.into()),
         },
     ];
 
@@ -1404,7 +1404,7 @@ fn test_call_request() {
                 method: "eth_call".into(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with params",
@@ -1413,7 +1413,7 @@ fn test_call_request() {
                 method: "eth_call".into(),
                 parameters: indexmap!("hello".into() => "test".into()),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1421,7 +1421,7 @@ fn test_call_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1437,12 +1437,12 @@ fn test_call_request() {
                 method: "eth_debug".into(),
                 ..Default::default()
             }),
-            result: Some(ServerError::CallMethodUnsupported.into()),
+            criteria: Some(ServerError::CallMethodUnsupported.into()),
         },
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::CallRequestIsNil.into()),
+            criteria: Some(ServerError::CallRequestIsNil.into()),
         },
         TestCase {
             name: "empty method",
@@ -1450,7 +1450,7 @@ fn test_call_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(ServerError::CallMethodEmpty.into()),
+            criteria: Some(ServerError::CallMethodEmpty.into()),
         },
     ];
 
@@ -1484,7 +1484,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with currencies",
@@ -1508,7 +1508,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request with duplicate currencies",
@@ -1528,7 +1528,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(ServerError::DuplicateCurrency.into()),
+            criteria: Some(ServerError::DuplicateCurrency.into()),
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1540,7 +1540,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(ServerError::RequestedNetworkNotSupported.into()),
+            criteria: Some(ServerError::RequestedNetworkNotSupported.into()),
         },
         TestCase {
             name: "nil request",
@@ -1548,7 +1548,7 @@ fn test_account_coins_request() {
                 caller: asserter(false),
                 payload: None,
             },
-            result: Some(ServerError::AccountCoinsRequestIsNil.into()),
+            criteria: Some(ServerError::AccountCoinsRequestIsNil.into()),
         },
         TestCase {
             name: "missing network",
@@ -1559,7 +1559,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(NetworkError::NetworkIdentifierIsNil.into()),
+            criteria: Some(NetworkError::NetworkIdentifierIsNil.into()),
         },
         TestCase {
             name: "missing account",
@@ -1570,7 +1570,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::AccountIsNil.into()),
+            criteria: Some(BlockError::AccountIsNil.into()),
         },
         TestCase {
             name: "valid mempool lookup request",
@@ -1582,7 +1582,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid mempool lookup request when not enabled",
@@ -1595,7 +1595,7 @@ fn test_account_coins_request() {
                     ..Default::default()
                 }),
             },
-            result: Some(ServerError::MempoolCoinsNotSupported.into()),
+            criteria: Some(ServerError::MempoolCoinsNotSupported.into()),
         },
     ];
 
@@ -1613,7 +1613,7 @@ fn test_event_blocks_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1621,7 +1621,7 @@ fn test_event_blocks_request() {
                 network_identifier: wrong_network_identifier(),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1633,7 +1633,7 @@ fn test_event_blocks_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::EventsBlocksRequestIsNil.into()),
+            criteria: Some(ServerError::EventsBlocksRequestIsNil.into()),
         },
         TestCase {
             name: "negative offset",
@@ -1642,7 +1642,7 @@ fn test_event_blocks_request() {
                 offset: Some(-1),
                 ..Default::default()
             }),
-            result: Some(ServerError::OffsetIsNegative.into()),
+            criteria: Some(ServerError::OffsetIsNegative.into()),
         },
         TestCase {
             name: "negative limit",
@@ -1651,7 +1651,7 @@ fn test_event_blocks_request() {
                 limit: Some(-1),
                 ..Default::default()
             }),
-            result: Some(ServerError::LimitIsNegative.into()),
+            criteria: Some(ServerError::LimitIsNegative.into()),
         },
     ];
 
@@ -1669,7 +1669,7 @@ fn test_search_transactions_request() {
                 network_identifier: valid_network_identifier(),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid request",
@@ -1678,7 +1678,7 @@ fn test_search_transactions_request() {
                 operator: Some(NullableOperator::AND.into()),
                 ..Default::default()
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid request wrong network",
@@ -1687,7 +1687,7 @@ fn test_search_transactions_request() {
                 operator: Some(NullableOperator::OR.into()),
                 ..Default::default()
             }),
-            result: Some(
+            criteria: Some(
                 format!(
                     "{}: {:?}",
                     ServerError::RequestedNetworkNotSupported,
@@ -1699,7 +1699,7 @@ fn test_search_transactions_request() {
         TestCase {
             name: "nil request",
             payload: None,
-            result: Some(ServerError::SearchTransactionsRequestIsNil.into()),
+            criteria: Some(ServerError::SearchTransactionsRequestIsNil.into()),
         },
         TestCase {
             name: "negative max block",
@@ -1709,7 +1709,7 @@ fn test_search_transactions_request() {
                 max_block: Some(-1),
                 ..Default::default()
             }),
-            result: Some(ServerError::MaxBlockInvalid.into()),
+            criteria: Some(ServerError::MaxBlockInvalid.into()),
         },
         TestCase {
             name: "negative offset",
@@ -1719,7 +1719,7 @@ fn test_search_transactions_request() {
                 offset: Some(-1),
                 ..Default::default()
             }),
-            result: Some(ServerError::OffsetIsNegative.into()),
+            criteria: Some(ServerError::OffsetIsNegative.into()),
         },
         TestCase {
             name: "negative limit",
@@ -1729,7 +1729,7 @@ fn test_search_transactions_request() {
                 limit: Some(-1),
                 ..Default::default()
             }),
-            result: Some(ServerError::LimitIsNegative.into()),
+            criteria: Some(ServerError::LimitIsNegative.into()),
         },
         TestCase {
             name: "invalid operator",
@@ -1738,7 +1738,7 @@ fn test_search_transactions_request() {
                 operator: Some("nor".into()),
                 ..Default::default()
             }),
-            result: Some(ServerError::OperatorInvalid.into()),
+            criteria: Some(ServerError::OperatorInvalid.into()),
         },
     ];
 

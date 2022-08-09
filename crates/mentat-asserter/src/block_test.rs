@@ -11,12 +11,12 @@ fn test_block_identifier() {
                 index: 1,
                 hash: "block 1".into(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil identifier",
             payload: None,
-            result: Some(BlockError::BlockIdentifierIsNil.into()),
+            criteria: Some(BlockError::BlockIdentifierIsNil.into()),
         },
         TestCase {
             name: "invalid index",
@@ -24,7 +24,7 @@ fn test_block_identifier() {
                 index: -1,
                 hash: "block 1".into(),
             }),
-            result: Some(BlockError::BlockIdentifierIndexIsNeg.into()),
+            criteria: Some(BlockError::BlockIdentifierIndexIsNeg.into()),
         },
         TestCase {
             name: "invalid hash",
@@ -32,7 +32,7 @@ fn test_block_identifier() {
                 index: 1,
                 hash: String::new(),
             }),
-            result: Some(BlockError::BlockIdentifierHashMissing.into()),
+            criteria: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
     ];
 
@@ -53,7 +53,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid amount no decimals",
@@ -66,7 +66,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid negative amount",
@@ -79,12 +79,12 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil amount",
             payload: None,
-            result: Some(BlockError::AmountValueMissing.into()),
+            criteria: Some(BlockError::AmountValueMissing.into()),
         },
         TestCase {
             name: "nil currency",
@@ -93,7 +93,7 @@ fn test_amount() {
                 currency: None,
                 metadata: Default::default(),
             }),
-            result: Some(BlockError::AmountCurrencyIsNil.into()),
+            criteria: Some(BlockError::AmountCurrencyIsNil.into()),
         },
         TestCase {
             name: "invalid non number",
@@ -106,7 +106,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: Some(AsserterError::from(format!(
+            criteria: Some(AsserterError::from(format!(
                 "{}: blah",
                 BlockError::AmountIsNotInt
             ))),
@@ -122,7 +122,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: Some(AsserterError::from(format!(
+            criteria: Some(AsserterError::from(format!(
                 "{}: 1.0",
                 BlockError::AmountIsNotInt
             ))),
@@ -138,7 +138,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: Some(AsserterError::from(format!(
+            criteria: Some(AsserterError::from(format!(
                 "{}: 1.1",
                 BlockError::AmountIsNotInt
             ))),
@@ -154,7 +154,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: Some(BlockError::AmountCurrencySymbolEmpty.into()),
+            criteria: Some(BlockError::AmountCurrencySymbolEmpty.into()),
         },
         TestCase {
             name: "invalid decimals",
@@ -167,7 +167,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            result: Some(BlockError::AmountCurrencyHasNegDecimals.into()),
+            criteria: Some(BlockError::AmountCurrencyHasNegDecimals.into()),
         },
     ];
 
@@ -201,7 +201,7 @@ fn test_operation_identifier() {
                 }),
                 index: 0,
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil identifier",
@@ -209,7 +209,7 @@ fn test_operation_identifier() {
                 ident: None,
                 index: 0,
             }),
-            result: Some(BlockError::OperationIdentifierIndexIsNil.into()),
+            criteria: Some(BlockError::OperationIdentifierIndexIsNil.into()),
         },
         TestCase {
             name: "out-of-order index",
@@ -220,7 +220,7 @@ fn test_operation_identifier() {
                 }),
                 index: 1,
             }),
-            result: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
+            criteria: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         TestCase {
             name: "valid identifier with network index",
@@ -231,7 +231,7 @@ fn test_operation_identifier() {
                 }),
                 index: 0,
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid identifier with network index",
@@ -242,7 +242,7 @@ fn test_operation_identifier() {
                 }),
                 index: 0,
             }),
-            result: Some(BlockError::OperationIdentifierNetworkIndexInvalid.into()),
+            criteria: Some(BlockError::OperationIdentifierNetworkIndexInvalid.into()),
         },
     ];
 
@@ -259,7 +259,7 @@ fn test_account_identifier() {
                 sub_account: None,
                 metadata: Default::default(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid identifier",
@@ -268,7 +268,7 @@ fn test_account_identifier() {
                 sub_account: None,
                 metadata: Default::default(),
             }),
-            result: Some(BlockError::AccountAddrMissing.into()),
+            criteria: Some(BlockError::AccountAddrMissing.into()),
         },
         TestCase {
             name: "valid identifier with subaccount",
@@ -280,7 +280,7 @@ fn test_account_identifier() {
                 }),
                 metadata: Default::default(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid identifier with subaccount",
@@ -292,7 +292,7 @@ fn test_account_identifier() {
                 }),
                 metadata: Default::default(),
             }),
-            result: Some(BlockError::AccountSubAccountAddrMissing.into()),
+            criteria: Some(BlockError::AccountSubAccountAddrMissing.into()),
         },
     ];
 
@@ -443,7 +443,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "throw error on missing fee operation",
@@ -477,7 +477,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: Some(BlockError::FeeCountMismatch.into()),
+            criteria: Some(BlockError::FeeCountMismatch.into()),
         },
         TestCase {
             name: "throw error on missing payment operation",
@@ -511,7 +511,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: Some(BlockError::PaymentCountMismatch.into()),
+            criteria: Some(BlockError::PaymentCountMismatch.into()),
         },
         TestCase {
             name: "throw error on payment amount not balancing",
@@ -564,7 +564,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: Some(BlockError::PaymentAmountNotBalancing.into()),
+            criteria: Some(BlockError::PaymentAmountNotBalancing.into()),
         },
         TestCase {
             name: "valid operations based on validation file - unbalanced",
@@ -617,7 +617,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "fee operation shouldn't contain related_operation key",
@@ -674,7 +674,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: Some(BlockError::RelatedOperationInFeeNotAllowed.into()),
+            criteria: Some(BlockError::RelatedOperationInFeeNotAllowed.into()),
         },
         TestCase {
             name: "fee amount is non-negative",
@@ -727,7 +727,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: Some(BlockError::FeeAmountNotNegative.into()),
+            criteria: Some(BlockError::FeeAmountNotNegative.into()),
         },
         TestCase {
             name: "fee amount is negative as expected",
@@ -780,7 +780,7 @@ fn test_operations_validations() {
                     construction: false,
                 },
             },
-            result: None,
+            criteria: None,
         },
     ];
 
@@ -833,7 +833,7 @@ fn test_operation() {
                 successful: true,
                 construction: false,
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid operation no account",
@@ -851,7 +851,7 @@ fn test_operation() {
                 successful: true,
                 construction: false,
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil operation",
@@ -861,7 +861,7 @@ fn test_operation() {
                 successful: false,
                 construction: false,
             },
-            result: Some(BlockError::OperationIsNil.into()),
+            criteria: Some(BlockError::OperationIsNil.into()),
         },
         TestCase {
             name: "invalid operation no account",
@@ -880,7 +880,7 @@ fn test_operation() {
                 successful: false,
                 construction: false,
             },
-            result: Some(BlockError::AccountIsNil.into()),
+            criteria: Some(BlockError::AccountIsNil.into()),
         },
         TestCase {
             name: "invalid operation empty account",
@@ -900,7 +900,7 @@ fn test_operation() {
                 successful: false,
                 construction: false,
             },
-            result: Some(BlockError::AccountAddrMissing.into()),
+            criteria: Some(BlockError::AccountAddrMissing.into()),
         },
         TestCase {
             name: "invalid operation invalid index",
@@ -918,7 +918,7 @@ fn test_operation() {
                 successful: false,
                 construction: false,
             },
-            result: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
+            criteria: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         TestCase {
             name: "invalid operation invalid type",
@@ -936,7 +936,7 @@ fn test_operation() {
                 successful: false,
                 construction: false,
             },
-            result: Some(BlockError::OperationTypeInvalid.into()),
+            criteria: Some(BlockError::OperationTypeInvalid.into()),
         },
         TestCase {
             name: "unsuccessful operation",
@@ -954,7 +954,7 @@ fn test_operation() {
                 successful: false,
                 construction: false,
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid operation invalid status",
@@ -972,7 +972,7 @@ fn test_operation() {
                 successful: false,
                 construction: false,
             },
-            result: Some(BlockError::OperationStatusInvalid.into()),
+            criteria: Some(BlockError::OperationStatusInvalid.into()),
         },
         TestCase {
             name: "valid construction operation",
@@ -991,7 +991,7 @@ fn test_operation() {
                 successful: false,
                 construction: true,
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid construction operation (empty status)",
@@ -1011,7 +1011,7 @@ fn test_operation() {
                 successful: false,
                 construction: true,
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid construction operation",
@@ -1031,7 +1031,7 @@ fn test_operation() {
                 successful: false,
                 construction: true,
             },
-            result: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
+            criteria: Some(BlockError::OperationStatusNotEmptyForConstruction.into()),
         },
     ];
 
@@ -1093,7 +1093,7 @@ fn test_operation() {
             print!("Testing operation: ");
             let payload = test.payload;
             if !check_err_match(
-                &test.result,
+                &test.criteria,
                 &asserter.operation(
                     payload.operation.as_ref(),
                     payload.index,
@@ -1103,7 +1103,7 @@ fn test_operation() {
                 return false;
             }
 
-            if test.result.is_none() && !payload.construction {
+            if test.criteria.is_none() && !payload.construction {
                 let op = payload.operation.clone().unwrap().into();
                 print!("Testing operation successful: ");
                 let successful = asserter.operation_successful(&op).unwrap();
@@ -1545,7 +1545,7 @@ fn test_block() {
                     metadata: Default::default(),
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid block (before start index)",
@@ -1561,7 +1561,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "genesis block (without start index)",
@@ -1577,7 +1577,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "genesis block (with start index)",
@@ -1594,7 +1594,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid genesis block (with start index)",
@@ -1611,7 +1611,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::TimestampBeforeMin.into()),
+            criteria: Some(BlockError::TimestampBeforeMin.into()),
         },
         TestCase {
             name: "out of order transaction operations",
@@ -1625,7 +1625,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
+            criteria: Some(BlockError::OperationIdentifierIndexOutOfOrder.into()),
         },
         TestCase {
             name: "related to self transaction operations",
@@ -1639,7 +1639,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
+            criteria: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
         },
         TestCase {
             name: "related to later transaction operations",
@@ -1653,7 +1653,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
+            criteria: Some(BlockError::RelatedOperationIndexOutOfOrder.into()),
         },
         TestCase {
             name: "duplicate related transaction operations",
@@ -1667,7 +1667,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::RelatedOperationIndexDuplicate.into()),
+            criteria: Some(BlockError::RelatedOperationIndexDuplicate.into()),
         },
         TestCase {
             name: "missing related transaction operations",
@@ -1686,7 +1686,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::RelatedOperationMissing.into()),
+            criteria: Some(BlockError::RelatedOperationMissing.into()),
         },
         TestCase {
             name: "nil block",
@@ -1694,7 +1694,7 @@ fn test_block() {
                 caller: asserter(Default::default()),
                 payload: None,
             },
-            result: Some(BlockError::BlockIsNil.into()),
+            criteria: Some(BlockError::BlockIsNil.into()),
         },
         TestCase {
             name: "nil block hash",
@@ -1708,7 +1708,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::BlockIdentifierIsNil.into()),
+            criteria: Some(BlockError::BlockIdentifierIsNil.into()),
         },
         TestCase {
             name: "invalid block hash",
@@ -1722,7 +1722,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::BlockIdentifierHashMissing.into()),
+            criteria: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         TestCase {
             name: "block previous hash missing",
@@ -1736,7 +1736,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::BlockIdentifierHashMissing.into()),
+            criteria: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         TestCase {
             name: "invalid parent block index",
@@ -1753,7 +1753,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::BlockIndexPrecedesParentBlockIndex.into()),
+            criteria: Some(BlockError::BlockIndexPrecedesParentBlockIndex.into()),
         },
         TestCase {
             name: "invalid parent block hash",
@@ -1770,7 +1770,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::BlockHashEqualsParentBlockHash.into()),
+            criteria: Some(BlockError::BlockHashEqualsParentBlockHash.into()),
         },
         TestCase {
             name: "invalid block timestamp less than MinUnixEpoch",
@@ -1783,7 +1783,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::TimestampBeforeMin.into()),
+            criteria: Some(BlockError::TimestampBeforeMin.into()),
         },
         TestCase {
             name: "invalid block timestamp greater than MaxUnixEpoch",
@@ -1797,7 +1797,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::TimestampAfterMax.into()),
+            criteria: Some(BlockError::TimestampAfterMax.into()),
         },
         TestCase {
             name: "invalid block transaction",
@@ -1811,7 +1811,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::TxIdentifierIsNil.into()),
+            criteria: Some(BlockError::TxIdentifierIsNil.into()),
         },
         TestCase {
             name: "invalid related transaction",
@@ -1825,7 +1825,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::InvalidDirection.into()),
+            criteria: Some(BlockError::InvalidDirection.into()),
         },
         TestCase {
             name: "duplicate related transaction",
@@ -1839,7 +1839,7 @@ fn test_block() {
                     ..Default::default()
                 }),
             },
-            result: Some(BlockError::DuplicateRelatedTransaction.into()),
+            criteria: Some(BlockError::DuplicateRelatedTransaction.into()),
         },
     ];
 

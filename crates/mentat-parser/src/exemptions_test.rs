@@ -26,7 +26,7 @@ fn test_find_exemptions() {
                     }),
                 },
             },
-            result: Vec::new(),
+            criteria: Vec::new(),
         },
         TestCase {
             name: "no matching exemption",
@@ -52,7 +52,7 @@ fn test_find_exemptions() {
                     }),
                 },
             },
-            result: Vec::new(),
+            criteria: Vec::new(),
         },
         TestCase {
             name: "no matching exemptions",
@@ -85,7 +85,7 @@ fn test_find_exemptions() {
                     }),
                 },
             },
-            result: Vec::new(),
+            criteria: Vec::new(),
         },
         TestCase {
             name: "currency match",
@@ -122,7 +122,7 @@ fn test_find_exemptions() {
                     }),
                 },
             },
-            result: vec![BalanceExemption {
+            criteria: vec![BalanceExemption {
                 currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 8,
@@ -167,7 +167,7 @@ fn test_find_exemptions() {
                     }),
                 },
             },
-            result: vec![BalanceExemption {
+            criteria: vec![BalanceExemption {
                 sub_account_address: Some("hello".into()),
                 exemption_type: Some(ExemptionType::Dynamic),
                 ..Default::default()
@@ -208,7 +208,7 @@ fn test_find_exemptions() {
                     }),
                 },
             },
-            result: vec![
+            criteria: vec![
                 BalanceExemption {
                     currency: Some(Currency {
                         symbol: "BTC".into(),
@@ -261,7 +261,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "no matching exemption",
@@ -288,7 +288,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "no matching exemptions",
@@ -322,7 +322,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "currency match",
@@ -360,7 +360,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: Some(BalanceExemption {
+            criteria: Some(BalanceExemption {
                 currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 8,
@@ -406,7 +406,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "currency match, right sign",
@@ -444,7 +444,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: Some(BalanceExemption {
+            criteria: Some(BalanceExemption {
                 currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 8,
@@ -490,7 +490,7 @@ fn test_match_balance_exemption() {
                     difference: "0".into(),
                 },
             },
-            result: Some(BalanceExemption {
+            criteria: Some(BalanceExemption {
                 currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 8,
@@ -536,7 +536,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: Some(BalanceExemption {
+            criteria: Some(BalanceExemption {
                 sub_account_address: Some("hello".into()),
                 exemption_type: Some(ExemptionType::Dynamic),
                 ..Default::default()
@@ -578,7 +578,7 @@ fn test_match_balance_exemption() {
                     difference: "100".into(),
                 },
             },
-            result: Some(BalanceExemption {
+            criteria: Some(BalanceExemption {
                 currency: Some(Currency {
                     symbol: "BTC".into(),
                     decimals: 8,

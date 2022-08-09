@@ -1,4 +1,5 @@
-//! these tests are useless in Rust, but added anyways so we can say we match the original Go tests
+//! these tests are useless in Rust, but added anyways so we can say we match
+//! the original Go tests
 
 use std::{error::Error, fmt::Display};
 
@@ -23,32 +24,32 @@ fn test_err() {
         TestCase {
             name: "account balance error",
             payload: AccountBalanceError::ReturnedBlockHashMismatch.into(),
-            result: (true, "account balance error"),
+            criteria: (true, "account balance error"),
         },
         TestCase {
             name: "block error",
             payload: BlockError::BlockIdentifierIsNil.into(),
-            result: (true, "block error"),
+            criteria: (true, "block error"),
         },
         TestCase {
             name: "coin error",
             payload: CoinError::ChangeIsNil.into(),
-            result: (true, "coin error"),
+            criteria: (true, "coin error"),
         },
         TestCase {
             name: "construction error",
             payload: ConstructionError::ConstructionMetadataResponseIsNil.into(),
-            result: (true, "construction error"),
+            criteria: (true, "construction error"),
         },
         TestCase {
             name: "network error",
             payload: NetworkError::NetworkIdentifierIsNil.into(),
-            result: (true, "network error"),
+            criteria: (true, "network error"),
         },
         TestCase {
             name: "server error",
             payload: ServerError::NoSupportedNetworks.into(),
-            result: (true, "server error"),
+            criteria: (true, "server error"),
         },
         TestCase {
             name: "",
@@ -56,7 +57,7 @@ fn test_err() {
                 content: "blah".to_string(),
             }
             .into(),
-            result: (false, ""),
+            criteria: (false, ""),
         },
     ];
 

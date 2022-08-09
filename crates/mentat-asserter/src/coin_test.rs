@@ -21,12 +21,12 @@ fn test_coin() {
                 }),
                 amount: Some(valid_amount.clone()),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid coin",
             payload: None,
-            result: Some(CoinError::IsNil.into()),
+            criteria: Some(CoinError::IsNil.into()),
         },
         TestCase {
             name: "invalid identifier",
@@ -36,7 +36,7 @@ fn test_coin() {
                 }),
                 amount: Some(valid_amount),
             }),
-            result: Some(AsserterError::from(
+            criteria: Some(AsserterError::from(
                 "coin identifier cannot be empty: coin identifier is invalid".to_string(),
             )),
         },
@@ -52,7 +52,7 @@ fn test_coin() {
                     metadata: Default::default(),
                 }),
             }),
-            result: Some(AsserterError::from("amount is invalid".to_string())),
+            criteria: Some(AsserterError::from("amount is invalid".to_string())),
         },
         TestCase {
             name: "nil amount",
@@ -62,7 +62,7 @@ fn test_coin() {
                 }),
                 amount: None,
             }),
-            result: Some(AsserterError::from("amount is invalid".to_string())),
+            criteria: Some(AsserterError::from("amount is invalid".to_string())),
         },
     ];
 
@@ -98,12 +98,12 @@ fn test_coins() {
                     amount: Some(valid_amount.clone()),
                 }),
             ],
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil",
             payload: Vec::new(),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "duplicate coins",
@@ -121,7 +121,7 @@ fn test_coins() {
                     amount: Some(valid_amount),
                 }),
             ],
-            result: Some(CoinError::Duplicate.into()),
+            criteria: Some(CoinError::Duplicate.into()),
         },
     ];
 
@@ -139,12 +139,12 @@ fn test_coin_change() {
                 }),
                 coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "nil",
             payload: None,
-            result: Some(CoinError::ChangeIsNil.into()),
+            criteria: Some(CoinError::ChangeIsNil.into()),
         },
         TestCase {
             name: "invalid identifier",
@@ -154,7 +154,7 @@ fn test_coin_change() {
                 }),
                 coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
-            result: Some(CoinError::IdentifierNotSet.into()),
+            criteria: Some(CoinError::IdentifierNotSet.into()),
         },
         TestCase {
             name: "invalid coin action",
@@ -164,7 +164,7 @@ fn test_coin_change() {
                 }),
                 coin_action: "hello".into(),
             }),
-            result: Some(CoinError::ActionInvalid.into()),
+            criteria: Some(CoinError::ActionInvalid.into()),
         },
     ];
 

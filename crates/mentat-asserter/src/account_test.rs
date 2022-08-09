@@ -23,7 +23,7 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "complex contains",
@@ -39,7 +39,7 @@ fn test_contains_currency() {
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 },
             },
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "more complex contains",
@@ -55,7 +55,7 @@ fn test_contains_currency() {
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 },
             },
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "empty",
@@ -67,7 +67,7 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "symbol mismatch",
@@ -83,7 +83,7 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "decimal mismatch",
@@ -99,7 +99,7 @@ fn test_contains_currency() {
                     metadata: Default::default(),
                 },
             },
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "metadata mismatch",
@@ -115,7 +115,7 @@ fn test_contains_currency() {
                     metadata: indexmap!("blah".to_string() => json!("bye")),
                 },
             },
-            result: false,
+            criteria: false,
         },
     ];
 
@@ -141,7 +141,7 @@ fn test_contains_duplicate_currency() {
                     metadata: Default::default(),
                 }),
             ],
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "complex contains",
@@ -157,7 +157,7 @@ fn test_contains_duplicate_currency() {
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }),
             ],
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "more complex contains",
@@ -173,12 +173,12 @@ fn test_contains_duplicate_currency() {
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 }),
             ],
-            result: true,
+            criteria: true,
         },
         TestCase {
             name: "empty",
             payload: Vec::new(),
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "symbol mismatch",
@@ -194,7 +194,7 @@ fn test_contains_duplicate_currency() {
                     metadata: Default::default(),
                 }),
             ],
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "decimal mismatch",
@@ -210,7 +210,7 @@ fn test_contains_duplicate_currency() {
                     metadata: Default::default(),
                 }),
             ],
-            result: false,
+            criteria: false,
         },
         TestCase {
             name: "metadata mismatch",
@@ -226,7 +226,7 @@ fn test_contains_duplicate_currency() {
                     metadata: indexmap!("blah".to_string() => json!("bye")),
                 }),
             ],
-            result: false,
+            criteria: false,
         },
     ];
 
@@ -289,7 +289,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid block",
@@ -299,7 +299,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            result: Some(AsserterError::from(format!(
+            criteria: Some(AsserterError::from(format!(
                 "{}: block identifier is invalid",
                 BlockError::BlockIdentifierHashMissing
             ))),
@@ -312,7 +312,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone(), valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            result: Some(AsserterError::from(format!(
+            criteria: Some(AsserterError::from(format!(
                 "currency {:?} used multiple times: balance amounts are invalid",
                 &valid_amt.as_ref().unwrap().currency
             ))),
@@ -328,7 +328,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "valid historical request hash",
@@ -341,7 +341,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            result: None,
+            criteria: None,
         },
         TestCase {
             name: "invalid historical request index",
@@ -354,7 +354,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            result: Some(AsserterError::from(format!(
+            criteria: Some(AsserterError::from(format!(
                 "{}: requested block index {invalid_index} but got {}",
                 AccountBalanceError::ReturnedBlockIndexMismatch,
                 valid_block.index,
@@ -371,7 +371,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt],
                 _metadata: Default::default(),
             },
-            result: Some(AsserterError::from(format!(
+            criteria: Some(AsserterError::from(format!(
                 "{}: requested block hash {invalid_hash} but got {}",
                 AccountBalanceError::ReturnedBlockHashMismatch,
                 valid_block.hash,

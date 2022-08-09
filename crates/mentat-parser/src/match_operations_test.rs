@@ -70,7 +70,7 @@ fn test_match_operations() {
                 ..Default::default()
             },
         },
-        result: Some(vec![
+        criteria: Some(vec![
             Some(Match {
                 operations: vec![Some(Operation {
                     account: Some(AccountIdentifier {
@@ -128,12 +128,12 @@ fn test_match() {
         TestCase {
             name: "nil match",
             payload: None,
-            result: MatchTestResult::default(),
+            criteria: MatchTestResult::default(),
         },
         TestCase {
             name: "empty match",
             payload: Some(Match::default()),
-            result: MatchTestResult::default(),
+            criteria: MatchTestResult::default(),
         },
         TestCase {
             name: "single op match",
@@ -147,7 +147,7 @@ fn test_match() {
                 })],
                 amounts: vec![Some(BigInt::from(100))],
             }),
-            result: MatchTestResult {
+            criteria: MatchTestResult {
                 op: Some(Operation {
                     operation_identifier: OperationIdentifier {
                         index: 1,
@@ -179,7 +179,7 @@ fn test_match() {
                 ],
                 amounts: vec![Some(BigInt::from(100)), Some(BigInt::from(200))],
             }),
-            result: MatchTestResult {
+            criteria: MatchTestResult {
                 op: Some(Operation {
                     operation_identifier: OperationIdentifier {
                         index: 1,
@@ -202,7 +202,7 @@ fn test_match() {
                 })],
                 amounts: vec![None],
             }),
-            result: MatchTestResult {
+            criteria: MatchTestResult {
                 op: Some(Operation {
                     operation_identifier: OperationIdentifier {
                         index: 1,
