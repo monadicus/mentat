@@ -12,8 +12,8 @@ fn test_coin() {
         metadata: Default::default(),
     };
 
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        TestCase {
             name: "valid coin",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -21,14 +21,14 @@ fn test_coin() {
                 }),
                 amount: Some(valid_amount.clone()),
             }),
-            err: None,
+            criteria: None,
         },
-        AsserterTest {
+        TestCase {
             name: "valid coin",
             payload: None,
-            err: Some(CoinError::IsNil.into()),
+            criteria: Some(CoinError::IsNil.into()),
         },
-        AsserterTest {
+        TestCase {
             name: "invalid identifier",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -36,11 +36,11 @@ fn test_coin() {
                 }),
                 amount: Some(valid_amount),
             }),
-            err: Some(AsserterError::from(
+            criteria: Some(AsserterError::from(
                 "coin identifier cannot be empty: coin identifier is invalid".to_string(),
             )),
         },
-        AsserterTest {
+        TestCase {
             name: "invalid amount",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -52,9 +52,9 @@ fn test_coin() {
                     metadata: Default::default(),
                 }),
             }),
-            err: Some(AsserterError::from("amount is invalid".to_string())),
+            criteria: Some(AsserterError::from("amount is invalid".to_string())),
         },
-        AsserterTest {
+        TestCase {
             name: "nil amount",
             payload: Some(NullableCoin {
                 coin_identifier: Some(CoinIdentifier {
@@ -62,11 +62,11 @@ fn test_coin() {
                 }),
                 amount: None,
             }),
-            err: Some(AsserterError::from("amount is invalid".to_string())),
+            criteria: Some(AsserterError::from("amount is invalid".to_string())),
         },
     ];
 
-    AsserterTest::run(&tests, coin);
+    TestCase::run_err_match(tests, |t| coin(t.as_ref()));
 }
 
 #[test]
@@ -81,10 +81,10 @@ fn test_coins() {
         metadata: Default::default(),
     };
 
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        TestCase {
             name: "valid coins",
-            payload: Some(vec![
+            payload: vec![
                 Some(NullableCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
@@ -97,17 +97,17 @@ fn test_coins() {
                     }),
                     amount: Some(valid_amount.clone()),
                 }),
-            ]),
-            err: None,
+            ],
+            criteria: None,
         },
-        AsserterTest {
+        TestCase {
             name: "nil",
-            payload: Some(Vec::new()),
-            err: None,
+            payload: Vec::new(),
+            criteria: None,
         },
-        AsserterTest {
+        TestCase {
             name: "duplicate coins",
-            payload: Some(vec![
+            payload: vec![
                 Some(NullableCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
@@ -120,19 +120,18 @@ fn test_coins() {
                     }),
                     amount: Some(valid_amount),
                 }),
-            ]),
-            err: Some(CoinError::Duplicate.into()),
+            ],
+            criteria: Some(CoinError::Duplicate.into()),
         },
     ];
 
-    // TODO: remove use of Some
-    AsserterTest::run(&tests, |test| coins(test.unwrap()));
+    TestCase::run_err_match(tests, |test| coins(&test));
 }
 
 #[test]
 fn test_coin_change() {
-    let tests = [
-        AsserterTest {
+    let tests = vec![
+        TestCase {
             name: "valid change",
             payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
@@ -140,14 +139,14 @@ fn test_coin_change() {
                 }),
                 coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
-            err: None,
+            criteria: None,
         },
-        AsserterTest {
+        TestCase {
             name: "nil",
             payload: None,
-            err: Some(CoinError::ChangeIsNil.into()),
+            criteria: Some(CoinError::ChangeIsNil.into()),
         },
-        AsserterTest {
+        TestCase {
             name: "invalid identifier",
             payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
@@ -155,9 +154,9 @@ fn test_coin_change() {
                 }),
                 coin_action: NullableCoinAction::COIN_CREATED.into(),
             }),
-            err: Some(CoinError::IdentifierNotSet.into()),
+            criteria: Some(CoinError::IdentifierNotSet.into()),
         },
-        AsserterTest {
+        TestCase {
             name: "invalid coin action",
             payload: Some(NullableCoinChange {
                 coin_identifier: Some(CoinIdentifier {
@@ -165,9 +164,9 @@ fn test_coin_change() {
                 }),
                 coin_action: "hello".into(),
             }),
-            err: Some(CoinError::ActionInvalid.into()),
+            criteria: Some(CoinError::ActionInvalid.into()),
         },
     ];
 
-    AsserterTest::run(&tests, coin_change);
+    TestCase::run_err_match(tests, |t| coin_change(t.as_ref()));
 }

@@ -609,6 +609,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "mentat-parser"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "mentat-asserter",
+ "mentat-test-utils",
+ "mentat-types",
+ "num-bigint-dig",
+ "num-traits",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "mentat-server"
 version = "0.1.0"
 dependencies = [

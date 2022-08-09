@@ -51,7 +51,8 @@ impl From<&str> for NullableDirection {
 /// (i.e. cross-shard/cross-network sends may reference backward to an earlier
 /// transaction and async execution may reference forward). Can be used to
 /// indicate if a transaction relation is from child to parent or the reverse.
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum Direction {
     /// Direction indicating a transaction relation is from child to parent.
     #[default]
@@ -75,6 +76,15 @@ impl From<Direction> for NullableDirection {
         match other {
             Direction::Backward => Self::BACKWARD.into(),
             Direction::Forward => Self::FORWARD.into(),
+        }
+    }
+}
+
+impl fmt::Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Direction::Backward => write!(f, "backward"),
+            Direction::Forward => write!(f, "forward"),
         }
     }
 }

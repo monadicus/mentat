@@ -12,6 +12,8 @@ pub struct NullableCurveType(String);
 impl NullableCurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
     pub const EDWARDS25519: &'static str = "edwards25519";
+    /// https://github.com/zcash/pasta
+    pub const PALLAS: &'static str = "pallas";
     /// <https://secg.org/sec1-v2.pdf#subsubsection.2.3.3>
     pub const SECP256K1: &'static str = "secp256k1";
     /// <https://secg.org/sec1-v2.pdf#subsubsection.2.3.3>
@@ -52,7 +54,8 @@ impl From<&str> for NullableCurveType {
 }
 
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum CurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
     #[default]
@@ -63,6 +66,8 @@ pub enum CurveType {
     Secp256r1,
     /// <https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys>
     Tweedle,
+    /// https://github.com/zcash/pasta
+    Pallas,
 }
 
 impl From<NullableCurveType> for CurveType {
@@ -72,6 +77,7 @@ impl From<NullableCurveType> for CurveType {
             NullableCurveType::SECP256K1 => Self::Secp256k1,
             NullableCurveType::SECP256R1 => Self::Secp256r1,
             NullableCurveType::TWEEDLE => Self::Tweedle,
+            NullableCurveType::PALLAS => Self::Pallas,
             i => panic!("unsupported CurveType: {i}"),
         }
     }
@@ -84,6 +90,19 @@ impl From<CurveType> for NullableCurveType {
             CurveType::Secp256k1 => Self::SECP256K1.into(),
             CurveType::Secp256r1 => Self::SECP256R1.into(),
             CurveType::Tweedle => Self::TWEEDLE.into(),
+            CurveType::Pallas => Self::PALLAS.into(),
+        }
+    }
+}
+
+impl fmt::Display for CurveType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CurveType::Edwards25519 => write!(f, "edwards25519"),
+            CurveType::Secp256k1 => write!(f, "secp256k1"),
+            CurveType::Secp256r1 => write!(f, "secp256r1"),
+            CurveType::Tweedle => write!(f, "tweedle"),
+            CurveType::Pallas => write!(f, "pallas"),
         }
     }
 }

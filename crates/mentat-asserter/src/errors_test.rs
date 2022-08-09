@@ -1,12 +1,9 @@
+//! these tests are useless in Rust, but added anyways so we can say we match
+//! the original Go tests
+
 use std::{error::Error, fmt::Display};
 
 use super::*;
-
-struct ErrTest {
-    err: Box<dyn Error>,
-    is: bool,
-    source: String,
-}
 
 #[derive(Debug)]
 struct Blah {
@@ -21,54 +18,48 @@ impl Display for Blah {
 
 impl Error for Blah {}
 
-// TODO move this over to new test system
 #[test]
 fn test_err() {
-    let tests: IndexMap<&str, ErrTest> = indexmap!(
-      "account balance error" => ErrTest {
-        err: AccountBalanceError::ReturnedBlockHashMismatch.into(),
-        is: true,
-        source: "account balance error".to_string(),
-      },
-      "block error" => ErrTest {
-        err: BlockError::BlockIdentifierIsNil.into(),
-        is: true,
-        source: "block error".to_string(),
-      },
-      "coin error" => ErrTest {
-        err: CoinError::ChangeIsNil.into(),
-        is: true,
-        source: "coin error".to_string(),
-      },
-      "construction error" => ErrTest {
-        err: ConstructionError::ConstructionMetadataResponseIsNil.into(),
-        is: true,
-        source: "construction error".to_string(),
-      },
-      "network error" => ErrTest {
-        err: NetworkError::NetworkIdentifierIsNil.into(),
-        is: true,
-        source: "network error".to_string(),
-      },
-      "server error" => ErrTest {
-        err: ServerError::NoSupportedNetworks.into(),
-        is: true,
-        source: "server error".to_string(),
-      },
-      "not an assert error" => ErrTest {
-        err: Blah {
-          content: "blah".to_string()
-        }.into(),
-        is: false,
-        source: String::new(),
-      },
-    );
+    let tests = vec![
+        TestCase {
+            name: "account balance error",
+            payload: AccountBalanceError::ReturnedBlockHashMismatch.into(),
+            criteria: (true, "account balance error"),
+        },
+        TestCase {
+            name: "block error",
+            payload: BlockError::BlockIdentifierIsNil.into(),
+            criteria: (true, "block error"),
+        },
+        TestCase {
+            name: "coin error",
+            payload: CoinError::ChangeIsNil.into(),
+            criteria: (true, "coin error"),
+        },
+        TestCase {
+            name: "construction error",
+            payload: ConstructionError::ConstructionMetadataResponseIsNil.into(),
+            criteria: (true, "construction error"),
+        },
+        TestCase {
+            name: "network error",
+            payload: NetworkError::NetworkIdentifierIsNil.into(),
+            criteria: (true, "network error"),
+        },
+        TestCase {
+            name: "server error",
+            payload: ServerError::NoSupportedNetworks.into(),
+            criteria: (true, "server error"),
+        },
+        TestCase {
+            name: "",
+            payload: Blah {
+                content: "blah".to_string(),
+            }
+            .into(),
+            criteria: (false, ""),
+        },
+    ];
 
-    tests.into_iter().for_each(|(name, test)| {
-        println!("test: {name}");
-
-        let (is, source) = err(test.err);
-        assert_eq!(is, test.is);
-        assert_eq!(source, &test.source);
-    });
+    TestCase::run_output_match(tests, crate::errors::err);
 }

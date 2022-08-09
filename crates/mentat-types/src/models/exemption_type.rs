@@ -59,7 +59,8 @@ impl From<&str> for NullableExemptionType {
 /// `ExemptionType` is used to indicate if the live balance for an account
 /// subject to a `BalanceExemption` could increase above, decrease below, or
 /// equal the computed balance.
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum ExemptionType {
     /// The live balance may increase above, decrease below, or equal the
     /// computed balance. This typically occurs with tokens that have a dynamic
@@ -92,6 +93,16 @@ impl From<ExemptionType> for NullableExemptionType {
             ExemptionType::Dynamic => Self::DYNAMIC.into(),
             ExemptionType::GreaterOrEqual => Self::GREATER_OR_EQUAL.into(),
             ExemptionType::LessOrEqual => Self::LESS_OR_EQUAL.into(),
+        }
+    }
+}
+
+impl fmt::Display for ExemptionType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ExemptionType::Dynamic => write!(f, "dynamic"),
+            ExemptionType::GreaterOrEqual => write!(f, "greater_or_equal"),
+            ExemptionType::LessOrEqual => write!(f, "less_or_equal"),
         }
     }
 }

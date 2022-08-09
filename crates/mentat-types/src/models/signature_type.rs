@@ -58,7 +58,8 @@ impl From<&str> for NullableSignatureType {
 }
 
 /// OperatorSignatureType is the type of a cryptographic signature.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum SignatureType {
     /// r (32-bytes) + s (32-bytes)
     #[default]
@@ -68,6 +69,7 @@ pub enum SignatureType {
     /// R (32-bytes) + s (32-bytes)
     Ed25519,
     /// r (32-bytes) + s (32-bytes)
+    #[serde(rename = "schnorr_1")]
     Schnorr1,
     /// r (32-bytes) + s (32-bytes) where s = Hash(1st pk + 2nd pk + r)
     EchnorrPoseidon,
@@ -94,6 +96,18 @@ impl From<SignatureType> for NullableSignatureType {
             SignatureType::Ed25519 => Self::ED25519.into(),
             SignatureType::Schnorr1 => Self::SCHNORR_1.into(),
             SignatureType::EchnorrPoseidon => Self::SCHNORR_POSEIDON.into(),
+        }
+    }
+}
+
+impl fmt::Display for SignatureType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SignatureType::Ecdsa => write!(f, "ecdsa"),
+            SignatureType::EcdsaRecovery => write!(f, "ecdsa_recovery"),
+            SignatureType::Ed25519 => write!(f, "ed25519"),
+            SignatureType::Schnorr1 => write!(f, "schnorr_1"),
+            SignatureType::EchnorrPoseidon => write!(f, "schnorr_poseidon"),
         }
     }
 }

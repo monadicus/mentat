@@ -6,7 +6,7 @@ use super::*;
 
 /// The [`Version`] object is utilized to inform the client of the versions of
 /// different components of the Rosetta implementation.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct Version {
     /// The `rosetta_version` is the version of the Rosetta interface the

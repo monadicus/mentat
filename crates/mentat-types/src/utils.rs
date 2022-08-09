@@ -8,6 +8,7 @@ use sha2::{Digest, Sha256};
 
 use super::{
     AccountIdentifier,
+    Amount,
     BlockIdentifier,
     NullableAmount,
     NullableCurrency,
@@ -67,7 +68,7 @@ pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> Part
 
 /// `amount_value` returns a [`BigInt`] representation of an
 /// Amount.Value or an error.
-pub(crate) fn amount_value(amount: Option<&NullableAmount>) -> Result<BigInt, String> {
+pub fn amount_value(amount: Option<&Amount>) -> Result<BigInt, String> {
     let amount = amount.ok_or("amount value cannot be nil")?;
     BigInt::from_str(&amount.value).map_err(|_| format!("{} is not an integer", amount.value))
 }
@@ -111,7 +112,7 @@ pub(crate) fn big_int(value: &str) -> Result<BigInt, String> {
 
 /// `add_values` adds string amounts using
 /// big.Int.
-pub(crate) fn add_values(a: &str, b: &str) -> Result<String, String> {
+pub fn add_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val + b_val;
@@ -146,7 +147,7 @@ pub(crate) fn divide_values(a: &str, b: &str) -> Result<String, String> {
 }
 
 /// `negate_value` flips the sign of a value.
-pub(crate) fn negate_value(val: &str) -> Result<String, String> {
+pub fn negate_value(val: &str) -> Result<String, String> {
     let existing = big_int(val)?;
     Ok((-existing).to_string())
 }
