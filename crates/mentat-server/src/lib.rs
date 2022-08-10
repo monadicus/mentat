@@ -72,6 +72,8 @@ pub use serde_json;
 pub use sysinfo;
 pub use tokio;
 pub use tracing;
+pub use tracing_subscriber;
+pub use tracing_tree;
 
 #[doc(hidden)]
 pub mod macro_exports {
