@@ -112,7 +112,7 @@ pub trait CallerOptionalApi: OptionalApi + Clone + Default {
         _node_pid: NodePid,
     ) -> MentatResponse<Synced> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             self.synced(rpc_caller).await
         }

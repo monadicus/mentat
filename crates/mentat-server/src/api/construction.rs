@@ -204,7 +204,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableConstructionMetadataResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.construction_metadata_request(data.as_ref())?;
             let resp = self
@@ -289,7 +289,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableTransactionIdentifierResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.construction_submit_request(data.as_ref())?;
             let resp = self

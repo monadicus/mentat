@@ -239,7 +239,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableNetworkStatusResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.network_request(data.as_ref())?;
             let resp = self
@@ -263,7 +263,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableAccountBalanceResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.account_balance_request(data.as_ref())?;
             // let ident = if assert_resp {
@@ -292,7 +292,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableAccountCoinsResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.account_coins_request(data.as_ref())?;
             let resp = self
@@ -316,7 +316,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableBlockResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.block_request(data.as_ref())?;
             let resp: NullableBlockResponse = self
@@ -340,7 +340,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableBlockTransactionResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.block_transaction_request(data.as_ref())?;
             let resp: NullableBlockTransactionResponse = self
@@ -364,7 +364,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableMempoolResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.network_request(data.as_ref())?;
             let resp: NullableMempoolResponse = self
@@ -388,7 +388,7 @@ pub trait CallerDataApi: Clone + DataApi {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableMempoolTransactionResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.mempool_transaction_request(data.as_ref())?;
             let resp: NullableMempoolTransactionResponse = self

@@ -19,8 +19,8 @@ struct TestNewExtras {
 #[test]
 fn test_new() {
     let valid_network = Some(NetworkIdentifier {
-        blockchain: "hello".into(),
-        network: "world".into(),
+        blockchain: "HELLO".into(),
+        network: "WORLD".into(),
         sub_network_identifier: Default::default(),
     });
     let valid_network_status = Some(NullableNetworkStatusResponse {
