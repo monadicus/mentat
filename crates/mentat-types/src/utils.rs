@@ -186,6 +186,22 @@ where
     Ok(opt.unwrap_or_default())
 }
 
+/// custom deserializer that makes string values all uppercase
+pub(crate) fn string_as_uppercase<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    String::deserialize(deserializer).map(|s| s.to_uppercase())
+}
+
+/// custom serializer that makes string values all uppercase
+pub(crate) fn string_to_uppercase<S>(str: &str, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_str(&str.to_uppercase())
+}
+
 /// For hex look ups when encoding bytes to hex
 const HEXTABLE: &[char] = &[
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',

@@ -351,8 +351,8 @@ fn test_operations_validations() {
     let asserter = |validation_file_path: &Path| {
         Asserter::new_client_with_responses(
             Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
             Some(NullableNetworkStatusResponse {
@@ -1037,8 +1037,8 @@ fn test_operation() {
 
     let asserter = Asserter::new_client_with_responses(
         Some(NetworkIdentifier {
-            blockchain: "hello".into(),
-            network: "world".into(),
+            blockchain: "HELLO".into(),
+            network: "WORLD".into(),
             sub_network_identifier: None,
         }),
         Some(NullableNetworkStatusResponse {
@@ -1191,8 +1191,8 @@ fn test_block() {
         ],
         related_transactions: vec![Some(NullableRelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
             transaction_identifier: Some(TransactionIdentifier {
@@ -1410,8 +1410,8 @@ fn test_block() {
         ],
         related_transactions: vec![Some(NullableRelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
             transaction_identifier: Some(TransactionIdentifier {
@@ -1456,8 +1456,8 @@ fn test_block() {
         related_transactions: vec![
             Some(NullableRelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
-                    blockchain: "hello".into(),
-                    network: "world".into(),
+                    blockchain: "HELLO".into(),
+                    network: "WORLD".into(),
                     sub_network_identifier: None,
                 }),
                 transaction_identifier: Some(TransactionIdentifier {
@@ -1467,8 +1467,8 @@ fn test_block() {
             }),
             Some(NullableRelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
-                    blockchain: "hello".into(),
-                    network: "world".into(),
+                    blockchain: "HELLO".into(),
+                    network: "WORLD".into(),
                     sub_network_identifier: None,
                 }),
                 transaction_identifier: Some(TransactionIdentifier {
@@ -1483,8 +1483,8 @@ fn test_block() {
     let asserter = |extras: BlockTestExtras| {
         Asserter::new_client_with_responses(
             Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
             Some(NullableNetworkStatusResponse {

@@ -33,7 +33,7 @@ pub trait CallerCallApi: CallApi + Clone + Default {
         rpc_caller: RpcCaller,
     ) -> MentatResponse<NullableCallResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.call_request(data.as_ref())?;
             Ok(Json(

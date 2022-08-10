@@ -71,21 +71,7 @@ impl MentatError {
             MentatError::transaction_not_found::<&str, ()>(None).unwrap_err(),
             MentatError::couldnt_get_fee_rate::<&str, ()>(None).unwrap_err(),
             MentatError::couldnt_get_balance::<&str, ()>(None).unwrap_err(),
-            MentatError::wrong_network::<&str, ()>(None).unwrap_err(),
-            MentatError::not_found_example::<&str, ()>(None).unwrap_err(),
         ]
-    }
-
-    /// For when a method called but not available on the current network.
-    pub fn wrong_network<D: Display, R>(details: Option<D>) -> Result<R> {
-        Err(MentatError {
-            status_code: 500,
-            code: 500,
-            message: "requestNetwork not supported".to_string(),
-            description: None,
-            retriable: false,
-            details: Self::context(details, |n| format!("unsupported network {n}")),
-        })
     }
 
     /// Not Found
@@ -356,7 +342,11 @@ impl MentatError {
 
 impl<T: Display> From<T> for MentatError {
     fn from(e: T) -> Self {
-        Self::node_error::<T, ()>(Some(e)).unwrap_err()
+        Self {
+            status_code: 500,
+            message: e.to_string(),
+            ..Default::default()
+        }
     }
 }
 

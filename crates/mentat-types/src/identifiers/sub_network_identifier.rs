@@ -11,16 +11,20 @@ use super::*;
 #[serde(default)]
 pub struct SubNetworkIdentifier {
     /// The network string
+    #[serde(
+        serialize_with = "string_to_uppercase",
+        deserialize_with = "string_as_uppercase"
+    )]
     pub network: String,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
 }
 
-impl From<String> for SubNetworkIdentifier {
-    fn from(network: String) -> Self {
+impl From<&str> for SubNetworkIdentifier {
+    fn from(network: &str) -> Self {
         Self {
-            network,
+            network: network.to_uppercase(),
             ..Default::default()
         }
     }
@@ -28,7 +32,10 @@ impl From<String> for SubNetworkIdentifier {
 
 impl Sortable for SubNetworkIdentifier {
     fn sort(&self) -> Self {
-        let mut new = self.clone();
+        let mut new = Self {
+            network: self.network.to_uppercase(),
+            metadata: self.metadata.clone(),
+        };
         new.metadata.sort_keys();
         new
     }
