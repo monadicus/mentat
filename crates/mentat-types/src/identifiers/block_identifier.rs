@@ -13,3 +13,9 @@ pub struct BlockIdentifier {
     /// The block hash..
     pub hash: String,
 }
+
+impl Sortable for BlockIdentifier {
+    fn sort(&self) -> Self {
+        self.clone()
+    }
+}

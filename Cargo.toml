@@ -9,6 +9,7 @@ members = [
         "crates/mentat-parser",
         "crates/mentat-test-utils",
         "crates/mentat-server",
+        "crates/mentat-syncer",
         "crates/mentat-types",
         "mentat-macros",
         # "examples/mentat-cli",

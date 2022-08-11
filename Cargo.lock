@@ -652,6 +652,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "mentat-syncer"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "mentat-asserter",
+ "mentat-types",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "mentat-test-utils"
 version = "0.1.0"
 
