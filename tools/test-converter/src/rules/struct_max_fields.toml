@@ -1,0 +1,95 @@
+# Type Module Types
+
+## Identifier Types
+AccountIdentifier = 3
+BlockIdentifier = 2
+CoinIdentifier = 1
+NetworkIdentifier = 3
+OperationIdentifier = 2
+PartialBlockIdentifier = 2
+SubAccountIdentifier = 2
+SubNetworkIdentifier = 2
+TransactionIdentifier = 1
+
+## Misc Types
+OperationStatus = 2
+Peer = 2
+SyncStatus = 4
+Version = 4
+
+## Model Types
+AccountCoin = 2
+AccountCurrency = 2
+Allow = 8
+Amount = 3
+BalanceExemption = 3
+BlockEventType = 0
+BlockEvent = 3
+BlockTransaction = 2
+Block = 5
+Caller = 1
+CoinAction = 0
+CoinChange = 2
+Coin = 2
+Currency = 3
+CureType = 0
+Direction = 0
+ExemptionType = 0
+Operation = 8
+Operator = 0
+PublicKey = 2
+RelatedTransaction = 3
+SignatureType = 0
+Signature = 4
+SigningPayload = 4
+Transaction = 4
+
+## Requests
+AccountBalanceRequest = 4
+AccountCoinsRequest = 4
+BlockTransactionRequest = 3
+BlockRequest = 2
+CallRequest = 3
+ConstructionCombineRequest = 3
+ConstructionDeriveRequest = 3
+ConstructionHashRequest = 2
+ConstructionMetadataRequest = 3
+ConstructionParseRequest = 3
+ConstructionPayloadsRequest = 4
+ConstructionPreprocessRequest = 5
+ConstructionSubmitRequest = 2
+EventBlockRequest = 3
+MempoolTransactionRequest = 2
+MetadataRequest = 1
+NetworkRequest = 2
+SearchRequest = 13
+
+## Responses
+AccountBalanceResponse = 3
+AccountCoinsResponse = 3
+BlockTransactionResponse = 1
+BlockResponse = 2
+CallResponse = 2
+ConstructionCombineResponse = 1
+ConstructionDeriveResponse = 3
+ConstructionMetadataResponse = 2
+ConstructionParseResponse = 4
+ConstructionPayloadsResponse = 2
+ConstructionPreprocessResponse = 2
+EventBlockResponse = 2
+MempoolTransactionResponse = 2
+MetadataResponse = 1
+NetworkListResponse = 1
+NetworkOptionResponse = 2
+NetworkStatusResponse = 6
+SearchTransactionResponse = 3
+TransactionIdentifierResponse = 2
+
+# Parser Types
+
+## Match Operation Types
+AccountDescription = 4
+AmountDescription = 3
+Descriptions = 6
+Match = 2
+OperationDescription = 7

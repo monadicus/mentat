@@ -1,0 +1,16 @@
+[package]
+name = "test-converter"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.2.16", features = ["derive"] }
+colored = "2.0.0"
+error-stack = "0.1.1"
+indexmap = { version = "1.9.1", features = ["serde"] }
+lazy_static = "1.4.0"
+serde = { version = "1.0.143", features = ["derive"] }
+thiserror = "1.0.32"
+toml = "0.5.9"

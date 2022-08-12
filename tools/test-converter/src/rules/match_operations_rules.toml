@@ -1,0 +1,24 @@
+[test_struct]
+test_fn_name = "test_match_operations"
+struct_name = "TestCase"
+struct_method = "run_ok_match"
+closure = """
+|payload| {
+  match_operations(payload.descriptions, payload.operations)
+}
+"""
+
+[test_struct.criteria]
+type = "Option<Vec<Option<Match>>>"
+from = "matches"
+
+[test_struct.payload]
+struct_name = "MatchOperationsTest"
+
+[test_struct.payload.operations]
+type = "Vec<Option<Operation>>"
+from_field = "operations[]"
+
+[test_struct.payload.descriptions]
+type = "Descriptions"
+from_field = "!descriptions"
