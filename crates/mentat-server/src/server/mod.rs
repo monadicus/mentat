@@ -55,9 +55,13 @@ pub trait ServerType: Sized + 'static {
 
     /// Sets up a tracing subscriber dispatch
     fn setup_logging() -> tracing::Dispatch {
+        let collector_port =
+            std::env::var("MENTANT_COLLECTOR_PORT").unwrap_or_else(|_| "14268".to_string());
+        let agent_port = std::env::var("MENTANT_AGENT_PORT").unwrap_or_else(|_| "6831".to_string());
+
         let tracer = opentelemetry_jaeger::new_pipeline()
-            .with_collector_endpoint("http://localhost:14268/api/traces")
-            .with_agent_endpoint("0.0.0.0:6831")
+            .with_collector_endpoint(format!("http://localhost:{collector_port}/api/traces"))
+            .with_agent_endpoint(format!("0.0.0.0:{agent_port}"))
             .with_service_name(env!("CARGO_PKG_NAME"))
             .install_batch(opentelemetry::runtime::Tokio)
             .unwrap_or_else(|e| panic!("Failed to start opentelemtry_jaeger: `{e}`"));
