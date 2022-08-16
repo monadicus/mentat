@@ -16,10 +16,12 @@ mentat-asserter = { path = "../mentat-asserter" }
 mentat-macros = { path = "../../mentat-macros" }
 mentat-types = { path = "../mentat-types" }
 num_cpus = { version = "1.13.1", default-features = false }
-opentelemetry = { version = "0.17.0", default-features = false, features = [
+opentelemetry = { version = "0.17.0", default-features = true, features = [
     "rt-tokio",
 ] }
-opentelemetry-jaeger = { version = "0.16.0", default-features = false, features = [
+opentelemetry-jaeger = { version = "0.16.0", default-features = true, features = [
+    "collector_client",
+    "isahc_collector_client",
     "rt-tokio",
 ] }
 serde = { version = "1.0.136", default-features = false, features = ["derive"] }
@@ -31,11 +33,15 @@ tokio = { version = "1.17.0", default-features = false, features = [
     "rt-multi-thread",
 ] }
 tower = { version = "0.4.12", default-features = false }
-tracing = { version = "0.1.32", default-features = false, features = [
+tracing = { version = "0.1.36", default-features = false, features = [
     "attributes",
 ] }
 tracing-error = { version = "0.2.0", default-features = false }
-tracing-opentelemetry = { version = "0.17.2", default-features = false }
-tracing-subscriber = { version = "0.3.10", features = ["env-filter"] }
-tracing-tree = { version = "0.2.0", default-features = false }
+tracing-opentelemetry = { version = "0.17.4", default-features = false }
+tracing-subscriber = { version = "0.3.15", features = [
+    "env-filter",
+    "smallvec",
+] }
+tracing-tree = { version = "0.2.1", default-features = false }
 sysinfo = { version = "0.23.9", default-features = false }
+const_format = "0.2.26"

@@ -8,7 +8,8 @@ use serde_json::Value;
 use super::ServerType;
 use crate::conf::{Configuration, Network, NodeConf};
 
-// TODO i think this might be broken since its input is now an option, but it doesnt actually cause any errors
+// TODO i think this might be broken since its input is now an option, but it
+// doesnt actually cause any errors
 /// A function to do all middleware checks.
 pub async fn middleware_checks<Types: ServerType>(
     req: Request<Body>,
@@ -33,7 +34,8 @@ pub async fn middleware_checks<Types: ServerType>(
 pub struct NetworkIdentifierCheck;
 
 impl NetworkIdentifierCheck {
-    // TODO i think this might be broken since its input is now an option, but it doesnt actually cause any errors
+    // TODO i think this might be broken since its input is now an option, but it
+    // doesnt actually cause any errors
     /// A function to check if the server Blockchain specified matches the user
     /// request specified blockchain.
     pub fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {

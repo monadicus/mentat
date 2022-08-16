@@ -3,7 +3,6 @@
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use sysinfo::{Pid, PidExt};
-use tracing_subscriber::util::SubscriberInitExt;
 mod middleware_checks;
 mod rpc_caller;
 
@@ -12,7 +11,6 @@ use std::net::SocketAddr;
 use axum::{extract::Extension, handler::Handler, http::Extensions, middleware, Router};
 use mentat_types::{MentatError, Result};
 pub use rpc_caller::*;
-use tracing::{info, Dispatch};
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;
 
@@ -56,10 +54,18 @@ pub trait ServerType: Sized + 'static {
     }
 
     /// Sets up a tracing subscriber dispatch
-    fn setup_logging() -> Dispatch {
+    fn setup_logging() -> tracing::Dispatch {
+        let collector_port =
+            std::env::var("MENTANT_COLLECTOR_PORT").unwrap_or_else(|_| "14268".to_string());
+        let agent_port = std::env::var("MENTANT_AGENT_PORT").unwrap_or_else(|_| "6831".to_string());
+
         let tracer = opentelemetry_jaeger::new_pipeline()
+            .with_collector_endpoint(format!("http://localhost:{collector_port}/api/traces"))
+            .with_agent_endpoint(format!("0.0.0.0:{agent_port}"))
+            .with_service_name(env!("CARGO_PKG_NAME"))
             .install_batch(opentelemetry::runtime::Tokio)
             .unwrap_or_else(|e| panic!("Failed to start opentelemtry_jaeger: `{e}`"));
+
         let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
         Registry::default()
@@ -214,7 +220,8 @@ impl<Types: ServerType> Server<Types> {
     #[doc(hidden)]
     pub async fn serve(self, mut app: Router) {
         color_backtrace::install();
-        Types::setup_logging().init();
+        tracing::dispatcher::set_global_default(Types::setup_logging())
+            .unwrap_or_else(|err| panic!("Failed to set logger dispatcher: `{err}`"));
 
         let node_pid = Types::CustomConfig::start_node(&self.configuration);
         let server_pid = Pid::from_u32(std::process::id());
@@ -233,12 +240,16 @@ impl<Types: ServerType> Server<Types> {
             )
             .fallback(MentatError::not_found.into_service());
 
-        info!("Listening on http://{}", addr);
+        // TODO this currently writes mentat-server
+        // This will be fixed when non basic generic const types stabilize.
+        // Or const trait fns stabilize.
+        let span = tracing::span!(tracing::Level::DEBUG, env!("CARGO_PKG_NAME"));
+        let _enter = span.enter();
+        tracing::info!("Listening on http://{}", addr);
         axum::Server::bind(&addr)
             .serve(app.into_make_service_with_connect_info::<SocketAddr>())
             .await
             .unwrap_or_else(|err| panic!("Failed to listen on addr `{addr}`: `{err}`."));
-
         Types::teardown_logging();
     }
 }
