@@ -3,3 +3,6 @@ name = "mentat-test-utils"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.62.1"
+
+[dependencies]
+futures = "0.3.21"

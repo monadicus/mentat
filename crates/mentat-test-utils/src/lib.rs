@@ -3,6 +3,8 @@ use std::{
     fmt::{self},
 };
 
+use futures::{future::join_all, Future};
+
 /// helper struct used to hold custom instances during method tests
 pub struct MethodPayload<C, P> {
     /// the instance making the method call
@@ -24,6 +26,32 @@ pub struct TestCase<Payload, Res> {
 }
 
 impl<Payload, Res> TestCase<Payload, Res> {
+    /// runs the tests using the given async function and criteria matcher
+    async fn async_runner<FnOut, F, Matcher, In1, In2, Fut>(
+        tests: Vec<Self>,
+        func: F,
+        matcher: Matcher,
+    ) where
+        Res: Into<In1>,
+        FnOut: Into<In2>,
+        F: Fn(Payload) -> Fut,
+        Fut: Future<Output = FnOut>,
+        Matcher: Fn(&In1, &In2) -> bool,
+    {
+        let len = tests.len();
+        let failed = join_all(tests.into_iter().map(|test| async {
+            print!("{test}: ");
+            let res = func(test.payload).await;
+            matcher(&test.criteria.into(), &res.into())
+        }))
+        .await
+        .into_iter()
+        .filter(|t| !t)
+        .count();
+
+        status_message(failed, len);
+    }
+
     /// runs the tests using the given function and criteria matcher
     fn runner<FnOut, F, Matcher, In1, In2>(tests: Vec<Self>, func: F, matcher: Matcher)
     where
@@ -109,6 +137,16 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Err: fmt::Debug + PartialEq,
     {
         Self::runner(tests, func, check_results_match::<Ok, Err>);
+    }
+
+    /// TODO
+    pub fn run_async_output_match<F, Fut>(tests: Vec<Self>, func: F)
+    where
+        Res: PartialEq + fmt::Debug,
+        F: Fn(Payload) -> Fut,
+        Fut: Future<Output = Res>,
+    {
+        futures::executor::block_on(Self::async_runner(tests, func, check_output_match::<Res>))
     }
 
     /// Runs all tests with the given function and asserts the output exactly

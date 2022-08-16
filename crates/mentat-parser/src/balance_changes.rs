@@ -52,11 +52,8 @@ impl Parser {
     /// [`BalanceChange`] struct. If a block is being
     /// orphaned, the opposite of each balance change is
     /// returned.
-    pub fn balance_changes(
+    pub async fn balance_changes(
         &self,
-        // TODO how do we replicate this?
-        // its for green threading.
-        _ctx: (),
         block: &Block,
         block_removed: bool,
     ) -> ParserResult<Vec<BalanceChange>> {

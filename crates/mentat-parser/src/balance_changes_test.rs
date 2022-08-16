@@ -312,9 +312,10 @@ fn test_balance_changes() {
         },
     ];
 
-    TestCase::run_output_match(tests, |t| {
+    TestCase::run_async_output_match(tests, |t| async move {
         t.caller
-            .balance_changes((), &t.payload.block, t.payload.orphan)
+            .balance_changes(&t.payload.block, t.payload.orphan)
+            .await
             .unwrap()
     });
 }
