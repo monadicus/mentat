@@ -2,17 +2,17 @@
 
 use std::{mem::size_of_val, thread::sleep};
 
-use crossbeam::channel::{Receiver, Sender};
 use indexmap::IndexMap;
 use mentat_types::{hash, Block, BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier};
+use tokio::select;
 
 use crate::{
     errors::{SyncerError, SyncerResult},
+    golang::{self, chan::Context, defer, Chan},
     types::{
         Handler, Helper, Syncer, DEFAULT_CONCURRENCY, DEFAULT_FETCH_SLEEP, DEFAULT_SYNC_SLEEP,
         DEFAULT_TRAILING_WINDOW, MIN_CONCURRENCY,
     },
-    utils::Chan,
 };
 
 /// blockResult is returned by calls
@@ -30,7 +30,7 @@ pub struct BlockResult {
 
 impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn set_start(&mut self, ctx: (), index: i64) -> SyncerResult<()> {
+    pub fn set_start(&mut self, ctx: &Context, index: i64) -> SyncerResult<()> {
         let network_status = Help::network_status(ctx, &self.network)?;
         self.genesis_block = network_status.genesis_block_identifier;
         if index != 0 {
@@ -46,7 +46,7 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     /// the contents of the network status response.
     pub fn next_syncable_range(
         &mut self,
-        ctx: (),
+        ctx: &Context,
         mut end_index: i64,
     ) -> SyncerResult<(i64, bool)> {
         if self.next_index == -1 {
@@ -119,7 +119,7 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn process_block(&mut self, ctx: (), br: Option<BlockResult>) -> SyncerResult<()> {
+    pub fn process_block(&mut self, ctx: &Context, br: Option<BlockResult>) -> SyncerResult<()> {
         let br = br.ok_or(SyncerError::BlockResultNil)?;
         if br.block.is_none() && !br.orphaned_head {
             // If the block is omitted, increase
@@ -152,23 +152,24 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     /// the channel is closed.
     pub async fn add_block_indices(
         &self,
-        ctx: (),
-        block_indices: &Sender<i64>,
+        ctx: &Context,
+        block_indices: &Chan<i64>,
         start_index: i64,
         end_index: i64,
     ) -> SyncerResult<()> {
+        defer!(block_indices.close_s());
+
         for i in start_index..end_index {
             // Don't load if we already have a healthy backlog.
-            if block_indices.len() as i64 > *self.concurrency.lock() {
+            if block_indices.tx().len() as i64 > *self.concurrency.lock() {
                 sleep(DEFAULT_FETCH_SLEEP);
                 continue;
             }
 
-            // TODO: need ctx
-            // select! {
-            //     v = block_indices.send(i) => v.unwrap(),
-            //     v = ctx.done() => return self.safe_exit(ctx.err())
-            // }
+            select! {
+                v = block_indices.send(i) => v.unwrap(),
+                v = ctx.done() => return self.safe_exit(ctx.err())
+            }
         }
 
         // We populate doneLoading before exiting
@@ -184,7 +185,7 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     #[allow(clippy::missing_docs_in_private_items)]
     pub fn fetch_block_result(
         &self,
-        ctx: (),
+        ctx: &Context,
         network: &NetworkIdentifier,
         index: i64,
     ) -> SyncerResult<BlockResult> {
@@ -226,10 +227,10 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     /// error.
     pub async fn fetch_blocks(
         &self,
-        ctx: (),
+        ctx: &Context,
         network: &NetworkIdentifier,
-        block_indices: &Receiver<i64>,
-        results: &Sender<BlockResult>,
+        block_indices: &Chan<i64>,
+        results: &Chan<BlockResult>,
     ) -> SyncerResult<()> {
         for b in block_indices {
             let br = match self.fetch_block_result(ctx, network, b) {
@@ -245,11 +246,10 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
                 }
             };
 
-            // TODO: need ctx
-            // select!(
-            //     v = results.send(br) => v.unwrap(),
-            //     v = ctx.done() => return self.safe_exit(ctx.err())
-            // );
+            select!(
+                v = results.send(br) => v.unwrap(),
+                v = ctx.done() => return self.safe_exit(ctx.err())
+            );
 
             // Exit if concurrency is greater than
             // goal concurrency.
@@ -267,7 +267,7 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     /// to process as many blocks as possible.
     fn process_blocks(
         &mut self,
-        ctx: (),
+        ctx: &Context,
         cache: &mut IndexMap<i64, BlockResult>,
         end_index: i64,
     ) -> SyncerResult<()> {
@@ -376,7 +376,7 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn handle_seen_block(&self, ctx: (), result: &BlockResult) -> SyncerResult<()> {
+    pub fn handle_seen_block(&self, ctx: &Context, result: &BlockResult) -> SyncerResult<()> {
         // If the helper returns ErrOrphanHead
         // for a block fetch, result.block will
         // be nil.
@@ -390,11 +390,11 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     #[allow(clippy::missing_docs_in_private_items)]
     pub fn sequence_blocks(
         &mut self,
-        ctx: (),
-        pipeline_ctx: (),
+        ctx: &Context,
+        pipeline_ctx: &Context,
         g: (), // errgroup.Group
-        block_indices: Receiver<i64>,
-        fetched_blocks: Receiver<BlockResult>,
+        block_indices: &Chan<i64>,
+        fetched_blocks: &Chan<BlockResult>,
         end_index: i64,
     ) -> SyncerResult<()> {
         let mut cache = IndexMap::new();
@@ -412,13 +412,13 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
             // TODO: their adjust_workers fn assumes concurrencyLock is locked and uses concurrency freely
             // TODO: then they maintain this lock until the end of the function to prevent concurrency from being set to 0 by accident?
             // TODO: what is this thread-locking hackery??
-            //
-            // let tmp = self.concurrency.lock();
-            // let should_create = self.adjust_workers();
-            // if !should_create {
-            //     drop(tmp);
-            //     continue;
-            // }
+
+            let tmp = self.concurrency.lock();
+            let should_create = self.adjust_workers();
+            if !should_create {
+                drop(tmp);
+                continue;
+            }
 
             // TODO: need ctx and need to spawn new thread and need to impl bi-directional channels
             //
@@ -427,24 +427,24 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
             // creating more goroutines (as there is a chance that
             // Wait has returned). Attempting to create more goroutines
             // after Wait has returned will cause a panic.
-            // if !*self.done_loading.lock() && pipeline_ctx.err().is_none() {
-            //     g.go(|| {
-            //         return self.fetch_blocks(
-            //             pipeline_ctx,
-            //             &self.network,
-            //             block_indices,
-            //             fetched_blocks,
-            //         );
-            //     })
-            // } else {
-            //     *self.concurrency.lock() -= 1;
-            // }
+            if !*self.done_loading.lock() && pipeline_ctx.err().is_none() {
+                g.go(|| {
+                    return self.fetch_blocks(
+                        pipeline_ctx,
+                        &self.network,
+                        block_indices,
+                        fetched_blocks,
+                    );
+                })
+            } else {
+                *self.concurrency.lock() -= 1;
+            }
 
             // TODO: this is where they drop the concurrencyLock
             //
             // Hold concurrencyLock until after we attempt to create another
             // new goroutine in the case we accidentally go to 0 during shutdown.
-            // self.concurrency.unlock();
+            self.concurrency.unlock();
         }
 
         Ok(())
@@ -453,9 +453,9 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     /// syncRange fetches and processes a range of blocks
     /// (from syncer.nextIndex to endIndex, inclusive)
     /// with syncer.concurrency.
-    pub fn sync_range(&mut self, ctx: (), end_index: i64) -> SyncerResult<()> {
-        let mut block_indices = Chan::make();
-        let mut fetched_blocks = Chan::make();
+    pub fn sync_range(&mut self, ctx: &Context, end_index: i64) -> SyncerResult<()> {
+        let mut block_indices = golang::make_unbounded();
+        let mut fetched_blocks = golang::make_unbounded();
 
         // Ensure default concurrency is less than max concurrency.
         let mut starting_concurrency = if self.max_concurrency < DEFAULT_CONCURRENCY {
@@ -478,58 +478,55 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
         *self.concurrency.lock() = starting_concurrency;
         self.goal_concurrency = starting_concurrency;
 
-        // TODO: context and errgroup
-        // // We create a separate derivative context here instead of
-        // // replacing the provided ctx because the context returned
-        // // by errgroup.WithContext is canceled as soon as Wait returns.
-        // // If this canceled context is passed to a handler or helper,
-        // // it can have unintended consequences (some functions
-        // // return immediately if the context is canceled).
-        // //
-        // // Source: https://godoc.org/golang.org/x/sync/errgroup
-        // let (g, pipeline_ctx) = errgroup.with_context(ctx);
-        // g.go(|| {
-        //     self.add_block_indices(
-        //         pipeline_ctx,
-        //         &block_indices.sender,
-        //         self.next_index,
-        //         end_index,
-        //     )
-        // });
+        // We create a separate derivative context here instead of
+        // replacing the provided ctx because the context returned
+        // by errgroup.WithContext is canceled as soon as Wait returns.
+        // If this canceled context is passed to a handler or helper,
+        // it can have unintended consequences (some functions
+        // return immediately if the context is canceled).
+        //
+        // Source: https://godoc.org/golang.org/x/sync/errgroup
+        let (g, pipeline_ctx) = errgroup.with_context(ctx);
+        g.go(|| {
+            self.add_block_indices(
+                pipeline_ctx,
+                &block_indices.sender,
+                self.next_index,
+                end_index,
+            )
+        });
 
         for j in 0..starting_concurrency {
-            // TODO: context and errgroup
-            // g.go(|| {
-            //     self.fetch_blocks(
-            //         pipeline_ctx,
-            //         &self.network,
-            //         &block_indices.receiver,
-            //         &fetched_blocks.sender,
-            //     )
-            // })
+            g.go(|| {
+                self.fetch_blocks(
+                    pipeline_ctx,
+                    &self.network,
+                    &block_indices.receiver,
+                    &fetched_blocks.sender,
+                )
+            })
         }
 
-        // TODO: context and errgroup
-        // // Wait for all block fetching goroutines to exit
-        // // before closing the fetchedBlocks channel.
-        // let f = || {
-        //     g.wait();
-        //     drop(fetched_blocks)
-        // };
+        // TODO this is not correct
+        // Wait for all block fetching goroutines to exit
+        // before closing the fetchedBlocks channel.
+        let func = || {
+            g.wait();
+            drop(fetched_blocks)
+        }();
 
         // TODO: context and errgroup
         self.sequence_blocks(
             ctx,
-            (), // pipeline_ctx,
-            (), // g,
-            block_indices.receiver,
-            fetched_blocks.receiver,
+            pipeline_ctx, // pipeline_ctx,
+            g,            // g,
+            &block_indices,
+            &fetched_blocks,
             end_index,
         )?;
 
-        // TODO: context and errgroup
-        // g.wait()
-        //     .map_err(|e| format!("{}: unable to sync to {}", e, end_index))?;
+        g.wait()
+            .map_err(|e| format!("{}: unable to sync to {}", e, end_index))?;
 
         Ok(())
     }
@@ -548,7 +545,12 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     /// Sync cycles endlessly until there is an error
     /// or the requested range is synced. When the requested
     /// range is synced, context is canceled.
-    pub fn sync(&mut self, ctx: (), mut start_index: i64, end_index: i64) -> SyncerResult<()> {
+    pub fn sync(
+        &mut self,
+        ctx: &Context,
+        mut start_index: i64,
+        end_index: i64,
+    ) -> SyncerResult<()> {
         self.set_start(ctx, start_index)
             .map_err(|e| format!("{}: {}", SyncerError::SetStartIndexFailed, e))?;
         loop {
@@ -574,18 +576,16 @@ impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
             self.sync_range(ctx, range_end)
                 .map_err(|e| format!("{}: unable to sync to {}", e, range_end))?;
 
-            // TODO: context
-            // if ctx.err().is_some() {
-            //     return ctx.err();
-            // }
+            if ctx.err().is_some() {
+                return ctx.err();
+            }
         }
 
         if start_index == -1 {
             start_index = self.genesis_block.index;
         }
 
-        // TODO context
-        // self.cancel();
+        self.cancel();
         tracing::info!("Finished syncing {}-{}\n", start_index, end_index);
         Ok(())
     }

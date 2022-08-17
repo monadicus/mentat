@@ -6,7 +6,7 @@
 
 pub mod errors;
 pub mod errors_test;
+mod golang;
 pub mod syncer;
 pub mod syncer_test;
 pub mod types;
-mod utils;

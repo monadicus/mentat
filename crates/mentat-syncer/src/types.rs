@@ -1,5 +1,6 @@
 //! TODO
 
+use crate::golang::chan::Context;
 use crate::types::BlockIdentifier;
 use crate::{
     errors::SyncerResult,
@@ -8,6 +9,7 @@ use crate::{
 use mentat_types::*;
 use parking_lot::Mutex;
 use std::collections::VecDeque;
+use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -72,11 +74,11 @@ pub trait Handler {
     /// by the syncer prior to calling BlockAdded
     /// with the same arguments. This allows for
     /// storing block data before it is sequenced.
-    fn block_seen(ctx: (), block: &Block) -> SyncerResult<()>;
+    fn block_seen(ctx: Context, block: &Block) -> SyncerResult<()>;
     #[allow(clippy::missing_docs_in_private_items)]
-    fn block_added(ctx: (), block: Option<&Block>) -> SyncerResult<()>;
+    fn block_added(ctx: Context, block: Option<&Block>) -> SyncerResult<()>;
     #[allow(clippy::missing_docs_in_private_items)]
-    fn block_removed(ctx: (), block: Option<&BlockIdentifier>) -> SyncerResult<()>;
+    fn block_removed(ctx: Context, block: Option<&BlockIdentifier>) -> SyncerResult<()>;
 }
 
 /// Helper is called at various times during the sync cycle
@@ -85,12 +87,12 @@ pub trait Handler {
 #[allow(clippy::missing_docs_in_private_items)]
 pub trait Helper {
     fn network_status(
-        ctx: (),
+        ctx: Context,
         network_identifier: &NetworkIdentifier,
     ) -> SyncerResult<NetworkStatusResponse>;
 
     fn block(
-        ctx: (),
+        ctx: Context,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,
     ) -> SyncerResult<Block>;
@@ -103,15 +105,15 @@ pub trait Helper {
 /// In the rosetta-cli, we handle reconciliation, state storage, and
 /// logging in the handler.
 #[allow(clippy::missing_docs_in_private_items)]
-pub struct Syncer<Hand, Help> {
+pub struct Syncer<Handler, Helper, F: FnOnce()> {
     pub network: NetworkIdentifier,
-    pub helper: Help,
-    pub handler: Hand,
+    pub helper: PhantomData<Helper>,
+    pub handler: PhantomData<Handler>,
     // TODO context.CancelFunc: A CancelFunc tells an operation to abandon its work.
     //  A CancelFunc does not wait for the work to stop. A CancelFunc may be called by
     //  multiple goroutines simultaneously. After the first call, subsequent calls to
     //  a CancelFunc do nothing.
-    pub cancel: (),
+    pub cancel: F,
 
     /// Used to keep track of sync state
     pub genesis_block: BlockIdentifier,
@@ -146,26 +148,24 @@ pub struct Syncer<Hand, Help> {
     pub done_loading: Arc<Mutex<bool>>,
 }
 
-impl<Hand, Help> Syncer<Hand, Help> {
+impl<Handler, Helper, F: FnOnce()> Syncer<Handler, Helper, F> {
     /// TODO doc
     pub fn builder(
         network: NetworkIdentifier,
-        helper: Help,
-        handler: Hand,
-        cancel: (), // context::CancelFunc,
-    ) -> SyncerBuilder<Hand, Help> {
-        SyncerBuilder::new(network, helper, handler, cancel)
+        cancel: F, // context::CancelFunc,
+    ) -> SyncerBuilder<Handler, Helper> {
+        SyncerBuilder::<Handler, Helper>::new(network, cancel)
     }
 }
 
 /// A builder new Syncer. If `past_blocks` is left nil, it will
 /// be set to an empty slice.
 #[allow(clippy::missing_docs_in_private_items)]
-pub struct SyncerBuilder<Hand, Help> {
+pub struct SyncerBuilder<Handler, Helper, F: FnOnce()> {
     network: NetworkIdentifier,
-    helper: Help,
-    handler: Hand,
-    cancel: (),
+    helper: PhantomData<Helper>,
+    handler: PhantomData<Handler>,
+    cancel: F,
     past_blocks: Option<Vec<BlockIdentifier>>,
     past_block_limit: Option<i64>,
     cache_size: Option<i64>,
@@ -175,17 +175,15 @@ pub struct SyncerBuilder<Hand, Help> {
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
-impl<Hand, Help> SyncerBuilder<Hand, Help> {
+impl<Handler, Helper, F: FnOnce()> SyncerBuilder<Handler, Helper, F> {
     pub fn new(
         network: NetworkIdentifier,
-        helper: Help,
-        handler: Hand,
-        cancel: (), // context::CancelFunc,
+        cancel: F, // context::CancelFunc,
     ) -> Self {
         Self {
             network,
-            helper,
-            handler,
+            helper: PhantomData,
+            handler: PhantomData,
             past_blocks: None,
             past_block_limit: None,
             cache_size: None,
@@ -226,7 +224,7 @@ impl<Hand, Help> SyncerBuilder<Hand, Help> {
         self
     }
 
-    pub fn build(self) -> Syncer<Hand, Help> {
+    pub fn build(self) -> Syncer<Handler, Helper> {
         Syncer {
             network: self.network,
             helper: self.helper,

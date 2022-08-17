@@ -15,3 +15,4 @@ parking_lot = "0.12.1"
 tracing = { version = "0.1.36", default-features = false, features = [
     "attributes",
 ] }
+crossbeam-channel = "0.5.6"

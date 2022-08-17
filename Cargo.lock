@@ -920,6 +920,7 @@ name = "mentat-syncer"
 version = "0.1.0"
 dependencies = [
  "crossbeam",
+ "crossbeam-channel",
  "indexmap",
  "mentat-asserter",
  "mentat-types",
