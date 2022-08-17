@@ -10,3 +10,8 @@ mentat-asserter = { path = "../mentat-asserter" }
 thiserror = "1.0.31"
 tokio = { version = "1.17.0", default-features = false, features = ["macros"] }
 indexmap = { version = "1.8.1", default-features = false, features = ["serde"] }
+crossbeam = "0.8.2"
+parking_lot = "0.12.1"
+tracing = { version = "0.1.36", default-features = false, features = [
+    "attributes",
+] }
