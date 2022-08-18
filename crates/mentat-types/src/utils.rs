@@ -7,13 +7,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier,
-    Amount,
-    BlockIdentifier,
-    NullableAmount,
-    NullableCurrency,
-    PartialBlockIdentifier,
-    Sortable,
+    AccountIdentifier, Amount, BlockIdentifier, NullableAmount, NullableCurrency,
+    PartialBlockIdentifier, Sortable,
 };
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided
@@ -96,12 +91,13 @@ pub(crate) fn account_string(account: &AccountIdentifier) -> String {
 /// of a *Currency.
 pub(crate) fn currency_string(currency: &NullableCurrency) -> String {
     if currency.metadata.is_empty() {
-        return format!("{}:{}", currency.symbol, currency.decimals);
+        format!("{}:{}", currency.symbol, currency.decimals)
+    } else {
+        format!(
+            "{}:{}:{:?}",
+            currency.symbol, currency.decimals, currency.metadata
+        )
     }
-    return format!(
-        "{}:{}:{:?}",
-        currency.symbol, currency.decimals, currency.metadata
-    );
 }
 
 /// `big_int` returns a *big.Int representation of a value.

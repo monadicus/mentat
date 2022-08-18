@@ -1,19 +1,17 @@
 //! TODO
 
-use std::{mem::size_of_val, sync::Arc, thread::sleep};
+use std::{mem::size_of_val, thread::sleep};
 
-use crossbeam_channel::{unbounded, Receiver, Sender};
-use futures::future::join_all;
 use indexmap::IndexMap;
 use mentat_types::{hash, Block, BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier};
-use parking_lot::Mutex;
-use tokio::{spawn, task::JoinHandle};
+use tokio::select;
 
 use crate::{
     errors::{SyncerError, SyncerResult},
+    golang::{self, chan::Context, defer, Chan},
     types::{
-        ErrorBuf, Handler, Helper, Syncer, DEFAULT_CONCURRENCY, DEFAULT_FETCH_SLEEP,
-        DEFAULT_SYNC_SLEEP, DEFAULT_TRAILING_WINDOW, MIN_CONCURRENCY,
+        Handler, Helper, Syncer, DEFAULT_CONCURRENCY, DEFAULT_FETCH_SLEEP, DEFAULT_SYNC_SLEEP,
+        DEFAULT_TRAILING_WINDOW, MIN_CONCURRENCY,
     },
 };
 
@@ -30,15 +28,10 @@ pub struct BlockResult {
     orphaned_head: bool,
 }
 
-impl<
-        Hand: 'static + Handler + Send + Sync + Clone,
-        Help: 'static + Helper + Send + Sync + Clone,
-        F: 'static + FnOnce() + Send + Sync + Clone,
-    > Syncer<Hand, Help, F>
-{
+impl<Hand: Handler, Help: Helper> Syncer<Hand, Help> {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
-        let network_status = Help::network_status(error_buf, &self.network)?;
+    pub fn set_start(&mut self, ctx: &Context, index: i64) -> SyncerResult<()> {
+        let network_status = Help::network_status(ctx, &self.network)?;
         self.genesis_block = network_status.genesis_block_identifier;
         if index != 0 {
             self.next_index = index
@@ -53,7 +46,7 @@ impl<
     /// the contents of the network status response.
     pub fn next_syncable_range(
         &mut self,
-        error_buf: &ErrorBuf,
+        ctx: &Context,
         mut end_index: i64,
     ) -> SyncerResult<(i64, bool)> {
         if self.next_index == -1 {
@@ -61,7 +54,7 @@ impl<
         }
 
         // Always fetch network status to ensure endIndex is not past tip
-        let network_status = match Help::network_status(error_buf, &self.network) {
+        let network_status = match Help::network_status(ctx, &self.network) {
             Ok(v) => v,
             Err(e) => return Err(format!("{}: {}", SyncerError::GetNetworkStatusFailed, e).into()),
         };
@@ -126,11 +119,7 @@ impl<
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn process_block(
-        &mut self,
-        error_buf: &ErrorBuf,
-        br: Option<BlockResult>,
-    ) -> SyncerResult<()> {
+    pub fn process_block(&mut self, ctx: &Context, br: Option<BlockResult>) -> SyncerResult<()> {
         let br = br.ok_or(SyncerError::BlockResultNil)?;
         if br.block.is_none() && !br.orphaned_head {
             // If the block is omitted, increase
@@ -138,13 +127,13 @@ impl<
             self.next_index += 1;
             Ok(())
         } else if let (true, last_block) = self.check_remove(&br)? {
-            Hand::block_removed(error_buf, last_block)?;
+            Hand::block_removed(ctx, last_block)?;
             // TODO: no nil check? probably happens in block_removed
             self.next_index = last_block.unwrap().index;
             self.past_blocks.pop_back();
             Ok(())
         } else {
-            Hand::block_added(error_buf, br.block.as_ref())?;
+            Hand::block_added(ctx, br.block.as_ref())?;
             // TODO: no nil check? probably happens in block_added
             let block = br.block.unwrap();
             let idx = block.block_identifier.index;
@@ -163,22 +152,23 @@ impl<
     /// the channel is closed.
     pub async fn add_block_indices(
         &self,
-        error_buf: &ErrorBuf,
-        block_indices: Sender<i64>,
+        ctx: &Context,
+        block_indices: &Chan<i64>,
         start_index: i64,
         end_index: i64,
     ) -> SyncerResult<()> {
+        defer!(block_indices.close_s());
+
         for i in start_index..end_index {
             // Don't load if we already have a healthy backlog.
-            if block_indices.len() as i64 > *self.concurrency.lock() {
+            if block_indices.tx().len() as i64 > *self.concurrency.lock() {
                 sleep(DEFAULT_FETCH_SLEEP);
                 continue;
             }
 
-            if let Some(e) = &*error_buf.lock() {
-                return self.safe_exit(Err(e.clone()));
-            } else {
-                block_indices.send(i).unwrap()
+            select! {
+                v = block_indices.send(i) => v.unwrap(),
+                v = ctx.done() => return self.safe_exit(ctx.err())
             }
         }
 
@@ -195,12 +185,12 @@ impl<
     #[allow(clippy::missing_docs_in_private_items)]
     pub fn fetch_block_result(
         &self,
-        error_buf: &ErrorBuf,
+        ctx: &Context,
         network: &NetworkIdentifier,
         index: i64,
     ) -> SyncerResult<BlockResult> {
         let block = Help::block(
-            error_buf,
+            ctx,
             network,
             &PartialBlockIdentifier {
                 index: Some(index),
@@ -218,7 +208,7 @@ impl<
             block: block.ok(),
         };
 
-        self.handle_seen_block(error_buf, &br)?;
+        self.handle_seen_block(ctx, &br)?;
 
         Ok(br)
     }
@@ -237,13 +227,13 @@ impl<
     /// error.
     pub async fn fetch_blocks(
         &self,
-        error_buf: &ErrorBuf,
+        ctx: &Context,
         network: &NetworkIdentifier,
-        block_indices: &Receiver<i64>,
-        results: &Sender<BlockResult>,
+        block_indices: &Chan<i64>,
+        results: &Chan<BlockResult>,
     ) -> SyncerResult<()> {
         for b in block_indices {
-            let br = match self.fetch_block_result(error_buf, network, b) {
+            let br = match self.fetch_block_result(ctx, network, b) {
                 Ok(v) => v,
                 Err(e) => {
                     return self.safe_exit(Err(format!(
@@ -256,11 +246,10 @@ impl<
                 }
             };
 
-            if let Some(e) = &*error_buf.lock() {
-                return self.safe_exit(Err(e.clone()));
-            } else {
-                results.send(br).unwrap();
-            }
+            select!(
+                v = results.send(br) => v.unwrap(),
+                v = ctx.done() => return self.safe_exit(ctx.err())
+            );
 
             // Exit if concurrency is greater than
             // goal concurrency.
@@ -278,7 +267,7 @@ impl<
     /// to process as many blocks as possible.
     fn process_blocks(
         &mut self,
-        error_buf: &ErrorBuf,
+        ctx: &Context,
         cache: &mut IndexMap<i64, BlockResult>,
         end_index: i64,
     ) -> SyncerResult<()> {
@@ -302,12 +291,12 @@ impl<
 
                 // Fetch the nextIndex if we are
                 // in a re-org.
-                self.fetch_block_result(error_buf, &self.network, self.next_index)
+                self.fetch_block_result(ctx, &self.network, self.next_index)
                     .map_err(|e| format!("{}: {}", SyncerError::FetchBlockFailed, e))?
             };
 
             let last_processed = self.next_index;
-            self.process_block(error_buf, Some(br))
+            self.process_block(ctx, Some(br))
                 .map_err(|e| format!("{}: {}", SyncerError::BlockProcessFailed, e))?;
 
             if self.next_index < last_processed && reorg_start == -1 {
@@ -387,16 +376,12 @@ impl<
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn handle_seen_block(
-        &self,
-        error_buf: &ErrorBuf,
-        result: &BlockResult,
-    ) -> SyncerResult<()> {
+    pub fn handle_seen_block(&self, ctx: &Context, result: &BlockResult) -> SyncerResult<()> {
         // If the helper returns ErrOrphanHead
         // for a block fetch, result.block will
         // be nil.
         if let Some(b) = &result.block {
-            Hand::block_seen(error_buf, b)
+            Hand::block_seen(ctx, b)
         } else {
             Ok(())
         }
@@ -405,19 +390,19 @@ impl<
     #[allow(clippy::missing_docs_in_private_items)]
     pub fn sequence_blocks(
         &mut self,
-        error_buf: &ErrorBuf,
-        pipeline_exit: &ErrorBuf,
-        handles: &mut Vec<JoinHandle<SyncerResult<()>>>,
-        block_indices: &Receiver<i64>,
-        fetched_blocks: &(Sender<BlockResult>, Receiver<BlockResult>),
+        ctx: &Context,
+        pipeline_ctx: &Context,
+        g: (), // errgroup.Group
+        block_indices: &Chan<i64>,
+        fetched_blocks: &Chan<BlockResult>,
         end_index: i64,
     ) -> SyncerResult<()> {
         let mut cache = IndexMap::new();
-        for result in &fetched_blocks.1 {
+        for result in fetched_blocks {
             let size = size_of_val(&result) as i64;
             cache.insert(result.index, result);
 
-            self.process_blocks(error_buf, &mut cache, end_index)
+            self.process_blocks(ctx, &mut cache, end_index)
                 .map_err(|e| format!("{}: {}", SyncerError::BlocksProcessMultipleFailed, e))?;
 
             // Determine if concurrency should be adjusted.
@@ -427,29 +412,30 @@ impl<
             // TODO: their adjust_workers fn assumes concurrencyLock is locked and uses concurrency freely
             // TODO: then they maintain this lock until the end of the function to prevent concurrency from being set to 0 by accident?
             // TODO: what is this thread-locking hackery??
-            //
-            // let tmp = self.concurrency.lock();
+
+            let tmp = self.concurrency.lock();
             let should_create = self.adjust_workers();
             if !should_create {
-                // drop(tmp);
+                drop(tmp);
                 continue;
             }
 
+            // TODO: need ctx and need to spawn new thread and need to impl bi-directional channels
+            //
             // If we have finished loading blocks or the pipelineCtx
             // has an error (like context.Canceled), we should avoid
             // creating more goroutines (as there is a chance that
             // Wait has returned). Attempting to create more goroutines
             // after Wait has returned will cause a panic.
-            if !*self.done_loading.lock() && pipeline_exit.lock().is_none() {
-                let tmp_self = self.clone();
-                let tmp_indices = block_indices.clone();
-                let tmp_fetched = fetched_blocks.0.clone();
-                let tmp_pipeline = pipeline_exit.clone();
-                handles.push(spawn(async move {
-                    tmp_self
-                        .fetch_blocks(&tmp_pipeline, &tmp_self.network, &tmp_indices, &tmp_fetched)
-                        .await
-                }))
+            if !*self.done_loading.lock() && pipeline_ctx.err().is_none() {
+                g.go(|| {
+                    return self.fetch_blocks(
+                        pipeline_ctx,
+                        &self.network,
+                        block_indices,
+                        fetched_blocks,
+                    );
+                })
             } else {
                 *self.concurrency.lock() -= 1;
             }
@@ -458,8 +444,7 @@ impl<
             //
             // Hold concurrencyLock until after we attempt to create another
             // new goroutine in the case we accidentally go to 0 during shutdown.
-            //
-            // self.concurrency.unlock();
+            self.concurrency.unlock();
         }
 
         Ok(())
@@ -468,9 +453,9 @@ impl<
     /// syncRange fetches and processes a range of blocks
     /// (from syncer.nextIndex to endIndex, inclusive)
     /// with syncer.concurrency.
-    pub async fn sync_range(&mut self, error_buf: &ErrorBuf, end_index: i64) -> SyncerResult<()> {
-        let (block_indices_sender, block_indices_receiver) = unbounded();
-        let (fetched_blocks_sender, fetched_blocks_receiver) = unbounded();
+    pub fn sync_range(&mut self, ctx: &Context, end_index: i64) -> SyncerResult<()> {
+        let mut block_indices = golang::make_unbounded();
+        let mut fetched_blocks = golang::make_unbounded();
 
         // Ensure default concurrency is less than max concurrency.
         let mut starting_concurrency = if self.max_concurrency < DEFAULT_CONCURRENCY {
@@ -502,60 +487,47 @@ impl<
         //
         // Source: https://godoc.org/golang.org/x/sync/errgroup
         // let (g, pipeline_ctx) = errgroup.with_context(ctx);
-        let mut handles = Vec::new();
-        let pipeline_exit = Arc::new(Mutex::new(None));
+        let (g, pipeline_ctx) = todo!();
+        g.go(|| {
+            self.add_block_indices(
+                pipeline_ctx,
+                &block_indices.sender,
+                self.next_index,
+                end_index,
+            )
+        });
 
-        let tmp_pipeline = pipeline_exit.clone();
-        let tmp_self = self.clone();
-        let tmp_indices = block_indices_sender.clone();
-
-        handles.push(spawn(async move {
-            tmp_self
-                .add_block_indices(&tmp_pipeline, tmp_indices, tmp_self.next_index, end_index)
-                .await
-        }));
-
-        for _ in 0..starting_concurrency {
-            let tmp_self = self.clone();
-            let tmp_indices = block_indices_receiver.clone();
-            let tmp_fetched = fetched_blocks_sender.clone();
-            let tmp_pipeline = pipeline_exit.clone();
-            handles.push(spawn(async move {
-                tmp_self
-                    .fetch_blocks(&tmp_pipeline, &tmp_self.network, &tmp_indices, &tmp_fetched)
-                    .await
-            }))
+        for j in 0..starting_concurrency {
+            g.go(|| {
+                self.fetch_blocks(
+                    pipeline_ctx,
+                    &self.network,
+                    &block_indices.receiver,
+                    &fetched_blocks.sender,
+                )
+            })
         }
 
         // TODO this is not correct
         // Wait for all block fetching goroutines to exit
         // before closing the fetchedBlocks channel.
-        // let func = || {
-        //     join_all(handles);
-        //     drop(fetched_blocks_sender)
-        // };
+        let func = || {
+            g.wait();
+            drop(fetched_blocks)
+        }();
 
+        // TODO: context and errgroup
         self.sequence_blocks(
-            error_buf,
-            &pipeline_exit,
-            &mut handles,
-            &block_indices_receiver,
-            &(fetched_blocks_sender, fetched_blocks_receiver),
+            ctx,
+            pipeline_ctx,
+            g,
+            &block_indices,
+            &fetched_blocks,
             end_index,
         )?;
 
-        let err = join_all(handles)
-            .await
-            .iter()
-            .flatten()
-            .find_map(|r| match r {
-                Ok(_) => None,
-                Err(e) => Some(e),
-            })
-            .map(|e| format!("{}: unable to sync to {}", e, end_index));
-        if let Some(e) = err {
-            Err(e)?;
-        }
+        g.wait()
+            .map_err(|e| format!("{}: unable to sync to {}", e, end_index))?;
 
         Ok(())
     }
@@ -574,17 +546,17 @@ impl<
     /// Sync cycles endlessly until there is an error
     /// or the requested range is synced. When the requested
     /// range is synced, context is canceled.
-    pub async fn sync(
-        mut self,
-        error_buf: &ErrorBuf,
+    pub fn sync(
+        &mut self,
+        ctx: &Context,
         mut start_index: i64,
         end_index: i64,
     ) -> SyncerResult<()> {
-        self.set_start(error_buf, start_index)
+        self.set_start(ctx, start_index)
             .map_err(|e| format!("{}: {}", SyncerError::SetStartIndexFailed, e))?;
         loop {
             let (range_end, halt) = self
-                .next_syncable_range(error_buf, end_index)
+                .next_syncable_range(ctx, end_index)
                 .map_err(|e| format!("{}: {}", SyncerError::NextSyncableRangeFailed, e))?;
 
             if halt {
@@ -602,12 +574,11 @@ impl<
                 tracing::info!("Syncing {}\n", self.next_index);
             }
 
-            self.sync_range(error_buf, range_end)
-                .await
+            self.sync_range(ctx, range_end)
                 .map_err(|e| format!("{}: unable to sync to {}", e, range_end))?;
 
-            if let Some(e) = &*error_buf.lock() {
-                return Err(e.clone());
+            if ctx.err().is_some() {
+                return ctx.err();
             }
         }
 
@@ -615,7 +586,7 @@ impl<
             start_index = self.genesis_block.index;
         }
 
-        (self.cancel)();
+        self.cancel();
         tracing::info!("Finished syncing {}-{}\n", start_index, end_index);
         Ok(())
     }

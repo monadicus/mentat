@@ -16,3 +16,4 @@ tracing = { version = "0.1.36", default-features = false, features = [
     "attributes",
 ] }
 crossbeam-channel = "0.5.6"
+futures = "0.3.23"

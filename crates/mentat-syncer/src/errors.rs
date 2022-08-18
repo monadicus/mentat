@@ -3,7 +3,7 @@
 use thiserror::Error;
 
 /// Error types for Syncer errors
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, Error, PartialEq, Eq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum SyncerError {
     /// ErrCannotRemoveGenesisBlock is returned when
