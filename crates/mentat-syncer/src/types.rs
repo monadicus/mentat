@@ -1,15 +1,14 @@
 //! TODO
 
-use crate::errors::SyncerError;
 use crate::types::BlockIdentifier;
 use crate::{
     errors::SyncerResult,
     types::{Block, NetworkIdentifier, NetworkStatusResponse, PartialBlockIdentifier},
 };
 use mentat_types::*;
+use mockall::automock;
 use parking_lot::Mutex;
 use std::collections::VecDeque;
-use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -67,34 +66,44 @@ pub const DEFAULT_SYNC_SLEEP: Duration = Duration::from_secs(2);
 pub const DEFAULT_FETCH_SLEEP: Duration = Duration::from_millis(500);
 
 /// a multithreaded error buffer
-pub type ErrorBuf = Arc<Mutex<Option<SyncerError>>>;
+pub type ErrorBuf = Arc<Mutex<Option<SyncerResult<()>>>>;
 
+// automock requires explicit lifetimes inside the options for some reason,
+// but clippy doesnt understand that so it claims they're needless
+//
 /// Handler is called at various times during the sync cycle
 /// to handle different events. It is common to write logs or
 /// perform reconciliation in the sync processor.
+#[allow(clippy::missing_docs_in_private_items, clippy::needless_lifetimes)]
+#[automock]
 pub trait Handler {
     /// BlockSeen is invoked AT LEAST ONCE
     /// by the syncer prior to calling BlockAdded
     /// with the same arguments. This allows for
     /// storing block data before it is sequenced.
-    fn block_seen(error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()>;
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn block_added(error_buf: &ErrorBuf, block: Option<&Block>) -> SyncerResult<()>;
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn block_removed(error_buf: &ErrorBuf, block: Option<&BlockIdentifier>) -> SyncerResult<()>;
+    fn block_seen(&self, error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()>;
+    fn block_added<'a>(&self, error_buf: &ErrorBuf, block: Option<&'a Block>) -> SyncerResult<()>;
+    fn block_removed<'a>(
+        &self,
+        error_buf: &ErrorBuf,
+        block: Option<&'a BlockIdentifier>,
+    ) -> SyncerResult<()>;
 }
 
 /// Helper is called at various times during the sync cycle
 /// to get information about a blockchain network. It is
 /// common to implement this helper using the Fetcher package.
 #[allow(clippy::missing_docs_in_private_items)]
+#[automock]
 pub trait Helper {
     fn network_status(
+        &self,
         error_buf: &ErrorBuf,
         network_identifier: &NetworkIdentifier,
     ) -> SyncerResult<NetworkStatusResponse>;
 
     fn block(
+        &self,
         error_buf: &ErrorBuf,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,
@@ -111,8 +120,8 @@ pub trait Helper {
 #[derive(Clone)]
 pub struct Syncer<Handler, Helper, F> {
     pub network: NetworkIdentifier,
-    pub helper: PhantomData<Helper>,
-    pub handler: PhantomData<Handler>,
+    pub helper: Helper,
+    pub handler: Handler,
     // TODO context.CancelFunc: A CancelFunc tells an operation to abandon its work.
     //  A CancelFunc does not wait for the work to stop. A CancelFunc may be called by
     //  multiple goroutines simultaneously. After the first call, subsequent calls to
@@ -156,9 +165,11 @@ impl<Handler, Helper, F> Syncer<Handler, Helper, F> {
     /// TODO doc
     pub fn builder(
         network: NetworkIdentifier,
+        helper: Helper,
+        handler: Handler,
         cancel: F, // context::CancelFunc,
     ) -> SyncerBuilder<Handler, Helper, F> {
-        SyncerBuilder::<Handler, Helper, F>::new(network, cancel)
+        SyncerBuilder::<Handler, Helper, F>::new(network, helper, handler, cancel)
     }
 }
 
@@ -167,8 +178,8 @@ impl<Handler, Helper, F> Syncer<Handler, Helper, F> {
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct SyncerBuilder<Handler, Helper, F> {
     network: NetworkIdentifier,
-    helper: PhantomData<Helper>,
-    handler: PhantomData<Handler>,
+    helper: Helper,
+    handler: Handler,
     cancel: F,
     past_blocks: Option<Vec<BlockIdentifier>>,
     past_block_limit: Option<i64>,
@@ -182,12 +193,14 @@ pub struct SyncerBuilder<Handler, Helper, F> {
 impl<Handler, Helper, F> SyncerBuilder<Handler, Helper, F> {
     pub fn new(
         network: NetworkIdentifier,
+        helper: Helper,
+        handler: Handler,
         cancel: F, // context::CancelFunc,
     ) -> Self {
         Self {
             network,
-            helper: PhantomData,
-            handler: PhantomData,
+            helper,
+            handler,
             past_blocks: None,
             past_block_limit: None,
             cache_size: None,

@@ -30,15 +30,15 @@ pub struct BlockResult {
     orphaned_head: bool,
 }
 
-impl<
-        Hand: 'static + Handler + Send + Sync + Clone,
-        Help: 'static + Helper + Send + Sync + Clone,
-        F: 'static + FnOnce() + Send + Sync + Clone,
-    > Syncer<Hand, Help, F>
+impl<Hand, Help, F> Syncer<Hand, Help, F>
+where
+    Hand: 'static + Handler + Send + Sync + Clone,
+    Help: 'static + Helper + Send + Sync + Clone,
+    F: 'static + FnOnce() + Send + Sync + Clone,
 {
     #[allow(clippy::missing_docs_in_private_items)]
     pub fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
-        let network_status = Help::network_status(error_buf, &self.network)?;
+        let network_status = self.helper.network_status(error_buf, &self.network)?;
         self.genesis_block = network_status.genesis_block_identifier;
         if index != 0 {
             self.next_index = index
@@ -61,7 +61,7 @@ impl<
         }
 
         // Always fetch network status to ensure endIndex is not past tip
-        let network_status = match Help::network_status(error_buf, &self.network) {
+        let network_status = match self.helper.network_status(error_buf, &self.network) {
             Ok(v) => v,
             Err(e) => return Err(format!("{}: {}", SyncerError::GetNetworkStatusFailed, e).into()),
         };
@@ -138,13 +138,13 @@ impl<
             self.next_index += 1;
             Ok(())
         } else if let (true, last_block) = self.check_remove(&br)? {
-            Hand::block_removed(error_buf, last_block)?;
+            self.handler.block_removed(error_buf, last_block)?;
             // TODO: no nil check? probably happens in block_removed
             self.next_index = last_block.unwrap().index;
             self.past_blocks.pop_back();
             Ok(())
         } else {
-            Hand::block_added(error_buf, br.block.as_ref())?;
+            self.handler.block_added(error_buf, br.block.as_ref())?;
             // TODO: no nil check? probably happens in block_added
             let block = br.block.unwrap();
             let idx = block.block_identifier.index;
@@ -176,7 +176,7 @@ impl<
             }
 
             if let Some(e) = &*error_buf.lock() {
-                return self.safe_exit(Err(e.clone()));
+                return self.safe_exit(e.clone());
             } else {
                 block_indices.send(i).unwrap()
             }
@@ -199,7 +199,7 @@ impl<
         network: &NetworkIdentifier,
         index: i64,
     ) -> SyncerResult<BlockResult> {
-        let block = Help::block(
+        let block = self.helper.block(
             error_buf,
             network,
             &PartialBlockIdentifier {
@@ -257,7 +257,7 @@ impl<
             };
 
             if let Some(e) = &*error_buf.lock() {
-                return self.safe_exit(Err(e.clone()));
+                return self.safe_exit(e.clone());
             } else {
                 results.send(br).unwrap();
             }
@@ -396,7 +396,7 @@ impl<
         // for a block fetch, result.block will
         // be nil.
         if let Some(b) = &result.block {
-            Hand::block_seen(error_buf, b)
+            self.handler.block_seen(error_buf, b)
         } else {
             Ok(())
         }
@@ -607,7 +607,7 @@ impl<
                 .map_err(|e| format!("{}: unable to sync to {}", e, range_end))?;
 
             if let Some(e) = &*error_buf.lock() {
-                return Err(e.clone());
+                return e.clone();
             }
         }
 
