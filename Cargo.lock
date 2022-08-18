@@ -982,6 +982,7 @@ dependencies = [
  "futures",
  "indexmap",
  "mentat-asserter",
+ "mentat-test-utils",
  "mentat-types",
  "mockall",
  "parking_lot",
