@@ -3,15 +3,61 @@
 use std::sync::Arc;
 
 use mentat_types::{
-    AccountIdentifier, Amount, Block, BlockIdentifier, Currency, NetworkIdentifier, Operation,
-    OperationIdentifier, Transaction, TransactionIdentifier,
+    AccountIdentifier, Amount, Block, BlockIdentifier, Currency, NetworkIdentifier,
+    NetworkStatusResponse, Operation, OperationIdentifier, PartialBlockIdentifier, Transaction,
+    TransactionIdentifier,
 };
+use mockall::mock;
 use parking_lot::Mutex;
 
 use crate::{
-    errors::SyncerResult,
-    types::{MockHelper, Syncer},
+    errors::{SyncerError, SyncerResult},
+    syncer::BlockResult,
+    types::{ErrorBuf, Handler, Helper, Syncer},
 };
+
+mock! {
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub Handler {}
+
+    impl Handler for Handler {
+        fn block_seen(&self, error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()>;
+        fn block_added<'a>(&self, error_buf: &ErrorBuf, block: Option<&'a Block>) -> SyncerResult<()>;
+        fn block_removed<'a>(
+            &self,
+            error_buf: &ErrorBuf,
+            block: Option<&'a BlockIdentifier>,
+        ) -> SyncerResult<()>;
+    }
+
+    impl Clone for Handler {
+        fn clone(&self) -> Self;
+    }
+}
+
+mock! {
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub Helper {}
+
+    impl Helper for Helper {
+        fn network_status(
+            &self,
+            error_buf: &ErrorBuf,
+            network_identifier: &NetworkIdentifier,
+        ) -> SyncerResult<NetworkStatusResponse>;
+
+        fn block(
+            &self,
+            error_buf: &ErrorBuf,
+            network_identifier: &NetworkIdentifier,
+            partial_block_identifier: &PartialBlockIdentifier,
+        ) -> SyncerResult<Block>;
+    }
+
+    impl Clone for Helper {
+        fn clone(&self) -> Self;
+    }
+}
 
 fn network_identifier() -> NetworkIdentifier {
     NetworkIdentifier {
@@ -136,8 +182,8 @@ pub fn orphan_genesis() -> Block {
     }
 }
 
-pub fn block_sequence() -> Vec<Block> {
-    vec![
+pub fn block_sequence() -> [Block; 6] {
+    [
         // genesis
         Block {
             block_identifier: BlockIdentifier {
@@ -212,27 +258,162 @@ pub fn block_sequence() -> Vec<Block> {
     ]
 }
 
-fn last_block_identifier<Handler, Helper, F>(
-    syncer: &Syncer<Handler, Helper, F>,
-) -> &BlockIdentifier {
-    syncer.past_blocks.back().unwrap()
+fn block_sequence_idx(id: usize) -> Block {
+    block_sequence()[id].clone()
 }
 
 #[test]
 fn test_process_block() {
-    let mut err_buff: Arc<Mutex<Option<SyncerResult<()>>>> = Arc::new(Mutex::new(None));
+    let error_buf = Arc::new(Mutex::new(None));
+    let mock_helper = MockHelper::new();
+    let mock_handler = MockHandler::new();
+    let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler).build();
+    syncer.genesis_block = block_sequence_idx(0).block_identifier;
+    assert!(syncer.past_blocks.is_empty());
 
-    let mut mock_helper = MockHelper::new();
+    let assert_syncer =
+        |syncer: &mut Syncer<MockHandler, MockHelper>, next_index: i64, past_blocks: &[usize]| {
+            assert_eq!(syncer.next_index, next_index);
+            assert_eq!(
+                &syncer.past_blocks,
+                &past_blocks
+                    .iter()
+                    .map(|b| block_sequence_idx(*b).block_identifier)
+                    .collect::<Vec<_>>()
+            );
+            syncer.handler.checkpoint();
+        };
 
-    todo!()
+    let expect_block_added = |syncer: &mut Syncer<MockHandler, MockHelper>, idx: usize| {
+        syncer
+            .handler
+            .expect_block_added()
+            .withf(move |e, g| {
+                e.lock().is_none() && matches!(g, Some(g) if **g == block_sequence_idx(idx))
+            })
+            .return_const(Ok(()))
+            .once();
+    };
+
+    let expect_block_removed = |syncer: &mut Syncer<MockHandler, MockHelper>, idx: usize| {
+        syncer
+            .handler
+            .expect_block_removed()
+            .withf(move |e, b| {
+                e.lock().is_none()
+                    && matches!(b, Some(b) if **b == block_sequence_idx(idx).block_identifier)
+            })
+            .return_const(Ok(()))
+            .once();
+    };
+
+    let process_block = |syncer: &mut Syncer<MockHandler, MockHelper>, block: Option<Block>| {
+        syncer.process_block(
+            &error_buf,
+            Some(BlockResult {
+                block,
+                ..Default::default()
+            }),
+        )
+    };
+
+    {
+        print!("No block exists: ");
+        expect_block_added(&mut syncer, 0);
+        process_block(&mut syncer, Some(block_sequence_idx(0))).unwrap();
+        assert_syncer(&mut syncer, 1, &[0]);
+        println!("ok!");
+    }
+
+    {
+        print!("Orphan genesis: ");
+        let err = process_block(&mut syncer, Some(orphan_genesis())).unwrap_err();
+        assert_eq!(err.to_string(), "cannot remove genesis block");
+        assert_syncer(&mut syncer, 1, &[0]);
+        println!("ok!");
+    }
+
+    {
+        print!("Block exists, no reorg: ");
+        expect_block_added(&mut syncer, 1);
+        process_block(&mut syncer, Some(block_sequence_idx(1))).unwrap();
+        assert_syncer(&mut syncer, 2, &[0, 1]);
+        println!("ok!");
+    }
+
+    {
+        print!("Orphan block: ");
+        expect_block_removed(&mut syncer, 1);
+        process_block(&mut syncer, Some(block_sequence_idx(2))).unwrap();
+        assert_syncer(&mut syncer, 1, &[0]);
+
+        expect_block_added(&mut syncer, 3);
+        process_block(&mut syncer, Some(block_sequence_idx(3))).unwrap();
+        assert_syncer(&mut syncer, 2, &[0, 3]);
+
+        expect_block_added(&mut syncer, 2);
+        process_block(&mut syncer, Some(block_sequence_idx(2))).unwrap();
+        assert_syncer(&mut syncer, 3, &[0, 3, 2]);
+        println!("ok!");
+    }
+
+    {
+        print!("Out of order block: ");
+        let err = process_block(&mut syncer, Some(block_sequence_idx(5))).unwrap_err();
+        assert!(err.to_string().contains("got block 5 instead of 3"));
+        assert_syncer(&mut syncer, 3, &[0, 3, 2]);
+        println!("ok!");
+    }
+
+    {
+        print!("Process omitted block: ");
+        process_block(&mut syncer, None).unwrap();
+        assert_syncer(&mut syncer, 4, &[0, 3, 2]);
+        println!("ok!");
+    }
+
+    {
+        print!("Process nil block result: ");
+        let err = syncer.process_block(&error_buf, None).unwrap_err();
+        assert_eq!(err, SyncerError::BlockResultNil);
+        println!("ok!");
+    }
+
+    {
+        print!("Process orphan head block result: ");
+        expect_block_removed(&mut syncer, 2);
+        syncer
+            .process_block(
+                &error_buf,
+                Some(BlockResult {
+                    orphaned_head: true,
+                    ..Default::default()
+                }),
+            )
+            .unwrap();
+        assert_syncer(&mut syncer, 2, &[0, 3]);
+        println!("ok!");
+    }
 }
 
 fn create_blocks(start_index: i64, end_index: i64, add: &str) -> Vec<Block> {
-    todo!()
-}
-
-fn assert_not_canceled() {
-    todo!()
+    (start_index..=end_index)
+        .into_iter()
+        .map(|i| {
+            let parent_index = if i > 0 { i - 1 } else { 0 };
+            Block {
+                block_identifier: BlockIdentifier {
+                    index: i,
+                    hash: format!("block {add}{i}"),
+                },
+                parent_block_identifier: BlockIdentifier {
+                    index: parent_index,
+                    hash: format!("block {add}{parent_index}"),
+                },
+                ..Default::default()
+            }
+        })
+        .collect()
 }
 
 #[test]

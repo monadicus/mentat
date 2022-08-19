@@ -25,16 +25,15 @@ use crate::{
 #[allow(clippy::missing_docs_in_private_items)]
 #[derive(Default)]
 pub struct BlockResult {
-    index: i64,
-    block: Option<Block>,
-    orphaned_head: bool,
+    pub index: i64,
+    pub block: Option<Block>,
+    pub orphaned_head: bool,
 }
 
-impl<Hand, Help, F> Syncer<Hand, Help, F>
+impl<Hand, Help> Syncer<Hand, Help>
 where
     Hand: 'static + Handler + Send + Sync + Clone,
     Help: 'static + Helper + Send + Sync + Clone,
-    F: 'static + FnOnce() + Send + Sync + Clone,
 {
     #[allow(clippy::missing_docs_in_private_items)]
     pub fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
@@ -615,7 +614,9 @@ where
             start_index = self.genesis_block.index;
         }
 
-        (self.cancel)();
+        if let Some(c) = self.cancel {
+            c()
+        }
         tracing::info!("Finished syncing {}-{}\n", start_index, end_index);
         Ok(())
     }

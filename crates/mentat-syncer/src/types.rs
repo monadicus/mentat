@@ -6,7 +6,6 @@ use crate::{
     types::{Block, NetworkIdentifier, NetworkStatusResponse, PartialBlockIdentifier},
 };
 use mentat_types::*;
-use mockall::automock;
 use parking_lot::Mutex;
 use std::collections::VecDeque;
 use std::sync::Arc;
@@ -75,7 +74,6 @@ pub type ErrorBuf = Arc<Mutex<Option<SyncerResult<()>>>>;
 /// to handle different events. It is common to write logs or
 /// perform reconciliation in the sync processor.
 #[allow(clippy::missing_docs_in_private_items, clippy::needless_lifetimes)]
-#[automock]
 pub trait Handler {
     /// BlockSeen is invoked AT LEAST ONCE
     /// by the syncer prior to calling BlockAdded
@@ -94,7 +92,6 @@ pub trait Handler {
 /// to get information about a blockchain network. It is
 /// common to implement this helper using the Fetcher package.
 #[allow(clippy::missing_docs_in_private_items)]
-#[automock]
 pub trait Helper {
     fn network_status(
         &self,
@@ -118,7 +115,7 @@ pub trait Helper {
 /// logging in the handler.
 #[allow(clippy::missing_docs_in_private_items)]
 #[derive(Clone)]
-pub struct Syncer<Handler, Helper, F> {
+pub struct Syncer<Handler, Helper> {
     pub network: NetworkIdentifier,
     pub helper: Helper,
     pub handler: Handler,
@@ -126,7 +123,7 @@ pub struct Syncer<Handler, Helper, F> {
     //  A CancelFunc does not wait for the work to stop. A CancelFunc may be called by
     //  multiple goroutines simultaneously. After the first call, subsequent calls to
     //  a CancelFunc do nothing.
-    pub cancel: F,
+    pub cancel: Option<fn()>,
 
     /// Used to keep track of sync state
     pub genesis_block: BlockIdentifier,
@@ -161,26 +158,25 @@ pub struct Syncer<Handler, Helper, F> {
     pub done_loading: Arc<Mutex<bool>>,
 }
 
-impl<Handler, Helper, F> Syncer<Handler, Helper, F> {
+impl<Handler, Helper> Syncer<Handler, Helper> {
     /// TODO doc
     pub fn builder(
         network: NetworkIdentifier,
         helper: Helper,
         handler: Handler,
-        cancel: F, // context::CancelFunc,
-    ) -> SyncerBuilder<Handler, Helper, F> {
-        SyncerBuilder::<Handler, Helper, F>::new(network, helper, handler, cancel)
+    ) -> SyncerBuilder<Handler, Helper> {
+        SyncerBuilder::<Handler, Helper>::new(network, helper, handler)
     }
 }
 
 /// A builder new Syncer. If `past_blocks` is left nil, it will
 /// be set to an empty slice.
 #[allow(clippy::missing_docs_in_private_items)]
-pub struct SyncerBuilder<Handler, Helper, F> {
+pub struct SyncerBuilder<Handler, Helper> {
     network: NetworkIdentifier,
     helper: Helper,
     handler: Handler,
-    cancel: F,
+    cancel: Option<fn()>,
     past_blocks: Option<Vec<BlockIdentifier>>,
     past_block_limit: Option<i64>,
     cache_size: Option<i64>,
@@ -190,13 +186,8 @@ pub struct SyncerBuilder<Handler, Helper, F> {
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
-impl<Handler, Helper, F> SyncerBuilder<Handler, Helper, F> {
-    pub fn new(
-        network: NetworkIdentifier,
-        helper: Helper,
-        handler: Handler,
-        cancel: F, // context::CancelFunc,
-    ) -> Self {
+impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
+    pub fn new(network: NetworkIdentifier, helper: Helper, handler: Handler) -> Self {
         Self {
             network,
             helper,
@@ -205,10 +196,15 @@ impl<Handler, Helper, F> SyncerBuilder<Handler, Helper, F> {
             past_block_limit: None,
             cache_size: None,
             size_multiplier: None,
-            cancel,
+            cancel: None,
             max_concurrency: None,
             adjustment_window: None,
         }
+    }
+
+    pub fn cancel(mut self, v: fn()) -> Self {
+        self.cancel = Some(v);
+        self
     }
 
     pub fn cache_size(mut self, v: i64) -> Self {
@@ -241,7 +237,7 @@ impl<Handler, Helper, F> SyncerBuilder<Handler, Helper, F> {
         self
     }
 
-    pub fn build(self) -> Syncer<Handler, Helper, F> {
+    pub fn build(self) -> Syncer<Handler, Helper> {
         Syncer {
             network: self.network,
             helper: self.helper,
@@ -251,15 +247,19 @@ impl<Handler, Helper, F> SyncerBuilder<Handler, Helper, F> {
             tip: Default::default(),
             next_index: Default::default(),
             past_blocks: self.past_blocks.unwrap_or_default().into(),
-            past_block_limit: self.past_block_limit.unwrap_or_default(),
-            cache_size: self.cache_size.unwrap_or_default(),
-            size_multiplier: self.size_multiplier.unwrap_or_default(),
-            max_concurrency: self.max_concurrency.unwrap_or_default(),
-            concurrency: Default::default(),
+            past_block_limit: self
+                .past_block_limit
+                .unwrap_or(DEFAULT_PAST_BLOCK_LIMIT as i64),
+            cache_size: self.cache_size.unwrap_or(DEFAULT_CACHE_SIZE as i64),
+            size_multiplier: self.size_multiplier.unwrap_or(DEFAULT_SIZE_MULTIPLIER),
+            max_concurrency: self.max_concurrency.unwrap_or(DEFAULT_MAX_CONCURRENCY),
+            concurrency: Arc::new(Mutex::new(DEFAULT_CONCURRENCY)),
             goal_concurrency: Default::default(),
             recent_block_sizes: Default::default(),
             last_adjustment: Default::default(),
-            adjustment_window: self.adjustment_window.unwrap_or_default(),
+            adjustment_window: self
+                .adjustment_window
+                .unwrap_or(DEFAULT_ADJUSTMENT_WINDOW as i64),
             done_loading: Default::default(),
         }
     }
