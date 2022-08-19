@@ -104,7 +104,7 @@ pub trait Helper {
         error_buf: &ErrorBuf,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,
-    ) -> SyncerResult<Block>;
+    ) -> SyncerResult<Option<Block>>;
 }
 
 /// Syncer coordinates blockchain syncing without relying on
@@ -119,15 +119,11 @@ pub struct Syncer<Handler, Helper> {
     pub network: NetworkIdentifier,
     pub helper: Helper,
     pub handler: Handler,
-    // TODO context.CancelFunc: A CancelFunc tells an operation to abandon its work.
-    //  A CancelFunc does not wait for the work to stop. A CancelFunc may be called by
-    //  multiple goroutines simultaneously. After the first call, subsequent calls to
-    //  a CancelFunc do nothing.
-    pub cancel: Option<fn()>,
+    pub cancel: bool,
 
     /// Used to keep track of sync state
-    pub genesis_block: BlockIdentifier,
-    pub tip: BlockIdentifier,
+    pub genesis_block: Option<BlockIdentifier>,
+    pub tip: Option<BlockIdentifier>,
     pub next_index: i64,
 
     /// To ensure reorgs are handled correctly, the syncer must be able
@@ -176,7 +172,7 @@ pub struct SyncerBuilder<Handler, Helper> {
     network: NetworkIdentifier,
     helper: Helper,
     handler: Handler,
-    cancel: Option<fn()>,
+    cancel: bool,
     past_blocks: Option<Vec<BlockIdentifier>>,
     past_block_limit: Option<i64>,
     cache_size: Option<i64>,
@@ -196,14 +192,14 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
             past_block_limit: None,
             cache_size: None,
             size_multiplier: None,
-            cancel: None,
+            cancel: false,
             max_concurrency: None,
             adjustment_window: None,
         }
     }
 
-    pub fn cancel(mut self, v: fn()) -> Self {
-        self.cancel = Some(v);
+    pub fn cancel(mut self) -> Self {
+        self.cancel = true;
         self
     }
 

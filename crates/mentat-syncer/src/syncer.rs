@@ -38,11 +38,11 @@ where
     #[allow(clippy::missing_docs_in_private_items)]
     pub fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
         let network_status = self.helper.network_status(error_buf, &self.network)?;
-        self.genesis_block = network_status.genesis_block_identifier;
+        self.genesis_block = Some(network_status.genesis_block_identifier);
         if index != 0 {
             self.next_index = index
         } else {
-            self.next_index = self.genesis_block.index
+            self.next_index = self.genesis_block.as_ref().unwrap().index
         }
         Ok(())
     }
@@ -67,7 +67,7 @@ where
         let current_block_identifier_index = network_status.current_block_identifier.index;
 
         // Update the syncer's known tip
-        self.tip = network_status.current_block_identifier;
+        self.tip = Some(network_status.current_block_identifier);
         if end_index == -1 || end_index > current_block_identifier_index {
             end_index = current_block_identifier_index
         }
@@ -84,7 +84,7 @@ where
         &self,
         last_block: &'a BlockIdentifier,
     ) -> SyncerResult<(bool, Option<&'a BlockIdentifier>)> {
-        if hash(Some(&self.genesis_block)) == hash(Some(last_block)) {
+        if hash(self.genesis_block.as_ref()) == hash(Some(last_block)) {
             Err(SyncerError::CannotRemoveGenesisBlock)
         } else {
             Ok((true, Some(last_block)))
@@ -214,7 +214,7 @@ where
                 Err(SyncerError::OrphanedHead) => true,
                 Err(e) => return Err(e),
             },
-            block: block.ok(),
+            block: block.ok().flatten(),
         };
 
         self.handle_seen_block(error_buf, &br)?;
@@ -566,15 +566,15 @@ where
     /// This can be very helpful to callers who want to know
     /// an approximation of tip very frequently (~every second)
     /// but don't want to implement their own caching logic.
-    pub fn tip(&self) -> &BlockIdentifier {
-        &self.tip
+    pub fn tip(&self) -> Option<&BlockIdentifier> {
+        self.tip.as_ref()
     }
 
     /// Sync cycles endlessly until there is an error
     /// or the requested range is synced. When the requested
     /// range is synced, context is canceled.
     pub async fn sync(
-        mut self,
+        &mut self,
         error_buf: &ErrorBuf,
         mut start_index: i64,
         end_index: i64,
@@ -611,11 +611,11 @@ where
         }
 
         if start_index == -1 {
-            start_index = self.genesis_block.index;
+            start_index = self.genesis_block.as_ref().unwrap().index;
         }
 
-        if let Some(c) = self.cancel {
-            c()
+        if self.cancel {
+            *error_buf.lock() = Some(Ok(()));
         }
         tracing::info!("Finished syncing {}-{}\n", start_index, end_index);
         Ok(())

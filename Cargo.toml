@@ -7,7 +7,6 @@ members = [
         # Needs to be changed to match module.
         # "crates/mentat-keys",
         "mentat-macros",
-        "crates/mentat-mocks",
         "crates/mentat-parser",
         "crates/mentat-server",
         "crates/mentat-syncer",
