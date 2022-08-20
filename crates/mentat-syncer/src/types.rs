@@ -1,5 +1,6 @@
 //! TODO
 
+use crate::errors::SyncerError;
 use crate::types::BlockIdentifier;
 use crate::{
     errors::SyncerResult,
@@ -65,7 +66,7 @@ pub const DEFAULT_SYNC_SLEEP: Duration = Duration::from_secs(2);
 pub const DEFAULT_FETCH_SLEEP: Duration = Duration::from_millis(500);
 
 /// a multithreaded error buffer
-pub type ErrorBuf = Arc<Mutex<Option<SyncerResult<()>>>>;
+pub type ErrorBuf = Arc<Mutex<Option<SyncerError>>>;
 
 // automock requires explicit lifetimes inside the options for some reason,
 // but clippy doesnt understand that so it claims they're needless
@@ -198,7 +199,7 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
         }
     }
 
-    pub fn cancel(mut self) -> Self {
+    pub fn with_cancel(mut self) -> Self {
         self.cancel = true;
         self
     }

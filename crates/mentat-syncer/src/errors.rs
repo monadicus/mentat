@@ -43,6 +43,8 @@ pub enum SyncerError {
     SetStartIndexFailed,
     #[error("unable to get next syncable range")]
     NextSyncableRangeFailed,
+    #[error("cancelled")]
+    Cancelled,
     #[error("{0}")]
     String(String),
 }

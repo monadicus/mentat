@@ -1,6 +1,10 @@
 #![allow(clippy::missing_docs_in_private_items)]
 
-use std::sync::Arc;
+use std::{
+    sync::Arc,
+    thread::{sleep, spawn},
+    time::Duration,
+};
 
 use mentat_types::{
     AccountIdentifier, Amount, Block, BlockIdentifier, Currency, NetworkIdentifier,
@@ -13,7 +17,7 @@ use parking_lot::Mutex;
 use crate::{
     errors::{SyncerError, SyncerResult},
     syncer::BlockResult,
-    types::{ErrorBuf, Handler, Helper, Syncer},
+    types::{ErrorBuf, Handler, Helper, Syncer, DEFAULT_CONCURRENCY},
 };
 
 mock! {
@@ -422,11 +426,13 @@ fn test_sync_no_reorg() {
     let mock_helper = MockHelper::new();
     let mock_handler = MockHandler::new();
     let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler)
-        .cancel()
+        .with_cancel()
         .max_concurrency(3)
         .build();
+
     // Tip should be nil before we start syncing
     assert!(syncer.tip.is_none());
+
     // Force syncer to only get part of the way through the full range
     syncer
         .helper
@@ -463,7 +469,6 @@ fn test_sync_no_reorg() {
         .times(2);
 
     let mut blocks = create_blocks(0, 1200, "");
-
     // Create a block gap
     blocks[100] = None;
     blocks[101].as_mut().unwrap().parent_block_identifier =
@@ -515,7 +520,7 @@ fn test_sync_no_reorg() {
                     }
                 };
 
-                todo!("cant access syncer inside mock closure");
+                todo!("cant access syncer inside closure");
                 // assert_eq!(
                 //     Some(&id),
                 //     syncer.tip()
@@ -532,16 +537,269 @@ fn test_sync_no_reorg() {
 
 #[test]
 fn test_sync_specific_start() {
-    todo!()
+    let error_buf = Arc::new(Mutex::new(None));
+    let mock_helper = MockHelper::new();
+    let mock_handler = MockHandler::new();
+    let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler)
+        .with_cancel()
+        .build();
+
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(|e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1300,
+                hash: "block 1300".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }));
+
+    for b in create_blocks(100, 1200, "") {
+        let index = b.as_ref().unwrap().block_identifier.index;
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(index),
+                            ..Default::default()
+                        }
+            })
+            .return_const(Ok(b.clone()))
+            .once();
+
+        let tmp_b = b.clone().unwrap();
+        syncer
+            .handler
+            .expect_block_seen()
+            .withf(move |e, b| e.lock().is_none() && *b == tmp_b)
+            .return_const(Ok(()))
+            .once();
+        let tmp_b = b.clone().unwrap();
+        syncer
+            .handler
+            .expect_block_added()
+            .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp_b))
+            .return_once(|_, b| {
+                if b.unwrap().block_identifier.index == 1100 {
+                    todo!("cant access syncer within closure");
+                    // assert!(*syncer.concurrency.lock() > DEFAULT_CONCURRENCY)
+                }
+                Ok(())
+            });
+    }
+
+    tokio_test::block_on(syncer.sync(&error_buf, 100, 1200)).unwrap();
+    assert_eq!(0, *syncer.concurrency.lock());
+    syncer.helper.checkpoint();
+    syncer.handler.checkpoint();
 }
 
 #[test]
 fn test_sync_cancel() {
-    todo!()
+    let error_buf = Arc::new(Mutex::new(None));
+    let mock_helper = MockHelper::new();
+    let mock_handler = MockHandler::new();
+    let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler)
+        .with_cancel()
+        .build();
+
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 200,
+                hash: "block 200".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }))
+        .times(2);
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1300,
+                hash: "block 1300".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }))
+        .times(2);
+
+    for b in create_blocks(0, 1200, "") {
+        let index = b.as_ref().unwrap().block_identifier.index;
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(index),
+                            ..Default::default()
+                        }
+            })
+            .return_const(Ok(b.clone()))
+            .once();
+
+        let tmp_b = b.clone().unwrap();
+        syncer
+            .handler
+            .expect_block_seen()
+            .withf(move |e, b| e.lock().is_none() && *b == tmp_b)
+            .return_const(Ok(()))
+            .once();
+        let tmp_b = b.clone().unwrap();
+        syncer
+            .handler
+            .expect_block_added()
+            .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp_b))
+            .return_const(Ok(()))
+            .once();
+    }
+
+    let tmp_buf = error_buf.clone();
+    let handle = spawn(move || {
+        sleep(Duration::from_secs(1));
+        *tmp_buf.lock() = Some(SyncerError::Cancelled)
+    });
+    let err = tokio_test::block_on(syncer.sync(&error_buf, -1, 1200)).unwrap_err();
+    assert_eq!(err, SyncerError::Cancelled);
+    assert_eq!(0, *syncer.concurrency.lock());
+    handle.join().unwrap();
 }
 
 #[test]
 fn test_sync_reorg() {
+    let error_buf = Arc::new(Mutex::new(None));
+    let mock_helper = MockHelper::new();
+    let mock_handler = MockHandler::new();
+    let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler)
+        .with_cancel()
+        .build();
+
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1300,
+                hash: "block 1300".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }))
+        .times(2);
+
+    let blocks = create_blocks(0, 800, "");
+    // [0, 800]
+    for b in &blocks {
+        let index = b.as_ref().unwrap().block_identifier.index;
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(index),
+                            ..Default::default()
+                        }
+            })
+            .return_const(Ok(b.clone()))
+            .once();
+
+        let tmp_b = b.clone().unwrap();
+        syncer
+            .handler
+            .expect_block_seen()
+            .withf(move |e, b| e.lock().is_none() && *b == tmp_b)
+            .return_const(Ok(()))
+            .once();
+        let tmp_b = b.clone().unwrap();
+        syncer
+            .handler
+            .expect_block_added()
+            .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp_b))
+            .return_const(Ok(()))
+            .once();
+    }
+
+    // Create reorg
+    let new_blocks = create_blocks(790, 1200, "other");
+    let block = new_blocks[11].clone().unwrap();
+    let index = block.block_identifier.index.clone();
+    syncer
+        .helper
+        .expect_block()
+        .withf(move |e, id, b| {
+            e.lock().is_none()
+                && *id == network_identifier()
+                && *b
+                    == PartialBlockIdentifier {
+                        index: Some(index),
+                        ..Default::default()
+                    }
+        })
+        .return_const(Ok(Some(block)))
+        .once(); // [801]
+
+    // Set parent of reorg start to be last good block
+    new_blocks
+        .get_mut(0)
+        .unwrap()
+        .as_mut()
+        .unwrap()
+        .parent_block_identifier = blocks[789].unwrap().block_identifier;
+
+    // Orphan last 10 blocks
+    for i in 790..=800 {
+        let this_block = &new_blocks[i].unwrap();
+        let index = this_block.block_identifier.index;
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(index),
+                            ..Default::default()
+                        }
+            })
+            .return_const(Ok(Some(this_block.clone())))
+            .once();
+
+        todo!("removed")
+    }
+
     todo!()
 }
 

@@ -175,7 +175,7 @@ where
             }
 
             if let Some(e) = &*error_buf.lock() {
-                return self.safe_exit(e.clone());
+                return self.safe_exit(Err(e.clone()));
             } else {
                 block_indices.send(i).unwrap()
             }
@@ -256,7 +256,7 @@ where
             };
 
             if let Some(e) = &*error_buf.lock() {
-                return self.safe_exit(e.clone());
+                return self.safe_exit(Err(e.clone()));
             } else {
                 results.send(br).unwrap();
             }
@@ -606,7 +606,7 @@ where
                 .map_err(|e| format!("{}: unable to sync to {}", e, range_end))?;
 
             if let Some(e) = &*error_buf.lock() {
-                return e.clone();
+                return Err(e.clone());
             }
         }
 
@@ -615,7 +615,7 @@ where
         }
 
         if self.cancel {
-            *error_buf.lock() = Some(Ok(()));
+            *error_buf.lock() = Some(SyncerError::Cancelled);
         }
         tracing::info!("Finished syncing {}-{}\n", start_index, end_index);
         Ok(())
