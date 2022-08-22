@@ -145,6 +145,11 @@ where
             self.past_blocks.pop_back();
             Ok(())
         } else {
+            // mock structures inside syncer_tests require access to syncer during this method for certain checks
+            #[cfg(test)]
+            self.handler
+                .block_added(self, error_buf, br.block.clone())?;
+            #[cfg(not(test))]
             self.handler.block_added(error_buf, br.block.as_ref())?;
             // TODO: no nil check? probably happens in block_added
             let block = br.block.unwrap();
@@ -201,6 +206,9 @@ where
         index: i64,
     ) -> SyncerResult<BlockResult> {
         let block = self.helper.block(
+            // mock structures inside syncer_tests require access to syncer during this method for certain checks
+            #[cfg(test)]
+            self,
             error_buf,
             network,
             &PartialBlockIdentifier {
@@ -414,6 +422,7 @@ where
     ) -> SyncerResult<()> {
         let mut cache = IndexMap::new();
         loop {
+            // TODO hack to get around inability to close `fetch_blocks` channel from another thread. likely the source of most hangs
             match fetched_blocks.1.try_recv() {
                 Ok(result) => {
                     let size = size_of_val(&result) as i64;
@@ -514,7 +523,6 @@ where
         // return immediately if the context is canceled).
         //
         // Source: https://godoc.org/golang.org/x/sync/errgroup
-        // let (g, pipeline_ctx) = errgroup.with_context(ctx);
         let mut handles = Vec::new();
         let pipeline_exit = Arc::new(Mutex::new(None));
 

@@ -68,24 +68,30 @@ pub const DEFAULT_FETCH_SLEEP: Duration = Duration::from_millis(500);
 /// a multithreaded error buffer
 pub type ErrorBuf = Arc<Mutex<Option<SyncerError>>>;
 
-// automock requires explicit lifetimes inside the options for some reason,
-// but clippy doesnt understand that so it claims they're needless
-//
 /// Handler is called at various times during the sync cycle
 /// to handle different events. It is common to write logs or
 /// perform reconciliation in the sync processor.
-#[allow(clippy::missing_docs_in_private_items, clippy::needless_lifetimes)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub trait Handler {
     /// BlockSeen is invoked AT LEAST ONCE
     /// by the syncer prior to calling BlockAdded
     /// with the same arguments. This allows for
     /// storing block data before it is sequenced.
     fn block_seen(&self, error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()>;
-    fn block_added<'a>(&self, error_buf: &ErrorBuf, block: Option<&'a Block>) -> SyncerResult<()>;
-    fn block_removed<'a>(
+    #[cfg(not(test))]
+    fn block_added(&self, error_buf: &ErrorBuf, block: Option<&Block>) -> SyncerResult<()>;
+    // mock structures inside syncer_tests require access to syncer during this method for certain checks
+    #[cfg(test)]
+    fn block_added<Hand: 'static, Help: 'static>(
+        &self,
+        syncer: &Syncer<Hand, Help>,
+        error_buf: &ErrorBuf,
+        block: Option<Block>,
+    ) -> SyncerResult<()>;
+    fn block_removed(
         &self,
         error_buf: &ErrorBuf,
-        block: Option<&'a BlockIdentifier>,
+        block: Option<&BlockIdentifier>,
     ) -> SyncerResult<()>;
 }
 
@@ -100,8 +106,19 @@ pub trait Helper {
         network_identifier: &NetworkIdentifier,
     ) -> SyncerResult<NetworkStatusResponse>;
 
+    #[cfg(not(test))]
     fn block(
         &self,
+        error_buf: &ErrorBuf,
+        network_identifier: &NetworkIdentifier,
+        partial_block_identifier: &PartialBlockIdentifier,
+    ) -> SyncerResult<Option<Block>>;
+
+    // mock structures inside syncer_tests require access to syncer during this method for certain checks
+    #[cfg(test)]
+    fn block<Hand: 'static, Help: 'static>(
+        &self,
+        syncer: &Syncer<Hand, Help>,
         error_buf: &ErrorBuf,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,

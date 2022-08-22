@@ -17,7 +17,7 @@ use parking_lot::{Mutex, MutexGuard};
 use crate::{
     errors::{SyncerError, SyncerResult},
     syncer::BlockResult,
-    types::{ErrorBuf, Handler, Helper, Syncer, SyncerBuilder},
+    types::{ErrorBuf, Handler, Helper, Syncer, SyncerBuilder, DEFAULT_CONCURRENCY},
 };
 
 mock! {
@@ -26,7 +26,12 @@ mock! {
 
     impl Handler for Handler {
         fn block_seen(&self, error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()>;
-        fn block_added<'a>(&self, error_buf: &ErrorBuf, block: Option<&'a Block>) -> SyncerResult<()>;
+        fn block_added<'a, Hand: 'static, Help: 'static>(
+            &self,
+            syncer: &Syncer<Hand, Help>,
+            error_buf: &ErrorBuf,
+            block: Option<Block>,
+        ) -> SyncerResult<()>;
         fn block_removed<'a>(
             &self,
             error_buf: &ErrorBuf,
@@ -46,8 +51,9 @@ mock! {
             network_identifier: &NetworkIdentifier,
         ) -> SyncerResult<NetworkStatusResponse>;
 
-        fn block(
+        fn block<Hand: 'static, Help: 'static>(
             &self,
+            syncer: &Syncer<Hand, Help>,
             error_buf: &ErrorBuf,
             network_identifier: &NetworkIdentifier,
             partial_block_identifier: &PartialBlockIdentifier,
@@ -56,7 +62,7 @@ mock! {
 }
 
 #[derive(Clone)]
-struct ArcMockHandler(Arc<Mutex<MockHandler>>);
+pub struct ArcMockHandler(Arc<Mutex<MockHandler>>);
 impl ArcMockHandler {
     fn new() -> Self {
         Self(Arc::new(Mutex::new(MockHandler::new())))
@@ -71,8 +77,13 @@ impl Handler for ArcMockHandler {
         self.0.lock().block_seen(error_buf, block)
     }
 
-    fn block_added<'a>(&self, error_buf: &ErrorBuf, block: Option<&'a Block>) -> SyncerResult<()> {
-        self.0.lock().block_added(error_buf, block)
+    fn block_added<Hand: 'static, Help: 'static>(
+        &self,
+        syncer: &Syncer<Hand, Help>,
+        error_buf: &ErrorBuf,
+        block: Option<Block>,
+    ) -> SyncerResult<()> {
+        self.0.lock().block_added(syncer, error_buf, block)
     }
 
     fn block_removed<'a>(
@@ -85,7 +96,7 @@ impl Handler for ArcMockHandler {
 }
 
 #[derive(Clone)]
-struct ArcMockHelper(Arc<Mutex<MockHelper>>);
+pub struct ArcMockHelper(Arc<Mutex<MockHelper>>);
 impl ArcMockHelper {
     fn new() -> Self {
         Self(Arc::new(Mutex::new(MockHelper::new())))
@@ -104,15 +115,19 @@ impl Helper for ArcMockHelper {
         self.0.lock().network_status(error_buf, network_identifier)
     }
 
-    fn block(
+    fn block<Hand: 'static, Help: 'static>(
         &self,
+        syncer: &Syncer<Hand, Help>,
         error_buf: &ErrorBuf,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,
     ) -> SyncerResult<Option<Block>> {
-        self.0
-            .lock()
-            .block(error_buf, network_identifier, partial_block_identifier)
+        self.0.lock().block(
+            syncer,
+            error_buf,
+            network_identifier,
+            partial_block_identifier,
+        )
     }
 }
 
@@ -328,7 +343,7 @@ fn expect_block(
     let mut helper = syncer.helper.lock();
     helper
         .expect_block()
-        .withf(move |e, id, b| {
+        .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, id, b| {
             e.lock().is_none()
                 && *id == network_identifier()
                 && *b
@@ -347,7 +362,12 @@ fn custom_expect_block<F>(
     times: impl Into<TimesRange>,
     ret: F,
 ) where
-    F: Fn(&ErrorBuf, &NetworkIdentifier, &PartialBlockIdentifier) -> SyncerResult<Option<Block>>
+    F: Fn(
+            &Syncer<ArcMockHandler, ArcMockHelper>,
+            &ErrorBuf,
+            &NetworkIdentifier,
+            &PartialBlockIdentifier,
+        ) -> SyncerResult<Option<Block>>
         + Send
         + Sync
         + 'static,
@@ -355,7 +375,7 @@ fn custom_expect_block<F>(
     let mut helper = syncer.helper.lock();
     helper
         .expect_block()
-        .withf(move |e, id, b| {
+        .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, id, b| {
             e.lock().is_none()
                 && *id == network_identifier()
                 && *b
@@ -376,7 +396,9 @@ fn expect_block_added(
     let mut handler = syncer.handler.lock();
     handler
         .expect_block_added()
-        .withf(move |e, g| e.lock().is_none() && *g == block.as_ref())
+        .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, g| {
+            e.lock().is_none() && *g == block
+        })
         .return_const(Ok(()))
         .times(times.into());
 }
@@ -385,15 +407,17 @@ fn custom_expect_block_added<F>(
     syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
     block: Option<Block>,
     times: impl Into<TimesRange>,
-
     ret: F,
 ) where
-    F: Fn(&ErrorBuf, Option<&Block>) -> SyncerResult<()> + Send + Sync + 'static,
+    F: Fn(&Syncer<ArcMockHandler, ArcMockHelper>, &ErrorBuf, Option<Block>) -> SyncerResult<()>
+        + Send
+        + Sync
+        + 'static,
 {
     let mut handler = syncer.handler.lock();
     handler
         .expect_block_added()
-        .withf(move |e, g| e.lock().is_none() && *g == block.as_ref())
+        .withf(move |_, e, g| e.lock().is_none() && *g == block)
         .returning(ret)
         .times(times.into());
 }
@@ -605,7 +629,6 @@ fn create_blocks(start_index: i64, end_index: i64, add: &str) -> Vec<Option<Bloc
 
 #[test]
 fn test_sync_no_reorg() {
-    todo!("cant access syncer inside closure");
     let mut syncer = syncer().with_cancel().max_concurrency(3).build();
 
     // Tip should be nil before we start syncing
@@ -631,8 +654,8 @@ fn test_sync_no_reorg() {
         };
 
         expect_block_seen(&mut syncer, b.clone(), 1);
-        custom_expect_block_added(&mut syncer, Some(b.clone()), 1, move |_, _| {
-            let _id = if i > 200 {
+        custom_expect_block_added(&mut syncer, Some(b.clone()), 1, move |s, _, _| {
+            let id = if i > 200 {
                 BlockIdentifier {
                     index: 1300,
                     hash: "block 1300".into(),
@@ -644,11 +667,7 @@ fn test_sync_no_reorg() {
                 }
             };
 
-            // TODO
-            // assert_eq!(
-            //     Some(&id),
-            //     syncer.tip()
-            // );
+            assert_eq!(Some(&id), s.tip());
             Ok(())
         });
     }
@@ -661,7 +680,6 @@ fn test_sync_no_reorg() {
 
 #[test]
 fn test_sync_specific_start() {
-    todo!("cant access syncer within closure");
     let mut syncer = syncer().with_cancel().build();
 
     expect_network_status(&mut syncer, 1300, ..);
@@ -674,11 +692,10 @@ fn test_sync_specific_start() {
             1,
         );
         expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
-        custom_expect_block_added(&mut syncer, b.clone(), 1, |_, _b| {
-            // TODO
-            // if b.unwrap().block_identifier.index == 1100 {
-            //     assert!(*syncer.concurrency.lock() > DEFAULT_CONCURRENCY)
-            // }
+        custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
+            if b.unwrap().block_identifier.index == 1100 {
+                assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
+            }
             Ok(())
         });
     }
@@ -721,7 +738,6 @@ fn test_sync_cancel() {
 
 #[test]
 fn test_sync_reorg() {
-    todo!("cant access syncer in mock closure");
     let mut syncer = syncer().with_cancel().build();
 
     expect_network_status(&mut syncer, 1300, 2);
@@ -794,11 +810,10 @@ fn test_sync_reorg() {
         let b = b.as_ref().unwrap();
         let seen_times = if b.block_identifier.index > 801 { 1 } else { 2 };
         expect_block_seen(&mut syncer, b.clone(), seen_times);
-        custom_expect_block_added(&mut syncer, Some(b.clone()), 1, |_, _b| {
-            // TODO
-            // if b.unwrap().block_identifier.index == 1100 {
-            //     assert!(*syncer.concurrency.lock() > DEFAULT_CONCURRENCY)
-            // }
+        custom_expect_block_added(&mut syncer, Some(b.clone()), 1, |s, _, b| {
+            if b.unwrap().block_identifier.index == 1100 {
+                assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
+            }
             Ok(())
         });
     }
@@ -818,7 +833,6 @@ fn test_sync_reorg() {
 
 #[test]
 fn test_sync_manual_reorg() {
-    todo!("cant access syncer inside mock");
     let mut syncer = syncer().with_cancel().build();
 
     expect_network_status(&mut syncer, 1300, ..);
@@ -858,11 +872,10 @@ fn test_sync_manual_reorg() {
             1,
         );
         expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
-        custom_expect_block_added(&mut syncer, b.clone(), 1, |_, _b| {
-            // TODO
-            // if b.unwrap().block_identifier.index == 1100 {
-            //     assert!(*syncer.concurrency.lock() > DEFAULT_CONCURRENCY)
-            // }
+        custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
+            if b.unwrap().block_identifier.index == 1100 {
+                assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
+            }
             Ok(())
         });
     }
@@ -879,7 +892,6 @@ fn test_sync_manual_reorg() {
 }
 
 fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
-    todo!("cant access syncer in mock");
     // Force syncer to only get part of the way through the full range
     expect_network_status(syncer, 1, 2);
     expect_network_status(syncer, 1300, 2);
@@ -906,11 +918,10 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
 
     for (i, b) in blocks.into_iter().enumerate() {
         let tmp_b = b.clone();
-        custom_expect_block(syncer, Some(i as i64), 1, move |_, _, _| {
-            // TODO
-            // if i == 100 {
-            //     assert_eq!(*syncer.concurrency.lock(), 1)
-            // }
+        custom_expect_block(syncer, Some(i as i64), 1, move |s, _, _, _| {
+            if i == 100 {
+                assert_eq!(*s.concurrency.lock(), 1)
+            }
             Ok(tmp_b.clone())
         });
 
