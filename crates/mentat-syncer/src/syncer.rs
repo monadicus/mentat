@@ -1,13 +1,15 @@
 //! TODO
 
-use std::{mem::size_of_val, sync::Arc, thread::sleep};
+use std::{
+    mem::size_of_val,
+    sync::Arc,
+    thread::{sleep, spawn, JoinHandle},
+};
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use futures::future::join_all;
 use indexmap::IndexMap;
 use mentat_types::{hash, Block, BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier};
 use parking_lot::Mutex;
-use tokio::{spawn, task::JoinHandle};
 
 use crate::{
     errors::{SyncerError, SyncerResult},
@@ -39,7 +41,7 @@ where
     pub fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
         let network_status = self.helper.network_status(error_buf, &self.network)?;
         self.genesis_block = Some(network_status.genesis_block_identifier);
-        if index != 0 {
+        if index != -1 {
             self.next_index = index
         } else {
             self.next_index = self.genesis_block.as_ref().unwrap().index
@@ -160,7 +162,7 @@ where
     /// startIndex to endIndex, inclusive) to the
     /// blockIndices channel. When all indices are added,
     /// the channel is closed.
-    pub async fn add_block_indices(
+    pub fn add_block_indices(
         &self,
         error_buf: &ErrorBuf,
         block_indices: Sender<i64>,
@@ -234,7 +236,7 @@ where
     /// channel with retries until there are no
     /// more blocks in the channel or there is an
     /// error.
-    pub async fn fetch_blocks(
+    pub fn fetch_blocks(
         &self,
         error_buf: &ErrorBuf,
         network: &NetworkIdentifier,
@@ -269,7 +271,6 @@ where
                 return Ok(());
             }
         }
-
         self.safe_exit(Ok(()))
     }
 
@@ -412,16 +413,26 @@ where
         end_index: i64,
     ) -> SyncerResult<()> {
         let mut cache = IndexMap::new();
-        for result in &fetched_blocks.1 {
-            let size = size_of_val(&result) as i64;
-            cache.insert(result.index, result);
+        loop {
+            match fetched_blocks.1.try_recv() {
+                Ok(result) => {
+                    let size = size_of_val(&result) as i64;
+                    cache.insert(result.index, result);
 
-            self.process_blocks(error_buf, &mut cache, end_index)
-                .map_err(|e| format!("{}: {}", SyncerError::BlocksProcessMultipleFailed, e))?;
+                    self.process_blocks(error_buf, &mut cache, end_index)
+                        .map_err(|e| {
+                            format!("{}: {}", SyncerError::BlocksProcessMultipleFailed, e)
+                        })?;
 
-            // Determine if concurrency should be adjusted.
-            self.recent_block_sizes.push_back(size);
-            self.last_adjustment += 1;
+                    // Determine if concurrency should be adjusted.
+                    self.recent_block_sizes.push_back(size);
+                    self.last_adjustment += 1;
+                }
+                _ if *self.concurrency.lock() == 0 || handles.iter().all(|h| h.is_finished()) => {
+                    break
+                }
+                _ => {}
+            }
 
             // TODO: their adjust_workers fn assumes concurrencyLock is locked and uses concurrency freely
             // TODO: then they maintain this lock until the end of the function to prevent concurrency from being set to 0 by accident?
@@ -444,10 +455,13 @@ where
                 let tmp_indices = block_indices.clone();
                 let tmp_fetched = fetched_blocks.0.clone();
                 let tmp_pipeline = pipeline_exit.clone();
-                handles.push(spawn(async move {
-                    tmp_self
-                        .fetch_blocks(&tmp_pipeline, &tmp_self.network, &tmp_indices, &tmp_fetched)
-                        .await
+                handles.push(spawn(move || {
+                    tmp_self.fetch_blocks(
+                        &tmp_pipeline,
+                        &tmp_self.network,
+                        &tmp_indices,
+                        &tmp_fetched,
+                    )
                 }))
             } else {
                 *self.concurrency.lock() -= 1;
@@ -467,7 +481,7 @@ where
     /// syncRange fetches and processes a range of blocks
     /// (from syncer.nextIndex to endIndex, inclusive)
     /// with syncer.concurrency.
-    pub async fn sync_range(&mut self, error_buf: &ErrorBuf, end_index: i64) -> SyncerResult<()> {
+    pub fn sync_range(&mut self, error_buf: &ErrorBuf, end_index: i64) -> SyncerResult<()> {
         let (block_indices_sender, block_indices_receiver) = unbounded();
         let (fetched_blocks_sender, fetched_blocks_receiver) = unbounded();
 
@@ -506,12 +520,9 @@ where
 
         let tmp_pipeline = pipeline_exit.clone();
         let tmp_self = self.clone();
-        let tmp_indices = block_indices_sender.clone();
-
-        handles.push(spawn(async move {
-            tmp_self
-                .add_block_indices(&tmp_pipeline, tmp_indices, tmp_self.next_index, end_index)
-                .await
+        let tmp_indices = block_indices_sender;
+        handles.push(spawn(move || {
+            tmp_self.add_block_indices(&tmp_pipeline, tmp_indices, tmp_self.next_index, end_index)
         }));
 
         for _ in 0..starting_concurrency {
@@ -519,20 +530,18 @@ where
             let tmp_indices = block_indices_receiver.clone();
             let tmp_fetched = fetched_blocks_sender.clone();
             let tmp_pipeline = pipeline_exit.clone();
-            handles.push(spawn(async move {
-                tmp_self
-                    .fetch_blocks(&tmp_pipeline, &tmp_self.network, &tmp_indices, &tmp_fetched)
-                    .await
+            handles.push(spawn(move || {
+                tmp_self.fetch_blocks(&tmp_pipeline, &tmp_self.network, &tmp_indices, &tmp_fetched)
             }))
         }
 
-        // TODO this is not correct
-        // Wait for all block fetching goroutines to exit
-        // before closing the fetchedBlocks channel.
-        // let func = || {
-        //     join_all(handles);
-        //     drop(fetched_blocks_sender)
-        // };
+        // // TODO this is not correct
+        // // Wait for all block fetching goroutines to exit
+        // // before closing the fetchedBlocks channel.
+        // join_all(handles)
+        //     .into_iter()
+        //     .for_each(|t| t.unwrap().unwrap());
+        // drop(fetched_blocks_sender)
 
         self.sequence_blocks(
             error_buf,
@@ -543,15 +552,13 @@ where
             end_index,
         )?;
 
-        let err = join_all(handles)
-            .await
-            .iter()
-            .flatten()
-            .find_map(|r| match r {
-                Ok(_) => None,
-                Err(e) => Some(e),
-            })
-            .map(|e| format!("{}: unable to sync to {}", e, end_index));
+        let err = handles
+            .into_iter()
+            .map(|h| h.join().unwrap())
+            .find_map(|r| {
+                r.err()
+                    .map(|e| format!("{}: unable to sync to {}", e, end_index))
+            });
         if let Some(e) = err {
             Err(e)?;
         }
@@ -573,7 +580,7 @@ where
     /// Sync cycles endlessly until there is an error
     /// or the requested range is synced. When the requested
     /// range is synced, context is canceled.
-    pub async fn sync(
+    pub fn sync(
         &mut self,
         error_buf: &ErrorBuf,
         mut start_index: i64,
@@ -602,7 +609,6 @@ where
             }
 
             self.sync_range(error_buf, range_end)
-                .await
                 .map_err(|e| format!("{}: unable to sync to {}", e, range_end))?;
 
             if let Some(e) = &*error_buf.lock() {
