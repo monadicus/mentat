@@ -6,6 +6,7 @@ use serde_json::Value;
 
 use super::*;
 
+// TODO can this be an enum?
 /// AmountSign is used to represent possible signedness
 /// of an amount.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

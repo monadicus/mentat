@@ -1,7 +1,10 @@
+use std::{io::Read, path::PathBuf};
+
 use indexmap::{indexmap, IndexMap};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use toml::Value;
+
+use crate::errors::{Result, RulesFileError};
 
 lazy_static! {
     pub(crate) static ref TYPE_PARSE_RULES: IndexMap<&'static str, &'static str> = indexmap!(
@@ -16,127 +19,85 @@ lazy_static! {
       "[]*(.+){" => "vec![",
       "{}" => "Default::default()",
       "&(.+)" => "",
+      "nil" => "None",
     );
+}
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TestStructCriteria {
+    #[serde(rename = "type")]
+    type_: String,
+    from: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub(crate) struct TestStructPayloadField {
+    #[serde(rename = "type")]
+    type_: String,
+    from: String,
+    #[serde(flatten)]
+    sub_fields: IndexMap<String, Self>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
-pub(crate) enum Payload {
+pub(crate) enum TestStructPayload {
     Dynamic {
-        name: String,
-        values: IndexMap<String, String>,
+        struct_name: String,
+        #[serde(flatten)]
+        fields: IndexMap<String, TestStructPayloadField>,
     },
     Single {
-        name: String,
+        struct_name: String,
         value: String,
     },
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub(crate) struct CustomParseRules {
+pub enum TypeOverrideTypes {
+    Replace,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TestStruct {
+    test_fn_name: String,
     struct_name: String,
-    payload_struct_name: Option<String>,
-    criteria_struct_name: Option<String>,
+    struct_method: String,
+    closure: String,
+    criteria: TestStructCriteria,
+    payload: TestStructPayload,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TypeOverride {
+    rule_type: TypeOverrideTypes,
+    #[serde(flatten)]
     rules: IndexMap<String, String>,
 }
 
-
-impl CustomParseRules {
-    fn convert(self) {
-      
-    }
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RulesFile {
+    test_struct: TestStruct,
+    types: IndexMap<String, TypeOverride>,
 }
 
-// to
-// TestCase {
-//   name: "simple transfer (with extra op)",
-//   payload: MatchOperationsTest {
-//       operations: vec![
-//           Some(Operation {
-//               account: Some(AccountIdentifier {
-//                   address: "addr2",
-//                   ..Default::default()
-//               }),
-//               amount: Some(Amount {
-//                   value: "100",
-//                   ..Default::default()
-//               }),
-//               ..Default::default()
-//           }),
-//           // extra op ignored
-//           Some(Operation::default()),
-//           Some(Operation {
-//               account: Some(AccountIdentifier {
-//                   address: "addr1",
-//                   ..Default::default()
-//               }),
-//               amount: Some(Amount {
-//                   value: "-100",
-//                   ..Default::default()
-//               }),
-//               ..Default::default()
-//           }),
-//       ],
-//       descriptions: Descriptions {
-//           opposite_amounts: vec![vec![0, 1]],
-//           operation_descriptions: vec![
-//               Some(OperationDescription {
-//                   account: Some(AccountDescription {
-//                       exists: true,
-//                       ..Default::default()
-//                   }),
-//                   amount: Some(AmountDescription {
-//                       exists: true,
-//                       sign: AmountSign::NEGATIVE,
-//                       ..Default::default()
-//                   }),
-//                   ..Default::default()
-//               }),
-//               Some(OperationDescription {
-//                   account: Some(AccountDescription {
-//                       exists: true,
-//                       ..Default::default()
-//                   }),
-//                   amount: Some(AmountDescription {
-//                       exists: true,
-//                       sign: AmountSign::POSITIVE,
-//                       ..Default::default()
-//                   }),
-//                   ..Default::default()
-//               }),
-//           ],
-//           ..Default::default()
-//       },
-//   },
-//   criteria: Some(vec![
-//       Some(Match {
-//           operations: vec![Some(Operation {
-//               account: Some(AccountIdentifier {
-//                   address: "addr1",
-//                   ..Default::default()
-//               }),
-//               amount: Some(Amount {
-//                   value: "-100",
-//                   ..Default::default()
-//               }),
-//               ..Default::default()
-//           })],
-//           amounts: vec![Some(BigInt::from(-100))],
-//       }),
-//       Some(Match {
-//           operations: vec![Some(Operation {
-//               account: Some(AccountIdentifier {
-//                   address: "addr2",
-//                   ..Default::default()
-//               }),
-//               amount: Some(Amount {
-//                   value: "100",
-//                   ..Default::default()
-//               }),
-//               ..Default::default()
-//           })],
-//           amounts: vec![Some(BigInt::from(100))],
-//       }),
-//   ]),
-// }
+impl RulesFile {
+    fn file(file: PathBuf, write: bool, create: bool) -> Result<std::fs::File> {
+        RulesFileError::could_not_open_config_file(
+            std::fs::OpenOptions::new()
+                .read(true)
+                .write(write)
+                .create(create)
+                .open(&file),
+            file.to_str().unwrap_or("invalid path"),
+        )
+    }
+
+    pub(crate) fn from_toml_file(path: PathBuf) -> Result<Self> {
+        let mut file = Self::file(path, false, false)?;
+        let mut toml = String::new();
+        RulesFileError::failed_to_read_rules(file.read_to_string(&mut toml))?;
+        let conf: Self = toml::from_str(&toml).expect("Failed to deserialize toml config");
+        Ok(conf)
+    }
+}

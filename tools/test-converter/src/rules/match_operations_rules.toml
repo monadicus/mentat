@@ -17,8 +17,29 @@ struct_name = "MatchOperationsTest"
 
 [test_struct.payload.operations]
 type = "Vec<Option<Operation>>"
-from_field = "operations[]"
+from = "operations[]"
 
 [test_struct.payload.descriptions]
 type = "Descriptions"
-from_field = "!descriptions"
+from = "!descriptions"
+
+[types]
+# TODO figure this out?
+# [test_struct.payload.descriptions.operation_descriptions.amount]
+# then we put the rules here?
+
+# I like this approach more but does it know
+# to replace in above since we didn't write it every type.
+# IDEA: maybe we read through and auto gen the rest of
+# the rules types.
+# Then we just have a mapping by name. i.e. 
+# f("descriptions.operation_descriptions.amount") => 
+# AmountSign and its rules
+[types.AmountSign]
+rule_type = "Replace"
+AnyAmountSign = "AmountSign::ANY"
+oppositesLength = "AmountSign::OPPOSITES_LENGTH"
+NegativeAmountSign = "AmountSign::NEGATIVE"
+PositiveAmountSign = "AmountSign::POSITIVE"
+NegativeOrZeroAmountSign = "AmountSign::NEGATIVE_OR_ZERO"
+PositiveOrZeroAmountSign = "AmountSign::POSITIVE_OR_ZERO"
