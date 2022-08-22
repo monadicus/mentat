@@ -26,12 +26,12 @@ from = "!descriptions"
 [types]
 # TODO figure this out?
 # [test_struct.payload.descriptions.operation_descriptions.amount]
-# then we put the rules here?
+# then we put the rules there? This would go in relevant posisition.
 
 # I like this approach more but does it know
 # to replace in above since we didn't write it every type.
 # IDEA: maybe we read through and auto gen the rest of
-# the rules types.
+# the rules types. TODO we should do this regardless.
 # Then we just have a mapping by name. i.e. 
 # f("descriptions.operation_descriptions.amount") => 
 # AmountSign and its rules
