@@ -752,9 +752,9 @@ fn test_sync_reorg() {
     }
 
     // Create reorg
-    let new_blocks = create_blocks(790, 1200, "other");
+    let mut new_blocks = create_blocks(790, 1200, "other");
     let block = new_blocks[11].clone().unwrap();
-    let index = block.block_identifier.index.clone();
+    let index = block.block_identifier.index;
     syncer
         .helper
         .expect_block()
@@ -776,11 +776,11 @@ fn test_sync_reorg() {
         .unwrap()
         .as_mut()
         .unwrap()
-        .parent_block_identifier = blocks[789].unwrap().block_identifier;
+        .parent_block_identifier = blocks[789].as_ref().unwrap().block_identifier.clone();
 
     // Orphan last 10 blocks
     for i in 790..=800 {
-        let this_block = &new_blocks[i].unwrap();
+        let this_block = new_blocks[i - 790].as_ref().unwrap();
         let index = this_block.block_identifier.index;
         syncer
             .helper
@@ -797,23 +797,433 @@ fn test_sync_reorg() {
             .return_const(Ok(Some(this_block.clone())))
             .once();
 
-        todo!("removed")
+        let tmp = blocks[i].as_ref().unwrap().block_identifier.clone();
+        syncer
+            .handler
+            .expect_block_removed()
+            .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+            .return_const(Ok(()))
+            .once();
     }
 
-    todo!()
+    let block = new_blocks[0].as_ref().unwrap();
+    let tmp = block.clone();
+    // only fetch this block once
+    syncer
+        .handler
+        .expect_block_seen()
+        .withf(move |e, b| e.lock().is_none() && *b == tmp)
+        .return_const(Ok(()))
+        .once();
+    let tmp = block.clone();
+    // only fetch this block once
+    syncer
+        .handler
+        .expect_block_added()
+        .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+        .return_const(Ok(()))
+        .once();
+
+    // New blocks added
+    // [790, 1200]
+    for b in &new_blocks[1..] {
+        let b = b.as_ref().unwrap();
+        let index = b.block_identifier.index;
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(index),
+                            ..Default::default()
+                        }
+            })
+            .return_const(Ok(Some(b.clone())))
+            .once();
+
+        let seen_times = if b.block_identifier.index > 801 { 1 } else { 2 };
+        let tmp = b.clone();
+        syncer
+            .handler
+            .expect_block_seen()
+            .withf(move |e, b| e.lock().is_none() && *b == tmp)
+            .return_const(Ok(()))
+            .times(seen_times);
+        let tmp = b.clone();
+        syncer
+            .handler
+            .expect_block_added()
+            .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+            .return_once(|_, b| {
+                if b.unwrap().block_identifier.index == 1100 {
+                    todo!("cant access syncer in mock closure")
+                    // assert!(*syncer.concurrency.lock() > DEFAULT_CONCURRENCY)
+                }
+                Ok(())
+            });
+    }
+
+    // Expected Calls to Block
+    // [0, 789] = 1
+    // [790] = 2
+    // [791, 800] = 3
+    // [801] = 2
+    // [802,1200] = 1
+
+    tokio_test::block_on(syncer.sync(&error_buf, -1, 1200)).unwrap();
+    assert_eq!(0, *syncer.concurrency.lock());
+    syncer.helper.checkpoint();
+    syncer.handler.checkpoint();
 }
 
 #[test]
 fn test_sync_manual_reorg() {
-    todo!()
+    let error_buf = Arc::new(Mutex::new(None));
+    let mock_helper = MockHelper::new();
+    let mock_handler = MockHandler::new();
+    let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler)
+        .with_cancel()
+        .build();
+
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1300,
+                hash: "block 1300".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }));
+
+    let blocks = create_blocks(0, 800, "");
+    // [0, 800]
+    for b in &blocks {
+        let b = b.as_ref().unwrap();
+        let index = b.block_identifier.index;
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(index),
+                            ..Default::default()
+                        }
+            })
+            .return_const(Ok(Some(b.clone())))
+            .once();
+        let tmp = b.clone();
+        syncer
+            .handler
+            .expect_block_seen()
+            .withf(move |e, b| e.lock().is_none() && *b == tmp)
+            .return_const(Ok(()))
+            .once();
+        let tmp = b.clone();
+        syncer
+            .handler
+            .expect_block_added()
+            .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+            .return_const(Ok(()))
+            .once();
+    }
+
+    // Create reorg
+    // [801]
+    syncer
+        .helper
+        .expect_block()
+        .withf(move |e, id, b| {
+            e.lock().is_none()
+                && *id == network_identifier()
+                && *b
+                    == PartialBlockIdentifier {
+                        index: Some(801),
+                        ..Default::default()
+                    }
+        })
+        .return_const(Err(SyncerError::OrphanedHead))
+        .once();
+    let tmp = blocks
+        .last()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .block_identifier
+        .clone();
+    syncer
+        .handler
+        .expect_block_removed()
+        .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+        .return_const(Ok(()))
+        .once();
+
+    let new_blocks = create_blocks(800, 1200, "");
+    for b in &new_blocks {
+        let b = b.as_ref().unwrap();
+        let tmp = b.block_identifier.index;
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(tmp),
+                            ..Default::default()
+                        }
+            })
+            .return_const(Ok(Some(b.clone())))
+            .once();
+        let tmp = b.clone();
+        syncer
+            .handler
+            .expect_block_seen()
+            .withf(move |e, b| e.lock().is_none() && *b == tmp)
+            .return_const(Ok(()))
+            .once();
+        let tmp = b.clone();
+        syncer
+            .handler
+            .expect_block_added()
+            .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+            .return_once(|_, b| {
+                if b.unwrap().block_identifier.index == 1100 {
+                    todo!("cant access syncer inside mock");
+                    // assert!(*syncer.concurrency.lock() > DEFAULT_CONCURRENCY)
+                }
+                Ok(())
+            });
+    }
+
+    // Expected Calls to Block
+    // [0, 799] = 1
+    // [800, 801] = 2
+    // [802,1200] = 1
+
+    tokio_test::block_on(syncer.sync(&error_buf, -1, 1200)).unwrap();
+    assert_eq!(0, *syncer.concurrency.lock());
+    syncer.helper.checkpoint();
+    syncer.handler.checkpoint();
 }
 
 #[test]
 fn test_sync_dynamic() {
-    todo!()
+    let error_buf = Arc::new(Mutex::new(None));
+    let mock_helper = MockHelper::new();
+    let mock_handler = MockHandler::new();
+    let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler)
+        .with_cancel()
+        .cache_size(1 << 20)
+        .build();
+
+    // Force syncer to only get part of the way through the full range
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1,
+                hash: "block 1".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }))
+        .times(2);
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1300,
+                hash: "block 1300".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }))
+        .times(2);
+
+    let mut blocks = create_blocks(0, 200, "");
+
+    // Load blocks with a ton of transactions
+    for block in &mut blocks {
+        let mut block = block.as_mut().unwrap();
+        block.transactions = (0..10000)
+            .into_iter()
+            .map(|i| Transaction {
+                transaction_identifier: TransactionIdentifier {
+                    hash: format!("block {} tx {}", block.block_identifier.index, i),
+                },
+                ..Default::default()
+            })
+            .collect();
+    }
+
+    // Create a block gap
+    blocks[100] = None;
+    blocks[101].as_mut().unwrap().parent_block_identifier =
+        blocks[99].as_ref().unwrap().parent_block_identifier.clone();
+    for (i, b) in blocks.iter().enumerate() {
+        let tmp_b = b.clone();
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(i as i64),
+                            ..Default::default()
+                        }
+            })
+            .return_once(move |_, _, _| {
+                if i == 100 {
+                    todo!("cant access syncer in mock");
+                    // assert_eq!(*syncer.concurrency.lock(), 1)
+                }
+                Ok(tmp_b)
+            });
+
+        if let Some(b) = b {
+            let tmp = b.clone();
+            syncer
+                .handler
+                .expect_block_seen()
+                .withf(move |e, b| e.lock().is_none() && *b == tmp)
+                .return_const(Ok(()))
+                .once();
+            let tmp = b.clone();
+            syncer
+                .handler
+                .expect_block_added()
+                .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+                .return_const(Ok(()))
+                .once();
+        }
+    }
+
+    tokio_test::block_on(syncer.sync(&error_buf, -1, 200)).unwrap();
+    assert_eq!(0, *syncer.concurrency.lock());
+    syncer.helper.checkpoint();
+    syncer.handler.checkpoint();
 }
 
 #[test]
 fn test_sync_dynamic_overhead() {
-    todo!()
+    let error_buf = Arc::new(Mutex::new(None));
+    let mock_helper = MockHelper::new();
+    let mock_handler = MockHandler::new();
+    let mut syncer = Syncer::builder(network_identifier(), mock_helper, mock_handler)
+        .with_cancel()
+        // 1 MB
+        .cache_size(1 << 20)
+        // greatly increase synthetic size
+        .size_multiplier(100000.0)
+        .build();
+
+    // Force syncer to only get part of the way through the full range
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1,
+                hash: "block 1".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }))
+        .times(2);
+    syncer
+        .helper
+        .expect_network_status()
+        .withf(move |e, id| e.lock().is_none() && *id == network_identifier())
+        .return_const(Ok(NetworkStatusResponse {
+            current_block_identifier: BlockIdentifier {
+                index: 1300,
+                hash: "block 1300".into(),
+            },
+            genesis_block_identifier: BlockIdentifier {
+                index: 0,
+                hash: "block 0".into(),
+            },
+            ..Default::default()
+        }))
+        .times(2);
+
+    let mut blocks = create_blocks(0, 200, "");
+
+    // Create a block gap
+    blocks[100] = None;
+    blocks[101].as_mut().unwrap().parent_block_identifier =
+        blocks[99].as_ref().unwrap().parent_block_identifier.clone();
+    for (i, b) in blocks.iter().enumerate() {
+        let tmp_b = b.clone();
+        syncer
+            .helper
+            .expect_block()
+            .withf(move |e, id, b| {
+                e.lock().is_none()
+                    && *id == network_identifier()
+                    && *b
+                        == PartialBlockIdentifier {
+                            index: Some(i as i64),
+                            ..Default::default()
+                        }
+            })
+            .return_once(move |_, _, _| {
+                if i == 100 {
+                    todo!("cant access syncer in mock");
+                    // assert_eq!(*syncer.concurrency.lock(), 1)
+                }
+                Ok(tmp_b)
+            });
+
+        if let Some(b) = b {
+            let tmp = b.clone();
+            syncer
+                .handler
+                .expect_block_seen()
+                .withf(move |e, b| e.lock().is_none() && *b == tmp)
+                .return_const(Ok(()))
+                .once();
+            let tmp = b.clone();
+            syncer
+                .handler
+                .expect_block_added()
+                .withf(move |e, b| e.lock().is_none() && *b == Some(&tmp))
+                .return_const(Ok(()))
+                .once();
+        }
+    }
+
+    tokio_test::block_on(syncer.sync(&error_buf, -1, 200)).unwrap();
+    assert_eq!(0, *syncer.concurrency.lock());
+    syncer.helper.checkpoint();
+    syncer.handler.checkpoint();
 }
