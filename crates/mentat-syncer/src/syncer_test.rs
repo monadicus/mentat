@@ -61,6 +61,7 @@ mock! {
     }
 }
 
+/// MockHandler needs to be in arc so it can be cloned and expectations can be shared across threads
 #[derive(Clone)]
 pub struct ArcMockHandler(Arc<Mutex<MockHandler>>);
 impl ArcMockHandler {
@@ -95,6 +96,7 @@ impl Handler for ArcMockHandler {
     }
 }
 
+/// MockHelper needs to be in arc so it can be cloned and expectations can be shared across threads
 #[derive(Clone)]
 pub struct ArcMockHelper(Arc<Mutex<MockHelper>>);
 impl ArcMockHelper {
@@ -918,8 +920,8 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
 
     for (i, b) in blocks.into_iter().enumerate() {
         let tmp_b = b.clone();
-        custom_expect_block(syncer, Some(i as i64), 1, move |s, _, _, _| {
-            if i == 100 {
+        custom_expect_block(syncer, Some(i as i64), 1, move |s, _, _, id| {
+            if id.index == Some(100) {
                 assert_eq!(*s.concurrency.lock(), 1)
             }
             Ok(tmp_b.clone())

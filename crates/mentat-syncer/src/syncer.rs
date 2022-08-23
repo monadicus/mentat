@@ -4,12 +4,13 @@ use std::{
     mem::size_of_val,
     sync::Arc,
     thread::{sleep, spawn, JoinHandle},
+    time::Duration,
 };
 
-use crossbeam_channel::{unbounded, Receiver, Sender};
+use crossbeam_channel::{unbounded, Receiver, SendError, Sender};
 use indexmap::IndexMap;
 use mentat_types::{hash, Block, BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, MutexGuard};
 
 use crate::{
     errors::{SyncerError, SyncerResult},
@@ -19,13 +20,37 @@ use crate::{
     },
 };
 
+/// sender channel that supports hanging up
+#[derive(Clone)]
+struct ArcSender<T>(Arc<Mutex<Option<Sender<T>>>>);
+
+#[allow(clippy::missing_docs_in_private_items)]
+impl<T> ArcSender<T> {
+    pub fn spawn() -> (Self, Receiver<T>) {
+        let (sender, receiver) = unbounded();
+        (Self(Arc::new(Mutex::new(Some(sender)))), receiver)
+    }
+
+    pub fn send(&self, payload: T) -> Result<(), SendError<T>> {
+        self.0.lock().as_ref().unwrap().send(payload)
+    }
+
+    pub fn close(self) {
+        *self.0.lock() = None;
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.lock().as_ref().unwrap().len()
+    }
+}
+
 /// blockResult is returned by calls
 /// to fetch a particular index. We must
 /// use a separate index field in case
 /// the block is omitted and we can't
 /// determine the index of the request.
 #[allow(clippy::missing_docs_in_private_items)]
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct BlockResult {
     pub index: i64,
     pub block: Option<Block>,
@@ -38,7 +63,7 @@ where
     Help: 'static + Helper + Send + Sync + Clone,
 {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
+    fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
         let network_status = self.helper.network_status(error_buf, &self.network)?;
         self.genesis_block = Some(network_status.genesis_block_identifier);
         if index != -1 {
@@ -52,7 +77,7 @@ where
     /// nextSyncableRange returns the next range of indexes to sync
     /// based on what the last processed block in storage is and
     /// the contents of the network status response.
-    pub fn next_syncable_range(
+    fn next_syncable_range(
         &mut self,
         error_buf: &ErrorBuf,
         mut end_index: i64,
@@ -62,14 +87,15 @@ where
         }
 
         // Always fetch network status to ensure endIndex is not past tip
-        let network_status = match self.helper.network_status(error_buf, &self.network) {
-            Ok(v) => v,
-            Err(e) => return Err(format!("{}: {}", SyncerError::GetNetworkStatusFailed, e).into()),
-        };
-        let current_block_identifier_index = network_status.current_block_identifier.index;
+        let network_status = self
+            .helper
+            .network_status(error_buf, &self.network)
+            .map_err(|e| format!("{}: {}", SyncerError::GetNetworkStatusFailed, e))?;
 
         // Update the syncer's known tip
+        let current_block_identifier_index = network_status.current_block_identifier.index;
         self.tip = Some(network_status.current_block_identifier);
+
         if end_index == -1 || end_index > current_block_identifier_index {
             end_index = current_block_identifier_index
         }
@@ -82,7 +108,7 @@ where
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn attempt_orphan<'a>(
+    fn attempt_orphan<'a>(
         &self,
         last_block: &'a BlockIdentifier,
     ) -> SyncerResult<(bool, Option<&'a BlockIdentifier>)> {
@@ -94,7 +120,7 @@ where
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn check_remove<'a>(
+    fn check_remove<'a>(
         &'a self,
         br: &BlockResult,
     ) -> SyncerResult<(bool, Option<&'a BlockIdentifier>)> {
@@ -107,7 +133,6 @@ where
             return self.attempt_orphan(last_block);
         }
 
-        // TODO: no nil check?
         // Ensure processing correct index
         let block = br.block.as_ref().unwrap();
         if block.block_identifier.index != self.next_index {
@@ -140,7 +165,6 @@ where
             Ok(())
         } else if let (true, last_block) = self.check_remove(&br)? {
             self.handler.block_removed(error_buf, last_block)?;
-            // TODO: no nil check? probably happens in block_removed
             self.next_index = last_block.unwrap().index;
             self.past_blocks.pop_back();
             Ok(())
@@ -151,7 +175,6 @@ where
                 .block_added(self, error_buf, br.block.clone())?;
             #[cfg(not(test))]
             self.handler.block_added(error_buf, br.block.as_ref())?;
-            // TODO: no nil check? probably happens in block_added
             let block = br.block.unwrap();
             let idx = block.block_identifier.index;
             self.past_blocks.push_back(block.block_identifier);
@@ -167,14 +190,14 @@ where
     /// startIndex to endIndex, inclusive) to the
     /// blockIndices channel. When all indices are added,
     /// the channel is closed.
-    pub fn add_block_indices(
+    fn add_block_indices(
         &self,
-        error_buf: &ErrorBuf,
-        block_indices: Sender<i64>,
+        error_buf: ErrorBuf,
+        block_indices: ArcSender<i64>,
         start_index: i64,
         end_index: i64,
     ) -> SyncerResult<()> {
-        for i in start_index..end_index {
+        for i in start_index..=end_index {
             // Don't load if we already have a healthy backlog.
             if block_indices.len() as i64 > *self.concurrency.lock() {
                 sleep(DEFAULT_FETCH_SLEEP);
@@ -182,6 +205,7 @@ where
             }
 
             if let Some(e) = &*error_buf.lock() {
+                block_indices.close();
                 return self.safe_exit(Err(e.clone()));
             } else {
                 block_indices.send(i).unwrap()
@@ -193,13 +217,16 @@ where
         // when we are done. If we don't do this, we may accidentally
         // try to create a new goroutine after Wait has returned.
         // This will cause a panic.
-        *self.done_loading.lock() = true;
+        let mut done_loading = self.done_loading.lock();
+        *done_loading = true;
+        block_indices.close();
+        drop(done_loading);
 
         Ok(())
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn fetch_block_result(
+    fn fetch_block_result(
         &self,
         error_buf: &ErrorBuf,
         network: &NetworkIdentifier,
@@ -235,7 +262,7 @@ where
     /// safeExit ensures we lower the concurrency in a lock while
     /// exiting. This prevents us from accidentally increasing concurrency
     /// when we are shutting down.
-    pub fn safe_exit<T>(&self, res: SyncerResult<T>) -> SyncerResult<T> {
+    fn safe_exit<T>(&self, res: SyncerResult<T>) -> SyncerResult<T> {
         *self.concurrency.lock() -= 1;
         res
     }
@@ -244,29 +271,24 @@ where
     /// channel with retries until there are no
     /// more blocks in the channel or there is an
     /// error.
-    pub fn fetch_blocks(
+    fn fetch_blocks(
         &self,
-        error_buf: &ErrorBuf,
+        error_buf: ErrorBuf,
         network: &NetworkIdentifier,
-        block_indices: &Receiver<i64>,
-        results: &Sender<BlockResult>,
+        block_indices: Receiver<i64>,
+        results: ArcSender<BlockResult>,
     ) -> SyncerResult<()> {
         for b in block_indices {
-            let br = match self.fetch_block_result(error_buf, network, b) {
+            let br = match self
+                .fetch_block_result(&error_buf, network, b)
+                .map_err(|e| format!("{} {}: {}", SyncerError::FetchBlockFailed, b, e))
+            {
                 Ok(v) => v,
-                Err(e) => {
-                    return self.safe_exit(Err(format!(
-                        "{} {}: {}",
-                        SyncerError::FetchBlockFailed,
-                        b,
-                        e
-                    )
-                    .into()))
-                }
+                Err(e) => self.safe_exit(Err(e.into()))?,
             };
 
             if let Some(e) = &*error_buf.lock() {
-                return self.safe_exit(Err(e.clone()));
+                self.safe_exit(Err(e.clone()))?;
             } else {
                 results.send(br).unwrap();
             }
@@ -327,7 +349,7 @@ where
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn adjust_workers(&mut self) -> bool {
+    fn adjust_workers(&mut self, concurrency: &mut MutexGuard<i64>) -> bool {
         // find max block size
         let max = self
             .recent_block_sizes
@@ -337,33 +359,33 @@ where
             .unwrap_or_default() as f64
             * self.size_multiplier;
 
-        let concurrency = *self.concurrency.lock() as i64;
         // Check if we have entered shutdown
         // and return false if we have.
-        if concurrency == 0 {
+        if **concurrency == 0 {
             return false;
         }
 
         // multiply average block size by concurrency
-        let estimated_max_cache = max * concurrency as f64;
+        let estimated_max_cache = max * **concurrency as f64;
 
         // If < cacheSize, increase concurrency by 1 up to MaxConcurrency
-        let mut should_create = false;
-        if estimated_max_cache + max < self.cache_size as f64
-            && concurrency < self.max_concurrency
+        let should_create = if estimated_max_cache + max < self.cache_size as f64
+            && **concurrency < self.max_concurrency
             && self.last_adjustment > self.adjustment_window
         {
             self.goal_concurrency += 1;
-            *self.concurrency.lock() += 1;
+            **concurrency += 1;
             self.last_adjustment = 0;
-            should_create = true;
             tracing::info!(
                 "increasing syncer concurrency to {} (projected new cache size: {} MB)\n",
                 self.goal_concurrency,
                 // TODO should be b_to_mb function inside utils crate
                 max * self.goal_concurrency as f64 / 1024.0 / 1024.0
-            )
-        }
+            );
+            true
+        } else {
+            false
+        };
 
         // If >= cacheSize, decrease concurrency however many necessary to fit max cache size.
         //
@@ -395,11 +417,7 @@ where
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn handle_seen_block(
-        &self,
-        error_buf: &ErrorBuf,
-        result: &BlockResult,
-    ) -> SyncerResult<()> {
+    fn handle_seen_block(&self, error_buf: &ErrorBuf, result: &BlockResult) -> SyncerResult<()> {
         // If the helper returns ErrOrphanHead
         // for a block fetch, result.block will
         // be nil.
@@ -410,47 +428,34 @@ where
         }
     }
 
-    #[allow(clippy::missing_docs_in_private_items)]
-    pub fn sequence_blocks(
+    #[allow(clippy::missing_docs_in_private_items, clippy::too_many_arguments)]
+    fn sequence_blocks(
         &mut self,
         error_buf: &ErrorBuf,
         pipeline_exit: &ErrorBuf,
-        handles: &mut Vec<JoinHandle<SyncerResult<()>>>,
-        block_indices: &Receiver<i64>,
-        fetched_blocks: &(Sender<BlockResult>, Receiver<BlockResult>),
+        handles: &Arc<Mutex<Vec<JoinHandle<SyncerResult<()>>>>>,
+        block_indices: Receiver<i64>,
+        fetched_blocks_sender: ArcSender<BlockResult>,
+        fetched_blocks_receiver: Receiver<BlockResult>,
         end_index: i64,
     ) -> SyncerResult<()> {
         let mut cache = IndexMap::new();
-        loop {
-            // TODO hack to get around inability to close `fetch_blocks` channel from another thread. likely the source of most hangs
-            match fetched_blocks.1.try_recv() {
-                Ok(result) => {
-                    let size = size_of_val(&result) as i64;
-                    cache.insert(result.index, result);
+        for result in &fetched_blocks_receiver {
+            // TODO make sure this returns full size and not just size of immediate pointer
+            let size = size_of_val(&result) as i64;
+            cache.insert(result.index, result);
 
-                    self.process_blocks(error_buf, &mut cache, end_index)
-                        .map_err(|e| {
-                            format!("{}: {}", SyncerError::BlocksProcessMultipleFailed, e)
-                        })?;
+            self.process_blocks(error_buf, &mut cache, end_index)
+                .map_err(|e| format!("{}: {}", SyncerError::BlocksProcessMultipleFailed, e))?;
 
-                    // Determine if concurrency should be adjusted.
-                    self.recent_block_sizes.push_back(size);
-                    self.last_adjustment += 1;
-                }
-                _ if *self.concurrency.lock() == 0 || handles.iter().all(|h| h.is_finished()) => {
-                    break
-                }
-                _ => {}
-            }
+            // Determine if concurrency should be adjusted.
+            self.recent_block_sizes.push_back(size);
+            self.last_adjustment += 1;
 
-            // TODO: their adjust_workers fn assumes concurrencyLock is locked and uses concurrency freely
-            // TODO: then they maintain this lock until the end of the function to prevent concurrency from being set to 0 by accident?
-            // TODO: what is this thread-locking hackery??
-            //
-            // let tmp = self.concurrency.lock();
-            let should_create = self.adjust_workers();
+            let tmp_concurrency = self.concurrency.clone();
+            let mut concurrency = tmp_concurrency.lock();
+            let should_create = self.adjust_workers(&mut concurrency);
             if !should_create {
-                // drop(tmp);
                 continue;
             }
 
@@ -459,29 +464,23 @@ where
             // creating more goroutines (as there is a chance that
             // Wait has returned). Attempting to create more goroutines
             // after Wait has returned will cause a panic.
-            if !*self.done_loading.lock() && pipeline_exit.lock().is_none() {
+            let done_loading = self.done_loading.lock();
+            if !*done_loading && pipeline_exit.lock().is_none() {
                 let tmp_self = self.clone();
                 let tmp_indices = block_indices.clone();
-                let tmp_fetched = fetched_blocks.0.clone();
+                let tmp_fetched = fetched_blocks_sender.clone();
                 let tmp_pipeline = pipeline_exit.clone();
-                handles.push(spawn(move || {
-                    tmp_self.fetch_blocks(
-                        &tmp_pipeline,
-                        &tmp_self.network,
-                        &tmp_indices,
-                        &tmp_fetched,
-                    )
+                handles.lock().push(spawn(move || {
+                    tmp_self.fetch_blocks(tmp_pipeline, &tmp_self.network, tmp_indices, tmp_fetched)
                 }))
             } else {
-                *self.concurrency.lock() -= 1;
+                *concurrency -= 1;
             }
+            drop(done_loading);
 
-            // TODO: this is where they drop the concurrencyLock
-            //
             // Hold concurrencyLock until after we attempt to create another
             // new goroutine in the case we accidentally go to 0 during shutdown.
-            //
-            // self.concurrency.unlock();
+            drop(concurrency);
         }
 
         Ok(())
@@ -490,9 +489,9 @@ where
     /// syncRange fetches and processes a range of blocks
     /// (from syncer.nextIndex to endIndex, inclusive)
     /// with syncer.concurrency.
-    pub fn sync_range(&mut self, error_buf: &ErrorBuf, end_index: i64) -> SyncerResult<()> {
-        let (block_indices_sender, block_indices_receiver) = unbounded();
-        let (fetched_blocks_sender, fetched_blocks_receiver) = unbounded();
+    fn sync_range(&mut self, error_buf: &ErrorBuf, end_index: i64) -> SyncerResult<()> {
+        let (block_indices_sender, block_indices_receiver) = ArcSender::spawn();
+        let (fetched_blocks_sender, fetched_blocks_receiver) = ArcSender::spawn();
 
         // Ensure default concurrency is less than max concurrency.
         let mut starting_concurrency = if self.max_concurrency < DEFAULT_CONCURRENCY {
@@ -523,14 +522,18 @@ where
         // return immediately if the context is canceled).
         //
         // Source: https://godoc.org/golang.org/x/sync/errgroup
-        let mut handles = Vec::new();
+        let handles = Arc::new(Mutex::new(Vec::new()));
         let pipeline_exit = Arc::new(Mutex::new(None));
 
-        let tmp_pipeline = pipeline_exit.clone();
         let tmp_self = self.clone();
-        let tmp_indices = block_indices_sender;
-        handles.push(spawn(move || {
-            tmp_self.add_block_indices(&tmp_pipeline, tmp_indices, tmp_self.next_index, end_index)
+        let tmp_pipeline = pipeline_exit.clone();
+        handles.lock().push(spawn(move || {
+            tmp_self.add_block_indices(
+                tmp_pipeline,
+                block_indices_sender,
+                tmp_self.next_index,
+                end_index,
+            )
         }));
 
         for _ in 0..starting_concurrency {
@@ -538,40 +541,44 @@ where
             let tmp_indices = block_indices_receiver.clone();
             let tmp_fetched = fetched_blocks_sender.clone();
             let tmp_pipeline = pipeline_exit.clone();
-            handles.push(spawn(move || {
-                tmp_self.fetch_blocks(&tmp_pipeline, &tmp_self.network, &tmp_indices, &tmp_fetched)
+            handles.lock().push(spawn(move || {
+                tmp_self.fetch_blocks(tmp_pipeline, &tmp_self.network, tmp_indices, tmp_fetched)
             }))
         }
 
-        // // TODO this is not correct
-        // // Wait for all block fetching goroutines to exit
-        // // before closing the fetchedBlocks channel.
-        // join_all(handles)
-        //     .into_iter()
-        //     .for_each(|t| t.unwrap().unwrap());
-        // drop(fetched_blocks_sender)
+        // Wait for all block fetching goroutines to exit
+        // before closing the fetchedBlocks channel.
+        let tmp_fetched = fetched_blocks_sender.clone();
+        let tmp_handles = handles.clone();
+        let wait_handle = spawn(move || loop {
+            if tmp_handles.lock().iter_mut().all(|h| h.is_finished()) {
+                tmp_fetched.close();
+                break tmp_handles
+                    .lock()
+                    .drain(..)
+                    .flat_map(|h| h.join())
+                    .collect::<Result<(), _>>();
+            } else {
+                // TODO probably a better way to avoid constant locks than this
+                sleep(Duration::from_millis(100))
+            }
+        });
 
         self.sequence_blocks(
             error_buf,
             &pipeline_exit,
-            &mut handles,
-            &block_indices_receiver,
-            &(fetched_blocks_sender, fetched_blocks_receiver),
+            &handles,
+            block_indices_receiver,
+            fetched_blocks_sender,
+            fetched_blocks_receiver,
             end_index,
         )?;
 
-        let err = handles
-            .into_iter()
-            .map(|h| h.join().unwrap())
-            .find_map(|r| {
-                r.err()
-                    .map(|e| format!("{}: unable to sync to {}", e, end_index))
-            });
-        if let Some(e) = err {
-            Err(e)?;
-        }
-
-        Ok(())
+        // if a sub-thread panics then the main thread will panic too
+        wait_handle
+            .join()
+            .unwrap()
+            .map_err(|e| format!("{}: unable to sync to {}", e, end_index).into())
     }
 
     /// Tip returns the last observed tip. The tip is recorded
