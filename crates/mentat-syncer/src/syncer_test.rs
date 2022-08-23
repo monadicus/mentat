@@ -680,6 +680,7 @@ fn test_sync_no_reorg() {
     syncer.handler.lock().checkpoint();
 }
 
+// TODO: infinite lock
 #[test]
 fn test_sync_specific_start() {
     let mut syncer = syncer().with_cancel().build();
@@ -696,7 +697,7 @@ fn test_sync_specific_start() {
         expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 1100 {
-                assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
+                assert!(*s.concurrency.try_lock().unwrap() > DEFAULT_CONCURRENCY)
             }
             Ok(())
         });
@@ -814,7 +815,7 @@ fn test_sync_reorg() {
         expect_block_seen(&mut syncer, b.clone(), seen_times);
         custom_expect_block_added(&mut syncer, Some(b.clone()), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 1100 {
-                assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
+                assert!(*s.concurrency.try_lock().unwrap() > DEFAULT_CONCURRENCY)
             }
             Ok(())
         });
@@ -833,6 +834,7 @@ fn test_sync_reorg() {
     syncer.handler.lock().checkpoint();
 }
 
+// TODO: infinite hang
 #[test]
 fn test_sync_manual_reorg() {
     let mut syncer = syncer().with_cancel().build();
@@ -866,6 +868,7 @@ fn test_sync_manual_reorg() {
     );
 
     let new_blocks = create_blocks(800, 1200, "");
+    // [800, 1200]
     for b in &new_blocks {
         expect_block(
             &mut syncer,
@@ -876,7 +879,7 @@ fn test_sync_manual_reorg() {
         expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 1100 {
-                assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
+                assert!(*s.concurrency.try_lock().unwrap() > DEFAULT_CONCURRENCY)
             }
             Ok(())
         });
@@ -922,7 +925,7 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
         let tmp_b = b.clone();
         custom_expect_block(syncer, Some(i as i64), 1, move |s, _, _, id| {
             if id.index == Some(100) {
-                assert_eq!(*s.concurrency.lock(), 1)
+                assert_eq!(*s.concurrency.try_lock().unwrap(), 1)
             }
             Ok(tmp_b.clone())
         });
