@@ -5,19 +5,28 @@ use crate::errors::Result;
 
 impl TokenKind {
     // TODO maybe for simplicity have TokenKind Int(I128), and UInt(usize)
+    // TODO eh should actually keep tokenKind::Integer then have sub enum in there.
     fn tokenize_number(
         input: &mut Peekable<impl Iterator<Item = char>>,
-        negated: bool,
     ) -> Result<(TokenKind, usize)> {
         let mut seen_dot = false;
         let mut bytes_read = 0;
+        let mut first = true;
+        let mut negated = false;
 
-        let decimal: String = std::iter::from_fn(|| {
+        let number: String = std::iter::from_fn(|| {
             input.next_if(|c| {
-                if c.is_ascii_digit() {
+                if first && c == &'-' {
+                    bytes_read += 1;
+                    first = false;
+                    negated = true;
+                    true
+                } else if c.is_ascii_digit() {
                     bytes_read += c.len_utf8();
+                    first = false;
                     true
                 } else if c == &'.' {
+                    first = false;
                     if !seen_dot {
                         seen_dot = true;
                         bytes_read += c.len_utf8();
@@ -26,18 +35,25 @@ impl TokenKind {
                         false
                     }
                 } else {
+                    first = false;
                     false
                 }
             })
         })
         .collect();
 
-        if seen_dot {
-            let n: f64 = decimal.parse().unwrap();
-            Ok((TokenKind::Decimal(n), bytes_read))
+        if seen_dot && negated {
+            todo!("Negative decimals not allowed")
+        } else if seen_dot {
+            let n: f64 = number.parse().unwrap();
+            Ok((TokenKind::from(n), bytes_read))
+        } else if negated {
+            dbg!(&number);
+            let n: i128 = number.parse().unwrap();
+            Ok((TokenKind::from(n), bytes_read))
         } else {
-            let n: usize = decimal.parse().unwrap();
-            Ok((TokenKind::Integer(n), bytes_read))
+            let n: usize = number.parse().unwrap();
+            Ok((TokenKind::from(n), bytes_read))
         }
     }
 
@@ -102,11 +118,8 @@ impl TokenKind {
         let mut input = input.chars().peekable();
 
         match *input.peek().ok_or_else(|| todo!()).unwrap() {
-            c if c.is_ascii_digit() => Self::tokenize_number(&mut input, false),
-            '-' => {
-                input.next();
-                Self::tokenize_number(&mut input, true)
-            }
+            c if c.is_ascii_digit() => Self::tokenize_number(&mut input),
+            '-' => Self::tokenize_number(&mut input),
             '/' => {
                 input.next();
                 // Find the end of the comment line.
@@ -186,15 +199,10 @@ macro_rules! lexer_test {
         assert_eq!(got, should_be, "Input was {:?}", $src);
     };
     (@inner INT $src:expr, $should_be:expr) => {
-        let negated = if matches!($src.chars().next(), Some('-')) {
-            true
-        } else {
-            false
-        };
         let should_be = TokenKind::from($should_be);
 
         let (got, _bytes_read) =
-            TokenKind::tokenize_number(&mut $src.chars().peekable(), negated).unwrap();
+            TokenKind::tokenize_number(&mut $src.chars().peekable()).unwrap();
         assert_eq!(got, should_be, "Input was {:?}", $src);
     };
     (@inner IDENT $src:expr, $should_be:expr) => {
@@ -227,8 +235,10 @@ lexer_test!(IDENT: tokenize_ident_containing_an_underscore, "Foo_bar" => "Foo_ba
 //     ".Foo_bar"
 // );
 
-lexer_test!(INT: tokenize_a_single_digit_integer, "1" => 1);
-lexer_test!(INT: tokenize_a_longer_integer, "1234567890" => 1234567890);
+lexer_test!(INT: tokenize_a_negative_single_digit_integer, "-1" => -1i128);
+lexer_test!(INT: tokenize_a_single_digit_integer, "1" => 1usize);
+lexer_test!(INT: tokenize_a_longer_integer, "1234567890" => 1234567890usize);
+lexer_test!(INT: tokenize_a_longer_negative_integer, "-1234567890" => -1234567890i128);
 lexer_test!(INT: tokenize_basic_decimal, "12.3" => 12.3);
 lexer_test!(INT: tokenize_string_with_multiple_decimal_points, "12.3.456" => 12.3);
 // lexer_test!(
@@ -239,7 +249,7 @@ lexer_test!(INT: tokenize_string_with_multiple_decimal_points, "12.3.456" => 12.
 lexer_test!(INT: tokenizing_decimal_stops_at_alpha, "123.4asdfghj" => 123.4);
 
 lexer_test!(SINGLE: central_tokenizer_decimal, "123.4" => 123.4);
-lexer_test!(SINGLE: central_tokenizer_integer, "1234" => 1234);
+lexer_test!(SINGLE: central_tokenizer_integer, "1234" => 1234usize);
 lexer_test!(SINGLE: central_tokenizer_comment, "// comment" => TokenKind::Comment("// comment".into()));
 lexer_test!(SINGLE: central_tokenizer_ampersand, "&" => TokenKind::Ampersand);
 lexer_test!(SINGLE: central_tokenizer_asterisk, "*" => TokenKind::Asterisk);

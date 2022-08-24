@@ -1,12 +1,27 @@
-use std::fmt::Display;
+use core::fmt::Display;
 
 use crate::errors::Result;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Integer {
+    UInt(usize),
+    Int(i128),
+}
+
+impl Display for Integer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Integer::UInt(uint) => write!(f, "{uint}"),
+            Integer::Int(int) => write!(f, "{int}"),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
     // Complex non ident tokens.
     Decimal(f64),
-    Integer(usize),
+    Integer(Integer),
     Comment(String),
     String(String),
 
@@ -86,7 +101,13 @@ impl<'a> From<&'a str> for TokenKind {
 
 impl From<usize> for TokenKind {
     fn from(other: usize) -> TokenKind {
-        TokenKind::Integer(other)
+        TokenKind::Integer(Integer::UInt(other))
+    }
+}
+
+impl From<i128> for TokenKind {
+    fn from(other: i128) -> TokenKind {
+        TokenKind::Integer(Integer::Int(other))
     }
 }
 
