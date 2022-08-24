@@ -209,7 +209,7 @@ where
             }
 
             if let Some(e) = &*error_buf.lock() {
-                self.safe_exit(Err(e.clone()))?;
+                self.safe_exit(Err(e.clone()), &error_buf)?;
             } else {
                 block_indices.send(i).unwrap();
                 i += 1;
@@ -265,7 +265,10 @@ where
     /// safeExit ensures we lower the concurrency in a lock while
     /// exiting. This prevents us from accidentally increasing concurrency
     /// when we are shutting down.
-    fn safe_exit<T>(&self, res: SyncerResult<T>) -> SyncerResult<T> {
+    fn safe_exit<T>(&self, res: SyncerResult<T>, buf: &ErrorBuf) -> SyncerResult<T> {
+        if let Err(e) = &res {
+            *buf.lock() = Some(e.clone())
+        }
         *self.concurrency.lock() -= 1;
         res
     }
@@ -287,15 +290,15 @@ where
                 .map_err(|e| format!("{} {}: {}", SyncerError::FetchBlockFailed, b, e))
             {
                 Ok(v) => v,
-                Err(e) => self.safe_exit(Err(e.into()))?,
+                Err(e) => self.safe_exit(Err(e.into()), &error_buf)?,
             };
 
             if let Some(e) = &*error_buf.lock() {
-                self.safe_exit(Err(e.clone()))?;
+                self.safe_exit(Err(e.clone()), &error_buf)?;
             } else if let Some(v) = results.send(br) {
                 v.unwrap()
             } else {
-                self.safe_exit(Err(SyncerError::Cancelled))?
+                self.safe_exit(Err(SyncerError::Cancelled), &error_buf)?
             }
 
             // Exit if concurrency is greater than
@@ -306,7 +309,7 @@ where
                 return Ok(());
             }
         }
-        self.safe_exit(Ok(()))
+        self.safe_exit(Ok(()), &error_buf)
     }
 
     /// processBlocks is invoked whenever a new block is fetched. It attempts
@@ -472,7 +475,7 @@ where
             if !*self.done_loading.lock() && pipeline_exit.lock().is_none() {
                 let tmp_self = self.clone();
                 handles.lock().push(enclose!(
-                    (block_indices, fetched_blocks_sender, pipeline_exit)
+                    (pipeline_exit, block_indices, fetched_blocks_sender)
                     spawn(move || {
                         tmp_self.fetch_blocks(
                             pipeline_exit,
@@ -562,10 +565,10 @@ where
         //
         // Source: https://godoc.org/golang.org/x/sync/errgroup
         let handles = Arc::new(Mutex::new(Vec::new()));
-        let pipeline_exit = Arc::new(Mutex::new(None));
+        let pipeline_buf = Arc::new(Mutex::new(None));
 
         let tmp_self = self.clone();
-        let tmp_pipeline = pipeline_exit.clone();
+        let tmp_pipeline = pipeline_buf.clone();
         handles.lock().push(spawn(move || {
             tmp_self.add_block_indices(
                 tmp_pipeline,
@@ -578,9 +581,9 @@ where
         for _ in 0..starting_concurrency {
             let tmp_self = self.clone();
             handles.lock().push(enclose!(
-                (block_indices_receiver, fetched_blocks_sender, pipeline_exit)
+                (pipeline_buf, block_indices_receiver, fetched_blocks_sender)
                 spawn(move || {
-                    tmp_self.fetch_blocks(pipeline_exit, &tmp_self.network, block_indices_receiver, fetched_blocks_sender)
+                    tmp_self.fetch_blocks(pipeline_buf, &tmp_self.network, block_indices_receiver, fetched_blocks_sender)
                 })
             ));
         }
@@ -588,15 +591,15 @@ where
         // Wait for all block fetching goroutines to exit
         // before closing the fetchedBlocks channel.
         let wait_handle = enclose!(
-            (handles, fetched_blocks_sender, error_buf)
+            (handles, fetched_blocks_sender, pipeline_buf)
             spawn(move || {
-                Self::waiter(handles, fetched_blocks_sender, error_buf)
+                Self::waiter(handles, fetched_blocks_sender, pipeline_buf)
             })
         );
 
         self.sequence_blocks(
             error_buf,
-            &pipeline_exit,
+            &pipeline_buf,
             &handles,
             block_indices_receiver,
             fetched_blocks_sender,
