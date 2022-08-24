@@ -649,29 +649,25 @@ fn test_sync_no_reorg() {
     for (i, b) in blocks.into_iter().enumerate() {
         expect_block(&mut syncer, Some(i as i64), Ok(b.clone()), 1);
 
-        let b = if let Some(b) = b {
-            b
-        } else {
-            continue;
-        };
+        if let Some(b) = b {
+            expect_block_seen(&mut syncer, b.clone(), 1);
+            custom_expect_block_added(&mut syncer, Some(b.clone()), 1, move |s, _, _| {
+                let id = if i > 200 {
+                    BlockIdentifier {
+                        index: 1300,
+                        hash: "block 1300".into(),
+                    }
+                } else {
+                    BlockIdentifier {
+                        index: 200,
+                        hash: "block 200".into(),
+                    }
+                };
 
-        expect_block_seen(&mut syncer, b.clone(), 1);
-        custom_expect_block_added(&mut syncer, Some(b.clone()), 1, move |s, _, _| {
-            let id = if i > 200 {
-                BlockIdentifier {
-                    index: 1300,
-                    hash: "block 1300".into(),
-                }
-            } else {
-                BlockIdentifier {
-                    index: 200,
-                    hash: "block 200".into(),
-                }
-            };
-
-            assert_eq!(Some(&id), s.tip());
-            Ok(())
-        });
+                assert_eq!(Some(&id), s.tip());
+                Ok(())
+            });
+        }
     }
 
     syncer.sync(&buf(), -1, 1200).unwrap();

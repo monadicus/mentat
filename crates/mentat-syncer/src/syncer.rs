@@ -19,28 +19,6 @@ use crate::{
     },
 };
 
-/// holds a closure that gets called on drop
-#[allow(clippy::missing_docs_in_private_items)]
-struct ScopeCall<F: FnMut()> {
-    c: F,
-}
-impl<F: FnMut()> Drop for ScopeCall<F> {
-    fn drop(&mut self) {
-        (self.c)();
-    }
-}
-
-/// holds a closure that gets called at the end of the scope
-macro_rules! defer {
-    ($e:expr) => {
-        let _scope_call = ScopeCall {
-            c: || -> () {
-                $e;
-            },
-        };
-    };
-}
-
 /// sender channel that supports hanging up
 #[derive(Clone)]
 struct ArcSender<T>(Arc<Mutex<Option<Sender<T>>>>);
@@ -58,10 +36,6 @@ impl<T> ArcSender<T> {
 
     fn close(self) {
         *self.0.lock() = None;
-    }
-
-    fn len(&self) -> Option<usize> {
-        self.0.lock().as_ref().map(|s| s.len())
     }
 }
 
@@ -214,15 +188,14 @@ where
     fn add_block_indices(
         &self,
         error_buf: ErrorBuf,
-        block_indices: ArcSender<i64>,
+        block_indices: Sender<i64>,
         start_index: i64,
         end_index: i64,
     ) -> SyncerResult<()> {
-        defer!(block_indices.clone().close());
         let mut i = start_index;
         while i <= end_index {
             // Don't load if we already have a healthy backlog.
-            if self.safe_sender_option(block_indices.len())? as i64 > *self.concurrency.lock() {
+            if block_indices.len() as i64 > *self.concurrency.lock() {
                 sleep(DEFAULT_FETCH_SLEEP);
                 continue;
             }
@@ -230,7 +203,7 @@ where
             if let Some(e) = &*error_buf.lock() {
                 self.safe_exit(Err(e.clone()))?;
             } else {
-                self.safe_sender_option(block_indices.send(i))?.unwrap();
+                block_indices.send(i).unwrap();
                 i += 1;
             }
         }
@@ -288,19 +261,7 @@ where
         *self.concurrency.lock() -= 1;
         res
     }
-
-    /// safe_sender_option ensures we lower the concurrency in a lock while
-    /// exiting. This prevents us from accidentally increasing concurrency
-    /// when we are shutting down.
-    fn safe_sender_option<T>(&self, res: Option<T>) -> SyncerResult<T> {
-        if let Some(r) = res {
-            Ok(r)
-        } else {
-            *self.concurrency.lock() -= 1;
-            Err(SyncerError::Cancelled)
-        }
-    }
-
+    
     /// fetchBlocks fetches blocks from a
     /// channel with retries until there are no
     /// more blocks in the channel or there is an
@@ -323,8 +284,10 @@ where
 
             if let Some(e) = &*error_buf.lock() {
                 self.safe_exit(Err(e.clone()))?;
+            } else if let Some(v) = results.send(br) {
+                v.unwrap()
             } else {
-                self.safe_sender_option(results.send(br))?.unwrap();
+                self.safe_exit(Err(SyncerError::Cancelled))?
             }
 
             // Exit if concurrency is greater than
@@ -474,7 +437,7 @@ where
         end_index: i64,
     ) -> SyncerResult<()> {
         let mut cache = IndexMap::new();
-        for result in &fetched_blocks_receiver {
+        for result in fetched_blocks_receiver {
             // TODO make sure this returns full size and not just size of immediate pointer
             let size = size_of_val(&result) as i64;
             cache.insert(result.index, result);
@@ -524,7 +487,7 @@ where
     /// (from syncer.nextIndex to endIndex, inclusive)
     /// with syncer.concurrency.
     fn sync_range(&mut self, error_buf: &ErrorBuf, end_index: i64) -> SyncerResult<()> {
-        let (block_indices_sender, block_indices_receiver) = ArcSender::spawn();
+        let (block_indices_sender, block_indices_receiver) = unbounded();
         let (fetched_blocks_sender, fetched_blocks_receiver) = ArcSender::spawn();
 
         // Ensure default concurrency is less than max concurrency.
@@ -593,11 +556,7 @@ where
                     return Ok(());
                 }
 
-                if let Some(i) = tmp_handles
-                    .iter()
-                    .enumerate()
-                    .find_map(|(i, h)| h.is_finished().then_some(i))
-                {
+                if let Some(i) = tmp_handles.iter().position(|h| h.is_finished()) {
                     match tmp_handles.remove(i).join() {
                         Ok(Ok(())) => continue,
                         Ok(Err(e)) => {
