@@ -156,74 +156,66 @@ impl TokenKind {
     }
 }
 
-// TODO this can and should be condensed.
+// TODO failing tests after functioning errors.
 macro_rules! lexer_test {
-    (FAIL SINGLE: $name:ident, $src:expr) => {
-        #[cfg(test)]
-        #[test]
-        fn $name() {
-            let src: &str = $src;
+    // (FAIL SINGLE: $name:ident, $src:expr) => {
+    //     #[cfg(test)]
+    //     #[test]
+    //     fn $name() {
+    //         let src: &str = $src;
 
-            let got = TokenKind::tokenize_single(src);
-            assert!(got.is_err(), "{:?} should be an error", got);
-        }
+    //         let got = TokenKind::tokenize_single(src);
+    //         assert!(got.is_err(), "{:?} should be an error", got);
+    //     }
+    // };
+    // (FAIL: $name:ident, $func:expr, $src:expr) => {
+    //     #[cfg(test)]
+    //     #[test]
+    //     fn $name() {
+    //         let src: &str = $src;
+    //         let func = $func;
+
+    //         let got = func(&mut src.chars().peekable());
+    //         assert!(got.is_err(), "{:?} should be an error", got);
+    //     }
+    // };
+    (@inner SINGLE $src:expr, $should_be:expr) => {
+        let should_be = TokenKind::from($should_be);
+
+        let (got, _bytes_read) = TokenKind::tokenize_single($src.into()).unwrap();
+        assert_eq!(got, should_be, "Input was {:?}", $src);
     };
-    (FAIL: $name:ident, $func:expr, $src:expr) => {
-        #[cfg(test)]
-        #[test]
-        fn $name() {
-            let src: &str = $src;
-            let func = $func;
+    (@inner INT $src:expr, $should_be:expr) => {
+        let negated = if matches!($src.chars().next(), Some('-')) {
+            true
+        } else {
+            false
+        };
+        let should_be = TokenKind::from($should_be);
 
-            let got = func(&mut src.chars().peekable());
-            assert!(got.is_err(), "{:?} should be an error", got);
-        }
+        let (got, _bytes_read) =
+            TokenKind::tokenize_number(&mut $src.chars().peekable(), negated).unwrap();
+        assert_eq!(got, should_be, "Input was {:?}", $src);
     };
-    (SINGLE: $name:ident, $src:expr => $should_be:expr) => {
-        #[cfg(test)]
-        #[test]
-        fn $name() {
-            let src: &str = $src;
-            let should_be = TokenKind::from($should_be);
+    (@inner IDENT $src:expr, $should_be:expr) => {
+        let should_be = TokenKind::from($should_be);
 
-            let (got, _bytes_read) = TokenKind::tokenize_single(src.into()).unwrap();
-            assert_eq!(got, should_be, "Input was {:?}", src);
-        }
+        let (got, _bytes_read) = TokenKind::tokenize_ident(&mut $src.chars().peekable()).unwrap();
+        assert_eq!(got, should_be, "Input was {:?}", $src);
     };
-    (INT: $name:ident, $src:expr => $should_be:expr) => {
+    ($kind:ident: $name:ident, $src:expr => $should_be:expr) => {
         #[cfg(test)]
         #[test]
         fn $name() {
             let src: &str = $src;
-            let negated = if matches!(src.chars().next(), Some('-')) {
-                true
-            } else {
-                false
-            };
-            let should_be = TokenKind::from($should_be);
-
-            let (got, _bytes_read) =
-                TokenKind::tokenize_number(&mut src.chars().peekable(), negated).unwrap();
-            assert_eq!(got, should_be, "Input was {:?}", src);
-        }
-    };
-    ($name:ident, $src:expr => $should_be:expr) => {
-        #[cfg(test)]
-        #[test]
-        fn $name() {
-            let src: &str = $src;
-            let should_be = TokenKind::from($should_be);
-
-            let (got, _bytes_read) =
-                TokenKind::tokenize_ident(&mut src.chars().peekable()).unwrap();
-            assert_eq!(got, should_be, "Input was {:?}", src);
+            lexer_test!(@inner $kind src, $should_be);
         }
     };
 }
 
-lexer_test!(tokenize_a_single_letter, "f" => "f");
-lexer_test!(tokenize_an_identifier, "Foo" => "Foo");
-lexer_test!(tokenize_ident_containing_an_underscore, "Foo_bar" => "Foo_bar");
+lexer_test!(IDENT: tokenize_a_single_letter, "f" => "f");
+lexer_test!(IDENT: tokenize_an_identifier, "Foo" => "Foo");
+lexer_test!(IDENT: tokenize_ident_containing_an_underscore, "Foo_bar" => "Foo_bar");
 // lexer_test!(
 //     FAIL: tokenize_ident_cant_start_with_number,
 //     TokenKind::tokenize_ident,
