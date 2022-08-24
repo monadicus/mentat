@@ -744,7 +744,7 @@ fn test_sync_cancel() {
 fn test_sync_reorg() {
     let mut syncer = syncer().with_cancel().build();
 
-    expect_network_status(&mut syncer, 1300, 2);
+    expect_network_status(&mut syncer, 1300, ..);
 
     let blocks = create_blocks(0, 800, "");
     // [0, 800]
