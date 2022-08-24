@@ -25,21 +25,29 @@ struct ArcSender<T>(Arc<Mutex<Option<Sender<T>>>>);
 
 #[allow(clippy::missing_docs_in_private_items)]
 impl<T> ArcSender<T> {
-    pub fn spawn() -> (Self, Receiver<T>) {
+    fn spawn() -> (Self, Receiver<T>) {
         let (sender, receiver) = unbounded();
         (Self(Arc::new(Mutex::new(Some(sender)))), receiver)
     }
 
-    pub fn send(&self, payload: T) -> Result<(), SendError<T>> {
-        self.0.lock().as_ref().unwrap().send(payload)
+    fn send(&self, payload: T) -> SyncerResult<Result<(), SendError<T>>> {
+        self.0
+            .lock()
+            .as_ref()
+            .ok_or(SyncerError::Cancelled)
+            .map(|s| s.send(payload))
     }
 
-    pub fn close(self) {
+    fn close(self) {
         *self.0.lock() = None;
     }
 
-    pub fn len(&self) -> usize {
-        self.0.lock().as_ref().unwrap().len()
+    fn len(&self) -> SyncerResult<usize> {
+        self.0
+            .lock()
+            .as_ref()
+            .ok_or(SyncerError::Cancelled)
+            .map(|s| s.len())
     }
 }
 
@@ -198,7 +206,7 @@ where
     ) -> SyncerResult<()> {
         for i in start_index..=end_index {
             // Don't load if we already have a healthy backlog.
-            if block_indices.len() as i64 > *self.concurrency.lock() {
+            if block_indices.len()? as i64 > *self.concurrency.lock() {
                 sleep(DEFAULT_FETCH_SLEEP);
                 continue;
             }
@@ -207,7 +215,7 @@ where
                 block_indices.close();
                 return self.safe_exit(Err(e.clone()));
             } else {
-                block_indices.send(i).unwrap()
+                block_indices.send(i)?.unwrap()
             }
         }
 
@@ -289,7 +297,7 @@ where
             if let Some(e) = &*error_buf.lock() {
                 self.safe_exit(Err(e.clone()))?;
             } else {
-                results.send(br).unwrap();
+                results.send(br)?.unwrap();
             }
 
             // Exit if concurrency is greater than
