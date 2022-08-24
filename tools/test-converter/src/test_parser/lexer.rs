@@ -4,8 +4,9 @@ use super::tokens::TokenKind;
 use crate::errors::Result;
 
 impl TokenKind {
-    // TODO maybe for simplicity have TokenKind Int(I128), and UInt(usize)
-    // TODO eh should actually keep tokenKind::Integer then have sub enum in there.
+    // TODO consider simplicity purpose and just parse negation sign...
+    // Might not even need to parse the numbers?
+    // I think we just need to move them.
     fn tokenize_number(
         input: &mut Peekable<impl Iterator<Item = char>>,
     ) -> Result<(TokenKind, usize)> {
