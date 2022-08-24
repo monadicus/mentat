@@ -219,7 +219,8 @@ where
         end_index: i64,
     ) -> SyncerResult<()> {
         defer!(block_indices.clone().close());
-        for i in start_index..=end_index {
+        let mut i = start_index;
+        while i <= end_index {
             // Don't load if we already have a healthy backlog.
             if self.safe_sender_option(block_indices.len())? as i64 > *self.concurrency.lock() {
                 sleep(DEFAULT_FETCH_SLEEP);
@@ -229,7 +230,8 @@ where
             if let Some(e) = &*error_buf.lock() {
                 self.safe_exit(Err(e.clone()))?;
             } else {
-                self.safe_sender_option(block_indices.send(i))?.unwrap()
+                self.safe_sender_option(block_indices.send(i))?.unwrap();
+                i += 1;
             }
         }
 
