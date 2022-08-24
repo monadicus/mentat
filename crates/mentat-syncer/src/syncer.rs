@@ -261,7 +261,7 @@ where
         *self.concurrency.lock() -= 1;
         res
     }
-    
+
     /// fetchBlocks fetches blocks from a
     /// channel with retries until there are no
     /// more blocks in the channel or there is an

@@ -338,6 +338,7 @@ fn block_sequence_idx(id: usize) -> Option<Block> {
 
 fn expect_block(
     syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
+    enforce_buf: bool,
     index: Option<i64>,
     ret: SyncerResult<Option<Block>>,
     times: impl Into<TimesRange>,
@@ -346,7 +347,7 @@ fn expect_block(
     helper
         .expect_block()
         .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, id, b| {
-            e.lock().is_none()
+            !(e.lock().is_some() && enforce_buf)
                 && *id == network_identifier()
                 && *b
                     == PartialBlockIdentifier {
@@ -392,6 +393,7 @@ fn custom_expect_block<F>(
 
 fn expect_block_added(
     syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
+    enforce_buf: bool,
     block: Option<Block>,
     times: impl Into<TimesRange>,
 ) {
@@ -399,7 +401,7 @@ fn expect_block_added(
     handler
         .expect_block_added()
         .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, g| {
-            e.lock().is_none() && *g == block
+            !(e.lock().is_some() && enforce_buf) && *g == block
         })
         .return_const(Ok(()))
         .times(times.into());
@@ -439,13 +441,14 @@ fn expect_block_removed(
 
 fn expect_block_seen(
     syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
+    enforce_buf: bool,
     block: Block,
     times: impl Into<TimesRange>,
 ) {
     let mut handler = syncer.handler.lock();
     handler
         .expect_block_seen()
-        .withf(move |e, b| e.lock().is_none() && *b == block)
+        .withf(move |e, b| !(e.lock().is_some() && enforce_buf) && *b == block)
         .return_const(Ok(()))
         .times(times.into());
 }
@@ -524,7 +527,7 @@ fn test_process_block() {
 
     {
         print!("No block exists: ");
-        expect_block_added(&mut syncer, block_sequence_idx(0), 1);
+        expect_block_added(&mut syncer, true, block_sequence_idx(0), 1);
         process_block(&mut syncer, block_sequence_idx(0)).unwrap();
         assert_syncer(&mut syncer, 1, &[0]);
         println!("ok!");
@@ -540,7 +543,7 @@ fn test_process_block() {
 
     {
         print!("Block exists, no reorg: ");
-        expect_block_added(&mut syncer, block_sequence_idx(1), 1);
+        expect_block_added(&mut syncer, true, block_sequence_idx(1), 1);
         process_block(&mut syncer, block_sequence_idx(1)).unwrap();
         assert_syncer(&mut syncer, 2, &[0, 1]);
         println!("ok!");
@@ -556,11 +559,11 @@ fn test_process_block() {
         process_block(&mut syncer, block_sequence_idx(2)).unwrap();
         assert_syncer(&mut syncer, 1, &[0]);
 
-        expect_block_added(&mut syncer, block_sequence_idx(3), 1);
+        expect_block_added(&mut syncer, true, block_sequence_idx(3), 1);
         process_block(&mut syncer, block_sequence_idx(3)).unwrap();
         assert_syncer(&mut syncer, 2, &[0, 3]);
 
-        expect_block_added(&mut syncer, block_sequence_idx(2), 1);
+        expect_block_added(&mut syncer, true, block_sequence_idx(2), 1);
         process_block(&mut syncer, block_sequence_idx(2)).unwrap();
         assert_syncer(&mut syncer, 3, &[0, 3, 2]);
         println!("ok!");
@@ -647,10 +650,10 @@ fn test_sync_no_reorg() {
         blocks[99].as_ref().unwrap().block_identifier.clone();
 
     for (i, b) in blocks.into_iter().enumerate() {
-        expect_block(&mut syncer, Some(i as i64), Ok(b.clone()), 1);
+        expect_block(&mut syncer, true, Some(i as i64), Ok(b.clone()), 1);
 
         if let Some(b) = b {
-            expect_block_seen(&mut syncer, b.clone(), 1);
+            expect_block_seen(&mut syncer, true, b.clone(), 1);
             custom_expect_block_added(&mut syncer, Some(b.clone()), 1, move |s, _, _| {
                 let id = if i > 200 {
                     BlockIdentifier {
@@ -686,11 +689,12 @@ fn test_sync_specific_start() {
     for b in create_blocks(100, 1200, "") {
         expect_block(
             &mut syncer,
+            true,
             b.as_ref().map(|b| b.block_identifier.index),
             Ok(b.clone()),
             1,
         );
-        expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
+        expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 1100 {
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
@@ -715,12 +719,13 @@ fn test_sync_cancel() {
     for b in create_blocks(0, 1200, "") {
         expect_block(
             &mut syncer,
+            false,
             b.as_ref().map(|b| b.block_identifier.index),
             Ok(b.clone()),
             ..=1,
         );
-        expect_block_seen(&mut syncer, b.clone().unwrap(), ..=1);
-        expect_block_added(&mut syncer, b.clone(), ..=1);
+        expect_block_seen(&mut syncer, false, b.clone().unwrap(), ..=1);
+        expect_block_added(&mut syncer, false, b.clone(), ..=1);
     }
 
     let error_buf = buf();
@@ -746,13 +751,14 @@ fn test_sync_reorg() {
     for b in &blocks {
         expect_block(
             &mut syncer,
+            true,
             b.as_ref().map(|b| b.block_identifier.index),
             Ok(b.clone()),
             1,
         );
 
-        expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
-        expect_block_added(&mut syncer, b.clone(), 1);
+        expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
+        expect_block_added(&mut syncer, true, b.clone(), 1);
     }
 
     // Create reorg
@@ -762,6 +768,7 @@ fn test_sync_reorg() {
     // [801]
     expect_block(
         &mut syncer,
+        true,
         block.as_ref().map(|b| b.block_identifier.index),
         Ok(block),
         1,
@@ -780,6 +787,7 @@ fn test_sync_reorg() {
         let this_block = new_blocks[i - 790].clone();
         expect_block(
             &mut syncer,
+            true,
             this_block.as_ref().map(|b| b.block_identifier.index),
             Ok(this_block),
             1,
@@ -793,14 +801,15 @@ fn test_sync_reorg() {
 
     let block = new_blocks[0].clone();
     // only fetch these blocks once
-    expect_block_seen(&mut syncer, block.clone().unwrap(), 1);
-    expect_block_added(&mut syncer, block, 1);
+    expect_block_seen(&mut syncer, true, block.clone().unwrap(), 1);
+    expect_block_added(&mut syncer, true, block, 1);
 
     // New blocks added
     // [790, 1200]
     for b in &new_blocks[1..] {
         expect_block(
             &mut syncer,
+            true,
             b.as_ref().map(|b| b.block_identifier.index),
             Ok(b.clone()),
             1,
@@ -808,7 +817,7 @@ fn test_sync_reorg() {
 
         let b = b.as_ref().unwrap();
         let seen_times = if b.block_identifier.index > 801 { 1 } else { 2 };
-        expect_block_seen(&mut syncer, b.clone(), seen_times);
+        expect_block_seen(&mut syncer, true, b.clone(), seen_times);
         custom_expect_block_added(&mut syncer, Some(b.clone()), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 1100 {
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
@@ -842,17 +851,24 @@ fn test_sync_manual_reorg() {
     for b in &blocks {
         expect_block(
             &mut syncer,
+            true,
             b.as_ref().map(|b| b.block_identifier.index),
             Ok(b.clone()),
             1,
         );
-        expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
-        expect_block_added(&mut syncer, b.clone(), 1);
+        expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
+        expect_block_added(&mut syncer, true, b.clone(), 1);
     }
 
     // Create reorg
     // [801]
-    expect_block(&mut syncer, Some(801), Err(SyncerError::OrphanedHead), 1);
+    expect_block(
+        &mut syncer,
+        true,
+        Some(801),
+        Err(SyncerError::OrphanedHead),
+        1,
+    );
     expect_block_removed(
         &mut syncer,
         blocks
@@ -868,11 +884,12 @@ fn test_sync_manual_reorg() {
     for b in &new_blocks {
         expect_block(
             &mut syncer,
+            true,
             b.as_ref().map(|b| b.block_identifier.index),
             Ok(b.clone()),
             1,
         );
-        expect_block_seen(&mut syncer, b.clone().unwrap(), 1);
+        expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 1100 {
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
@@ -927,8 +944,8 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
         });
 
         if let Some(b) = b {
-            expect_block_seen(syncer, b.clone(), 1);
-            expect_block_added(syncer, Some(b), 1);
+            expect_block_seen(syncer, true, b.clone(), 1);
+            expect_block_added(syncer, true, Some(b), 1);
         }
     }
 
