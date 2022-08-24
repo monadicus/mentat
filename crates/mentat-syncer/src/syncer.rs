@@ -19,6 +19,28 @@ use crate::{
     },
 };
 
+/// holds a closure that gets called on drop
+#[allow(clippy::missing_docs_in_private_items)]
+struct ScopeCall<F: FnMut()> {
+    c: F,
+}
+impl<F: FnMut()> Drop for ScopeCall<F> {
+    fn drop(&mut self) {
+        (self.c)();
+    }
+}
+
+/// holds a closure that gets called at the end of the scope
+macro_rules! defer {
+    ($e:expr) => {
+        let _scope_call = ScopeCall {
+            c: || -> () {
+                $e;
+            },
+        };
+    };
+}
+
 /// sender channel that supports hanging up
 #[derive(Clone)]
 struct ArcSender<T>(Arc<Mutex<Option<Sender<T>>>>);
@@ -30,24 +52,16 @@ impl<T> ArcSender<T> {
         (Self(Arc::new(Mutex::new(Some(sender)))), receiver)
     }
 
-    fn send(&self, payload: T) -> SyncerResult<Result<(), SendError<T>>> {
-        self.0
-            .lock()
-            .as_ref()
-            .ok_or(SyncerError::Cancelled)
-            .map(|s| s.send(payload))
+    fn send(&self, payload: T) -> Option<Result<(), SendError<T>>> {
+        self.0.lock().as_ref().map(|s| s.send(payload))
     }
 
     fn close(self) {
         *self.0.lock() = None;
     }
 
-    fn len(&self) -> SyncerResult<usize> {
-        self.0
-            .lock()
-            .as_ref()
-            .ok_or(SyncerError::Cancelled)
-            .map(|s| s.len())
+    fn len(&self) -> Option<usize> {
+        self.0.lock().as_ref().map(|s| s.len())
     }
 }
 
@@ -204,30 +218,29 @@ where
         start_index: i64,
         end_index: i64,
     ) -> SyncerResult<()> {
+        defer!(block_indices.clone().close());
         for i in start_index..=end_index {
             // Don't load if we already have a healthy backlog.
-            if block_indices.len()? as i64 > *self.concurrency.lock() {
+            if self.safe_sender_option(block_indices.len())? as i64 > *self.concurrency.lock() {
                 sleep(DEFAULT_FETCH_SLEEP);
                 continue;
             }
 
             if let Some(e) = &*error_buf.lock() {
-                block_indices.close();
-                return self.safe_exit(Err(e.clone()));
+                self.safe_exit(Err(e.clone()))?;
             } else {
-                block_indices.send(i)?.unwrap()
+                self.safe_sender_option(block_indices.send(i))?.unwrap()
             }
         }
 
+        // TODO suppose to hold done_loading lock til after the defer
+        //
         // We populate doneLoading before exiting
         // to make sure we don't create more goroutines
         // when we are done. If we don't do this, we may accidentally
         // try to create a new goroutine after Wait has returned.
         // This will cause a panic.
-        let mut done_loading = self.done_loading.lock();
-        *done_loading = true;
-        block_indices.close();
-        drop(done_loading);
+        *self.done_loading.lock() = true;
 
         Ok(())
     }
@@ -274,6 +287,18 @@ where
         res
     }
 
+    /// safe_sender_option ensures we lower the concurrency in a lock while
+    /// exiting. This prevents us from accidentally increasing concurrency
+    /// when we are shutting down.
+    fn safe_sender_option<T>(&self, res: Option<T>) -> SyncerResult<T> {
+        if let Some(r) = res {
+            Ok(r)
+        } else {
+            *self.concurrency.lock() -= 1;
+            Err(SyncerError::Cancelled)
+        }
+    }
+
     /// fetchBlocks fetches blocks from a
     /// channel with retries until there are no
     /// more blocks in the channel or there is an
@@ -297,7 +322,7 @@ where
             if let Some(e) = &*error_buf.lock() {
                 self.safe_exit(Err(e.clone()))?;
             } else {
-                results.send(br)?.unwrap();
+                self.safe_sender_option(results.send(br))?.unwrap();
             }
 
             // Exit if concurrency is greater than
