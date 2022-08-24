@@ -19,6 +19,14 @@ use crate::{
     },
 };
 
+/// macro to aid in cloning values for threads
+macro_rules! enclose {
+    (($($i:ident),*) $y:expr) => {{
+        $(let $i = $i.clone();)*
+        $y
+    }}
+}
+
 /// sender channel that supports hanging up
 #[derive(Clone)]
 struct ArcSender<T>(Arc<Mutex<Option<Sender<T>>>>);
@@ -461,19 +469,22 @@ where
             // creating more goroutines (as there is a chance that
             // Wait has returned). Attempting to create more goroutines
             // after Wait has returned will cause a panic.
-            let done_loading = self.done_loading.lock();
-            if !*done_loading && pipeline_exit.lock().is_none() {
+            if !*self.done_loading.lock() && pipeline_exit.lock().is_none() {
                 let tmp_self = self.clone();
-                let tmp_indices = block_indices.clone();
-                let tmp_fetched = fetched_blocks_sender.clone();
-                let tmp_pipeline = pipeline_exit.clone();
-                handles.lock().push(spawn(move || {
-                    tmp_self.fetch_blocks(tmp_pipeline, &tmp_self.network, tmp_indices, tmp_fetched)
-                }))
+                handles.lock().push(enclose!(
+                    (block_indices, fetched_blocks_sender, pipeline_exit)
+                    spawn(move || {
+                        tmp_self.fetch_blocks(
+                            pipeline_exit,
+                            &tmp_self.network,
+                            block_indices,
+                            fetched_blocks_sender,
+                        )
+                    })
+                ));
             } else {
                 *concurrency -= 1;
             }
-            drop(done_loading);
 
             // Hold concurrencyLock until after we attempt to create another
             // new goroutine in the case we accidentally go to 0 during shutdown.
@@ -481,6 +492,39 @@ where
         }
 
         Ok(())
+    }
+
+    /// Wait for all block fetching threads to exit
+    /// before closing the fetched_blocks channel.
+    fn waiter(
+        handles: Arc<Mutex<Vec<JoinHandle<SyncerResult<()>>>>>,
+        fetched_blocks: ArcSender<BlockResult>,
+        error_buf: ErrorBuf,
+    ) -> SyncerResult<()> {
+        let res = loop {
+            let mut handles = handles.lock();
+            if handles.is_empty() {
+                break Ok(());
+            }
+
+            if let Some(i) = handles.iter().position(|h| h.is_finished()) {
+                match handles.remove(i).join() {
+                    Ok(Ok(())) => continue,
+                    Ok(Err(e)) => {
+                        break Err(e);
+                    }
+                    Err(e) => {
+                        let e = SyncerError::String(format!("{e:?}"));
+                        break Err(e);
+                    }
+                }
+            }
+        };
+        if let Err(e) = &res {
+            *error_buf.lock() = Some(e.clone());
+        }
+        fetched_blocks.close();
+        res
     }
 
     /// syncRange fetches and processes a range of blocks
@@ -491,18 +535,16 @@ where
         let (fetched_blocks_sender, fetched_blocks_receiver) = ArcSender::spawn();
 
         // Ensure default concurrency is less than max concurrency.
-        let mut starting_concurrency = if self.max_concurrency < DEFAULT_CONCURRENCY {
-            self.max_concurrency
-        } else {
-            DEFAULT_CONCURRENCY
-        };
-
         // Don't create more goroutines than there are blocks
         // to sync.
-        let blocks_to_sync = end_index - self.next_index + 1;
-        if blocks_to_sync < starting_concurrency {
-            starting_concurrency = blocks_to_sync
-        }
+        let starting_concurrency = [
+            self.max_concurrency,
+            DEFAULT_CONCURRENCY,
+            end_index - self.next_index + 1,
+        ]
+        .into_iter()
+        .min()
+        .unwrap();
 
         // Reset sync variables
         self.recent_block_sizes.clear();
@@ -535,44 +577,22 @@ where
 
         for _ in 0..starting_concurrency {
             let tmp_self = self.clone();
-            let tmp_indices = block_indices_receiver.clone();
-            let tmp_fetched = fetched_blocks_sender.clone();
-            let tmp_pipeline = pipeline_exit.clone();
-            handles.lock().push(spawn(move || {
-                tmp_self.fetch_blocks(tmp_pipeline, &tmp_self.network, tmp_indices, tmp_fetched)
-            }))
+            handles.lock().push(enclose!(
+                (block_indices_receiver, fetched_blocks_sender, pipeline_exit)
+                spawn(move || {
+                    tmp_self.fetch_blocks(pipeline_exit, &tmp_self.network, block_indices_receiver, fetched_blocks_sender)
+                })
+            ));
         }
 
         // Wait for all block fetching goroutines to exit
         // before closing the fetchedBlocks channel.
-        let tmp_fetched = fetched_blocks_sender.clone();
-        let tmp_handles = handles.clone();
-        let tmp_error_buf = error_buf.clone();
-        let wait_handle = spawn(move || {
-            let e = loop {
-                let mut tmp_handles = tmp_handles.lock();
-                if tmp_handles.is_empty() {
-                    tmp_fetched.close();
-                    return Ok(());
-                }
-
-                if let Some(i) = tmp_handles.iter().position(|h| h.is_finished()) {
-                    match tmp_handles.remove(i).join() {
-                        Ok(Ok(())) => continue,
-                        Ok(Err(e)) => {
-                            break e;
-                        }
-                        Err(e) => {
-                            let e = SyncerError::String(format!("{e:?}"));
-                            break e;
-                        }
-                    }
-                }
-            };
-            *tmp_error_buf.lock() = Some(e.clone());
-            tmp_fetched.close();
-            Err(e)
-        });
+        let wait_handle = enclose!(
+            (handles, fetched_blocks_sender, error_buf)
+            spawn(move || {
+                Self::waiter(handles, fetched_blocks_sender, error_buf)
+            })
+        );
 
         self.sequence_blocks(
             error_buf,
