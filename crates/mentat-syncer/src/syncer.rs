@@ -4,7 +4,6 @@ use std::{
     mem::size_of_val,
     sync::Arc,
     thread::{sleep, spawn, JoinHandle},
-    time::Duration,
 };
 
 use crossbeam_channel::{unbounded, Receiver, SendError, Sender};
@@ -550,18 +549,35 @@ where
         // before closing the fetchedBlocks channel.
         let tmp_fetched = fetched_blocks_sender.clone();
         let tmp_handles = handles.clone();
-        let wait_handle = spawn(move || loop {
-            if tmp_handles.lock().iter_mut().all(|h| h.is_finished()) {
-                tmp_fetched.close();
-                break tmp_handles
-                    .lock()
-                    .drain(..)
-                    .flat_map(|h| h.join())
-                    .collect::<Result<(), _>>();
-            } else {
-                // TODO probably a better way to avoid constant locks than this
-                sleep(Duration::from_millis(100))
-            }
+        let tmp_error_buf = error_buf.clone();
+        let wait_handle = spawn(move || {
+            let e = loop {
+                let mut tmp_handles = tmp_handles.lock();
+                if tmp_handles.is_empty() {
+                    tmp_fetched.close();
+                    return Ok(());
+                }
+
+                if let Some(i) = tmp_handles
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, h)| h.is_finished().then_some(i))
+                {
+                    match tmp_handles.remove(i).join() {
+                        Ok(Ok(())) => continue,
+                        Ok(Err(e)) => {
+                            break e;
+                        }
+                        Err(e) => {
+                            let e = SyncerError::String(format!("{e:?}"));
+                            break e;
+                        }
+                    }
+                }
+            };
+            *tmp_error_buf.lock() = Some(e.clone());
+            tmp_fetched.close();
+            Err(e)
         });
 
         self.sequence_blocks(
