@@ -2,9 +2,10 @@ use std::fmt::Display;
 
 use crate::errors::Result;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
     // Complex non ident tokens.
+    Decimal(f64),
     Integer(usize),
     Comment(String),
     String(String),
@@ -14,6 +15,7 @@ pub enum TokenKind {
     Asterisk,
     Colon,
     Comma,
+    Dot,
     LeftBracket,
     ArrayType,
     RightBracket,
@@ -25,19 +27,21 @@ pub enum TokenKind {
 
     // Complex Tokens
     Identifier(String),
-    BigIntType,
-    NewBigInt,
+    IntType,
+    NewInt,
     Interface,
     False,
     True,
     Nil,
     Map,
+    Big,
 }
 
 impl Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TokenKind::Integer(_) => todo!(),
+            TokenKind::Decimal(decimal) => write!(f, "{decimal}"),
+            TokenKind::Integer(int) => write!(f, "{int}"),
             TokenKind::Comment(comment) => write!(f, "// {comment}"),
             TokenKind::String(string) => write!(f, "\"{string}\""),
 
@@ -45,6 +49,7 @@ impl Display for TokenKind {
             TokenKind::Asterisk => write!(f, "*"),
             TokenKind::Colon => write!(f, ":"),
             TokenKind::Comma => write!(f, ","),
+            TokenKind::Dot => write!(f, "."),
             TokenKind::LeftBracket => write!(f, "["),
             TokenKind::ArrayType => write!(f, "[]"),
             TokenKind::RightBracket => write!(f, "]"),
@@ -55,14 +60,39 @@ impl Display for TokenKind {
             TokenKind::RightParen => write!(f, ")"),
 
             TokenKind::Identifier(ident) => write!(f, "{ident}"),
-            TokenKind::BigIntType => write!(f, "todo"),
-            TokenKind::NewBigInt => write!(f, "Big::from"),
+            TokenKind::IntType => write!(f, "todo"),
+            TokenKind::NewInt => write!(f, "todo"),
             TokenKind::Interface => write!(f, "serde_json::Value"),
             TokenKind::False => write!(f, "false"),
             TokenKind::True => write!(f, "true"),
             TokenKind::Nil => write!(f, "None"),
             TokenKind::Map => write!(f, "IndexMap"),
+            TokenKind::Big => write!(f, "todo"),
         }
+    }
+}
+
+impl From<String> for TokenKind {
+    fn from(other: String) -> TokenKind {
+        TokenKind::Identifier(other)
+    }
+}
+
+impl<'a> From<&'a str> for TokenKind {
+    fn from(other: &'a str) -> TokenKind {
+        TokenKind::Identifier(other.to_string())
+    }
+}
+
+impl From<usize> for TokenKind {
+    fn from(other: usize) -> TokenKind {
+        TokenKind::Integer(other)
+    }
+}
+
+impl From<f64> for TokenKind {
+    fn from(other: f64) -> TokenKind {
+        TokenKind::Decimal(other)
     }
 }
 

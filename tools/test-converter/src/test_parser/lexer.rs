@@ -4,33 +4,42 @@ use super::tokens::TokenKind;
 use crate::errors::Result;
 
 impl TokenKind {
-    // fn tokenize_number(input: &mut Peekable<impl Iterator<Item = char>>) ->
-    // Result<(TokenKind, usize)> {     let mut seen_dot = false;
-    //     let mut negated = false;
+    // TODO maybe for simplicity have TokenKind Int(I128), and UInt(usize)
+    fn tokenize_number(
+        input: &mut Peekable<impl Iterator<Item = char>>,
+        negated: bool,
+    ) -> Result<(TokenKind, usize)> {
+        let mut seen_dot = false;
+        let mut bytes_read = 0;
 
-    //     let (decimal, bytes_read) = take_while(data, |c| {
-    //         if c.is_digit(10) {
-    //             true
-    //         } else if c == '.' {
-    //             if !seen_dot {
-    //                 seen_dot = true;
-    //                 true
-    //             } else {
-    //                 false
-    //             }
-    //         } else {
-    //             false
-    //         }
-    //     })?;
+        let decimal: String = std::iter::from_fn(|| {
+            input.next_if(|c| {
+                if c.is_ascii_digit() {
+                    bytes_read += c.len_utf8();
+                    true
+                } else if c == &'.' {
+                    if !seen_dot {
+                        seen_dot = true;
+                        bytes_read += c.len_utf8();
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            })
+        })
+        .collect();
 
-    //     if seen_dot {
-    //         let n: f64 = decimal.parse()?;
-    //         Ok((TokenKind::Decimal(n), bytes_read))
-    //     } else {
-    //         let n: usize = decimal.parse()?;
-    //         Ok((TokenKind::Integer(n), bytes_read))
-    //     }
-    // }
+        if seen_dot {
+            let n: f64 = decimal.parse().unwrap();
+            Ok((TokenKind::Decimal(n), bytes_read))
+        } else {
+            let n: usize = decimal.parse().unwrap();
+            Ok((TokenKind::Integer(n), bytes_read))
+        }
+    }
 
     fn tokenize_ident(input: &mut Peekable<impl Iterator<Item = char>>) -> Result<(Self, usize)> {
         // identifiers can't start with a number
@@ -46,13 +55,14 @@ impl TokenKind {
         let len = ident.len();
         Ok((
             match &*ident {
-                "big.Int" => TokenKind::BigIntType,
-                "big.NewInt" => TokenKind::NewBigInt,
                 "interface" => TokenKind::Interface,
+                "NewInt" => TokenKind::NewInt,
+                "Int" => TokenKind::IntType,
                 "false" => TokenKind::False,
                 "true" => TokenKind::True,
                 "nil" => TokenKind::Nil,
                 "map" => TokenKind::Map,
+                "big" => TokenKind::Big,
                 _ => TokenKind::Identifier(ident),
             },
             len,
@@ -92,7 +102,11 @@ impl TokenKind {
         let mut input = input.chars().peekable();
 
         match *input.peek().ok_or_else(|| todo!()).unwrap() {
-            c if c.is_ascii_digit() => todo!("eat some ints"),
+            c if c.is_ascii_digit() => Self::tokenize_number(&mut input, false),
+            '-' => {
+                input.next();
+                Self::tokenize_number(&mut input, true)
+            }
             '/' => {
                 input.next();
                 // Find the end of the comment line.
@@ -127,6 +141,7 @@ impl TokenKind {
             ']' => Self::match_one(&mut input, TokenKind::RightBracket),
             ':' => Self::match_one(&mut input, TokenKind::Colon),
             ',' => Self::match_one(&mut input, TokenKind::Comma),
+            '.' => Self::match_one(&mut input, TokenKind::Dot),
             '{' => Self::match_two(
                 &mut input,
                 TokenKind::LeftCurly,
@@ -140,3 +155,118 @@ impl TokenKind {
         }
     }
 }
+
+// TODO this can and should be condensed.
+macro_rules! lexer_test {
+    (FAIL SINGLE: $name:ident, $src:expr) => {
+        #[cfg(test)]
+        #[test]
+        fn $name() {
+            let src: &str = $src;
+
+            let got = TokenKind::tokenize_single(src);
+            assert!(got.is_err(), "{:?} should be an error", got);
+        }
+    };
+    (FAIL: $name:ident, $func:expr, $src:expr) => {
+        #[cfg(test)]
+        #[test]
+        fn $name() {
+            let src: &str = $src;
+            let func = $func;
+
+            let got = func(&mut src.chars().peekable());
+            assert!(got.is_err(), "{:?} should be an error", got);
+        }
+    };
+    (SINGLE: $name:ident, $src:expr => $should_be:expr) => {
+        #[cfg(test)]
+        #[test]
+        fn $name() {
+            let src: &str = $src;
+            let should_be = TokenKind::from($should_be);
+
+            let (got, _bytes_read) = TokenKind::tokenize_single(src.into()).unwrap();
+            assert_eq!(got, should_be, "Input was {:?}", src);
+        }
+    };
+    (INT: $name:ident, $src:expr => $should_be:expr) => {
+        #[cfg(test)]
+        #[test]
+        fn $name() {
+            let src: &str = $src;
+            let negated = if matches!(src.chars().next(), Some('-')) {
+                true
+            } else {
+                false
+            };
+            let should_be = TokenKind::from($should_be);
+
+            let (got, _bytes_read) =
+                TokenKind::tokenize_number(&mut src.chars().peekable(), negated).unwrap();
+            assert_eq!(got, should_be, "Input was {:?}", src);
+        }
+    };
+    ($name:ident, $src:expr => $should_be:expr) => {
+        #[cfg(test)]
+        #[test]
+        fn $name() {
+            let src: &str = $src;
+            let should_be = TokenKind::from($should_be);
+
+            let (got, _bytes_read) =
+                TokenKind::tokenize_ident(&mut src.chars().peekable()).unwrap();
+            assert_eq!(got, should_be, "Input was {:?}", src);
+        }
+    };
+}
+
+lexer_test!(tokenize_a_single_letter, "f" => "f");
+lexer_test!(tokenize_an_identifier, "Foo" => "Foo");
+lexer_test!(tokenize_ident_containing_an_underscore, "Foo_bar" => "Foo_bar");
+// lexer_test!(
+//     FAIL: tokenize_ident_cant_start_with_number,
+//     TokenKind::tokenize_ident,
+//     "7Foo_bar"
+// );
+// lexer_test!(
+//     FAIL: tokenize_ident_cant_start_with_dot,
+//     TokenKind::tokenize_ident,
+//     ".Foo_bar"
+// );
+
+lexer_test!(INT: tokenize_a_single_digit_integer, "1" => 1);
+lexer_test!(INT: tokenize_a_longer_integer, "1234567890" => 1234567890);
+lexer_test!(INT: tokenize_basic_decimal, "12.3" => 12.3);
+lexer_test!(INT: tokenize_string_with_multiple_decimal_points, "12.3.456" => 12.3);
+// lexer_test!(
+//     FAIL: cant_tokenize_a_string_as_a_decimal,
+//
+//     "asdfghj"
+// );
+lexer_test!(INT: tokenizing_decimal_stops_at_alpha, "123.4asdfghj" => 123.4);
+
+lexer_test!(SINGLE: central_tokenizer_decimal, "123.4" => 123.4);
+lexer_test!(SINGLE: central_tokenizer_integer, "1234" => 1234);
+lexer_test!(SINGLE: central_tokenizer_comment, "// comment" => TokenKind::Comment("// comment".into()));
+lexer_test!(SINGLE: central_tokenizer_ampersand, "&" => TokenKind::Ampersand);
+lexer_test!(SINGLE: central_tokenizer_asterisk, "*" => TokenKind::Asterisk);
+lexer_test!(SINGLE: central_tokenizer_colon, ":" => TokenKind::Colon);
+lexer_test!(SINGLE: central_tokenizer_dot, "." => TokenKind::Dot);
+lexer_test!(SINGLE: central_tokenizer_open_square, "[" => TokenKind::LeftBracket);
+lexer_test!(SINGLE: central_tokenizer_open_close_square, "[]" => TokenKind::ArrayType);
+lexer_test!(SINGLE: central_tokenizer_close_square, "]" => TokenKind::RightBracket);
+lexer_test!(SINGLE: central_tokenizer_open_brace, "{" => TokenKind::LeftCurly);
+lexer_test!(SINGLE: central_tokenizer_open_close_brace, "{}" => TokenKind::DefaultObject);
+lexer_test!(SINGLE: central_tokenizer_close_brace, "}" => TokenKind::RightCurly);
+lexer_test!(SINGLE: central_tokenizer_open_paren, "(" => TokenKind::LeftParen);
+lexer_test!(SINGLE: central_tokenizer_close_paren, ")" => TokenKind::RightParen);
+lexer_test!(SINGLE: central_tokenizer_ident, "Foo_bar" => "Foo_bar");
+lexer_test!(SINGLE: central_tokenizer_int_type, "Int" => TokenKind::IntType);
+lexer_test!(SINGLE: central_tokenizer_new_int, "NewInt" => TokenKind::NewInt);
+lexer_test!(SINGLE: central_tokenizer_interface, "interface" => TokenKind::Interface);
+lexer_test!(SINGLE: central_tokenizer_false, "false" => TokenKind::False);
+lexer_test!(SINGLE: central_tokenizer_true, "true" => TokenKind::True);
+lexer_test!(SINGLE: central_tokenizer_nil, "nil" => TokenKind::Nil);
+lexer_test!(SINGLE: central_tokenizer_map, "map" => TokenKind::Map);
+lexer_test!(SINGLE: central_tokenizer_big, "big" => TokenKind::Big);
