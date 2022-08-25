@@ -932,7 +932,7 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
     // Create a block gap
     blocks[100] = None;
     blocks[101].as_mut().unwrap().parent_block_identifier =
-        blocks[99].as_ref().unwrap().parent_block_identifier.clone();
+        blocks[99].as_ref().unwrap().block_identifier.clone();
 
     for (i, b) in blocks.into_iter().enumerate() {
         let tmp_b = b.clone();

@@ -162,7 +162,7 @@ pub struct Syncer<Handler, Helper> {
     pub size_multiplier: f64,
     pub max_concurrency: i64,
     pub concurrency: Arc<Mutex<i64>>,
-    pub goal_concurrency: i64,
+    pub goal_concurrency: Arc<Mutex<i64>>,
     pub recent_block_sizes: VecDeque<i64>,
     pub last_adjustment: i64,
     pub adjustment_window: i64,

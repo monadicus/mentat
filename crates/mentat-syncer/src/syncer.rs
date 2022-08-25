@@ -4,6 +4,7 @@ use std::{
     mem::size_of_val,
     sync::Arc,
     thread::{sleep, spawn, JoinHandle},
+    time::Duration,
 };
 
 use crossbeam_channel::{unbounded, Receiver, SendError, Sender};
@@ -55,7 +56,7 @@ impl<T> ArcSender<T> {
 /// the block is omitted and we can't
 /// determine the index of the request.
 #[allow(clippy::missing_docs_in_private_items)]
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct BlockResult {
     pub index: i64,
     pub block: Option<Block>,
@@ -317,7 +318,7 @@ where
             // Exit if concurrency is greater than
             // goal concurrency.
             let mut concurrency = self.concurrency.lock();
-            if *concurrency > self.goal_concurrency {
+            if *concurrency > *self.goal_concurrency.lock() {
                 *concurrency -= 1;
                 return Ok(());
             }
@@ -339,11 +340,11 @@ where
         let mut reorg_start = -1;
 
         while self.next_index <= end_index {
-            let br = if cache.contains_key(&self.next_index) {
+            let br = if let Some(br) = cache.remove(&self.next_index) {
                 // Anytime we re-fetch an index, we
                 // will need to make another call to the node
                 // as it is likely in a reorg.
-                cache.remove(&self.next_index).unwrap()
+                br
             } else {
                 // Wait for more blocks if we aren't
                 // in a reorg.
@@ -394,14 +395,15 @@ where
             && **concurrency < self.max_concurrency
             && self.last_adjustment > self.adjustment_window
         {
-            self.goal_concurrency += 1;
+            let mut goal_concurrency = self.goal_concurrency.lock();
+            *goal_concurrency += 1;
             **concurrency += 1;
             self.last_adjustment = 0;
             tracing::info!(
                 "increasing syncer concurrency to {} (projected new cache size: {} MB)\n",
-                self.goal_concurrency,
+                *goal_concurrency,
                 // TODO should be b_to_mb function inside utils crate
-                max * self.goal_concurrency as f64 / 1024.0 / 1024.0
+                max * *goal_concurrency as f64 / 1024.0 / 1024.0
             );
             true
         } else {
@@ -418,14 +420,15 @@ where
             }
 
             // Only log if s.goalConcurrency != newGoalConcurrency
-            if self.goal_concurrency != new_goal_concurrency {
-                self.goal_concurrency = new_goal_concurrency;
+            let mut goal_concurrency = self.goal_concurrency.lock();
+            if *goal_concurrency != new_goal_concurrency {
+                *goal_concurrency = new_goal_concurrency;
                 self.last_adjustment = 0;
                 tracing::info!(
-                    "reducing syncer concurrency to %{}(projected new cache size: {} MB)\n",
-                    self.goal_concurrency,
+                    "reducing syncer concurrency to {} (projected new cache size: {} MB)\n",
+                    *goal_concurrency,
                     // TODO should be b_to_mb function inside utils crate
-                    max * self.goal_concurrency as f64 / 1024.0 / 1024.0
+                    max * *goal_concurrency as f64 / 1024.0 / 1024.0
                 )
             }
         }
@@ -518,6 +521,7 @@ where
         error_buf: ErrorBuf,
     ) -> SyncerResult<()> {
         let res = loop {
+            sleep(Duration::from_millis(250));
             let mut handles = handles.lock();
             if handles.is_empty() {
                 break Ok(());
@@ -567,7 +571,7 @@ where
         self.last_adjustment = 0;
         *self.done_loading.lock() = false;
         *self.concurrency.lock() = starting_concurrency;
-        self.goal_concurrency = starting_concurrency;
+        *self.goal_concurrency.lock() = starting_concurrency;
 
         // We create a separate derivative context here instead of
         // replacing the provided ctx because the context returned
