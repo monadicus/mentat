@@ -1,6 +1,6 @@
 //! The module defines the `Direction` model.
 
-use std::fmt;
+use std::{fmt, mem::size_of_val};
 
 use super::*;
 

@@ -1,5 +1,7 @@
 //! The module defines the `SubAccountIdentifier`.
 
+use std::mem::size_of_val;
+
 use indexmap::IndexMap;
 
 use super::*;
@@ -35,5 +37,13 @@ impl Sortable for SubAccountIdentifier {
         let mut new = self.clone();
         new.metadata.sort_keys();
         new
+    }
+}
+
+impl EstimateSize for SubAccountIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.address.as_str())
+            + estimated_metadata_size(&self.metadata)
     }
 }

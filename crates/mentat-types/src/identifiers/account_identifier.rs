@@ -1,5 +1,7 @@
 //! The module defines the `AccountIdentifier`.
 
+use std::mem::size_of_val;
+
 use indexmap::IndexMap;
 
 use super::*;
@@ -60,5 +62,14 @@ impl Sortable for AccountIdentifier {
         new.sub_account = new.sub_account.map(|sub| sub.sort());
         new.metadata.sort_keys();
         new
+    }
+}
+
+impl EstimateSize for AccountIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.address.as_str())
+            + estimated_option_size(&self.sub_account)
+            + estimated_metadata_size(&self.metadata)
     }
 }

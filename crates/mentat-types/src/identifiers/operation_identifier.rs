@@ -1,5 +1,7 @@
 //! The module defines the `OperationIdentifier`.
 
+use std::mem::size_of_val;
+
 use super::*;
 
 /// The [`OperationIdentifier`] uniquely identifies an operation within a
@@ -46,5 +48,15 @@ impl From<(i64, Option<i64>)> for OperationIdentifier {
             index,
             network_index: net_index,
         }
+    }
+}
+
+impl EstimateSize for OperationIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + self
+                .network_index
+                .map(|i| size_of_val(&i))
+                .unwrap_or_default()
     }
 }

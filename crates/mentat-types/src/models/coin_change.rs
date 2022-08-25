@@ -1,5 +1,7 @@
 //! The module defines the `CoinChange` model.
 
+use std::mem::size_of_val;
+
 use super::*;
 
 /// [`CoinChange`] is used to represent a change in state of a some coin
@@ -19,4 +21,10 @@ pub struct NullableCoinChange {
     /// spent, it is coin_spent. It is assumed that a single [`Coin'] cannot
     /// be created or spent more than once.
     pub coin_action: NullableCoinAction,
+}
+
+impl EstimateSize for CoinChange {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self) + self.coin_identifier.estimated_size()
+    }
 }

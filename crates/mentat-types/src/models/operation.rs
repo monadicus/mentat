@@ -1,5 +1,7 @@
 //! The module defines the `Operation` model.
 
+use std::mem::size_of_val;
+
 use indexmap::IndexMap;
 
 use super::*;
@@ -75,4 +77,22 @@ pub struct NullableOperation {
     /// an ERC-20 token.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl EstimateSize for Operation {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + self.operation_identifier.estimated_size()
+            + estimated_vec_size(&self.related_operations)
+            + size_of_val(self.type_.as_str())
+            + self
+                .status
+                .as_ref()
+                .map(|i| size_of_val(i) + size_of_val(i.as_str()))
+                .unwrap_or_default()
+            + estimated_option_size(&self.account)
+            + estimated_option_size(&self.amount)
+            + estimated_option_size(&self.coin_change)
+            + estimated_metadata_size(&self.metadata)
+    }
 }

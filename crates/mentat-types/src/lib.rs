@@ -2,6 +2,7 @@
 
 // TODO this is temporary to help find relevant warnings faster
 #![allow(unused)]
+#![warn(clippy::todo, clippy::use_debug)]
 
 use indexmap::IndexMap;
 use mentat_macros::Nullable;

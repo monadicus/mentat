@@ -1,5 +1,7 @@
 //! The module defines the `NetworkIdentifier`.
 
+use std::mem::size_of_val;
+
 use super::*;
 
 /// The [`NetworkIdentifier`] specifies which network a particular object is
@@ -74,5 +76,14 @@ impl Sortable for NetworkIdentifier {
             network: self.network.to_uppercase(),
             sub_network_identifier: self.sub_network_identifier.clone().map(|sni| sni.sort()),
         }
+    }
+}
+
+impl EstimateSize for NetworkIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.blockchain.as_str())
+            + size_of_val(self.network.as_str())
+            + estimated_option_size(&self.sub_network_identifier)
     }
 }

@@ -1,5 +1,7 @@
 //! The module defines the `Currency` model.
 
+use std::mem::size_of_val;
+
 use indexmap::IndexMap;
 
 use super::*;
@@ -46,5 +48,13 @@ impl Sortable for Currency {
         let mut new = self.clone();
         new.metadata.sort_keys();
         new
+    }
+}
+
+impl EstimateSize for Currency {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.symbol.as_str())
+            + estimated_metadata_size(&self.metadata)
     }
 }

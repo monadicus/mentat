@@ -1,5 +1,7 @@
 //! The module defines the `Amount` model.
 
+use std::mem::size_of_val;
+
 use indexmap::IndexMap;
 
 use super::*;
@@ -29,5 +31,11 @@ impl Sortable for Amount {
         new.currency = new.currency.sort();
         new.metadata.sort_keys();
         new
+    }
+}
+
+impl EstimateSize for Amount {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self) + self.currency.estimated_size() + estimated_metadata_size(&self.metadata)
     }
 }

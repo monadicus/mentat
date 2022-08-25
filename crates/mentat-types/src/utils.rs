@@ -1,15 +1,40 @@
 //! Types module Util functions
 
-use std::{fmt::Debug, str::FromStr};
+use std::{fmt::Debug, mem::size_of_val, str::FromStr};
 
+use indexmap::IndexMap;
 use num_bigint_dig::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use super::{
     AccountIdentifier, Amount, BlockIdentifier, NullableAmount, NullableCurrency,
     PartialBlockIdentifier, Sortable,
 };
+
+/// a trait to help determine the size of blocks in memory
+pub trait EstimateSize {
+    /// returns the estimated size of `self` and all it's owned values as bytes
+    fn estimated_size(&self) -> usize;
+}
+
+// TODO doesnt correctly track true size of json values, only the size of the enum pointing to the data
+pub(crate) fn estimated_metadata_size(metadata: &IndexMap<String, Value>) -> usize {
+    size_of_val(&metadata)
+        + metadata
+            .iter()
+            .map(|(s, v)| size_of_val(s.as_str()) + size_of_val(v))
+            .sum::<usize>()
+}
+
+pub(crate) fn estimated_option_size<T: EstimateSize>(v: &Option<T>) -> usize {
+    v.as_ref().map(|v| v.estimated_size()).unwrap_or_default()
+}
+
+pub(crate) fn estimated_vec_size<T: EstimateSize>(v: &[T]) -> usize {
+    size_of_val(v) + v.iter().map(|v| v.estimated_size()).sum::<usize>()
+}
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided
 /// byte slice.

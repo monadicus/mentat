@@ -8,7 +8,9 @@ use std::{
 
 use crossbeam_channel::{unbounded, Receiver, SendError, Sender};
 use indexmap::IndexMap;
-use mentat_types::{hash, Block, BlockIdentifier, NetworkIdentifier, PartialBlockIdentifier};
+use mentat_types::{
+    hash, Block, BlockIdentifier, EstimateSize, NetworkIdentifier, PartialBlockIdentifier,
+};
 use parking_lot::{Mutex, MutexGuard};
 
 use crate::{
@@ -58,6 +60,17 @@ pub struct BlockResult {
     pub index: i64,
     pub block: Option<Block>,
     pub orphaned_head: bool,
+}
+
+impl EstimateSize for BlockResult {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + self
+                .block
+                .as_ref()
+                .map(|b| b.estimated_size())
+                .unwrap_or_default()
+    }
 }
 
 impl<Hand, Help> Syncer<Hand, Help>
@@ -450,7 +463,7 @@ where
         let mut cache = IndexMap::new();
         for result in fetched_blocks_receiver {
             // TODO make sure this returns full size and not just size of immediate pointer
-            let size = size_of_val(&result) as i64;
+            let size = result.estimated_size() as i64;
             cache.insert(result.index, result);
 
             self.process_blocks(error_buf, &mut cache, end_index)

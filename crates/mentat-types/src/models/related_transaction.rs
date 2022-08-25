@@ -1,5 +1,7 @@
 //! The module defines the `RelatedTransaction` model.
 
+use std::mem::size_of_val;
+
 use super::*;
 
 /// The [`RelatedTransaction`] allows implementations to link together multiple
@@ -31,5 +33,14 @@ impl Sortable for NullableRelatedTransaction {
         let mut new = self.clone();
         new.network_identifier = new.network_identifier.map(|ni| ni.sort());
         new
+    }
+}
+
+impl EstimateSize for RelatedTransaction {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + estimated_option_size(&self.network_identifier)
+            + self.transaction_identifier.estimated_size()
+            + size_of_val(&self.direction)
     }
 }

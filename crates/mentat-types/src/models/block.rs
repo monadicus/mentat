@@ -1,5 +1,7 @@
 //! The module defines the `Block` model.
 
+use std::mem::size_of_val;
+
 use indexmap::IndexMap;
 
 use super::*;
@@ -33,4 +35,14 @@ pub struct NullableBlock {
     pub transactions: Vec<Option<NullableTransaction>>,
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl EstimateSize for Block {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + self.block_identifier.estimated_size()
+            + self.parent_block_identifier.estimated_size()
+            + estimated_vec_size(&self.transactions)
+            + estimated_metadata_size(&self.metadata)
+    }
 }
