@@ -81,7 +81,15 @@ where
 {
     #[allow(clippy::missing_docs_in_private_items)]
     fn set_start(&mut self, error_buf: &ErrorBuf, index: i64) -> SyncerResult<()> {
-        let network_status = self.helper.network_status(error_buf, &self.network)?;
+        let network_status = self
+            .helper
+            .network_status(error_buf, &self.network)
+            .map_err(|e| {
+                format!(
+                    "unable to get network status of {}: {e}",
+                    self.network.network
+                )
+            })?;
         self.genesis_block = Some(network_status.genesis_block_identifier);
         if index != -1 {
             self.next_index = index
@@ -107,7 +115,12 @@ where
         let network_status = self
             .helper
             .network_status(error_buf, &self.network)
-            .map_err(|e| format!("{}: {}", SyncerError::GetNetworkStatusFailed, e))?;
+            .map_err(|e| {
+                format!(
+                    "unable to get network status of {}: {e}",
+                    self.network.network
+                )
+            })?;
 
         // Update the syncer's known tip
         let current_block_identifier_index = network_status.current_block_identifier.index;
@@ -154,10 +167,10 @@ where
         let block = br.block.as_ref().unwrap();
         if block.block_identifier.index != self.next_index {
             Err(format!(
-                "{}: got block {} instead of {}",
-                SyncerError::OutOfOrder,
+                "expected block index {}, but got {}: {}",
+                self.next_index,
                 block.block_identifier.index,
-                self.next_index
+                SyncerError::OutOfOrder,
             )
             .into())
         } else if hash(Some(&block.parent_block_identifier)) != hash(Some(last_block)) {
@@ -180,19 +193,36 @@ where
             // index and return.
             self.next_index += 1;
             Ok(())
-        } else if let (true, last_block) = self.check_remove(&br)? {
-            self.handler.block_removed(error_buf, last_block)?;
+        } else if let (true, last_block) = self.check_remove(&br).map_err(|e| {
+            format!(
+                "failed to check if the last block should be removed when processing block {}: {e}",
+                br.index
+            )
+        })? {
+            self.handler
+                .block_removed(error_buf, last_block)
+                .map_err(|e| {
+                    format!(
+                        "failed to handle the event of block {} is removed: {e}",
+                        last_block.unwrap().index,
+                    )
+                })?;
             self.next_index = last_block.unwrap().index;
             self.past_blocks.pop_back();
             Ok(())
         } else {
             // mock structures inside syncer_tests require access to syncer during this method for certain checks
             #[cfg(test)]
-            self.handler
-                .block_added(self, error_buf, br.block.clone())?;
+            let r = self.handler.block_added(self, error_buf, br.block.clone());
             #[cfg(not(test))]
-            self.handler.block_added(error_buf, br.block.as_ref())?;
+            let r = self.handler.block_added(error_buf, br.block.as_ref());
             let block = br.block.unwrap();
+            r.map_err(|e| {
+                format!(
+                    "failed to handle the event of block {} is added: {e}",
+                    block.block_identifier.index
+                )
+            })?;
             let idx = block.block_identifier.index;
             self.past_blocks.push_back(block.block_identifier);
             if self.past_blocks.len() > self.past_block_limit as usize {
@@ -265,13 +295,18 @@ where
             index,
             orphaned_head: match block {
                 Ok(_) => false,
-                Err(SyncerError::OrphanedHead) => true,
-                Err(e) => return Err(e),
+                Err(SyncerError::OrphanHead) => true,
+                Err(e) => return Err(format!("unable to fetch block {}: {}", index, e).into()),
             },
             block: block.ok().flatten(),
         };
 
-        self.handle_seen_block(error_buf, &br)?;
+        self.handle_seen_block(error_buf, &br).map_err(|e| {
+            format!(
+                "failed to handle the event of block {} is seen: {e}",
+                br.index
+            )
+        })?;
 
         Ok(br)
     }
@@ -301,7 +336,7 @@ where
         for b in block_indices {
             let br = match self
                 .fetch_block_result(&error_buf, network, b)
-                .map_err(|e| format!("{} {}: {}", SyncerError::FetchBlockFailed, b, e))
+                .map_err(|e| format!("unable to fetch block {b}: {e}"))
             {
                 Ok(v) => v,
                 Err(e) => self.safe_exit(Err(e.into()), &error_buf)?,
@@ -355,12 +390,18 @@ where
                 // Fetch the nextIndex if we are
                 // in a re-org.
                 self.fetch_block_result(error_buf, &self.network, self.next_index)
-                    .map_err(|e| format!("{}: {}", SyncerError::FetchBlockFailed, e))?
+                    .map_err(|e| {
+                        format!(
+                            "unable to fetch block {} during re-org: {e}",
+                            self.next_index
+                        )
+                    })?
             };
 
             let last_processed = self.next_index;
+            let br_index = br.index;
             self.process_block(error_buf, Some(br))
-                .map_err(|e| format!("{}: {}", SyncerError::BlockProcessFailed, e))?;
+                .map_err(|e| format!("unable to process block {br_index}: {e}"))?;
 
             if self.next_index < last_processed && reorg_start == -1 {
                 reorg_start = last_processed
@@ -470,7 +511,12 @@ where
             cache.insert(result.index, result);
 
             self.process_blocks(error_buf, &mut cache, end_index)
-                .map_err(|e| format!("{}: {}", SyncerError::BlocksProcessMultipleFailed, e))?;
+                .map_err(|e| {
+                    format!(
+                        "unable to process block range {}-{end_index}: {e}",
+                        self.next_index
+                    )
+                })?;
 
             // Determine if concurrency should be adjusted.
             self.recent_block_sizes.push_back(size);
@@ -622,13 +668,19 @@ where
             fetched_blocks_sender,
             fetched_blocks_receiver,
             end_index,
-        )?;
+        )
+        .map_err(|e| {
+            format!(
+                "failed to sequence block range {}-{end_index}: {e}",
+                self.next_index
+            )
+        })?;
 
         // if a sub-thread panics then the main thread will panic too
         wait_handle
             .join()
             .unwrap()
-            .map_err(|e| format!("{}: unable to sync to {}", e, end_index).into())
+            .map_err(|e| format!("unable to sync to {end_index}: {e}").into())
     }
 
     /// Tip returns the last observed tip. The tip is recorded
@@ -652,11 +704,11 @@ where
         end_index: i64,
     ) -> SyncerResult<()> {
         self.set_start(error_buf, start_index)
-            .map_err(|e| format!("{}: {}", SyncerError::SetStartIndexFailed, e))?;
+            .map_err(|e| format!("unable to set start index {start_index}: {e}"))?;
         loop {
             let (range_end, halt) = self
                 .next_syncable_range(error_buf, end_index)
-                .map_err(|e| format!("{}: {}", SyncerError::NextSyncableRangeFailed, e))?;
+                .map_err(|e| format!("unable to get next syncable range: {e}"))?;
 
             if halt {
                 if self.next_index > end_index && end_index != -1 {
@@ -674,7 +726,7 @@ where
             }
 
             self.sync_range(error_buf, range_end)
-                .map_err(|e| format!("{}: unable to sync to {}", e, range_end))?;
+                .map_err(|e| format!("unable to sync to {range_end}: {e}"))?;
 
             if let Some(e) = &*error_buf.lock() {
                 return Err(e.clone());

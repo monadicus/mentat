@@ -536,7 +536,9 @@ fn test_process_block() {
     {
         print!("Orphan genesis: ");
         let err = process_block(&mut syncer, Some(orphan_genesis())).unwrap_err();
-        assert_eq!(err.to_string(), "cannot remove genesis block");
+        assert!(err
+            .to_string()
+            .contains(&SyncerError::CannotRemoveGenesisBlock.to_string()));
         assert_syncer(&mut syncer, 1, &[0]);
         println!("ok!");
     }
@@ -572,7 +574,9 @@ fn test_process_block() {
     {
         print!("Out of order block: ");
         let err = process_block(&mut syncer, block_sequence_idx(5)).unwrap_err();
-        assert!(err.to_string().contains("got block 5 instead of 3"));
+        assert!(err
+            .to_string()
+            .contains("expected block index 3, but got 5"));
         assert_syncer(&mut syncer, 3, &[0, 3, 2]);
         println!("ok!");
     }
@@ -866,7 +870,7 @@ fn test_sync_manual_reorg() {
         &mut syncer,
         true,
         Some(801),
-        Err(SyncerError::OrphanedHead),
+        Err(SyncerError::OrphanHead),
         1,
     );
     expect_block_removed(
