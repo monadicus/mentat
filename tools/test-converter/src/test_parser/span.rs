@@ -4,6 +4,8 @@ use core::{
 };
 use std::usize;
 
+use super::{with_source_map, SpanLocation};
+
 /// [start, stop)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Span {
@@ -30,9 +32,66 @@ impl Span {
     }
 }
 
+const INDENT: &str = "          ";
+
 impl Display for Span {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!("need to print span from source map")
+        let underline = |mut start: usize, mut end: usize| -> String {
+            if start > end {
+                std::mem::swap(&mut start, &mut end)
+            }
+
+            let mut underline = String::new();
+
+            for _ in 0..start {
+                underline.push(' ');
+                end -= 1;
+            }
+
+            for _ in 0..end {
+                underline.push('^');
+            }
+
+            underline
+        };
+
+        let (loc, contents) = with_source_map(|s| {
+            (
+                s.span_to_location(*self)
+                    .unwrap_or_else(SpanLocation::dummy),
+                s.line_contents_of_span(*self)
+                    .unwrap_or_else(|| "<contents unavailable>".to_owned()),
+            )
+        });
+
+        let underlined = underline(loc.col_start, loc.col_stop);
+
+        write!(
+            f,
+            "\n{indent     }--> {path}:{line_start}:{start}\n\
+            {indent     } |\n",
+            indent = INDENT,
+            path = &loc.source_file.name.to_string_lossy(),
+            line_start = loc.line_start,
+            start = loc.col_start,
+        )?;
+
+        for (line_no, line) in contents.lines().enumerate() {
+            writeln!(
+                f,
+                "{line_no:width$} | {text}",
+                width = INDENT.len(),
+                line_no = loc.line_start + line_no,
+                text = line,
+            )?;
+        }
+
+        write!(
+            f,
+            "{indent     } |{underlined}",
+            indent = INDENT,
+            underlined = underlined,
+        )
     }
 }
 
@@ -51,9 +110,6 @@ impl Add for &Span {
         *self + *rhs
     }
 }
-
-// Is this necessary??
-pub trait Pos: From<usize> + From<u32> + Into<usize> + Into<u32> + Add + Sub {}
 
 macro_rules! impl_pos {
   (
@@ -106,10 +162,6 @@ macro_rules! impl_pos {
               fn sub(self, rhs: $ident) -> $ident {
                   $ident(self.0 - rhs.0)
               }
-          }
-
-          impl Pos for $ident {
-
           }
       )*
   };

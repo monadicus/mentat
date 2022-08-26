@@ -1,6 +1,14 @@
 CreateErrorType! {
   LexerError
 
+  from could_not_load_file {
+    args: (path),
+    error_msgs: [
+        "Could not load tests file `{path}`."
+    ],
+    suggestions: [],
+  }
+
   new illegal_negative_decimals {
     args: (number),
     error_msgs: [

@@ -8,6 +8,7 @@ use std::{
 };
 
 use super::span::{BytePos, CharPos, Span};
+use crate::errors::{LexerError, Result};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct MultiByteChar {
@@ -213,9 +214,33 @@ pub struct SpanLocation {
     pub col_stop: usize,
 }
 
+impl SpanLocation {
+    pub fn dummy() -> Self {
+        let dummy = "<dummy>".to_owned();
+        let span = Span::dummy();
+        Self {
+            source_file: Rc::new(SourceFile {
+                name: "".into(),
+                src: dummy,
+                start_pos: span.start,
+                end_pos: span.stop,
+                lines: Vec::new(),
+                multibyte_chars: Vec::new(),
+            }),
+            line_start: 0,
+            line_stop: 0,
+            col_start: 0,
+            col_stop: 0,
+        }
+    }
+}
+
 impl SourceMap {
-    pub fn load_file(&self, path: &Path) -> io::Result<Rc<SourceFile>> {
-        Ok(self.new_source(&fs::read_to_string(path)?, path.to_owned()))
+    pub(super) fn load_file(&self, path: &Path) -> Result<Rc<SourceFile>> {
+        Ok(self.new_source(
+            &LexerError::could_not_load_file(fs::read_to_string(path), path.display())?,
+            path.to_owned(),
+        ))
     }
 
     pub fn new_source(&self, source: &str, name: PathBuf) -> Rc<SourceFile> {
@@ -249,7 +274,7 @@ impl SourceMap {
         })
     }
 
-    pub fn span_to_location(&self, sp: Span) -> Option<SpanLocation> {
+    pub(super) fn span_to_location(&self, sp: Span) -> Option<SpanLocation> {
         let lo = self.find_line_col(sp.start)?;
         let hi = self.find_line_col(sp.stop)?;
         Some(SpanLocation {
@@ -261,7 +286,7 @@ impl SourceMap {
         })
     }
 
-    pub fn span_to_string(&self, span: Span) -> String {
+    pub(super) fn span_to_string(&self, span: Span) -> String {
         let loc = match self.span_to_location(span) {
             None => return "no-location".to_string(),
             Some(l) => l,
@@ -277,14 +302,14 @@ impl SourceMap {
         }
     }
 
-    pub fn contents_of_span(&self, span: Span) -> Option<String> {
+    pub(super) fn contents_of_span(&self, span: Span) -> Option<String> {
         let begin = self.find_source_file(span.start)?;
         let end = self.find_source_file(span.stop)?;
         assert_eq!(begin.start_pos, end.start_pos);
         Some(begin.contents_of_span(span))
     }
 
-    pub fn line_contents_of_span(&self, span: Span) -> Option<String> {
+    pub(super) fn line_contents_of_span(&self, span: Span) -> Option<String> {
         let begin = self.find_source_file(span.start)?;
         let end = self.find_source_file(span.stop)?;
         assert_eq!(begin.start_pos, end.start_pos);

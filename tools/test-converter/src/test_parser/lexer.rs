@@ -49,7 +49,6 @@ impl TokenKind {
             let n: f64 = LexerError::could_not_lex_decimal_number(number.parse(), number)?;
             Ok((TokenKind::from(n), bytes_read))
         } else if negated {
-            dbg!(&number);
             let n: i128 = LexerError::could_not_lex_signed_number(number.parse(), number)?;
             Ok((TokenKind::from(n), bytes_read))
         } else {

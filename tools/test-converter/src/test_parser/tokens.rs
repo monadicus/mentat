@@ -19,6 +19,7 @@ impl Display for Integer {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
+    Eof,
     // Complex non ident tokens.
     Decimal(f64),
     Integer(Integer),
@@ -55,6 +56,7 @@ pub enum TokenKind {
 impl Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            TokenKind::Eof => write!(f, "<eof>"),
             TokenKind::Decimal(decimal) => write!(f, "{decimal}"),
             TokenKind::Integer(int) => write!(f, "{int}"),
             TokenKind::Comment(comment) => write!(f, "// {comment}"),

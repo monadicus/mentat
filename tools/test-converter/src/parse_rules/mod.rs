@@ -6,22 +6,22 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::{Result, RulesFileError};
 
-lazy_static! {
-    pub(crate) static ref TYPE_PARSE_RULES: IndexMap<&'static str, &'static str> = indexmap!(
-      "[](.+){" => "Vec<($1)>",
-      "[]*(.+){" => "Vec<($1)>",
-      "*(.+)" => "Option<<($1)",
-      "{}" => "Default::default()",
-      "&(.+)" => "Option<$1>",
-    );
-    pub(crate) static ref VALUE_PARSE_RULES: IndexMap<&'static str, &'static str> = indexmap!(
-      "[](.+){" => "vec![",
-      "[]*(.+){" => "vec![",
-      "{}" => "Default::default()",
-      "&(.+)" => "",
-      "nil" => "None",
-    );
-}
+// lazy_static! {
+//     pub(crate) static ref TYPE_PARSE_RULES: IndexMap<&'static str, &'static
+// str> = indexmap!(       "[](.+){" => "Vec<($1)>",
+//       "[]*(.+){" => "Vec<($1)>",
+//       "*(.+)" => "Option<<($1)",
+//       "{}" => "Default::default()",
+//       "&(.+)" => "Option<$1>",
+//     );
+//     pub(crate) static ref VALUE_PARSE_RULES: IndexMap<&'static str, &'static
+// str> = indexmap!(       "[](.+){" => "vec![",
+//       "[]*(.+){" => "vec![",
+//       "{}" => "Default::default()",
+//       "&(.+)" => "",
+//       "nil" => "None",
+//     );
+// }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TestStructCriteria {

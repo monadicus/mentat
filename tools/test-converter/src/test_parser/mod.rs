@@ -1,30 +1,17 @@
+use std::path::Path;
+
 use self::{
+    parser_context::ParserContext,
     span::Span,
     tokens::{TokenKind, Tokenizer},
 };
 use crate::errors::Result;
 mod lexer;
-mod parser;
+mod parser_context;
 mod source_map;
+pub(crate) use source_map::*;
 mod span;
 mod tokens;
-
-// #[derive(Clone, Copy)]
-// enum Delimiter {
-//     Brace,
-//     Bracket,
-//     Parenthesis,
-// }
-
-// impl Delimiter {
-//     fn pair(self) -> (Token, Token) {
-//         match self {
-//             Self::Brace => (Token::LeftCurly, Token::RightCurly),
-//             Self::Bracket => (Token::LeftBracket, Token::RightBracket),
-//             Self::Parenthesis => (Token::LeftParen, Token::RightParen),
-//         }
-//     }
-// }
 
 // TODO spanned tokens
 #[derive(Debug, Clone)]
@@ -40,9 +27,17 @@ impl Token {
             kind,
         }
     }
+
+    #[inline]
+    pub(crate) const fn dummy() -> Self {
+        Self {
+            kind: TokenKind::Dot,
+            span: Span::dummy(),
+        }
+    }
 }
 
-pub(crate) fn tokenize(src: &str) -> Result<Vec<Token>> {
+fn tokenize(src: &str) -> Result<Vec<Token>> {
     let mut tokenizer = Tokenizer::new(src);
     let mut tokens = Vec::new();
 
@@ -51,4 +46,12 @@ pub(crate) fn tokenize(src: &str) -> Result<Vec<Token>> {
     }
 
     Ok(tokens)
+}
+
+pub(crate) fn parse(src: &Path) -> Result<()> {
+    let sf = with_source_map(|s| s.load_file(src))?;
+    let tokens = tokenize(&sf.src)?;
+    let mut context = ParserContext::new(tokens);
+    context.expect(&TokenKind::Ampersand)?;
+    Ok(())
 }
