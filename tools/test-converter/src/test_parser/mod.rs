@@ -4,6 +4,8 @@ use self::{
 };
 use crate::errors::Result;
 mod lexer;
+mod parser;
+mod source_map;
 mod span;
 mod tokens;
 

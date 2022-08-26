@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 
 use super::tokens::TokenKind;
-use crate::errors::Result;
+use crate::errors::{LexerError, Result};
 
 impl TokenKind {
     // TODO consider simplicity purpose and just parse negation sign...
@@ -44,16 +44,16 @@ impl TokenKind {
         .collect();
 
         if seen_dot && negated {
-            todo!("Negative decimals not allowed")
+            LexerError::illegal_negative_decimals(number)
         } else if seen_dot {
-            let n: f64 = number.parse().unwrap();
+            let n: f64 = LexerError::could_not_lex_decimal_number(number.parse(), number)?;
             Ok((TokenKind::from(n), bytes_read))
         } else if negated {
             dbg!(&number);
-            let n: i128 = number.parse().unwrap();
+            let n: i128 = LexerError::could_not_lex_signed_number(number.parse(), number)?;
             Ok((TokenKind::from(n), bytes_read))
         } else {
-            let n: usize = number.parse().unwrap();
+            let n: usize = LexerError::could_not_lex_number(number.parse(), number)?;
             Ok((TokenKind::from(n), bytes_read))
         }
     }
@@ -61,14 +61,23 @@ impl TokenKind {
     fn tokenize_ident(input: &mut Peekable<impl Iterator<Item = char>>) -> Result<(Self, usize)> {
         // identifiers can't start with a number
         match input.peek() {
-            Some(ch) if ch.is_ascii_digit() => todo!("Identifiers can't start with a number"),
-            None => todo!("eof"),
+            Some(ch) if ch.is_ascii_digit() => return LexerError::ident_started_with_a_number(),
+            None => return LexerError::unexpected_eof(),
             _ => {}
         }
 
         let ident: String =
             std::iter::from_fn(|| input.next_if(|c| c.is_ascii_alphanumeric() || c == &'_'))
                 .collect();
+
+        if ident.is_empty() {
+            return LexerError::unknown_token(
+                input
+                    .take_while(|c| !c.is_ascii_whitespace())
+                    .collect::<String>(),
+            );
+        }
+
         let len = ident.len();
         Ok((
             match &*ident {
@@ -112,13 +121,14 @@ impl TokenKind {
 
     pub(crate) fn tokenize_single(input: &str) -> Result<(Self, usize)> {
         if input.is_empty() {
-            todo!("No input to parse")
+            return LexerError::unexpected_eof();
         }
 
         let input_str = input;
         let mut input = input.chars().peekable();
 
-        match *input.peek().ok_or_else(|| todo!()).unwrap() {
+        // checked above
+        match *input.peek().unwrap() {
             c if c.is_ascii_digit() => Self::tokenize_number(&mut input),
             '-' => Self::tokenize_number(&mut input),
             '/' => {
@@ -131,13 +141,19 @@ impl TokenKind {
                     };
                     Ok((TokenKind::Comment(comment.to_owned()), comment.len()))
                 } else {
-                    todo!("error expected a /")
+                    LexerError::expected_comment(input.next().unwrap_or_default())
                 }
             }
             '"' => {
                 let rest = &input_str[1..];
                 let string = match rest.as_bytes().iter().position(|c| *c == b'"') {
-                    None => todo!("no closing \" found"),
+                    None => {
+                        return LexerError::unclosed_string(
+                            input
+                                .take_while(|c| !c.is_ascii_whitespace())
+                                .collect::<String>(),
+                        );
+                    }
                     Some(idx) => rest[..idx].to_owned(),
                 };
 
@@ -170,29 +186,18 @@ impl TokenKind {
     }
 }
 
-// TODO failing tests after functioning errors.
 macro_rules! lexer_test {
-    // (FAIL SINGLE: $name:ident, $src:expr) => {
-    //     #[cfg(test)]
-    //     #[test]
-    //     fn $name() {
-    //         let src: &str = $src;
+    (FAIL: $name:ident, $func:expr, $src:expr) => {
+        #[cfg(test)]
+        #[test]
+        fn $name() {
+            let src: &str = $src;
+            let func = $func;
 
-    //         let got = TokenKind::tokenize_single(src);
-    //         assert!(got.is_err(), "{:?} should be an error", got);
-    //     }
-    // };
-    // (FAIL: $name:ident, $func:expr, $src:expr) => {
-    //     #[cfg(test)]
-    //     #[test]
-    //     fn $name() {
-    //         let src: &str = $src;
-    //         let func = $func;
-
-    //         let got = func(&mut src.chars().peekable());
-    //         assert!(got.is_err(), "{:?} should be an error", got);
-    //     }
-    // };
+            let got = func(&mut src.chars().peekable());
+            assert!(got.is_err(), "{:?} should be an error", got);
+        }
+    };
     (@inner SINGLE $src:expr, $should_be:expr) => {
         let should_be = TokenKind::from($should_be);
 
@@ -225,16 +230,16 @@ macro_rules! lexer_test {
 lexer_test!(IDENT: tokenize_a_single_letter, "f" => "f");
 lexer_test!(IDENT: tokenize_an_identifier, "Foo" => "Foo");
 lexer_test!(IDENT: tokenize_ident_containing_an_underscore, "Foo_bar" => "Foo_bar");
-// lexer_test!(
-//     FAIL: tokenize_ident_cant_start_with_number,
-//     TokenKind::tokenize_ident,
-//     "7Foo_bar"
-// );
-// lexer_test!(
-//     FAIL: tokenize_ident_cant_start_with_dot,
-//     TokenKind::tokenize_ident,
-//     ".Foo_bar"
-// );
+lexer_test!(
+    FAIL: tokenize_ident_cant_start_with_number,
+    TokenKind::tokenize_ident,
+    "7Foo_bar"
+);
+lexer_test!(
+    FAIL: tokenize_ident_cant_start_with_dot,
+    TokenKind::tokenize_ident,
+    ".Foo_bar"
+);
 
 lexer_test!(INT: tokenize_a_negative_single_digit_integer, "-1" => -1i128);
 lexer_test!(INT: tokenize_a_single_digit_integer, "1" => 1usize);
@@ -242,11 +247,16 @@ lexer_test!(INT: tokenize_a_longer_integer, "1234567890" => 1234567890usize);
 lexer_test!(INT: tokenize_a_longer_negative_integer, "-1234567890" => -1234567890i128);
 lexer_test!(INT: tokenize_basic_decimal, "12.3" => 12.3);
 lexer_test!(INT: tokenize_string_with_multiple_decimal_points, "12.3.456" => 12.3);
-// lexer_test!(
-//     FAIL: cant_tokenize_a_string_as_a_decimal,
-//
-//     "asdfghj"
-// );
+lexer_test!(
+    FAIL: cant_tokenize_a_string_as_a_decimal,
+    TokenKind::tokenize_number,
+    "asdfghj"
+);
+lexer_test!(
+    FAIL: cant_tokenize_a_negative_decimal,
+    TokenKind::tokenize_number,
+    "-12.3"
+);
 lexer_test!(INT: tokenizing_decimal_stops_at_alpha, "123.4asdfghj" => 123.4);
 
 lexer_test!(SINGLE: central_tokenizer_decimal, "123.4" => 123.4);

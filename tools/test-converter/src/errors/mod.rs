@@ -6,6 +6,8 @@ pub(crate) use error_msg::*;
 
 mod input_file_error;
 pub(crate) use input_file_error::*;
+mod lexer_error;
+pub(crate) use lexer_error::*;
 
 mod suggestion;
 use error_stack::Report;
@@ -16,11 +18,19 @@ use thiserror::Error as ThisError;
 pub(crate) enum Error {
     #[error("{0:?}")]
     RulesError(Report<RulesFileError>),
+    #[error("{0:?}")]
+    LexerError(Report<LexerError>),
 }
 
 impl From<Report<RulesFileError>> for Error {
     fn from(r: Report<RulesFileError>) -> Self {
         Self::RulesError(r)
+    }
+}
+
+impl From<Report<LexerError>> for Error {
+    fn from(r: Report<LexerError>) -> Self {
+        Self::LexerError(r)
     }
 }
 
