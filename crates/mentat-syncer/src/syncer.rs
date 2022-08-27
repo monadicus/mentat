@@ -10,7 +10,7 @@ use std::{
     thread::{sleep, spawn},
 };
 
-use crossbeam_channel::{unbounded, Receiver, Sender};
+use crossbeam_channel::{bounded, Receiver, Sender};
 use indexmap::IndexMap;
 use mentat_types::{hash, Block, BlockIdentifier, EstimateSize, PartialBlockIdentifier};
 
@@ -283,28 +283,27 @@ where
         fetched_blocks_sender: Arc<Sender<BlockResult>>,
     ) -> SyncerResult<()> {
         loop {
-            // if there are more blocks waiting to be processed than allowed fetcher
-            // threads, do nothing.
-            if fetched_blocks_sender.len() < *self.goal_concurrency.lock() {
-                // get the current target index and increment the counter for the next thread
-                let b = fetcher_index.fetch_add(1, Ordering::Relaxed);
-                if b > end_index {
-                    break;
-                }
+            // get the current target index and increment the counter for the next thread
+            let b = fetcher_index.fetch_add(1, Ordering::Relaxed);
+            if b > end_index {
+                break;
+            }
 
-                let br = self
-                    .fetch_block_result(context, b)
-                    .map_err(|e| format!("unable to fetch block {b}: {e}"))?;
+            let br = self
+                .fetch_block_result(context, b)
+                .map_err(|e| format!("unable to fetch block {b}: {e}"))?;
 
-                // check if any threads have thrown an error and return the same error if there
-                // is one
-                context.err()?;
-                fetched_blocks_sender.send(br).unwrap();
+            // check if any threads have thrown an error and return the same error if there
+            // is one. this is done before and after the send in case an error occurred on
+            // another thread while we were waiting in line to send
+            context.err()?;
+            // channel is bounded to 1, so this will block until a block can be sent
+            fetched_blocks_sender.send(br).unwrap();
+            context.err()?;
 
-                // Exit if concurrency is greater than goal concurrency.
-                if *self.concurrency.lock() > *self.goal_concurrency.lock() {
-                    break;
-                }
+            // Exit if concurrency is greater than goal concurrency.
+            if *self.concurrency.lock() > *self.goal_concurrency.lock() {
+                break;
             }
         }
         Ok(())
@@ -484,9 +483,11 @@ where
             // If the context has an error (like Canceled), we should avoid creating more
             // threads
             if self.adjust_workers() && !thread_handler.ctx().done() {
+                // if sender was dropped by fetcher threads, continue to consume any blocks in
+                // buffer
                 let sender = match fetched_blocks_sender.upgrade() {
                     Some(s) => s,
-                    None => break,
+                    None => continue,
                 };
                 self.spawn_fetcher(thread_handler, fetcher_index.clone(), end_index, sender)
             }
@@ -518,9 +519,10 @@ where
 
         // sender is in and arc so we can downgrade it later. this ensures only fetcher
         // threads have access to a sender instance. if we dont do this then the sender
-        // will never hang up
+        // will never hang up. we set the channel to a max buffer size of 1 so that
+        // fetcher threads dont load up the buffer with too many blocks.
         let (fetched_blocks_sender, fetched_blocks_receiver) = {
-            let (s, r) = unbounded();
+            let (s, r) = bounded(1);
             (Arc::new(s), r)
         };
         // contains the target index for fetcher threads to request
