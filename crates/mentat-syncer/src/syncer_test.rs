@@ -996,3 +996,27 @@ fn test_sync_dynamic_overhead() {
         .build();
     sync_dynamic(&mut syncer);
 }
+
+
+#[test]
+#[ignore]
+fn stress_test() {
+    for i in 0..1000 {
+        println!("{i}: test_process_block");
+        test_process_block();
+        println!("{i}: test_sync_no_reorg");
+        test_sync_no_reorg();
+        println!("{i}: test_sync_specific_start");
+        test_sync_specific_start();
+        println!("{i}: test_sync_cancel");
+        test_sync_cancel();
+        println!("{i}: test_sync_reorg");
+        test_sync_reorg();
+        println!("{i}: test_sync_manual_reorg");
+        test_sync_manual_reorg();
+        println!("{i}: test_sync_dynamic");
+        test_sync_dynamic();
+        println!("{i}: test_sync_dynamic_overhead");
+        test_sync_dynamic_overhead();
+    }
+}

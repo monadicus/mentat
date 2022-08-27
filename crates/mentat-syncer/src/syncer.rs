@@ -442,7 +442,6 @@ where
         // for a block fetch, result.block will
         // be None.
         if let Some(b) = &result.block {
-            println!("{}: {}", result.index, self.concurrency.lock());
             self.handler.block_seen(context, b)
         } else {
             Ok(())
