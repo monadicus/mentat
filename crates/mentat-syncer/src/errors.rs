@@ -33,7 +33,10 @@ pub enum SyncerError {
     OutOfOrder,
     /// Cancelled is returned when a syncer thread was told to terminate early
     #[error("cancelled")]
-    Cancelled,
+    Canceled,
+    /// DeadlineExceeded is returned when the syncer ran for longer than allowed
+    #[error("deadline exceeded")]
+    DeadlineExceeded,
     #[error("{0}")]
     String(String),
 }

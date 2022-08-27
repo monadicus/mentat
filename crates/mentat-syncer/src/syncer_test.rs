@@ -17,7 +17,8 @@ use parking_lot::{Mutex, MutexGuard};
 use crate::{
     errors::{SyncerError, SyncerResult},
     syncer::BlockResult,
-    types::{ErrorBuf, Handler, Helper, Syncer, SyncerBuilder, DEFAULT_CONCURRENCY},
+    types::{Handler, Helper, Syncer, SyncerBuilder, DEFAULT_CONCURRENCY},
+    utils::Context,
 };
 
 mock! {
@@ -25,16 +26,16 @@ mock! {
     pub Handler {}
 
     impl Handler for Handler {
-        fn block_seen(&self, error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()>;
+        fn block_seen(&self, context: &Context<SyncerError>, block: &Block) -> SyncerResult<()>;
         fn block_added<'a, Hand: 'static, Help: 'static>(
             &self,
             syncer: &Syncer<Hand, Help>,
-            error_buf: &ErrorBuf,
+            context: &Context<SyncerError>,
             block: Option<Block>,
         ) -> SyncerResult<()>;
         fn block_removed<'a>(
             &self,
-            error_buf: &ErrorBuf,
+            context: &Context<SyncerError>,
             block: Option<&'a BlockIdentifier>,
         ) -> SyncerResult<()>;
     }
@@ -47,14 +48,14 @@ mock! {
     impl Helper for Helper {
         fn network_status(
             &self,
-            error_buf: &ErrorBuf,
+            context: &Context<SyncerError>,
             network_identifier: &NetworkIdentifier,
         ) -> SyncerResult<NetworkStatusResponse>;
 
         fn block<Hand: 'static, Help: 'static>(
             &self,
             syncer: &Syncer<Hand, Help>,
-            error_buf: &ErrorBuf,
+            context: &Context<SyncerError>,
             network_identifier: &NetworkIdentifier,
             partial_block_identifier: &PartialBlockIdentifier,
         ) -> SyncerResult<Option<Block>>;
@@ -74,25 +75,25 @@ impl ArcMockHandler {
     }
 }
 impl Handler for ArcMockHandler {
-    fn block_seen(&self, error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()> {
-        self.0.lock().block_seen(error_buf, block)
+    fn block_seen(&self, context: &Context<SyncerError>, block: &Block) -> SyncerResult<()> {
+        self.0.lock().block_seen(context, block)
     }
 
     fn block_added<Hand: 'static, Help: 'static>(
         &self,
         syncer: &Syncer<Hand, Help>,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         block: Option<Block>,
     ) -> SyncerResult<()> {
-        self.0.lock().block_added(syncer, error_buf, block)
+        self.0.lock().block_added(syncer, context, block)
     }
 
     fn block_removed<'a>(
         &self,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         block: Option<&'a BlockIdentifier>,
     ) -> SyncerResult<()> {
-        self.0.lock().block_removed(error_buf, block)
+        self.0.lock().block_removed(context, block)
     }
 }
 
@@ -111,22 +112,22 @@ impl ArcMockHelper {
 impl Helper for ArcMockHelper {
     fn network_status(
         &self,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         network_identifier: &NetworkIdentifier,
     ) -> SyncerResult<NetworkStatusResponse> {
-        self.0.lock().network_status(error_buf, network_identifier)
+        self.0.lock().network_status(context, network_identifier)
     }
 
     fn block<Hand: 'static, Help: 'static>(
         &self,
         syncer: &Syncer<Hand, Help>,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,
     ) -> SyncerResult<Option<Block>> {
         self.0.lock().block(
             syncer,
-            error_buf,
+            context,
             network_identifier,
             partial_block_identifier,
         )
@@ -347,7 +348,7 @@ fn expect_block(
     helper
         .expect_block()
         .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, id, b| {
-            !(e.lock().is_some() && enforce_buf)
+            !(e.done() && enforce_buf)
                 && *id == network_identifier()
                 && *b
                     == PartialBlockIdentifier {
@@ -367,7 +368,7 @@ fn custom_expect_block<F>(
 ) where
     F: Fn(
             &Syncer<ArcMockHandler, ArcMockHelper>,
-            &ErrorBuf,
+            &Context<SyncerError>,
             &NetworkIdentifier,
             &PartialBlockIdentifier,
         ) -> SyncerResult<Option<Block>>
@@ -379,7 +380,7 @@ fn custom_expect_block<F>(
     helper
         .expect_block()
         .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, id, b| {
-            e.lock().is_none()
+            !e.done()
                 && *id == network_identifier()
                 && *b
                     == PartialBlockIdentifier {
@@ -401,7 +402,7 @@ fn expect_block_added(
     handler
         .expect_block_added()
         .withf(move |_: &Syncer<ArcMockHandler, ArcMockHelper>, e, g| {
-            !(e.lock().is_some() && enforce_buf) && *g == block
+            !(e.done() && enforce_buf) && *g == block
         })
         .return_const(Ok(()))
         .times(times.into());
@@ -413,7 +414,11 @@ fn custom_expect_block_added<F>(
     times: impl Into<TimesRange>,
     ret: F,
 ) where
-    F: Fn(&Syncer<ArcMockHandler, ArcMockHelper>, &ErrorBuf, Option<Block>) -> SyncerResult<()>
+    F: Fn(
+            &Syncer<ArcMockHandler, ArcMockHelper>,
+            &Context<SyncerError>,
+            Option<Block>,
+        ) -> SyncerResult<()>
         + Send
         + Sync
         + 'static,
@@ -421,7 +426,7 @@ fn custom_expect_block_added<F>(
     let mut handler = syncer.handler.lock();
     handler
         .expect_block_added()
-        .withf(move |_, e, g| e.lock().is_none() && *g == block)
+        .withf(move |_, e, g| !e.done() && *g == block)
         .returning(ret)
         .times(times.into());
 }
@@ -434,7 +439,7 @@ fn expect_block_removed(
     let mut handler = syncer.handler.lock();
     handler
         .expect_block_removed()
-        .withf(move |e, b| e.lock().is_none() && *b == id.as_ref())
+        .withf(move |e, b| !e.done() && *b == id.as_ref())
         .return_const(Ok(()))
         .times(times.into());
 }
@@ -448,7 +453,7 @@ fn expect_block_seen(
     let mut handler = syncer.handler.lock();
     handler
         .expect_block_seen()
-        .withf(move |e, b| !(e.lock().is_some() && enforce_buf) && *b == block)
+        .withf(move |e, b| !(e.done() && enforce_buf) && *b == block)
         .return_const(Ok(()))
         .times(times.into());
 }
@@ -461,7 +466,7 @@ fn expect_network_status(
     let mut helper = syncer.helper.lock();
     helper
         .expect_network_status()
-        .withf(|e, id| e.lock().is_none() && *id == network_identifier())
+        .withf(|e, id| !e.done() && *id == network_identifier())
         .return_const(Ok(NetworkStatusResponse {
             current_block_identifier: BlockIdentifier {
                 index: idx,
@@ -484,13 +489,13 @@ fn syncer() -> SyncerBuilder<ArcMockHandler, ArcMockHelper> {
     )
 }
 
-fn buf() -> ErrorBuf {
-    Arc::new(Mutex::new(None))
+fn buf() -> Context<SyncerError> {
+    Context::new(Some(Duration::from_secs(180)))
 }
 
 #[test]
 fn test_process_block() {
-    let error_buf = buf();
+    let context = buf();
     let mut syncer = Syncer::builder(
         network_identifier(),
         ArcMockHelper::new(),
@@ -517,7 +522,7 @@ fn test_process_block() {
     let process_block = |syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
                          block: Option<Block>| {
         syncer.process_block(
-            &error_buf,
+            &context,
             Some(BlockResult {
                 block,
                 ..Default::default()
@@ -590,7 +595,7 @@ fn test_process_block() {
 
     {
         print!("Process nil block result: ");
-        let err = syncer.process_block(&error_buf, None).unwrap_err();
+        let err = syncer.process_block(&context, None).unwrap_err();
         assert_eq!(err, SyncerError::BlockResultNil);
         println!("ok!");
     }
@@ -604,7 +609,7 @@ fn test_process_block() {
         );
         syncer
             .process_block(
-                &error_buf,
+                &context,
                 Some(BlockResult {
                     orphaned_head: true,
                     ..Default::default()
@@ -732,14 +737,14 @@ fn test_sync_cancel() {
         expect_block_added(&mut syncer, false, b.clone(), ..=1);
     }
 
-    let error_buf = buf();
-    let tmp_buf = error_buf.clone();
+    let context = buf();
+    let tmp_ctx = context.clone();
     let handle = spawn(move || {
         sleep(Duration::from_secs(1));
-        *tmp_buf.lock() = Some(SyncerError::Cancelled)
+        tmp_ctx.cancel()
     });
-    let err = syncer.sync(&error_buf, -1, 1200).unwrap_err();
-    assert_eq!(err, SyncerError::Cancelled);
+    let err = syncer.sync(&context, -1, 1200).unwrap_err();
+    assert_eq!(err, SyncerError::Canceled);
     assert_eq!(0, *syncer.concurrency.lock());
     handle.join().unwrap();
 }

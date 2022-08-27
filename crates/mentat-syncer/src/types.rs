@@ -2,6 +2,7 @@
 
 use crate::errors::SyncerError;
 use crate::types::BlockIdentifier;
+use crate::utils::Context;
 use crate::{
     errors::SyncerResult,
     types::{Block, NetworkIdentifier, NetworkStatusResponse, PartialBlockIdentifier},
@@ -16,40 +17,40 @@ use std::time::Duration;
 /// processed block headers we keep in the syncer to handle
 /// reorgs correctly. If there is a reorg greater than
 /// DEFAULT_PAST_BLOCK_LIMIT, it will not be handled correctly.
-pub const DEFAULT_PAST_BLOCK_LIMIT: u64 = 100;
+pub const DEFAULT_PAST_BLOCK_LIMIT: usize = 100;
 
 /// DEFAULT_CONCURRENCY is the default number of
 /// blocks the syncer will try to get concurrently.
-pub const DEFAULT_CONCURRENCY: i64 = 4;
+pub const DEFAULT_CONCURRENCY: usize = 4;
 
 /// DEFAULT_CACHE_SIZE is the default size of the preprocess
 /// cache for the syncer.
-pub const DEFAULT_CACHE_SIZE: u64 = 2000 << 20; // 2 GB
+pub const DEFAULT_CACHE_SIZE: usize = 2000 << 20; // 2 GB
 
 /// LARGE_CACHE_SIZE will aim to use 5 GB of memory.
-pub const LARGE_CACHE_SIZE: u64 = 5000 << 20; // 5 GB
+pub const LARGE_CACHE_SIZE: usize = 5000 << 20; // 5 GB
 
 /// SMALL_CACHE_SIZE will aim to use 500 MB of memory.
-pub const SMALL_CACHE_SIZE: u64 = 500 << 20; // 500 MB
+pub const SMALL_CACHE_SIZE: usize = 500 << 20; // 500 MB
 
 /// TINY_CACHE_SIZE will aim to use 200 MB of memory.
-pub const TINY_CACHE_SIZE: u64 = 200 << 20; // 200 MB
+pub const TINY_CACHE_SIZE: usize = 200 << 20; // 200 MB
 
 /// DEFAULT_MAX_CONCURRENCY is the maximum concurrency we will
 /// attempt to sync with.
-pub const DEFAULT_MAX_CONCURRENCY: i64 = 256;
+pub const DEFAULT_MAX_CONCURRENCY: usize = 256;
 
 /// MIN_CONCURRENCY is the minimum concurrency we will
 /// attempt to sync with.
-pub const MIN_CONCURRENCY: i64 = 1;
+pub const MIN_CONCURRENCY: usize = 1;
 
 /// DEFAULT_TRAILING_WINDOW is the size of the trailing window
 /// of block sizes to keep when adjusting concurrency.
-pub const DEFAULT_TRAILING_WINDOW: u64 = 1000;
+pub const DEFAULT_TRAILING_WINDOW: usize = 1000;
 
 /// DEFAULT_ADJUSTMENT_WINDOW is how frequently we will
 /// consider increasing our concurrency.
-pub const DEFAULT_ADJUSTMENT_WINDOW: u64 = 5;
+pub const DEFAULT_ADJUSTMENT_WINDOW: usize = 5;
 
 /// DEFAULT_SIZE_MULTIPLIER is used to pad our average size adjustment.
 /// This can be used to account for the overhead associated with processing
@@ -65,9 +66,6 @@ pub const DEFAULT_SYNC_SLEEP: Duration = Duration::from_secs(2);
 /// already have a backlog >= to concurrency.
 pub const DEFAULT_FETCH_SLEEP: Duration = Duration::from_millis(500);
 
-/// a multithreaded error buffer
-pub type ErrorBuf = Arc<Mutex<Option<SyncerError>>>;
-
 /// Handler is called at various times during the sync cycle
 /// to handle different events. It is common to write logs or
 /// perform reconciliation in the sync processor.
@@ -77,20 +75,24 @@ pub trait Handler {
     /// by the syncer prior to calling BlockAdded
     /// with the same arguments. This allows for
     /// storing block data before it is sequenced.
-    fn block_seen(&self, error_buf: &ErrorBuf, block: &Block) -> SyncerResult<()>;
+    fn block_seen(&self, context: &Context<SyncerError>, block: &Block) -> SyncerResult<()>;
     #[cfg(not(test))]
-    fn block_added(&self, error_buf: &ErrorBuf, block: Option<&Block>) -> SyncerResult<()>;
+    fn block_added(
+        &self,
+        context: &Context<SyncerError>,
+        block: Option<&Block>,
+    ) -> SyncerResult<()>;
     // mock structures inside syncer_tests require access to syncer during this method for certain checks
     #[cfg(test)]
     fn block_added<Hand: 'static, Help: 'static>(
         &self,
         syncer: &Syncer<Hand, Help>,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         block: Option<Block>,
     ) -> SyncerResult<()>;
     fn block_removed(
         &self,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         block: Option<&BlockIdentifier>,
     ) -> SyncerResult<()>;
 }
@@ -102,14 +104,14 @@ pub trait Handler {
 pub trait Helper {
     fn network_status(
         &self,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         network_identifier: &NetworkIdentifier,
     ) -> SyncerResult<NetworkStatusResponse>;
 
     #[cfg(not(test))]
     fn block(
         &self,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,
     ) -> SyncerResult<Option<Block>>;
@@ -119,7 +121,7 @@ pub trait Helper {
     fn block<Hand: 'static, Help: 'static>(
         &self,
         syncer: &Syncer<Hand, Help>,
-        error_buf: &ErrorBuf,
+        context: &Context<SyncerError>,
         network_identifier: &NetworkIdentifier,
         partial_block_identifier: &PartialBlockIdentifier,
     ) -> SyncerResult<Option<Block>>;
@@ -152,20 +154,20 @@ pub struct Syncer<Handler, Helper> {
     /// If a blockchain does not have reorgs, it is not necessary to populate
     /// the blockCache on creation.
     pub past_blocks: VecDeque<BlockIdentifier>,
-    pub past_block_limit: i64,
+    pub past_block_limit: usize,
 
     /// Automatically manage concurrency based on the
     /// provided max cache size. The algorithm used here
     /// is a slow rise (to increase concurrency) and fast
     /// fall (if we breach our max cache size).
-    pub cache_size: i64,
+    pub cache_size: usize,
     pub size_multiplier: f64,
-    pub max_concurrency: i64,
-    pub concurrency: Arc<Mutex<i64>>,
-    pub goal_concurrency: Arc<Mutex<i64>>,
-    pub recent_block_sizes: VecDeque<i64>,
-    pub last_adjustment: i64,
-    pub adjustment_window: i64,
+    pub max_concurrency: usize,
+    pub concurrency: Arc<Mutex<usize>>,
+    pub goal_concurrency: Arc<Mutex<usize>>,
+    pub recent_block_sizes: VecDeque<usize>,
+    pub last_adjustment: usize,
+    pub adjustment_window: usize,
 
     /// doneLoading is used to coordinate adding goroutines
     /// when close to the end of syncing a range.
@@ -192,11 +194,11 @@ pub struct SyncerBuilder<Handler, Helper> {
     handler: Handler,
     cancel: bool,
     past_blocks: Option<Vec<BlockIdentifier>>,
-    past_block_limit: Option<i64>,
-    cache_size: Option<i64>,
+    past_block_limit: Option<usize>,
+    cache_size: Option<usize>,
     size_multiplier: Option<f64>,
-    max_concurrency: Option<i64>,
-    adjustment_window: Option<i64>,
+    max_concurrency: Option<usize>,
+    adjustment_window: Option<usize>,
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
@@ -221,7 +223,7 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
         self
     }
 
-    pub fn cache_size(mut self, v: i64) -> Self {
+    pub fn cache_size(mut self, v: usize) -> Self {
         self.cache_size = Some(v);
         self
     }
@@ -236,17 +238,17 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
         self
     }
 
-    pub fn past_block_limit(mut self, v: i64) -> Self {
+    pub fn past_block_limit(mut self, v: usize) -> Self {
         self.past_block_limit = Some(v);
         self
     }
 
-    pub fn max_concurrency(mut self, v: i64) -> Self {
+    pub fn max_concurrency(mut self, v: usize) -> Self {
         self.max_concurrency = Some(v);
         self
     }
 
-    pub fn adjustment_window(mut self, v: i64) -> Self {
+    pub fn adjustment_window(mut self, v: usize) -> Self {
         self.adjustment_window = Some(v);
         self
     }
@@ -261,19 +263,15 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
             tip: Default::default(),
             next_index: Default::default(),
             past_blocks: self.past_blocks.unwrap_or_default().into(),
-            past_block_limit: self
-                .past_block_limit
-                .unwrap_or(DEFAULT_PAST_BLOCK_LIMIT as i64),
-            cache_size: self.cache_size.unwrap_or(DEFAULT_CACHE_SIZE as i64),
+            past_block_limit: self.past_block_limit.unwrap_or(DEFAULT_PAST_BLOCK_LIMIT),
+            cache_size: self.cache_size.unwrap_or(DEFAULT_CACHE_SIZE),
             size_multiplier: self.size_multiplier.unwrap_or(DEFAULT_SIZE_MULTIPLIER),
             max_concurrency: self.max_concurrency.unwrap_or(DEFAULT_MAX_CONCURRENCY),
             concurrency: Arc::new(Mutex::new(DEFAULT_CONCURRENCY)),
             goal_concurrency: Default::default(),
             recent_block_sizes: Default::default(),
             last_adjustment: Default::default(),
-            adjustment_window: self
-                .adjustment_window
-                .unwrap_or(DEFAULT_ADJUSTMENT_WINDOW as i64),
+            adjustment_window: self.adjustment_window.unwrap_or(DEFAULT_ADJUSTMENT_WINDOW),
             done_loading: Default::default(),
         }
     }
