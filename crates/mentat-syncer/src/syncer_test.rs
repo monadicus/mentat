@@ -643,7 +643,7 @@ fn create_blocks(start_index: i64, end_index: i64, add: &str) -> Vec<Option<Bloc
 
 #[test]
 fn test_sync_no_reorg() {
-    let mut syncer = syncer().with_cancel().max_concurrency(3).build();
+    let mut syncer = syncer().max_concurrency(3).build();
 
     // Tip should be nil before we start syncing
     assert!(syncer.tip.is_none());
@@ -691,7 +691,7 @@ fn test_sync_no_reorg() {
 // TODO: infinite lock
 #[test]
 fn test_sync_specific_start() {
-    let mut syncer = syncer().with_cancel().build();
+    let mut syncer = syncer().build();
 
     expect_network_status(&mut syncer, 1300, ..);
 
@@ -720,7 +720,7 @@ fn test_sync_specific_start() {
 
 #[test]
 fn test_sync_cancel() {
-    let mut syncer = syncer().with_cancel().build();
+    let mut syncer = syncer().build();
 
     expect_network_status(&mut syncer, 900, ..=2);
     expect_network_status(&mut syncer, 1300, ..=2);
@@ -751,7 +751,7 @@ fn test_sync_cancel() {
 
 #[test]
 fn test_sync_reorg() {
-    let mut syncer = syncer().with_cancel().build();
+    let mut syncer = syncer().build();
 
     expect_network_status(&mut syncer, 1300, ..);
 
@@ -851,7 +851,7 @@ fn test_sync_reorg() {
 // TODO: infinite hang
 #[test]
 fn test_sync_manual_reorg() {
-    let mut syncer = syncer().with_cancel().build();
+    let mut syncer = syncer().build();
 
     expect_network_status(&mut syncer, 1300, ..);
 
@@ -967,7 +967,7 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
 #[test]
 fn test_sync_dynamic() {
     let mut syncer = syncer()
-        .with_cancel()
+
         // 1 MB
         .cache_size(1 << 20)
         .build();
@@ -977,7 +977,7 @@ fn test_sync_dynamic() {
 #[test]
 fn test_sync_dynamic_overhead() {
     let mut syncer = syncer()
-        .with_cancel()
+
         // 1 MB
         .cache_size(1 << 20)
         // greatly increase synthetic size

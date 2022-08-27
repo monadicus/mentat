@@ -2,7 +2,10 @@
 
 use std::{
     mem::size_of_val,
-    sync::Arc,
+    sync::{
+        atomic::{AtomicI64, Ordering},
+        Arc,
+    },
     thread::{sleep, spawn},
 };
 
@@ -14,8 +17,8 @@ use parking_lot::MutexGuard;
 use crate::{
     errors::{SyncerError, SyncerResult},
     types::{
-        Handler, Helper, Syncer, DEFAULT_CONCURRENCY, DEFAULT_FETCH_SLEEP, DEFAULT_SYNC_SLEEP,
-        DEFAULT_TRAILING_WINDOW, MIN_CONCURRENCY,
+        Handler, Helper, Syncer, DEFAULT_CONCURRENCY, DEFAULT_SYNC_SLEEP, DEFAULT_TRAILING_WINDOW,
+        MIN_CONCURRENCY,
     },
     utils::{Context, ThreadHandler},
 };
@@ -201,40 +204,6 @@ where
         Ok(())
     }
 
-    /// addBlockIndices appends a range of indices (from
-    /// startIndex to endIndex, inclusive) to the
-    /// blockIndices channel. When all indices are added,
-    /// the channel is closed.
-    fn add_block_indices(
-        &self,
-        context: Context<SyncerError>,
-        block_indices: Sender<i64>,
-        start_index: i64,
-        end_index: i64,
-    ) -> SyncerResult<()> {
-        let mut i = start_index;
-        while i <= end_index {
-            // Don't load if we already have a healthy backlog.
-            if block_indices.len() > *self.concurrency.lock() {
-                sleep(DEFAULT_FETCH_SLEEP);
-                continue;
-            }
-
-            context.err()?;
-            block_indices.send(i).unwrap();
-            i += 1;
-        }
-
-        // We populate doneLoading before exiting
-        // to make sure we don't create more goroutines
-        // when we are done. If we don't do this, we may accidentally
-        // try to create a new goroutine after Wait has returned.
-        // This will cause a panic.
-        *self.done_loading.lock() = true;
-
-        Ok(())
-    }
-
     #[allow(clippy::missing_docs_in_private_items)]
     fn fetch_block_result(
         &self,
@@ -277,14 +246,16 @@ where
     pub fn spawn_fetcher(
         &mut self,
         thread_handler: &mut ThreadHandler<(), SyncerError>,
-        block_indices_receiver: Receiver<i64>,
+        fetcher_index: Arc<AtomicI64>,
+        end_index: i64,
         fetched_blocks_sender: Arc<Sender<BlockResult>>,
     ) {
         let context = thread_handler.ctx().clone();
         let syncer = self.clone();
         thread_handler.push(spawn(move || {
             *syncer.concurrency.lock() += 1;
-            let res = syncer.fetch_blocks(&context, &block_indices_receiver, fetched_blocks_sender);
+            let res =
+                syncer.fetch_blocks(&context, &fetcher_index, end_index, fetched_blocks_sender);
             *syncer.concurrency.lock() -= 1;
             res
         }))
@@ -297,10 +268,19 @@ where
     fn fetch_blocks(
         &self,
         context: &Context<SyncerError>,
-        block_indices_receiver: &Receiver<i64>,
+        fetcher_index: &Arc<AtomicI64>,
+        end_index: i64,
         fetched_blocks_sender: Arc<Sender<BlockResult>>,
     ) -> SyncerResult<()> {
-        for b in block_indices_receiver {
+        loop {
+            if fetched_blocks_sender.len() > *self.goal_concurrency.lock() {
+                continue;
+            }
+            let b = fetcher_index.fetch_add(1, Ordering::Relaxed);
+            if b > end_index {
+                break;
+            }
+
             let br = self
                 .fetch_block_result(context, b)
                 .map_err(|e| format!("unable to fetch block {b}: {e}"))?;
@@ -456,9 +436,9 @@ where
     fn sequence_blocks(
         &mut self,
         thread_handler: &mut ThreadHandler<(), SyncerError>,
-        block_indices_receiver: Receiver<i64>,
         fetched_blocks_sender: Arc<Sender<BlockResult>>,
         fetched_blocks_receiver: Receiver<BlockResult>,
+        fetcher_index: Arc<AtomicI64>,
         end_index: i64,
     ) -> SyncerResult<()> {
         let weak_fetched_blocks_sender = Arc::downgrade(&fetched_blocks_sender);
@@ -489,17 +469,13 @@ where
                 continue;
             }
 
-            // If we have finished loading blocks or the pipelineCtx
-            // has an error (like context.Canceled), we should avoid
-            // creating more goroutines (as there is a chance that
-            // Wait has returned). Attempting to create more goroutines
-            // after Wait has returned will cause a panic.\
-            if !*self.done_loading.lock() && !thread_handler.ctx().done() {
+            // If the context has an error (like context.Canceled), we should avoid creating more threads
+            if !thread_handler.ctx().done() {
                 let sender = match weak_fetched_blocks_sender.upgrade() {
                     Some(s) => s,
                     None => break,
                 };
-                self.spawn_fetcher(thread_handler, block_indices_receiver.clone(), sender)
+                self.spawn_fetcher(thread_handler, fetcher_index.clone(), end_index, sender)
             }
 
             // // Hold concurrencyLock until after we attempt to create another
@@ -514,7 +490,7 @@ where
     /// (from syncer.nextIndex to endIndex, inclusive)
     /// with syncer.concurrency.
     fn sync_range(&mut self, context: &Context<SyncerError>, end_index: i64) -> SyncerResult<()> {
-        let (block_indices_sender, block_indices_receiver) = unbounded();
+        // let (block_indices_sender, block_indices_receiver) = unbounded();
         let (fetched_blocks_sender, fetched_blocks_receiver) = {
             let (s, r) = unbounded();
             (Arc::new(s), r)
@@ -535,36 +511,26 @@ where
         // Reset sync variables
         self.recent_block_sizes.clear();
         self.last_adjustment = 0;
-        *self.done_loading.lock() = false;
         *self.concurrency.lock() = 0;
         *self.goal_concurrency.lock() = starting_concurrency;
 
         let mut thread_handler = ThreadHandler::from(context.clone());
-
-        let tmp_self = self.clone();
-        let tmp_context = thread_handler.ctx().clone();
-        thread_handler.push(spawn(move || {
-            tmp_self.add_block_indices(
-                tmp_context,
-                block_indices_sender,
-                tmp_self.next_index,
-                end_index,
-            )
-        }));
+        let fetcher_index = Arc::new(AtomicI64::from(self.next_index));
 
         for _ in 0..starting_concurrency {
             self.spawn_fetcher(
                 &mut thread_handler,
-                block_indices_receiver.clone(),
+                fetcher_index.clone(),
+                end_index,
                 fetched_blocks_sender.clone(),
             )
         }
 
         self.sequence_blocks(
             &mut thread_handler,
-            block_indices_receiver,
             fetched_blocks_sender,
             fetched_blocks_receiver,
+            fetcher_index,
             end_index,
         )
         .map_err(|e| {
@@ -628,9 +594,6 @@ where
             start_index = self.genesis_block.as_ref().unwrap().index;
         }
 
-        if self.cancel {
-            context.cancel();
-        }
         tracing::info!("Finished syncing {}-{}\n", start_index, end_index);
         Ok(())
     }

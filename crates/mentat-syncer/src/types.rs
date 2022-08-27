@@ -61,11 +61,6 @@ pub const DEFAULT_SIZE_MULTIPLIER: f64 = 10.0;
 /// when we are at tip but want to keep syncing.
 pub const DEFAULT_SYNC_SLEEP: Duration = Duration::from_secs(2);
 
-/// DEFAULT_FETCH_SLEEP is the amount of time to sleep
-/// when we are loading more blocks to fetch but we
-/// already have a backlog >= to concurrency.
-pub const DEFAULT_FETCH_SLEEP: Duration = Duration::from_millis(500);
-
 /// Handler is called at various times during the sync cycle
 /// to handle different events. It is common to write logs or
 /// perform reconciliation in the sync processor.
@@ -139,7 +134,6 @@ pub struct Syncer<Handler, Helper> {
     pub network: NetworkIdentifier,
     pub helper: Helper,
     pub handler: Handler,
-    pub cancel: bool,
 
     /// Used to keep track of sync state
     pub genesis_block: Option<BlockIdentifier>,
@@ -168,10 +162,6 @@ pub struct Syncer<Handler, Helper> {
     pub recent_block_sizes: VecDeque<usize>,
     pub last_adjustment: usize,
     pub adjustment_window: usize,
-
-    /// doneLoading is used to coordinate adding goroutines
-    /// when close to the end of syncing a range.
-    pub done_loading: Arc<Mutex<bool>>,
 }
 
 impl<Handler, Helper> Syncer<Handler, Helper> {
@@ -192,7 +182,6 @@ pub struct SyncerBuilder<Handler, Helper> {
     network: NetworkIdentifier,
     helper: Helper,
     handler: Handler,
-    cancel: bool,
     past_blocks: Option<Vec<BlockIdentifier>>,
     past_block_limit: Option<usize>,
     cache_size: Option<usize>,
@@ -212,17 +201,10 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
             past_block_limit: None,
             cache_size: None,
             size_multiplier: None,
-            cancel: false,
             max_concurrency: None,
             adjustment_window: None,
         }
     }
-
-    pub fn with_cancel(mut self) -> Self {
-        self.cancel = true;
-        self
-    }
-
     pub fn cache_size(mut self, v: usize) -> Self {
         self.cache_size = Some(v);
         self
@@ -258,7 +240,6 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
             network: self.network,
             helper: self.helper,
             handler: self.handler,
-            cancel: self.cancel,
             genesis_block: Default::default(),
             tip: Default::default(),
             next_index: Default::default(),
@@ -272,7 +253,6 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
             recent_block_sizes: Default::default(),
             last_adjustment: Default::default(),
             adjustment_window: self.adjustment_window.unwrap_or(DEFAULT_ADJUSTMENT_WINDOW),
-            done_loading: Default::default(),
         }
     }
 }
