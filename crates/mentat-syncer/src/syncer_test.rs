@@ -719,6 +719,7 @@ fn test_sync_specific_start() {
         expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 800 {
+                // this test can fail if the syncer manages to get to the end of syncing before this lock is acquired
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
             }
             Ok(())
@@ -753,7 +754,8 @@ fn test_sync_cancel() {
     let context = buf();
     let tmp_ctx = context.clone();
     let handle = spawn(move || {
-        sleep(Duration::from_secs(1));
+        // this test can fail if the syncer manages to get to the end of syncing in less than 500ms
+        sleep(Duration::from_millis(500));
         tmp_ctx.cancel()
     });
     let err = syncer.sync(&context, -1, 1200).unwrap_err();
@@ -842,6 +844,7 @@ fn test_sync_reorg() {
         expect_block_seen(&mut syncer, true, b.clone(), seen_times);
         custom_expect_block_added(&mut syncer, Some(b.clone()), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 800 {
+                // this test can fail if the syncer manages to get to the end of syncing before this lock is acquired
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
             }
             Ok(())
@@ -914,6 +917,7 @@ fn test_sync_manual_reorg() {
         expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
             if b.unwrap().block_identifier.index == 800 {
+                // this test can fail if the syncer manages to get to the end of syncing before this lock is acquired
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
             }
             Ok(())
