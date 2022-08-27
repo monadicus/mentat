@@ -7,8 +7,17 @@ use std::{
 };
 
 use mentat_types::{
-    AccountIdentifier, Amount, Block, BlockIdentifier, Currency, NetworkIdentifier,
-    NetworkStatusResponse, Operation, OperationIdentifier, PartialBlockIdentifier, Transaction,
+    AccountIdentifier,
+    Amount,
+    Block,
+    BlockIdentifier,
+    Currency,
+    NetworkIdentifier,
+    NetworkStatusResponse,
+    Operation,
+    OperationIdentifier,
+    PartialBlockIdentifier,
+    Transaction,
     TransactionIdentifier,
 };
 use mockall::{mock, TimesRange};
@@ -62,7 +71,8 @@ mock! {
     }
 }
 
-/// MockHandler needs to be in arc so it can be cloned and expectations can be shared across threads
+/// MockHandler needs to be in arc so it can be cloned and expectations can be
+/// shared across threads
 #[derive(Clone)]
 pub struct ArcMockHandler(Arc<Mutex<MockHandler>>);
 impl ArcMockHandler {
@@ -97,7 +107,8 @@ impl Handler for ArcMockHandler {
     }
 }
 
-/// MockHelper needs to be in arc so it can be cloned and expectations can be shared across threads
+/// MockHelper needs to be in arc so it can be cloned and expectations can be
+/// shared across threads
 #[derive(Clone)]
 pub struct ArcMockHelper(Arc<Mutex<MockHelper>>);
 impl ArcMockHelper {
@@ -541,9 +552,10 @@ fn test_process_block() {
     {
         print!("Orphan genesis: ");
         let err = process_block(&mut syncer, Some(orphan_genesis())).unwrap_err();
-        assert!(err
-            .to_string()
-            .contains(&SyncerError::CannotRemoveGenesisBlock.to_string()));
+        assert!(
+            err.to_string()
+                .contains(&SyncerError::CannotRemoveGenesisBlock.to_string())
+        );
         assert_syncer(&mut syncer, 1, &[0]);
         println!("ok!");
     }
@@ -579,9 +591,10 @@ fn test_process_block() {
     {
         print!("Out of order block: ");
         let err = process_block(&mut syncer, block_sequence_idx(5)).unwrap_err();
-        assert!(err
-            .to_string()
-            .contains("expected block index 3, but got 5"));
+        assert!(
+            err.to_string()
+                .contains("expected block index 3, but got 5")
+        );
         assert_syncer(&mut syncer, 3, &[0, 3, 2]);
         println!("ok!");
     }
@@ -705,7 +718,7 @@ fn test_sync_specific_start() {
         );
         expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
-            if b.unwrap().block_identifier.index == 1100 {
+            if b.unwrap().block_identifier.index == 800 {
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
             }
             Ok(())
@@ -828,7 +841,7 @@ fn test_sync_reorg() {
         let seen_times = if b.block_identifier.index > 801 { 1 } else { 2 };
         expect_block_seen(&mut syncer, true, b.clone(), seen_times);
         custom_expect_block_added(&mut syncer, Some(b.clone()), 1, |s, _, b| {
-            if b.unwrap().block_identifier.index == 1100 {
+            if b.unwrap().block_identifier.index == 800 {
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
             }
             Ok(())
@@ -900,7 +913,7 @@ fn test_sync_manual_reorg() {
         );
         expect_block_seen(&mut syncer, true, b.clone().unwrap(), 1);
         custom_expect_block_added(&mut syncer, b.clone(), 1, |s, _, b| {
-            if b.unwrap().block_identifier.index == 1100 {
+            if b.unwrap().block_identifier.index == 800 {
                 assert!(*s.concurrency.lock() > DEFAULT_CONCURRENCY)
             }
             Ok(())
@@ -967,7 +980,6 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
 #[test]
 fn test_sync_dynamic() {
     let mut syncer = syncer()
-
         // 1 MB
         .cache_size(1 << 20)
         .build();
@@ -977,7 +989,6 @@ fn test_sync_dynamic() {
 #[test]
 fn test_sync_dynamic_overhead() {
     let mut syncer = syncer()
-
         // 1 MB
         .cache_size(1 << 20)
         // greatly increase synthetic size

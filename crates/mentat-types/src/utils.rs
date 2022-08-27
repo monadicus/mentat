@@ -9,8 +9,13 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use super::{
-    AccountIdentifier, Amount, BlockIdentifier, NullableAmount, NullableCurrency,
-    PartialBlockIdentifier, Sortable,
+    AccountIdentifier,
+    Amount,
+    BlockIdentifier,
+    NullableAmount,
+    NullableCurrency,
+    PartialBlockIdentifier,
+    Sortable,
 };
 
 /// a trait to help determine the size of blocks in memory
@@ -19,7 +24,8 @@ pub trait EstimateSize {
     fn estimated_size(&self) -> usize;
 }
 
-// TODO doesnt correctly track true size of json values, only the size of the enum pointing to the data
+// TODO doesnt correctly track true size of json values, only the size of the
+// enum pointing to the data
 pub(crate) fn estimated_metadata_size(metadata: &IndexMap<String, Value>) -> usize {
     size_of_val(&metadata)
         + metadata

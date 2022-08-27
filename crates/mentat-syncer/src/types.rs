@@ -1,17 +1,21 @@
 //! TODO
 
-use crate::errors::SyncerError;
-use crate::types::BlockIdentifier;
-use crate::utils::Context;
-use crate::{
-    errors::SyncerResult,
-    types::{Block, NetworkIdentifier, NetworkStatusResponse, PartialBlockIdentifier},
-};
+use std::{collections::VecDeque, sync::Arc, time::Duration};
+
 use mentat_types::*;
 use parking_lot::Mutex;
-use std::collections::VecDeque;
-use std::sync::Arc;
-use std::time::Duration;
+
+use crate::{
+    errors::{SyncerError, SyncerResult},
+    types::{
+        Block,
+        BlockIdentifier,
+        NetworkIdentifier,
+        NetworkStatusResponse,
+        PartialBlockIdentifier,
+    },
+    utils::Context,
+};
 
 /// DEFAULT_PAST_BLOCK_LIMIT is the maximum number of previously
 /// processed block headers we keep in the syncer to handle
@@ -77,7 +81,8 @@ pub trait Handler {
         context: &Context<SyncerError>,
         block: Option<&Block>,
     ) -> SyncerResult<()>;
-    // mock structures inside syncer_tests require access to syncer during this method for certain checks
+    // mock structures inside syncer_tests require access to syncer during this
+    // method for certain checks
     #[cfg(test)]
     fn block_added<Hand: 'static, Help: 'static>(
         &self,
@@ -111,7 +116,8 @@ pub trait Helper {
         partial_block_identifier: &PartialBlockIdentifier,
     ) -> SyncerResult<Option<Block>>;
 
-    // mock structures inside syncer_tests require access to syncer during this method for certain checks
+    // mock structures inside syncer_tests require access to syncer during this
+    // method for certain checks
     #[cfg(test)]
     fn block<Hand: 'static, Help: 'static>(
         &self,
@@ -205,6 +211,7 @@ impl<Handler, Helper> SyncerBuilder<Handler, Helper> {
             adjustment_window: None,
         }
     }
+
     pub fn cache_size(mut self, v: usize) -> Self {
         self.cache_size = Some(v);
         self

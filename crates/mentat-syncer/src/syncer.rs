@@ -1,10 +1,11 @@
-//! TODO
+//! handles the synchronizing of blocks from a node
 
 use std::{
     mem::size_of_val,
     sync::{
         atomic::{AtomicI64, Ordering},
         Arc,
+        Weak,
     },
     thread::{sleep, spawn},
 };
@@ -12,18 +13,22 @@ use std::{
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use indexmap::IndexMap;
 use mentat_types::{hash, Block, BlockIdentifier, EstimateSize, PartialBlockIdentifier};
-use parking_lot::MutexGuard;
 
 use crate::{
     errors::{SyncerError, SyncerResult},
     types::{
-        Handler, Helper, Syncer, DEFAULT_CONCURRENCY, DEFAULT_SYNC_SLEEP, DEFAULT_TRAILING_WINDOW,
+        Handler,
+        Helper,
+        Syncer,
+        DEFAULT_CONCURRENCY,
+        DEFAULT_SYNC_SLEEP,
+        DEFAULT_TRAILING_WINDOW,
         MIN_CONCURRENCY,
     },
     utils::{Context, ThreadHandler},
 };
 
-/// blockResult is returned by calls
+/// BlockResult is returned by calls
 /// to fetch a particular index. We must
 /// use a separate index field in case
 /// the block is omitted and we can't
@@ -72,7 +77,7 @@ where
         Ok(())
     }
 
-    /// nextSyncableRange returns the next range of indexes to sync
+    /// next_syncable_range returns the next range of indexes to sync
     /// based on what the last processed block in storage is and
     /// the contents of the network status response.
     fn next_syncable_range(
@@ -182,7 +187,8 @@ where
             self.next_index = last_block.unwrap().index;
             self.past_blocks.pop_back();
         } else {
-            // mock structures inside syncer_tests require access to syncer during this method for certain checks
+            // mock structures inside syncer_tests require access to syncer during this
+            // method for certain checks
             #[cfg(test)]
             let r = self.handler.block_added(self, context, br.block.clone());
             #[cfg(not(test))]
@@ -211,7 +217,8 @@ where
         index: i64,
     ) -> SyncerResult<BlockResult> {
         let block = self.helper.block(
-            // mock structures inside syncer_tests require access to syncer during this method for certain checks
+            // mock structures inside syncer_tests require access to syncer during this method for
+            // certain checks
             #[cfg(test)]
             self,
             context,
@@ -242,7 +249,8 @@ where
         Ok(br)
     }
 
-    /// spawns a new fetcher thread
+    /// spawns a new fetcher thread, ensuring concurrency gets adjusted as
+    /// needed
     pub fn spawn_fetcher(
         &mut self,
         thread_handler: &mut ThreadHandler<(), SyncerError>,
@@ -257,11 +265,13 @@ where
             let res =
                 syncer.fetch_blocks(&context, &fetcher_index, end_index, fetched_blocks_sender);
             *syncer.concurrency.lock() -= 1;
+            // if an error has already been set, return that error instead of our result
+            context.err()?;
             res
         }))
     }
 
-    /// fetchBlocks fetches blocks from a
+    /// fetch_blocks fetches blocks from a
     /// channel with retries until there are no
     /// more blocks in the channel or there is an
     /// error.
@@ -273,31 +283,34 @@ where
         fetched_blocks_sender: Arc<Sender<BlockResult>>,
     ) -> SyncerResult<()> {
         loop {
-            if fetched_blocks_sender.len() > *self.goal_concurrency.lock() {
-                continue;
-            }
-            let b = fetcher_index.fetch_add(1, Ordering::Relaxed);
-            if b > end_index {
-                break;
-            }
+            // if there are more blocks waiting to be processed than allowed fetcher
+            // threads, do nothing.
+            if fetched_blocks_sender.len() < *self.goal_concurrency.lock() {
+                // get the current target index and increment the counter for the next thread
+                let b = fetcher_index.fetch_add(1, Ordering::Relaxed);
+                if b > end_index {
+                    break;
+                }
 
-            let br = self
-                .fetch_block_result(context, b)
-                .map_err(|e| format!("unable to fetch block {b}: {e}"))?;
+                let br = self
+                    .fetch_block_result(context, b)
+                    .map_err(|e| format!("unable to fetch block {b}: {e}"))?;
 
-            context.err()?;
-            fetched_blocks_sender.send(br).unwrap();
+                // check if any threads have thrown an error and return the same error if there
+                // is one
+                context.err()?;
+                fetched_blocks_sender.send(br).unwrap();
 
-            // Exit if concurrency is greater than
-            // goal concurrency.
-            if *self.concurrency.lock() > *self.goal_concurrency.lock() {
-                break;
+                // Exit if concurrency is greater than goal concurrency.
+                if *self.concurrency.lock() > *self.goal_concurrency.lock() {
+                    break;
+                }
             }
         }
         Ok(())
     }
 
-    /// processBlocks is invoked whenever a new block is fetched. It attempts
+    /// process_blocks is invoked whenever a new block is fetched. It attempts
     /// to process as many blocks as possible.
     fn process_blocks(
         &mut self,
@@ -323,7 +336,7 @@ where
                     break;
                 }
 
-                // Fetch the nextIndex if we are
+                // Fetch the next_index if we are
                 // in a re-org.
                 self.fetch_block_result(context, self.next_index)
                     .map_err(|e| {
@@ -348,7 +361,7 @@ where
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    fn adjust_workers(&mut self, concurrency: &mut MutexGuard<usize>) -> bool {
+    fn adjust_workers(&mut self) -> bool {
         // find max block size
         let max = self
             .recent_block_sizes
@@ -358,18 +371,20 @@ where
             .unwrap_or_default() as f64
             * self.size_multiplier;
 
+        let concurrency = *self.concurrency.lock();
+
         // Check if we have entered shutdown
         // and return false if we have.
-        if **concurrency == 0 {
+        if concurrency == 0 {
             return false;
         }
 
         // multiply average block size by concurrency
-        let estimated_max_cache = max * **concurrency as f64;
+        let estimated_max_cache = max * concurrency as f64;
 
-        // If < cacheSize, increase concurrency by 1 up to MaxConcurrency
+        // If < cache_size, increase goal_concurrency by 1 up to max_concurrency
         let should_create = if estimated_max_cache + max < self.cache_size as f64
-            && **concurrency < self.max_concurrency
+            && concurrency < self.max_concurrency
             && self.last_adjustment > self.adjustment_window
         {
             let mut goal_concurrency = self.goal_concurrency.lock();
@@ -386,7 +401,8 @@ where
             false
         };
 
-        // If >= cacheSize, decrease concurrency however many necessary to fit max cache size.
+        // If >= cache_size, decrease concurrency however many necessary to fit max
+        // cache size.
         //
         // Note: We always will decrease size, regardless of last adjustment.
         if estimated_max_cache > self.cache_size as f64 {
@@ -395,7 +411,7 @@ where
                 new_goal_concurrency = MIN_CONCURRENCY
             }
 
-            // Only log if s.goalConcurrency != newGoalConcurrency
+            // Only log if goal_concurrency != new_goal_concurrency
             let mut goal_concurrency = self.goal_concurrency.lock();
             if *goal_concurrency != new_goal_concurrency {
                 *goal_concurrency = new_goal_concurrency;
@@ -422,10 +438,11 @@ where
         context: &Context<SyncerError>,
         result: &BlockResult,
     ) -> SyncerResult<()> {
-        // If the helper returns ErrOrphanHead
+        // If the helper returns Err(OrphanHead)
         // for a block fetch, result.block will
-        // be nil.
+        // be None.
         if let Some(b) = &result.block {
+            println!("{}: {}", result.index, self.concurrency.lock());
             self.handler.block_seen(context, b)
         } else {
             Ok(())
@@ -436,13 +453,11 @@ where
     fn sequence_blocks(
         &mut self,
         thread_handler: &mut ThreadHandler<(), SyncerError>,
-        fetched_blocks_sender: Arc<Sender<BlockResult>>,
+        fetched_blocks_sender: Weak<Sender<BlockResult>>,
         fetched_blocks_receiver: Receiver<BlockResult>,
         fetcher_index: Arc<AtomicI64>,
         end_index: i64,
     ) -> SyncerResult<()> {
-        let weak_fetched_blocks_sender = Arc::downgrade(&fetched_blocks_sender);
-        drop(fetched_blocks_sender);
         let mut cache = IndexMap::new();
         for result in fetched_blocks_receiver {
             let size = result.estimated_size();
@@ -456,49 +471,37 @@ where
                     )
                 })?;
 
-            // Determine if concurrency should be adjusted.
+            // Determine if concurrency should be adjusted. if an error gets set then it
+            // will tell all fetcher threads to exit which will hang up the sender and close
+            // this loop after the receiver is emptied
             self.recent_block_sizes.push_back(size);
             self.last_adjustment += 1;
 
+            // have the thread handler check the status of threads and update their context
+            // if needed
             thread_handler.update();
 
-            let tmp_concurrency = self.concurrency.clone();
-            let mut concurrency = tmp_concurrency.lock();
-            let should_create = self.adjust_workers(&mut concurrency);
-            if !should_create {
-                continue;
-            }
-
-            // If the context has an error (like context.Canceled), we should avoid creating more threads
-            if !thread_handler.ctx().done() {
-                let sender = match weak_fetched_blocks_sender.upgrade() {
+            // adjust goal concurrency and return if more threads should be spawned
+            // If the context has an error (like Canceled), we should avoid creating more
+            // threads
+            if self.adjust_workers() && !thread_handler.ctx().done() {
+                let sender = match fetched_blocks_sender.upgrade() {
                     Some(s) => s,
                     None => break,
                 };
                 self.spawn_fetcher(thread_handler, fetcher_index.clone(), end_index, sender)
             }
-
-            // // Hold concurrencyLock until after we attempt to create another
-            // // new goroutine in the case we accidentally go to 0 during shutdown.
-            drop(concurrency);
         }
 
         Ok(())
     }
 
-    /// syncRange fetches and processes a range of blocks
-    /// (from syncer.nextIndex to endIndex, inclusive)
+    /// sync_range fetches and processes a range of blocks
+    /// (from syncer.next_index to end_index, inclusive)
     /// with syncer.concurrency.
     fn sync_range(&mut self, context: &Context<SyncerError>, end_index: i64) -> SyncerResult<()> {
-        // let (block_indices_sender, block_indices_receiver) = unbounded();
-        let (fetched_blocks_sender, fetched_blocks_receiver) = {
-            let (s, r) = unbounded();
-            (Arc::new(s), r)
-        };
-
-        // Ensure starting concurrency is less than max concurrency.
-        // Don't create more goroutines than there are blocks
-        // to sync.
+        // Ensure starting concurrency is less than max concurrency and that we don't
+        // create more threads than there are blocks to sync.
         let starting_concurrency = [
             self.max_concurrency,
             DEFAULT_CONCURRENCY,
@@ -514,9 +517,18 @@ where
         *self.concurrency.lock() = 0;
         *self.goal_concurrency.lock() = starting_concurrency;
 
-        let mut thread_handler = ThreadHandler::from(context.clone());
+        // sender is in and arc so we can downgrade it later. this ensures only fetcher
+        // threads have access to a sender instance. if we dont do this then the sender
+        // will never hang up
+        let (fetched_blocks_sender, fetched_blocks_receiver) = {
+            let (s, r) = unbounded();
+            (Arc::new(s), r)
+        };
+        // contains the target index for fetcher threads to request
         let fetcher_index = Arc::new(AtomicI64::from(self.next_index));
+        let mut thread_handler = ThreadHandler::from(context.clone());
 
+        // spawn the initial starting threads
         for _ in 0..starting_concurrency {
             self.spawn_fetcher(
                 &mut thread_handler,
@@ -526,9 +538,13 @@ where
             )
         }
 
+        // downgrade the sender to a weak reference and drop the original reference.
+        // this ensures that only the fetcher threads have references to the sender
+        let weak_fetched_blocks_sender = Arc::downgrade(&fetched_blocks_sender);
+        drop(fetched_blocks_sender);
         self.sequence_blocks(
             &mut thread_handler,
-            fetched_blocks_sender,
+            weak_fetched_blocks_sender,
             fetched_blocks_receiver,
             fetcher_index,
             end_index,
@@ -545,7 +561,7 @@ where
         context.err()
     }
 
-    /// Tip returns the last observed tip. The tip is recorded
+    /// tip returns the last observed tip. The tip is recorded
     /// at the start of each sync range and should only be thought
     /// of as a best effort approximation of tip.
     ///
@@ -556,9 +572,9 @@ where
         self.tip.as_ref()
     }
 
-    /// Sync cycles endlessly until there is an error
+    /// sync cycles endlessly until there is an error
     /// or the requested range is synced. When the requested
-    /// range is synced, context is canceled.
+    /// range is synced, all fetcher threads are shutdown.
     pub fn sync(
         &mut self,
         context: &Context<SyncerError>,
