@@ -9,9 +9,9 @@ use super::*;
 /// equal the computed balance.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct NullableExemptionType(String);
+pub struct UncheckedExemptionType(String);
 
-impl NullableExemptionType {
+impl UncheckedExemptionType {
     /// The live balance may increase above, decrease below, or equal the
     /// computed balance. This typically occurs with tokens that have a dynamic
     /// supply.
@@ -38,19 +38,19 @@ impl NullableExemptionType {
     }
 }
 
-impl fmt::Display for NullableExemptionType {
+impl fmt::Display for UncheckedExemptionType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<String> for NullableExemptionType {
+impl From<String> for UncheckedExemptionType {
     fn from(et: String) -> Self {
         Self(et)
     }
 }
 
-impl From<&str> for NullableExemptionType {
+impl From<&str> for UncheckedExemptionType {
     fn from(et: &str) -> Self {
         et.to_string().into()
     }
@@ -76,18 +76,18 @@ pub enum ExemptionType {
     LessOrEqual,
 }
 
-impl From<NullableExemptionType> for ExemptionType {
-    fn from(other: NullableExemptionType) -> Self {
+impl From<UncheckedExemptionType> for ExemptionType {
+    fn from(other: UncheckedExemptionType) -> Self {
         match other.0.as_ref() {
-            NullableExemptionType::DYNAMIC => Self::Dynamic,
-            NullableExemptionType::GREATER_OR_EQUAL => Self::GreaterOrEqual,
-            NullableExemptionType::LESS_OR_EQUAL => Self::LessOrEqual,
+            UncheckedExemptionType::DYNAMIC => Self::Dynamic,
+            UncheckedExemptionType::GREATER_OR_EQUAL => Self::GreaterOrEqual,
+            UncheckedExemptionType::LESS_OR_EQUAL => Self::LessOrEqual,
             i => panic!("unsupported ExemptionType: {i}"),
         }
     }
 }
 
-impl From<ExemptionType> for NullableExemptionType {
+impl From<ExemptionType> for UncheckedExemptionType {
     fn from(other: ExemptionType) -> Self {
         match other {
             ExemptionType::Dynamic => Self::DYNAMIC.into(),

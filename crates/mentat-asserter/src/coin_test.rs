@@ -2,9 +2,9 @@ use super::*;
 
 #[test]
 fn test_coin() {
-    let valid_amount = NullableAmount {
+    let valid_amount = UncheckedAmount {
         value: "1000".to_string(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
@@ -15,7 +15,7 @@ fn test_coin() {
     let tests = vec![
         TestCase {
             name: "valid coin",
-            payload: Some(NullableCoin {
+            payload: Some(UncheckedCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
@@ -30,7 +30,7 @@ fn test_coin() {
         },
         TestCase {
             name: "invalid identifier",
-            payload: Some(NullableCoin {
+            payload: Some(UncheckedCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
                 }),
@@ -42,11 +42,11 @@ fn test_coin() {
         },
         TestCase {
             name: "invalid amount",
-            payload: Some(NullableCoin {
+            payload: Some(UncheckedCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
-                amount: Some(NullableAmount {
+                amount: Some(UncheckedAmount {
                     value: "100".to_string(),
                     currency: None,
                     metadata: Default::default(),
@@ -56,7 +56,7 @@ fn test_coin() {
         },
         TestCase {
             name: "nil amount",
-            payload: Some(NullableCoin {
+            payload: Some(UncheckedCoin {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
@@ -71,9 +71,9 @@ fn test_coin() {
 
 #[test]
 fn test_coins() {
-    let valid_amount = NullableAmount {
+    let valid_amount = UncheckedAmount {
         value: "1000".to_string(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
@@ -85,13 +85,13 @@ fn test_coins() {
         TestCase {
             name: "valid coins",
             payload: vec![
-                Some(NullableCoin {
+                Some(UncheckedCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
                     amount: Some(valid_amount.clone()),
                 }),
-                Some(NullableCoin {
+                Some(UncheckedCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin2".to_string(),
                     }),
@@ -108,13 +108,13 @@ fn test_coins() {
         TestCase {
             name: "duplicate coins",
             payload: vec![
-                Some(NullableCoin {
+                Some(UncheckedCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
                     amount: Some(valid_amount.clone()),
                 }),
-                Some(NullableCoin {
+                Some(UncheckedCoin {
                     coin_identifier: Some(CoinIdentifier {
                         identifier: "coin1".to_string(),
                     }),
@@ -133,11 +133,11 @@ fn test_coin_change() {
     let tests = vec![
         TestCase {
             name: "valid change",
-            payload: Some(NullableCoinChange {
+            payload: Some(UncheckedCoinChange {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),
-                coin_action: NullableCoinAction::COIN_CREATED.into(),
+                coin_action: UncheckedCoinAction::COIN_CREATED.into(),
             }),
             criteria: None,
         },
@@ -148,17 +148,17 @@ fn test_coin_change() {
         },
         TestCase {
             name: "invalid identifier",
-            payload: Some(NullableCoinChange {
+            payload: Some(UncheckedCoinChange {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: String::new(),
                 }),
-                coin_action: NullableCoinAction::COIN_CREATED.into(),
+                coin_action: UncheckedCoinAction::COIN_CREATED.into(),
             }),
             criteria: Some(CoinError::IdentifierNotSet.into()),
         },
         TestCase {
             name: "invalid coin action",
-            payload: Some(NullableCoinChange {
+            payload: Some(UncheckedCoinChange {
                 coin_identifier: Some(CoinIdentifier {
                     identifier: "coin1".to_string(),
                 }),

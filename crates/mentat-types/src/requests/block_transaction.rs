@@ -6,9 +6,9 @@ use super::*;
 
 /// A [`BlockRequest`] is utilized to make a block request on the `/block`
 /// endpoint.
-#[derive(Debug, Default, Deserialize, FromTuple, Serialize, Nullable)]
+#[derive(Debug, Default, Deserialize, FromTuple, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableBlockTransactionRequest {
+pub struct UncheckedBlockTransactionRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -16,7 +16,7 @@ pub struct NullableBlockTransactionRequest {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<NullableBlockIdentifier>,
+    pub block_identifier: Option<UncheckedBlockIdentifier>,
     /// The [`TransactionIdentifier`] uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -26,14 +26,14 @@ pub struct NullableBlockTransactionRequest {
 impl
     From<(
         NetworkIdentifier,
-        NullableBlockIdentifier,
+        UncheckedBlockIdentifier,
         TransactionIdentifier,
-    )> for NullableBlockTransactionRequest
+    )> for UncheckedBlockTransactionRequest
 {
     fn from(
         (network_identifier, block_identifier, transaction_identifier): (
             NetworkIdentifier,
-            NullableBlockIdentifier,
+            UncheckedBlockIdentifier,
             TransactionIdentifier,
         ),
     ) -> Self {

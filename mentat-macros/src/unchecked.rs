@@ -1,4 +1,4 @@
-//! generates the non-nullable counterparts of a nullable struct
+//! generates the checked counterparts of an unchecked struct
 
 use std::fmt::Debug;
 
@@ -21,7 +21,7 @@ use syn::{
     Type,
 };
 
-/// the nullable argument over a struct field
+/// the unchecked argument over a struct field
 #[derive(Default, Debug, Clone, Copy)]
 enum Argument {
     /// no argument
@@ -62,7 +62,7 @@ impl From<&Field> for Argument {
         other
             .attrs
             .iter()
-            .find(|f| matches!(f.path.get_ident(), Some(i) if i == "nullable"))
+            .find(|f| matches!(f.path.get_ident(), Some(i) if i == "unchecked"))
             .map(|f| match f.parse_meta().unwrap() {
                 Meta::List(MetaList { nested, .. }) => {
                     if let NestedMeta::Meta(n) = &nested[0] {
@@ -154,13 +154,13 @@ impl From<(FieldType, Argument)> for FieldBehavior {
 struct FieldData {
     /// the target field
     field: Field,
-    /// the nullable behavior of the field
+    /// the unchecked behavior of the field
     behavior: FieldBehavior,
 }
 
 impl FieldData {
-    /// generates the `impl From<NullableT> for T` for the struct
-    fn gen_from_nullable(&self) -> FieldValue {
+    /// generates the `impl From<UncheckedT> for T` for the struct
+    fn gen_from_unchecked(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
             FieldBehavior::Retain | FieldBehavior::Bytes => {
@@ -194,8 +194,8 @@ impl FieldData {
         }
     }
 
-    /// generates the `impl From<T> for NullableT` for the struct
-    fn gen_to_nullable(&self) -> FieldValue {
+    /// generates the `impl From<T> for UncheckedT` for the struct
+    fn gen_to_unchecked(&self) -> FieldValue {
         let field_name = &self.field.ident.as_ref().unwrap();
         match &self.behavior {
             FieldBehavior::Retain | FieldBehavior::Bytes => {
@@ -232,7 +232,7 @@ impl FieldData {
             .into_token_stream()
             .into_iter()
             .map(|t| {
-                if let Some(id) = t.to_string().strip_prefix("Nullable") {
+                if let Some(id) = t.to_string().strip_prefix("Unchecked") {
                     TokenTree::Ident(Ident::new(id, t.span()))
                 } else {
                     t
@@ -294,7 +294,7 @@ impl From<&Field> for FieldData {
             FieldBehavior::Retain => field
                 .attrs
                 .iter()
-                .filter(|a| matches!(a.path.get_ident(), Some(i) if i != "nullable"))
+                .filter(|a| matches!(a.path.get_ident(), Some(i) if i != "unchecked"))
                 .cloned()
                 .collect(),
             FieldBehavior::VecOption | FieldBehavior::RetainVecOption => {
@@ -332,9 +332,10 @@ impl From<&Field> for FieldData {
     }
 }
 
-/// contains info to generate the different parts of the the non-nullable struct
+/// contains info to generate the different parts of the the non-unchecked
+/// struct
 pub struct StructBuilder {
-    /// the struct identifier, with `Nullable` removed
+    /// the struct identifier, with `Unchecked` removed
     ident: Ident,
     /// the fields of the struct
     fields: Vec<FieldData>,
@@ -347,8 +348,8 @@ impl StructBuilder {
             ident: Ident::new(
                 item.ident
                     .to_string()
-                    .strip_prefix("Nullable")
-                    .expect("struct must start with \"Nullable\""),
+                    .strip_prefix("Unchecked")
+                    .expect("struct must start with \"Unchecked\""),
                 // TODO span
                 item.ident.span(),
             ),
@@ -356,7 +357,7 @@ impl StructBuilder {
         }
     }
 
-    /// generates the non-nullable struct
+    /// generates the non-unchecked struct
     pub fn gen_struct(&self, original: &ItemStruct) -> ItemStruct {
         let tmp = ItemStruct {
             attrs: original.attrs.clone(),
@@ -384,14 +385,14 @@ impl StructBuilder {
         )
     }
 
-    /// generates the `impl From<NullableT> for T` code
-    pub fn gen_from_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
-        let nullable_ident = &original.ident;
+    /// generates the `impl From<UncheckedT> for T` code
+    pub fn gen_from_unchecked_impl(&self, original: &ItemStruct) -> ItemImpl {
+        let unchecked_ident = &original.ident;
         let self_ident = &self.ident;
-        let fields = self.fields.iter().map(|f| f.gen_from_nullable());
+        let fields = self.fields.iter().map(|f| f.gen_from_unchecked());
         parse_quote!(
-            impl From<#nullable_ident> for #self_ident {
-                fn from(other: #nullable_ident) -> Self {
+            impl From<#unchecked_ident> for #self_ident {
+                fn from(other: #unchecked_ident) -> Self {
                     Self {
                         #(#fields),*
                     }
@@ -400,13 +401,13 @@ impl StructBuilder {
         )
     }
 
-    /// generates the `impl From<T> for NullableT` code
-    pub fn gen_to_nullable_impl(&self, original: &ItemStruct) -> ItemImpl {
-        let nullable_ident = &original.ident;
+    /// generates the `impl From<T> for UncheckedT` code
+    pub fn gen_to_unchecked_impl(&self, original: &ItemStruct) -> ItemImpl {
+        let unchecked_ident = &original.ident;
         let self_ident = &self.ident;
-        let fields = self.fields.iter().map(|f| f.gen_to_nullable());
+        let fields = self.fields.iter().map(|f| f.gen_to_unchecked());
         parse_quote!(
-            impl From<#self_ident> for #nullable_ident {
+            impl From<#self_ident> for #unchecked_ident {
                 fn from(other: #self_ident) -> Self {
                     Self {
                         #(#fields),*

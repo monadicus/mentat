@@ -1,6 +1,6 @@
 //! The module defines the `SyncStatus`.
 
-use mentat_macros::Nullable;
+use mentat_macros::Unchecked;
 
 use super::*;
 
@@ -9,9 +9,9 @@ use super::*;
 /// to indicate healthiness when block data cannot be queried until some sync
 /// phase completes or cannot be determined by comparing the timestamp of the
 /// most recent block with the current time.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
 #[serde(default)]
-pub struct NullableSyncStatus {
+pub struct UncheckedSyncStatus {
     /// `CurrentIndex` is the index of the last synced block in the current
     /// stage. This is a separate field from `current_block_identifier` in
     /// [`crate::responses::NetworkStatusResponse`] because blocks with indices
@@ -22,12 +22,12 @@ pub struct NullableSyncStatus {
     /// the `/block` endpoint (excluding indices less than
     /// `oldest_block_identifier`).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(option_usize)]
+    #[unchecked(option_usize)]
     pub current_index: Option<isize>,
     /// `TargetIndex` is the index of the block that the implementation is
     /// attempting to sync to in the current stage.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(option_usize)]
+    #[unchecked(option_usize)]
     pub target_index: Option<isize>,
     /// Stage is the phase of the sync process.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -66,8 +66,8 @@ impl Validations {
 pub(crate) struct ResponseAsserter {
     pub(crate) network: NetworkIdentifier,
     pub(crate) operation_status_map: IndexMap<String, bool>,
-    pub(crate) error_type_map: IndexMap<isize, NullableMentatError>,
-    pub(crate) genesis_block: NullableBlockIdentifier,
+    pub(crate) error_type_map: IndexMap<isize, UncheckedMentatError>,
+    pub(crate) genesis_block: UncheckedBlockIdentifier,
     pub(crate) timestamp_start_index: usize,
 }
 
@@ -136,10 +136,10 @@ impl Asserter {
     /// NetworkOptionsResponse.
     pub fn new_client_with_options(
         network: Option<NetworkIdentifier>,
-        genesis_block: Option<NullableBlockIdentifier>,
+        genesis_block: Option<UncheckedBlockIdentifier>,
         operation_types_: Vec<String>,
         operation_stats: Vec<Option<OperationStatus>>,
-        errors: Vec<Option<NullableMentatError>>,
+        errors: Vec<Option<UncheckedMentatError>>,
         timestamp_start_index: Option<isize>,
         validations: Validations,
     ) -> AssertResult<Self> {
@@ -198,8 +198,8 @@ impl Asserter {
     /// NetworkOptionsResponse.
     pub(crate) fn new_client_with_responses(
         network: Option<NetworkIdentifier>,
-        status: Option<NullableNetworkStatusResponse>,
-        options: Option<NullableNetworkOptionsResponse>,
+        status: Option<UncheckedNetworkStatusResponse>,
+        options: Option<UncheckedNetworkOptionsResponse>,
         validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
         network_identifier(network.as_ref())?;
@@ -277,10 +277,10 @@ impl Asserter {
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct Configuration {
     pub(crate) network_identifier: Option<NetworkIdentifier>,
-    pub(crate) genesis_block_identifier: Option<NullableBlockIdentifier>,
+    pub(crate) genesis_block_identifier: Option<UncheckedBlockIdentifier>,
     pub(crate) allowed_operation_types: Vec<String>,
     pub(crate) allowed_operation_statuses: Vec<Option<OperationStatus>>,
-    pub(crate) allowed_errors: Vec<Option<NullableMentatError>>,
+    pub(crate) allowed_errors: Vec<Option<UncheckedMentatError>>,
     pub(crate) allowed_timestamp_start_index: Option<isize>,
 }
 

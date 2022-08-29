@@ -7,8 +7,8 @@ use super::*;
 /// `contains_duplicate_currency` returns a boolean indicating
 /// if an array of [`Currency`] contains any duplicate currencies.
 pub fn contains_duplicate_currency<'a>(
-    currencies: &[Option<&'a NullableCurrency>],
-) -> Option<&'a NullableCurrency> {
+    currencies: &[Option<&'a UncheckedCurrency>],
+) -> Option<&'a UncheckedCurrency> {
     let mut seen = HashSet::new();
 
     for currency in currencies.iter() {
@@ -37,7 +37,7 @@ pub fn contains_currency(currencies: &[Currency], currency: &Currency) -> bool {
 /// of [`Amount`] is invalid. It is considered invalid if the same
 /// currency is returned multiple times (these should be
 /// consolidated) or if a [`Amount`] is considered invalid.
-pub fn assert_unique_amounts(amounts: &[Option<NullableAmount>]) -> AssertResult<()> {
+pub fn assert_unique_amounts(amounts: &[Option<UncheckedAmount>]) -> AssertResult<()> {
     let mut seen = HashSet::new();
 
     for amt in amounts.iter().filter_map(|a| a.as_ref()) {
@@ -56,12 +56,12 @@ pub fn assert_unique_amounts(amounts: &[Option<NullableAmount>]) -> AssertResult
 }
 
 /// `account_balance_response` returns an error if the provided
-/// [`NullablePartialBlockIdentifier`] is invalid, if the requestBlock
+/// [`UncheckedPartialBlockIdentifier`] is invalid, if the requestBlock
 /// is not nil and not equal to the response block, or
 /// if the same currency is present in multiple amounts.
 pub fn account_balance_response(
-    request_block: Option<&NullablePartialBlockIdentifier>,
-    response: &NullableAccountBalanceResponse,
+    request_block: Option<&UncheckedPartialBlockIdentifier>,
+    response: &UncheckedAccountBalanceResponse,
 ) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
@@ -95,7 +95,7 @@ pub fn account_balance_response(
 
 /// `account_coins` returns an error if the provided
 /// [`AccountCoinsResponse`] is invalid.
-pub fn account_coins(response: &NullableAccountCoinsResponse) -> AssertResult<()> {
+pub fn account_coins(response: &UncheckedAccountCoinsResponse) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())
         .map_err(|e| format!("{e}: block identifier is invalid"))?;
     coins(&response.coins).map_err(|e| format!("{e}: coins are invalid"))?;

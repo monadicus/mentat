@@ -2,13 +2,13 @@ use super::*;
 
 #[test]
 fn test_search_transactions_response() {
-    let valid_transaction = Some(NullableTransaction {
+    let valid_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(NullableOperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -18,12 +18,12 @@ fn test_search_transactions_response() {
                 amount: valid_amount(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(NullableOperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(NullableOperationIdentifier {
+                related_operations: vec![Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -45,7 +45,7 @@ fn test_search_transactions_response() {
         },
         TestCase {
             name: "valid next",
-            payload: NullableSearchTransactionsResponse {
+            payload: UncheckedSearchTransactionsResponse {
                 next_offset: Some(1),
                 ..Default::default()
             },
@@ -53,7 +53,7 @@ fn test_search_transactions_response() {
         },
         TestCase {
             name: "invalid next",
-            payload: NullableSearchTransactionsResponse {
+            payload: UncheckedSearchTransactionsResponse {
                 next_offset: Some(-1),
                 ..Default::default()
             },
@@ -61,7 +61,7 @@ fn test_search_transactions_response() {
         },
         TestCase {
             name: "valid count",
-            payload: NullableSearchTransactionsResponse {
+            payload: UncheckedSearchTransactionsResponse {
                 total_count: 0,
                 ..Default::default()
             },
@@ -69,7 +69,7 @@ fn test_search_transactions_response() {
         },
         TestCase {
             name: "invalid count",
-            payload: NullableSearchTransactionsResponse {
+            payload: UncheckedSearchTransactionsResponse {
                 total_count: -1,
                 ..Default::default()
             },
@@ -77,9 +77,9 @@ fn test_search_transactions_response() {
         },
         TestCase {
             name: "valid next + transaction",
-            payload: NullableSearchTransactionsResponse {
+            payload: UncheckedSearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(NullableBlockTransaction {
+                transactions: vec![Some(UncheckedBlockTransaction {
                     block_identifier: valid_block_identifier(),
                     transaction: valid_transaction.clone(),
                 })],
@@ -89,9 +89,9 @@ fn test_search_transactions_response() {
         },
         TestCase {
             name: "valid next + invalid blockIdentifier",
-            payload: NullableSearchTransactionsResponse {
+            payload: UncheckedSearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(NullableBlockTransaction {
+                transactions: vec![Some(UncheckedBlockTransaction {
                     block_identifier: Some(Default::default()),
                     transaction: valid_transaction,
                 })],
@@ -101,9 +101,9 @@ fn test_search_transactions_response() {
         },
         TestCase {
             name: "valid next + invalid transaction",
-            payload: NullableSearchTransactionsResponse {
+            payload: UncheckedSearchTransactionsResponse {
                 next_offset: Some(1),
-                transactions: vec![Some(NullableBlockTransaction {
+                transactions: vec![Some(UncheckedBlockTransaction {
                     block_identifier: valid_block_identifier(),
                     transaction: Some(Default::default()),
                 })],
@@ -119,13 +119,13 @@ fn test_search_transactions_response() {
             network: "WORLD".into(),
             sub_network_identifier: None,
         }),
-        Some(NullableNetworkStatusResponse {
-            current_block_identifier: Some(NullableBlockIdentifier {
+        Some(UncheckedNetworkStatusResponse {
+            current_block_identifier: Some(UncheckedBlockIdentifier {
                 index: 100,
                 hash: "block 100".into(),
             }),
             current_block_timestamp: MIN_UNIX_EPOCH + 1,
-            genesis_block_identifier: Some(NullableBlockIdentifier {
+            genesis_block_identifier: Some(UncheckedBlockIdentifier {
                 index: 0,
                 hash: "block 0".into(),
             }),
@@ -136,14 +136,14 @@ fn test_search_transactions_response() {
                 metadata: Default::default(),
             })],
         }),
-        Some(NullableNetworkOptionsResponse {
+        Some(UncheckedNetworkOptionsResponse {
             version: Some(Version {
                 rosetta_version: "1.4.0".into(),
                 node_version: "1.0".into(),
                 middleware_version: None,
                 metadata: Default::default(),
             }),
-            allow: Some(NullableAllow {
+            allow: Some(UncheckedAllow {
                 operation_statuses: vec![
                     Some(OperationStatus {
                         status: "SUCCESS".into(),

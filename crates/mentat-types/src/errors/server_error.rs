@@ -11,19 +11,19 @@ use axum::{
 use super::*;
 
 /// The Error type for any mentat responses.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Nullable)]
-pub struct NullableMentatError {
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
+pub struct UncheckedMentatError {
     /// The http status code.
     #[serde(skip)]
     pub status_code: u16,
     /// The rosetta error code
-    #[nullable(usize)]
+    #[unchecked(usize)]
     pub code: isize,
     /// The message for the error.
     pub message: String,
     /// The optional description of the error.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub description: Option<String>,
     /// If the method is retriable.
     pub retriable: bool,

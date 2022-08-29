@@ -64,8 +64,8 @@ pub fn version(version: Option<&Version>) -> AssertResult<()> {
     Ok(())
 }
 
-/// `sync_status` ensures any [`NullableSyncStatus`] is valid.
-pub fn sync_status(status: Option<&NullableSyncStatus>) -> AssertResult<()> {
+/// `sync_status` ensures any [`UncheckedSyncStatus`] is valid.
+pub fn sync_status(status: Option<&UncheckedSyncStatus>) -> AssertResult<()> {
     let status = match status {
         Some(s) => s,
         None => return Ok(()),
@@ -88,7 +88,7 @@ pub fn sync_status(status: Option<&NullableSyncStatus>) -> AssertResult<()> {
 
 /// `network_status_response` ensures any [`NetworkStatusResponse`]
 /// is valid.
-pub fn network_status_response(resp: Option<&NullableNetworkStatusResponse>) -> AssertResult<()> {
+pub fn network_status_response(resp: Option<&UncheckedNetworkStatusResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkStatusResponseIsNil)?;
 
     block_identifier(resp.current_block_identifier.as_ref())?;
@@ -139,8 +139,8 @@ pub fn operation_types(types: &[String]) -> AssertResult<()> {
     string_array("Allow.OperationTypes", types).map_err(AsserterError::from)
 }
 
-/// `error` ensures a [`NullableMentatError`] is valid.
-pub fn error(err: Option<&NullableMentatError>) -> AssertResult<()> {
+/// `error` ensures a [`UncheckedMentatError`] is valid.
+pub fn error(err: Option<&UncheckedMentatError>) -> AssertResult<()> {
     let err = err.ok_or(ErrorError::IsNil)?;
 
     if err.code < 0 {
@@ -154,9 +154,9 @@ pub fn error(err: Option<&NullableMentatError>) -> AssertResult<()> {
     }
 }
 
-/// `errors` ensures each [`NullableMentatError`] in a slice is valid
+/// `errors` ensures each [`UncheckedMentatError`] in a slice is valid
 /// and that there is no error code collision.
-pub fn errors(errors: &[Option<NullableMentatError>]) -> AssertResult<()> {
+pub fn errors(errors: &[Option<UncheckedMentatError>]) -> AssertResult<()> {
     let mut status_codes = IndexSet::new();
 
     for err in errors {
@@ -178,7 +178,7 @@ pub fn errors(errors: &[Option<NullableMentatError>]) -> AssertResult<()> {
 }
 
 /// `balance_exemptions` ensures [`BalanceExemption`]] in a slice is valid.
-pub fn balance_exemptions(exemptions: &[Option<NullableBalanceExemption>]) -> AssertResult<()> {
+pub fn balance_exemptions(exemptions: &[Option<UncheckedBalanceExemption>]) -> AssertResult<()> {
     for (index, exemption) in exemptions.iter().enumerate() {
         let exemption = exemption.as_ref().ok_or(format!(
             "{} (index {})",
@@ -230,7 +230,7 @@ pub fn call_methods(methods: &[String]) -> AssertResult<()> {
 }
 
 /// `allow` ensures a [`Allow`] object is valid.
-pub fn allow(allowed: Option<&NullableAllow>) -> AssertResult<()> {
+pub fn allow(allowed: Option<&UncheckedAllow>) -> AssertResult<()> {
     let allowed = allowed.ok_or(NetworkError::AllowIsNil)?;
 
     operation_statuses(&allowed.operation_statuses)?;
@@ -257,7 +257,7 @@ pub fn allow(allowed: Option<&NullableAllow>) -> AssertResult<()> {
 /// `network_options_response` ensures a [`NetworkOptionsResponse`] object is
 /// valid.
 pub fn network_options_response(
-    options: Option<&NullableNetworkOptionsResponse>,
+    options: Option<&UncheckedNetworkOptionsResponse>,
 ) -> AssertResult<()> {
     let options = options.ok_or(NetworkError::NetworkOptionsResponseIsNil)?;
     version(options.version.as_ref())?;
@@ -279,7 +279,7 @@ pub fn contains_network_identifier(
 }
 
 /// `network_list_response` ensures a [`NetworkListResponse`] object is valid.
-pub fn network_list_response(resp: Option<&NullableNetworkListResponse>) -> AssertResult<()> {
+pub fn network_list_response(resp: Option<&UncheckedNetworkListResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkListResponseIsNil)?;
     let mut seen = Vec::new();
     for network in &resp.network_identifiers {

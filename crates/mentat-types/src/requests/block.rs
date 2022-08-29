@@ -4,9 +4,9 @@ use super::*;
 
 /// A [`BlockRequest`] is utilized to make a block request on the `/block`
 /// endpoint.
-#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableBlockRequest {
+pub struct UncheckedBlockRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -16,12 +16,15 @@ pub struct NullableBlockRequest {
     /// assumed that the client is making a request at the current block.
     /// This is represented via a [`PartialBlockIdentifier`].
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<NullablePartialBlockIdentifier>,
+    pub block_identifier: Option<UncheckedPartialBlockIdentifier>,
 }
 
-impl From<(NetworkIdentifier, NullablePartialBlockIdentifier)> for NullableBlockRequest {
+impl From<(NetworkIdentifier, UncheckedPartialBlockIdentifier)> for UncheckedBlockRequest {
     fn from(
-        (network_identifier, block_identifier): (NetworkIdentifier, NullablePartialBlockIdentifier),
+        (network_identifier, block_identifier): (
+            NetworkIdentifier,
+            UncheckedPartialBlockIdentifier,
+        ),
     ) -> Self {
         Self {
             network_identifier: Some(network_identifier),
@@ -30,9 +33,12 @@ impl From<(NetworkIdentifier, NullablePartialBlockIdentifier)> for NullableBlock
     }
 }
 
-impl From<(NullablePartialBlockIdentifier, NetworkIdentifier)> for NullableBlockRequest {
+impl From<(UncheckedPartialBlockIdentifier, NetworkIdentifier)> for UncheckedBlockRequest {
     fn from(
-        (block_identifier, network_identifier): (NullablePartialBlockIdentifier, NetworkIdentifier),
+        (block_identifier, network_identifier): (
+            UncheckedPartialBlockIdentifier,
+            NetworkIdentifier,
+        ),
     ) -> Self {
         Self {
             network_identifier: Some(network_identifier),

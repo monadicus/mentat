@@ -10,7 +10,7 @@ fn test_events_block_response() {
         },
         TestCase {
             name: "invalid max",
-            payload: NullableEventsBlocksResponse {
+            payload: UncheckedEventsBlocksResponse {
                 max_sequence: -1,
                 events: Vec::new(),
             },
@@ -18,24 +18,24 @@ fn test_events_block_response() {
         },
         TestCase {
             name: "valid event",
-            payload: NullableEventsBlocksResponse {
+            payload: UncheckedEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 1,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             },
@@ -43,24 +43,24 @@ fn test_events_block_response() {
         },
         TestCase {
             name: "invalid identifier",
-            payload: NullableEventsBlocksResponse {
+            payload: UncheckedEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: String::new(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 1,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             },
@@ -68,24 +68,24 @@ fn test_events_block_response() {
         },
         TestCase {
             name: "invalid event type",
-            payload: NullableEventsBlocksResponse {
+            payload: UncheckedEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
                         type_: "revert".into(),
                     }),
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 1,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             },
@@ -93,24 +93,24 @@ fn test_events_block_response() {
         },
         TestCase {
             name: "gap events",
-            payload: NullableEventsBlocksResponse {
+            payload: UncheckedEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 2,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             },
@@ -118,24 +118,24 @@ fn test_events_block_response() {
         },
         TestCase {
             name: "gap events",
-            payload: NullableEventsBlocksResponse {
+            payload: UncheckedEventsBlocksResponse {
                 max_sequence: 100,
                 events: vec![
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: -1,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_ADDED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_ADDED.into(),
                     }),
-                    Some(NullableBlockEvent {
+                    Some(UncheckedBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(NullableBlockIdentifier {
+                        block_identifier: Some(UncheckedBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
-                        type_: NullableBlockEventType::BLOCK_REMOVED.into(),
+                        type_: UncheckedBlockEventType::BLOCK_REMOVED.into(),
                     }),
                 ],
             },

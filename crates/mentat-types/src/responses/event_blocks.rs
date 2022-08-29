@@ -4,11 +4,11 @@ use super::*;
 
 /// `EventsBlocksResponse` contains an ordered collection of [`BlockEvent`]s and
 /// the max retrievable sequence.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableEventsBlocksResponse {
+pub struct UncheckedEventsBlocksResponse {
     /// `max_sequence` is the maximum available sequence number to fetch.
-    #[nullable(usize)]
+    #[unchecked(usize)]
     pub max_sequence: isize,
     /// events is an array of [`BlockEvent`]s indicating the order to add and
     /// remove blocks to maintain a canonical view of blockchain state.
@@ -18,5 +18,5 @@ pub struct NullableEventsBlocksResponse {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub events: Vec<Option<NullableBlockEvent>>,
+    pub events: Vec<Option<UncheckedBlockEvent>>,
 }

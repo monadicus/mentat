@@ -4,7 +4,7 @@
 #![allow(unused)]
 
 use indexmap::IndexMap;
-use mentat_macros::Nullable;
+use mentat_macros::Unchecked;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

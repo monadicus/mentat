@@ -10,7 +10,7 @@ pub fn simple_asserter_configuration(
                 network: "mainnet".to_string(),
                 ..Default::default()
             }),
-            Some(NullableBlockIdentifier {
+            Some(UncheckedBlockIdentifier {
                 hash: "block 0".to_string(),
                 index: 0,
             }),

@@ -4,9 +4,9 @@ use super::*;
 
 /// A [`NetworkListResponse`] contains all [`NetworkIdentifier`]s that the node
 /// can serve information for.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableNetworkListResponse {
+pub struct UncheckedNetworkListResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",

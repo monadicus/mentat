@@ -5,9 +5,9 @@ use super::*;
 /// An `AccountBalanceRequest` is utilized to make a balance request on the
 /// `/account/balance` endpoint. If the `block_identifier` is populated, a
 /// historical balance query should be performed.
-#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableAccountBalanceRequest {
+pub struct UncheckedAccountBalanceRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,8 +22,8 @@ pub struct NullableAccountBalanceRequest {
     /// specify the index or hash. If neither property is specified, it is
     /// assumed that the client is making a request at the current block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub block_identifier: Option<NullablePartialBlockIdentifier>,
+    #[unchecked(retain)]
+    pub block_identifier: Option<UncheckedPartialBlockIdentifier>,
     /// In some cases, the caller may not want to retrieve all available
     /// balances for an [`AccountIdentifier`]. If the currencies field is
     /// populated, only balances for the specified currencies will be
@@ -32,5 +32,5 @@ pub struct NullableAccountBalanceRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub currencies: Vec<Option<NullableCurrency>>,
+    pub currencies: Vec<Option<UncheckedCurrency>>,
 }

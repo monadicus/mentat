@@ -87,60 +87,60 @@ impl Client {
     /// Make a call to the /network/list Rosetta API endpoint.
     pub async fn network_list(
         &self,
-        request: NullableMetadataRequest,
-    ) -> Result<NullableNetworkListResponse> {
-        let resp: NullableNetworkListResponse = self.post("network/list", &request).await?;
+        request: UncheckedMetadataRequest,
+    ) -> Result<UncheckedNetworkListResponse> {
+        let resp: UncheckedNetworkListResponse = self.post("network/list", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /network/options Rosetta API endpoint.
     pub async fn network_options(
         &self,
-        request: NullableNetworkRequest,
-    ) -> Result<NullableNetworkOptionsResponse> {
-        let resp: NullableNetworkOptionsResponse = self.post("network/options", &request).await?;
+        request: UncheckedNetworkRequest,
+    ) -> Result<UncheckedNetworkOptionsResponse> {
+        let resp: UncheckedNetworkOptionsResponse = self.post("network/options", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /network/status Rosetta API endpoint.
     pub async fn network_status(
         &self,
-        request: NullableNetworkRequest,
-    ) -> Result<NullableNetworkStatusResponse> {
-        let resp: NullableNetworkStatusResponse = self.post("network/status", &request).await?;
+        request: UncheckedNetworkRequest,
+    ) -> Result<UncheckedNetworkStatusResponse> {
+        let resp: UncheckedNetworkStatusResponse = self.post("network/status", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /account/balance Rosetta API endpoint.
     pub async fn account_balance(
         &self,
-        request: NullableAccountBalanceRequest,
-    ) -> Result<NullableAccountBalanceResponse> {
-        let resp: NullableAccountBalanceResponse = self.post("account/balance", &request).await?;
+        request: UncheckedAccountBalanceRequest,
+    ) -> Result<UncheckedAccountBalanceResponse> {
+        let resp: UncheckedAccountBalanceResponse = self.post("account/balance", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /account/coins Rosetta API endpoint.
     pub async fn account_coins(
         &self,
-        request: NullableAccountCoinsRequest,
-    ) -> Result<NullableAccountCoinsResponse> {
-        let resp: NullableAccountCoinsResponse = self.post("account/coins", &request).await?;
+        request: UncheckedAccountCoinsRequest,
+    ) -> Result<UncheckedAccountCoinsResponse> {
+        let resp: UncheckedAccountCoinsResponse = self.post("account/coins", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /block Rosetta API endpoint.
-    pub async fn block(&self, request: NullableBlockRequest) -> Result<NullableBlockResponse> {
-        let resp: NullableBlockResponse = self.post("block", &request).await?;
+    pub async fn block(&self, request: UncheckedBlockRequest) -> Result<UncheckedBlockResponse> {
+        let resp: UncheckedBlockResponse = self.post("block", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /block/transaction Rosetta API endpoint.
     pub async fn block_transaction(
         &self,
-        request: NullableBlockTransactionRequest,
-    ) -> Result<NullableBlockTransactionResponse> {
-        let resp: NullableBlockTransactionResponse =
+        request: UncheckedBlockTransactionRequest,
+    ) -> Result<UncheckedBlockTransactionResponse> {
+        let resp: UncheckedBlockTransactionResponse =
             self.post("block/transaction", &request).await?;
         Ok(resp)
     }
@@ -148,18 +148,18 @@ impl Client {
     /// Make a call to the /mempool Rosetta API endpoint.
     pub async fn mempool(
         &self,
-        request: NullableNetworkRequest,
-    ) -> Result<NullableMempoolResponse> {
-        let resp: NullableMempoolResponse = self.post("mempool", &request).await?;
+        request: UncheckedNetworkRequest,
+    ) -> Result<UncheckedMempoolResponse> {
+        let resp: UncheckedMempoolResponse = self.post("mempool", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /mempool/transaction Rosetta API endpoint.
     pub async fn mempool_transaction(
         &self,
-        request: NullableMempoolTransactionRequest,
-    ) -> Result<NullableMempoolTransactionResponse> {
-        let resp: NullableMempoolTransactionResponse =
+        request: UncheckedMempoolTransactionRequest,
+    ) -> Result<UncheckedMempoolTransactionResponse> {
+        let resp: UncheckedMempoolTransactionResponse =
             self.post("mempool/transaction", &request).await?;
         Ok(resp)
     }
@@ -167,9 +167,9 @@ impl Client {
     /// Make a call to the /construction/combine Rosetta API endpoint.
     pub async fn construction_combine(
         &self,
-        request: NullableConstructionCombineRequest,
-    ) -> Result<NullableConstructionCombineResponse> {
-        let resp: NullableConstructionCombineResponse =
+        request: UncheckedConstructionCombineRequest,
+    ) -> Result<UncheckedConstructionCombineResponse> {
+        let resp: UncheckedConstructionCombineResponse =
             self.post("construction/combine", &request).await?;
         Ok(resp)
     }
@@ -177,9 +177,9 @@ impl Client {
     /// Make a call to the /construction/derive Rosetta API endpoint.
     pub async fn construction_derive(
         &self,
-        request: NullableConstructionDeriveRequest,
-    ) -> Result<NullableConstructionDeriveResponse> {
-        let resp: NullableConstructionDeriveResponse =
+        request: UncheckedConstructionDeriveRequest,
+    ) -> Result<UncheckedConstructionDeriveResponse> {
+        let resp: UncheckedConstructionDeriveResponse =
             self.post("construction/derive", &request).await?;
         Ok(resp)
     }
@@ -187,9 +187,9 @@ impl Client {
     /// Make a call to the /construction/hash Rosetta API endpoint.
     pub async fn construction_hash(
         &self,
-        request: NullableConstructionHashRequest,
-    ) -> Result<NullableTransactionIdentifierResponse> {
-        let resp: NullableTransactionIdentifierResponse =
+        request: UncheckedConstructionHashRequest,
+    ) -> Result<UncheckedTransactionIdentifierResponse> {
+        let resp: UncheckedTransactionIdentifierResponse =
             self.post("construction/hash", &request).await?;
         Ok(resp)
     }
@@ -197,9 +197,9 @@ impl Client {
     /// Make a call to the /construction/metadata Rosetta API endpoint.
     pub async fn construction_metadata(
         &self,
-        request: NullableConstructionMetadataRequest,
+        request: UncheckedConstructionMetadataRequest,
     ) -> Result<ConstructionMetadataResponse> {
-        let resp: NullableConstructionMetadataResponse =
+        let resp: UncheckedConstructionMetadataResponse =
             self.post("construction/metadata", &request).await?;
         Ok(resp.into())
     }
@@ -207,9 +207,9 @@ impl Client {
     /// Make a call to the /construction/parse Rosetta API endpoint.
     pub async fn construction_parse(
         &self,
-        request: NullableConstructionParseRequest,
-    ) -> Result<NullableConstructionParseResponse> {
-        let resp: NullableConstructionParseResponse =
+        request: UncheckedConstructionParseRequest,
+    ) -> Result<UncheckedConstructionParseResponse> {
+        let resp: UncheckedConstructionParseResponse =
             self.post("construction/parse", &request).await?;
         Ok(resp)
     }
@@ -217,9 +217,9 @@ impl Client {
     /// Make a call to the /construction/payloads Rosetta API endpoint.
     pub async fn construction_payloads(
         &self,
-        request: NullableConstructionPayloadsRequest,
-    ) -> Result<NullableConstructionPayloadsResponse> {
-        let resp: NullableConstructionPayloadsResponse =
+        request: UncheckedConstructionPayloadsRequest,
+    ) -> Result<UncheckedConstructionPayloadsResponse> {
+        let resp: UncheckedConstructionPayloadsResponse =
             self.post("construction/payloads", &request).await?;
         Ok(resp)
     }
@@ -227,9 +227,9 @@ impl Client {
     /// Make a call to the /construction/preprocess Rosetta API endpoint.
     pub async fn construction_preprocess(
         &self,
-        request: NullableConstructionPreprocessRequest,
-    ) -> Result<NullableConstructionPreprocessResponse> {
-        let resp: NullableConstructionPreprocessResponse =
+        request: UncheckedConstructionPreprocessRequest,
+    ) -> Result<UncheckedConstructionPreprocessResponse> {
+        let resp: UncheckedConstructionPreprocessResponse =
             self.post("construction/preprocess", &request).await?;
         Ok(resp)
     }
@@ -237,9 +237,9 @@ impl Client {
     /// Make a call to the /construction/submit Rosetta API endpoint.
     pub async fn construction_submit(
         &self,
-        request: NullableConstructionSubmitRequest,
-    ) -> Result<NullableTransactionIdentifierResponse> {
-        let resp: NullableTransactionIdentifierResponse =
+        request: UncheckedConstructionSubmitRequest,
+    ) -> Result<UncheckedTransactionIdentifierResponse> {
+        let resp: UncheckedTransactionIdentifierResponse =
             self.post("construction/submit", &request).await?;
         Ok(resp)
     }
@@ -247,18 +247,18 @@ impl Client {
     /// Make a call to the /events/blocks Rosetta API endpoint.
     pub async fn events_blocks(
         &self,
-        request: NullableEventsBlocksRequest,
-    ) -> Result<NullableEventsBlocksResponse> {
-        let resp: NullableEventsBlocksResponse = self.post("events/blocks", &request).await?;
+        request: UncheckedEventsBlocksRequest,
+    ) -> Result<UncheckedEventsBlocksResponse> {
+        let resp: UncheckedEventsBlocksResponse = self.post("events/blocks", &request).await?;
         Ok(resp)
     }
 
     /// Make a call to the /search/transactions Rosetta API endpoint.
     pub async fn search_transactions(
         &self,
-        request: NullableSearchTransactionsRequest,
-    ) -> Result<NullableSearchTransactionsResponse> {
-        let resp: NullableSearchTransactionsResponse =
+        request: UncheckedSearchTransactionsRequest,
+    ) -> Result<UncheckedSearchTransactionsResponse> {
+        let resp: UncheckedSearchTransactionsResponse =
             self.post("search/transactions", &request).await?;
         Ok(resp)
     }

@@ -8,9 +8,9 @@ use super::*;
 /// removal of a block.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct NullableBlockEventType(String);
+pub struct UncheckedBlockEventType(String);
 
-impl NullableBlockEventType {
+impl UncheckedBlockEventType {
     /// A block was added to the canonical chain.
     pub const BLOCK_ADDED: &'static str = "block_added";
     /// A block was removed from the canonical chain in a reorg.
@@ -27,19 +27,19 @@ impl NullableBlockEventType {
     }
 }
 
-impl fmt::Display for NullableBlockEventType {
+impl fmt::Display for UncheckedBlockEventType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<String> for NullableBlockEventType {
+impl From<String> for UncheckedBlockEventType {
     fn from(bt: String) -> Self {
         Self(bt)
     }
 }
 
-impl From<&str> for NullableBlockEventType {
+impl From<&str> for UncheckedBlockEventType {
     fn from(bt: &str) -> Self {
         bt.to_string().into()
     }
@@ -57,17 +57,17 @@ pub enum BlockEventType {
     BlockRemoved,
 }
 
-impl From<NullableBlockEventType> for BlockEventType {
-    fn from(other: NullableBlockEventType) -> Self {
+impl From<UncheckedBlockEventType> for BlockEventType {
+    fn from(other: UncheckedBlockEventType) -> Self {
         match other.0.as_ref() {
-            NullableBlockEventType::BLOCK_ADDED => Self::BlockAdded,
-            NullableBlockEventType::BLOCK_REMOVED => Self::BlockRemoved,
+            UncheckedBlockEventType::BLOCK_ADDED => Self::BlockAdded,
+            UncheckedBlockEventType::BLOCK_REMOVED => Self::BlockRemoved,
             i => panic!("unsupported BlockEventType: {i}"),
         }
     }
 }
 
-impl From<BlockEventType> for NullableBlockEventType {
+impl From<BlockEventType> for UncheckedBlockEventType {
     fn from(other: BlockEventType) -> Self {
         match other {
             BlockEventType::BlockAdded => Self::BLOCK_ADDED.into(),

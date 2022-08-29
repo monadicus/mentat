@@ -3,9 +3,9 @@
 use super::*;
 
 /// The transaction submission request includes a signed transaction.
-#[derive(Clone, Debug, Deserialize, Serialize, Default, Nullable)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
 #[serde(default)]
-pub struct NullableEventsBlocksRequest {
+pub struct UncheckedEventsBlocksRequest {
     /// [`EventsBlocksRequest`] is utilized to fetch a sequence of
     /// [`BlockEvent`]s indicating which blocks were added and removed from
     /// storage to reach the current state.
@@ -15,11 +15,11 @@ pub struct NullableEventsBlocksRequest {
     /// field is not populated, we return the limit events backwards from tip.
     /// If this is set to 0, we start from the beginning.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(option_usize)]
+    #[unchecked(option_usize)]
     pub offset: Option<isize>,
     /// limit is the maximum number of events to fetch in one call. The
     /// implementation may return "= limit events.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(option_usize)]
+    #[unchecked(option_usize)]
     pub limit: Option<isize>,
 }

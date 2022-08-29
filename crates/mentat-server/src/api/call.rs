@@ -28,10 +28,10 @@ pub trait CallerCallApi: CallApi + Clone + Default {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableCallRequest>,
+        data: Option<UncheckedCallRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableCallResponse> {
+    ) -> MentatResponse<UncheckedCallResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {

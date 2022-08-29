@@ -3,9 +3,9 @@
 use super::*;
 
 impl Asserter {
-    /// `error` ensures a [`NullableMentatError`] matches some error
+    /// `error` ensures a [`UncheckedMentatError`] matches some error
     /// provided in `/network/options`.
-    pub fn error(&self, err: Option<&NullableMentatError>) -> AssertResult<()> {
+    pub fn error(&self, err: Option<&UncheckedMentatError>) -> AssertResult<()> {
         let asserter = self
             .response
             .as_ref()

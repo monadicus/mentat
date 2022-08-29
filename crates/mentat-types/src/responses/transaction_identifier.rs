@@ -7,9 +7,9 @@ use super::*;
 /// [`TransactionIdentifierResponse`] contains the `transaction_identifier` of a
 /// transaction that was submitted to either `/construction/hash` or
 /// `/construction/submit`.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableTransactionIdentifierResponse {
+pub struct UncheckedTransactionIdentifierResponse {
     /// The [`TransactionIdentifier`] uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
     #[serde(skip_serializing_if = "Option::is_none")]
