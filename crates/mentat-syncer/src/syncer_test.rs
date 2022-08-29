@@ -517,7 +517,7 @@ fn test_process_block() {
     assert!(syncer.past_blocks.is_empty());
 
     let assert_syncer = |syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
-                         next_index: i64,
+                         next_index: usize,
                          past_blocks: &[usize]| {
         assert_eq!(syncer.next_index, next_index);
         assert_eq!(
@@ -695,7 +695,7 @@ fn test_sync_no_reorg() {
         }
     }
 
-    syncer.sync(&buf(), -1, 1200).unwrap();
+    syncer.sync(&buf(), None, Some(1200)).unwrap();
     assert_eq!(0, *syncer.concurrency.lock());
     syncer.helper.lock().checkpoint();
     syncer.handler.lock().checkpoint();
@@ -727,7 +727,7 @@ fn test_sync_specific_start() {
         });
     }
 
-    syncer.sync(&buf(), 100, 1200).unwrap();
+    syncer.sync(&buf(), Some(100), Some(1200)).unwrap();
     assert_eq!(0, *syncer.concurrency.lock());
     syncer.helper.lock().checkpoint();
     syncer.handler.lock().checkpoint();
@@ -760,7 +760,7 @@ fn test_sync_cancel() {
         sleep(Duration::from_millis(500));
         tmp_ctx.cancel()
     });
-    let err = syncer.sync(&context, -1, 1200).unwrap_err();
+    let err = syncer.sync(&context, None, Some(1200)).unwrap_err();
     assert_eq!(err, SyncerError::Canceled);
     assert_eq!(0, *syncer.concurrency.lock());
     handle.join().unwrap();
@@ -861,7 +861,7 @@ fn test_sync_reorg() {
     // [801] = 2
     // [802,1200] = 1
 
-    syncer.sync(&buf(), -1, 1200).unwrap();
+    syncer.sync(&buf(), None, Some(1200)).unwrap();
     assert_eq!(0, *syncer.concurrency.lock());
     syncer.helper.lock().checkpoint();
     syncer.handler.lock().checkpoint();
@@ -933,7 +933,7 @@ fn test_sync_manual_reorg() {
     // [800, 801] = 2
     // [802,1200] = 1
 
-    syncer.sync(&buf(), -1, 1200).unwrap();
+    syncer.sync(&buf(), None, Some(1200)).unwrap();
     assert_eq!(0, *syncer.concurrency.lock());
     syncer.helper.lock().checkpoint();
     syncer.handler.lock().checkpoint();
@@ -979,7 +979,7 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
         }
     }
 
-    syncer.sync(&buf(), -1, 200).unwrap();
+    syncer.sync(&buf(), None, Some(200)).unwrap();
     assert_eq!(0, *syncer.concurrency.lock());
     syncer.helper.lock().checkpoint();
     syncer.handler.lock().checkpoint();

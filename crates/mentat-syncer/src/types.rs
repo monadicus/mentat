@@ -144,7 +144,7 @@ pub struct Syncer<Handler, Helper> {
     /// Used to keep track of sync state
     pub genesis_block: Option<BlockIdentifier>,
     pub tip: Option<BlockIdentifier>,
-    pub next_index: i64,
+    pub next_index: usize,
 
     /// To ensure reorgs are handled correctly, the syncer must be able
     /// to observe blocks it has previously processed. Without this, the
