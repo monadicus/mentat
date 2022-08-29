@@ -4,10 +4,10 @@ use super::*;
 
 /// A [`BlockTransactionResponse`] contains information about a block
 /// transaction.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableBlockTransactionResponse {
+pub struct UncheckedBlockTransactionResponse {
     /// [`Transaction`]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction: Option<NullableTransaction>,
+    pub transaction: Option<UncheckedTransaction>,
 }

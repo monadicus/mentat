@@ -5,9 +5,9 @@ use from_tuple::FromTuple;
 use super::*;
 
 /// The transaction submission request includes a signed transaction.
-#[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableMempoolTransactionRequest {
+pub struct UncheckedMempoolTransactionRequest {
     /// [`EventsBlocksRequest`] is utilized to fetch a sequence of
     /// [`BlockEvent`]s indicating which blocks were added and removed from
     /// storage to reach the current state.
@@ -19,7 +19,7 @@ pub struct NullableMempoolTransactionRequest {
     pub transaction_identifier: Option<TransactionIdentifier>,
 }
 
-impl From<(NetworkIdentifier, TransactionIdentifier)> for NullableMempoolTransactionRequest {
+impl From<(NetworkIdentifier, TransactionIdentifier)> for UncheckedMempoolTransactionRequest {
     fn from(
         (network_identifier, transaction_identifier): (NetworkIdentifier, TransactionIdentifier),
     ) -> Self {

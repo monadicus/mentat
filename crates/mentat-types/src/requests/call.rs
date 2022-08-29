@@ -5,9 +5,9 @@ use indexmap::IndexMap;
 use super::*;
 
 /// `CallRequest` is the input to the `/call` endpoint.
-#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableCallRequest {
+pub struct UncheckedCallRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]

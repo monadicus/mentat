@@ -9,16 +9,17 @@ use super::*;
 /// [`Currency`] is composed of a canonical Symbol and Decimals. This Decimals
 /// value is used to convert an Amount.Value from atomic units (Satoshis) to
 /// standard units (Bitcoins).
-#[derive(Clone, Debug, Default, Eq, Deserialize, PartialEq, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Eq, Deserialize, PartialEq, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableCurrency {
+pub struct UncheckedCurrency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,
     /// Number of decimal places in the standard unit representation of the
     /// amount. For example, BTC has 8 decimals. Note that it is not possible to
     /// represent the value of some currency in atomic units that is not base
     /// 10.
-    pub decimals: i32,
+    #[unchecked(usize)]
+    pub decimals: isize,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
@@ -26,7 +27,7 @@ pub struct NullableCurrency {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl From<String> for NullableCurrency {
+impl From<String> for UncheckedCurrency {
     fn from(symbol: String) -> Self {
         Self {
             symbol,
@@ -35,7 +36,7 @@ impl From<String> for NullableCurrency {
     }
 }
 
-impl Sortable for NullableCurrency {
+impl Sortable for UncheckedCurrency {
     fn sort(&self) -> Self {
         let mut new = self.clone();
         new.metadata.sort_keys();

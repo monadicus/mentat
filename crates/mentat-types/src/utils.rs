@@ -12,10 +12,10 @@ use super::{
     AccountIdentifier,
     Amount,
     BlockIdentifier,
-    NullableAmount,
-    NullableCurrency,
     PartialBlockIdentifier,
     Sortable,
+    UncheckedAmount,
+    UncheckedCurrency,
 };
 
 /// a trait to help determine the size of blocks in memory
@@ -109,18 +109,18 @@ pub(crate) fn account_string(account: &AccountIdentifier) -> String {
     };
 
     if sub_account.metadata.is_empty() {
-        return format!("{}:{}", account.address, sub_account.address);
+        format!("{}:{}", account.address, sub_account.address)
+    } else {
+        format!(
+            "{}:{}:{:?}",
+            account.address, sub_account.address, sub_account.metadata
+        )
     }
-
-    format!(
-        "{}:{}:{:?}",
-        account.address, sub_account.address, sub_account.metadata
-    )
 }
 
 /// `currency_string` returns a human-readable representation
 /// of a *Currency.
-pub(crate) fn currency_string(currency: &NullableCurrency) -> String {
+pub(crate) fn currency_string(currency: &UncheckedCurrency) -> String {
     if currency.metadata.is_empty() {
         format!("{}:{}", currency.symbol, currency.decimals)
     } else {
@@ -182,9 +182,9 @@ pub fn negate_value(val: &str) -> Result<String, String> {
 /// `extract_amount` returns the Amount from a slice of Balance
 /// pertaining to an AccountAndCurrency.
 pub(crate) fn extract_amount(
-    balances: &[Option<NullableAmount>],
-    currency: Option<&NullableCurrency>,
-) -> NullableAmount {
+    balances: &[Option<UncheckedAmount>],
+    currency: Option<&UncheckedCurrency>,
+) -> UncheckedAmount {
     balances
         .iter()
         .find(|amt| {
@@ -196,7 +196,7 @@ pub(crate) fn extract_amount(
         })
         .cloned()
         .flatten()
-        .unwrap_or(NullableAmount {
+        .unwrap_or(UncheckedAmount {
             value: "0".to_string(),
             currency: currency.cloned(),
             ..Default::default()

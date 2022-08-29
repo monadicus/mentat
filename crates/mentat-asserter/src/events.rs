@@ -4,7 +4,7 @@ use super::*;
 
 /// [`BlockEvent`] ensures a *types.BlockEvent
 /// is valid.
-pub fn block_event(event: Option<&NullableBlockEvent>) -> AssertResult<()> {
+pub fn block_event(event: Option<&UncheckedBlockEvent>) -> AssertResult<()> {
     // TODO coinbase never checks if event nil
     let event = event.unwrap();
 
@@ -23,7 +23,9 @@ pub fn block_event(event: Option<&NullableBlockEvent>) -> AssertResult<()> {
 
 /// events_blocks_response ensures a [`EventsBlocksResponse`]
 /// is valid.
-pub fn events_blocks_response(response: Option<&NullableEventsBlocksResponse>) -> AssertResult<()> {
+pub fn events_blocks_response(
+    response: Option<&UncheckedEventsBlocksResponse>,
+) -> AssertResult<()> {
     // TODO: coinbase never checks for nil
     let response = response.unwrap();
 
@@ -38,7 +40,7 @@ pub fn events_blocks_response(response: Option<&NullableEventsBlocksResponse>) -
         if seq == -1 {
             seq = event.sequence
         }
-        if event.sequence != seq + (i as i64) {
+        if event.sequence != seq + (i as isize) {
             Err(EventError::SequenceOutOfOrder)?;
         }
     }

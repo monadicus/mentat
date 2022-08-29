@@ -11,9 +11,9 @@ use super::*;
 /// MUST still form a canonical, connected chain of blocks where each block has
 /// a unique index. In other words, the [`PartialBlockIdentifier`] of a block
 /// after an omitted block should reference the last non-omitted block.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableBlockResponse {
+pub struct UncheckedBlockResponse {
     /// `Block`s contain an array of [`Transaction`]s that occurred at a
     /// particular [`BlockIdentifier`]. A hard requirement for blocks
     /// returned by Rosetta implementations is that they MUST be
@@ -21,8 +21,8 @@ pub struct NullableBlockResponse {
     /// identified by a specific [`BlockIdentifier`], all future calls for
     /// that same [`BlockIdentifier`] must return the same block contents.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub block: Option<NullableBlock>,
+    #[unchecked(retain)]
+    pub block: Option<UncheckedBlock>,
     /// Some blockchains may require additional transactions to be fetched that
     /// weren't returned in the block response (ex: block only returns
     /// transaction hashes). For blockchains with a lot of transactions in each

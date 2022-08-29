@@ -11,9 +11,9 @@ use super::*;
 /// transaction with a different account that can pay the suggested fee.
 /// Suggested fee is an array in case fee payment must occur in multiple
 /// currencies.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableConstructionMetadataResponse {
+pub struct UncheckedConstructionMetadataResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<IndexMap<String, Value>>,
@@ -22,5 +22,5 @@ pub struct NullableConstructionMetadataResponse {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub suggested_fee: Vec<Option<NullableAmount>>,
+    pub suggested_fee: Vec<Option<UncheckedAmount>>,
 }

@@ -7,9 +7,9 @@ use super::*;
 /// OperatorSignatureType is the type of a cryptographic signature.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(transparent)]
-pub struct NullableSignatureType(String);
+pub struct UncheckedSignatureType(String);
 
-impl NullableSignatureType {
+impl UncheckedSignatureType {
     /// r (32-bytes) + s (32-bytes)
     pub const ECDSA: &'static str = "ecdsa";
     /// r (32-bytes) + s (32-bytes) + v (1-byte)
@@ -39,19 +39,19 @@ impl NullableSignatureType {
     }
 }
 
-impl fmt::Display for NullableSignatureType {
+impl fmt::Display for UncheckedSignatureType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<String> for NullableSignatureType {
+impl From<String> for UncheckedSignatureType {
     fn from(st: String) -> Self {
         Self(st)
     }
 }
 
-impl From<&str> for NullableSignatureType {
+impl From<&str> for UncheckedSignatureType {
     fn from(st: &str) -> Self {
         st.to_string().into()
     }
@@ -75,20 +75,20 @@ pub enum SignatureType {
     EchnorrPoseidon,
 }
 
-impl From<NullableSignatureType> for SignatureType {
-    fn from(other: NullableSignatureType) -> Self {
+impl From<UncheckedSignatureType> for SignatureType {
+    fn from(other: UncheckedSignatureType) -> Self {
         match other.0.as_ref() {
-            NullableSignatureType::ECDSA => Self::Ecdsa,
-            NullableSignatureType::ECDSA_RECOVERY => Self::EcdsaRecovery,
-            NullableSignatureType::ED25519 => Self::Ed25519,
-            NullableSignatureType::SCHNORR_1 => Self::Schnorr1,
-            NullableSignatureType::SCHNORR_POSEIDON => Self::EchnorrPoseidon,
+            UncheckedSignatureType::ECDSA => Self::Ecdsa,
+            UncheckedSignatureType::ECDSA_RECOVERY => Self::EcdsaRecovery,
+            UncheckedSignatureType::ED25519 => Self::Ed25519,
+            UncheckedSignatureType::SCHNORR_1 => Self::Schnorr1,
+            UncheckedSignatureType::SCHNORR_POSEIDON => Self::EchnorrPoseidon,
             i => panic!("unsupported ExemptionType: {i}"),
         }
     }
 }
 
-impl From<SignatureType> for NullableSignatureType {
+impl From<SignatureType> for UncheckedSignatureType {
     fn from(other: SignatureType) -> Self {
         match other {
             SignatureType::Ecdsa => Self::ECDSA.into(),

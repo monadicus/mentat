@@ -5,10 +5,9 @@
 
 extern crate proc_macro;
 
-mod nullable;
 mod route_builder;
+mod unchecked;
 
-use nullable::StructBuilder;
 use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
@@ -27,6 +26,7 @@ use syn::{
     ReturnType,
     Type,
 };
+use unchecked::StructBuilder;
 
 /// Matches the provided macro argument for the optional `CacheInner` type.
 fn get_cache_inner_type(arg: &NestedMeta) -> Result<&Ident, TokenStream> {
@@ -162,15 +162,15 @@ pub fn main(attr: TokenStream, item: TokenStream) -> TokenStream {
     out.into()
 }
 
-/// creates a non-nullable struct from a nullable struct and implements `From`
+/// creates a non-unchecked struct from a unchecked struct and implements `From`
 /// both ways
-#[proc_macro_derive(Nullable, attributes(nullable))]
-pub fn nullable(item: TokenStream) -> TokenStream {
+#[proc_macro_derive(Unchecked, attributes(unchecked))]
+pub fn unchecked(item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as ItemStruct);
     let builder: StructBuilder = StructBuilder::new(&item);
     let new_struct = builder.gen_struct(&item);
-    let from_null = builder.gen_from_nullable_impl(&item);
-    let to_null = builder.gen_to_nullable_impl(&item);
+    let from_null = builder.gen_from_unchecked_impl(&item);
+    let to_null = builder.gen_to_unchecked_impl(&item);
 
     quote!(
         #new_struct

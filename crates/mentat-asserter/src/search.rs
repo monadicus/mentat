@@ -7,7 +7,7 @@ impl Asserter {
     /// *types.SearchTransactionsResponse is valid.
     pub fn search_transaction_response(
         &self,
-        response: Option<&NullableSearchTransactionsResponse>,
+        response: Option<&UncheckedSearchTransactionsResponse>,
     ) -> AssertResult<()> {
         self.response
             .as_ref()

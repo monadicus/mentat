@@ -12,13 +12,13 @@ use super::*;
 /// are used both to represent on-chain data (Data API) and to construct new
 /// transactions (Construction API), creating a standard interface for reading
 /// and writing to blockchains.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
 #[serde(default)]
-pub struct NullableOperation {
+pub struct UncheckedOperation {
     /// The [`OperationIdentifier`] uniquely identifies an operation within a
     /// transaction.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub operation_identifier: Option<OperationIdentifier>,
+    pub operation_identifier: Option<UncheckedOperationIdentifier>,
     /// Restrict referenced related_operations to identifier indices " the
     /// current [`OperationIdentifier`].index. This ensures there exists a clear
     /// DAG-structure of relations. Since operations are one-sided, one could
@@ -28,7 +28,7 @@ pub struct NullableOperation {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub related_operations: Vec<Option<OperationIdentifier>>,
+    pub related_operations: Vec<Option<UncheckedOperationIdentifier>>,
     /// Type is the network-specific type of the operation. Ensure that any type
     /// that can be returned here is also specified in the
     /// [`crate::responses::NetworkOptionsResponse`]. This can be very useful to
@@ -48,20 +48,20 @@ pub struct NullableOperation {
     /// (operations yet to be included on-chain have not yet succeeded or
     /// failed).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub status: Option<String>,
     /// The [`AccountIdentifier`] uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub account: Option<AccountIdentifier>,
     /// [`Amount`] is some Value of a [`Currency`]. It is considered invalid to
     /// specify a Value without a [`Currency`].
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub amount: Option<NullableAmount>,
+    #[unchecked(retain)]
+    pub amount: Option<UncheckedAmount>,
     /// `CoinChange` is used to represent a change in state of a some coin
     /// identified by a coin_identifier. This object is part of the
     /// [`Operation`] model and must be populated for UTXO-based
@@ -70,8 +70,8 @@ pub struct NullableOperation {
     /// the same blockchain (when a transfer is account-based, don't
     /// populate this model).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub coin_change: Option<NullableCoinChange>,
+    #[unchecked(retain)]
+    pub coin_change: Option<UncheckedCoinChange>,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.

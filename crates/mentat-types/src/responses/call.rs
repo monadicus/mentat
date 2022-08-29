@@ -3,9 +3,9 @@
 use super::*;
 
 /// [`CallResponse`] contains the result of a `/call` invocation.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableCallResponse {
+pub struct UncheckedCallResponse {
     /// Result contains the result of the `/call` invocation. This result will
     /// not be inspected or interpreted by Rosetta tooling and is left to
     /// the caller to decode.

@@ -14,21 +14,21 @@ use super::*;
 /// balance changes. If your implementation relies on any `[BalanceExemption]`s,
 /// you MUST implement historical balance lookup (the ability to query an
 /// account balance at any [`BlockIdentifier`]).
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableBalanceExemption {
+pub struct UncheckedBalanceExemption {
     /// SubAccountAddress is the [`SubAccountIdentifier`]. Address that the
     /// BalanceExemption applies to (regardless of the value of
     /// [`SubAccountIdentifier`].Metadata).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub sub_account_address: Option<String>,
     /// `Currency` is composed of a canonical Symbol and Decimals. This Decimals
     /// value is used to convert an Amount.Value from atomic units (Satoshis) to
     /// standard units (Bitcoins).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub currency: Option<NullableCurrency>,
+    #[unchecked(retain)]
+    pub currency: Option<UncheckedCurrency>,
     /// `ExemptionType` is used to indicate if the live balance for an account
     /// subject to a [`BalanceExemption`] could increase above, decrease below,
     /// or equal the computed balance. * `greater_or_equal`: The live
@@ -39,6 +39,6 @@ pub struct NullableBalanceExemption {
     /// to spendable on a vesting account. * dynamic: The live balance may
     /// increase above, decrease below, or equal the computed balance. This
     /// typically occurs with tokens that have a dynamic supply.
-    #[nullable(option_enum)]
-    pub exemption_type: NullableExemptionType,
+    #[unchecked(option_enum)]
+    pub exemption_type: UncheckedExemptionType,
 }
