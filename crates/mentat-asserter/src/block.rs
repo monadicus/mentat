@@ -7,7 +7,7 @@ use num_bigint_dig::{BigInt, Sign};
 use super::*;
 
 /// `currency` ensures a [`Currency`] is valid.
-pub fn currency(currency: Option<&NullableCurrency>) -> AssertResult<()> {
+pub fn currency(currency: Option<&UncheckedCurrency>) -> AssertResult<()> {
     let currency = currency.ok_or(BlockError::AmountCurrencyIsNil)?;
     if currency.symbol.is_empty() {
         Err(BlockError::AmountCurrencySymbolEmpty)?
@@ -20,7 +20,7 @@ pub fn currency(currency: Option<&NullableCurrency>) -> AssertResult<()> {
 
 /// `amount` ensures a [`Amount`] has an
 /// integer value, specified precision, and symbol.
-pub fn amount(amount: Option<&NullableAmount>) -> AssertResult<()> {
+pub fn amount(amount: Option<&UncheckedAmount>) -> AssertResult<()> {
     let amount = amount.ok_or(BlockError::AmountValueMissing)?;
 
     if amount.value.is_empty() {
@@ -33,9 +33,12 @@ pub fn amount(amount: Option<&NullableAmount>) -> AssertResult<()> {
 }
 
 /// `operation_identifier` returns an error if index of the
-/// [`OperationIdentifier`] is out-of-order or if the NetworkIndex is
+/// [`UncheckedOperationIdentifier`] is out-of-order or if the NetworkIndex is
 /// invalid.
-pub fn operation_identifier(ident: Option<&OperationIdentifier>, index: i64) -> AssertResult<()> {
+pub fn operation_identifier(
+    ident: Option<&UncheckedOperationIdentifier>,
+    index: isize,
+) -> AssertResult<()> {
     let ident = ident.ok_or(BlockError::OperationIdentifierIndexIsNil)?;
 
     if ident.index != index {
@@ -127,8 +130,8 @@ impl Asserter {
     /// type, status, and amount.
     pub fn operation(
         &self,
-        operation: Option<&NullableOperation>,
-        index: i64,
+        operation: Option<&UncheckedOperation>,
+        index: isize,
         construction: bool,
     ) -> AssertResult<()> {
         if self.response.is_none() && self.request.is_none() {
@@ -171,7 +174,7 @@ impl Asserter {
     /// in a [`TypesOperation`] is invalid.
     pub fn operations(
         &self,
-        operations: &[Option<NullableOperation>],
+        operations: &[Option<UncheckedOperation>],
         construction: bool,
     ) -> AssertResult<()> {
         if operations.is_empty() && construction {
@@ -185,7 +188,7 @@ impl Asserter {
         let mut related_ops_exist = false;
 
         for (index, op) in operations.iter().enumerate() {
-            self.operation(op.as_ref(), index as i64, construction)?;
+            self.operation(op.as_ref(), index as isize, construction)?;
             let op = op.as_ref().unwrap();
             if self.validations.enabled {
                 if op.type_ == self.validations.payment.name {
@@ -266,9 +269,9 @@ impl Asserter {
     pub fn validate_payment_and_fee(
         &self,
         payment_total: BigInt,
-        payment_count: i64,
+        payment_count: isize,
         fee_total: BigInt,
-        fee_count: i64,
+        fee_count: isize,
     ) -> AssertResult<()> {
         let zero = BigInt::from(0u8);
         if self.validations.payment.operation.count != -1
@@ -297,7 +300,7 @@ impl Asserter {
     /// `transaction` returns an error if the [`TransactionIdentifier`]
     /// is invalid, if any [`TypesOperation`] within the [`Transaction`]
     /// is invalid, or if any operation index is reused within a transaction.
-    pub fn transaction(&self, transaction: Option<&NullableTransaction>) -> AssertResult<()> {
+    pub fn transaction(&self, transaction: Option<&UncheckedTransaction>) -> AssertResult<()> {
         self.response
             .as_ref()
             .ok_or(AsserterError::NotInitialized)?;
@@ -333,7 +336,7 @@ impl Asserter {
     /// defined by the enum.
     pub fn related_transactions(
         &self,
-        related_transactions: &[Option<NullableRelatedTransaction>],
+        related_transactions: &[Option<UncheckedRelatedTransaction>],
     ) -> AssertResult<()> {
         if let Some(dup) = duplicate_related_transaction(related_transactions) {
             Err(format!(
@@ -366,7 +369,7 @@ impl Asserter {
 
     /// `direction` returns an error if the value passed is not
     /// [Direction::Forward] or [Direction::Backward]
-    pub fn direction(&self, direction: &NullableDirection) -> AssertResult<()> {
+    pub fn direction(&self, direction: &UncheckedDirection) -> AssertResult<()> {
         if !direction.valid() {
             Err(BlockError::InvalidDirection)?
         } else {
@@ -375,7 +378,7 @@ impl Asserter {
     }
 
     /// `block` runs a basic set of assertions for each returned [`Block`].
-    pub fn block(&self, block: Option<&NullableBlock>) -> AssertResult<()> {
+    pub fn block(&self, block: Option<&UncheckedBlock>) -> AssertResult<()> {
         let asserter = self
             .response
             .as_ref()
@@ -399,7 +402,7 @@ impl Asserter {
 
         // Only check for timestamp validity if timestamp start index is <=
         // the current block index.
-        if asserter.timestamp_start_index <= block_identifier.index {
+        if asserter.timestamp_start_index as isize <= block_identifier.index {
             timestamp(block.timestamp)?;
         }
 
@@ -410,9 +413,9 @@ impl Asserter {
     }
 }
 
-/// `block_identifier` ensures a [`BlockIdentifier`]
+/// `block_identifier` ensures a [`UncheckedBlockIdentifier`]
 /// is well-formatted.
-pub fn block_identifier(block: Option<&BlockIdentifier>) -> AssertResult<()> {
+pub fn block_identifier(block: Option<&UncheckedBlockIdentifier>) -> AssertResult<()> {
     let block = block.ok_or(BlockError::BlockIdentifierIsNil)?;
     if block.hash.is_empty() {
         Err(BlockError::BlockIdentifierHashMissing)?
@@ -423,10 +426,10 @@ pub fn block_identifier(block: Option<&BlockIdentifier>) -> AssertResult<()> {
     }
 }
 
-/// `partial_block_identifier` ensures a [`PartialBlockIdentifier`]
+/// `partial_block_identifier` ensures a [`UncheckedPartialBlockIdentifier`]
 /// is well-formatted.
 pub fn partial_block_identifier(
-    block_identifier: Option<&PartialBlockIdentifier>,
+    block_identifier: Option<&UncheckedPartialBlockIdentifier>,
 ) -> AssertResult<()> {
     let block_identifier = block_identifier.ok_or(BlockError::PartialBlockIdentifierIsNil)?;
     if matches!(&block_identifier.hash, Some(hash) if !hash.is_empty())
@@ -441,8 +444,8 @@ pub fn partial_block_identifier(
 /// `duplicate_related_transaction` returns nil if no duplicates are found in
 /// the array and returns the first duplicated item found otherwise.
 pub fn duplicate_related_transaction(
-    items: &[Option<NullableRelatedTransaction>],
-) -> Option<&NullableRelatedTransaction> {
+    items: &[Option<UncheckedRelatedTransaction>],
+) -> Option<&UncheckedRelatedTransaction> {
     let mut seen = IndexSet::new();
 
     for item in items {
@@ -470,13 +473,13 @@ pub fn transaction_identifier(ident: Option<&TransactionIdentifier>) -> AssertRe
 }
 
 /// The min unix epoch
-pub static MIN_UNIX_EPOCH: i64 = 946713600000;
+pub static MIN_UNIX_EPOCH: isize = 946713600000;
 /// The max unix epoch
-pub static MAX_UNIX_EPOCH: i64 = 2209017600000;
+pub static MAX_UNIX_EPOCH: isize = 2209017600000;
 
 /// `timestamp` returns an error if the timestamp
 /// on a block is less than or equal to 0.
-pub fn timestamp(timestamp: i64) -> Result<(), String> {
+pub fn timestamp(timestamp: isize) -> Result<(), String> {
     if timestamp < MIN_UNIX_EPOCH {
         Err(format!("{}: {timestamp}", BlockError::TimestampBeforeMin))
     } else if timestamp > MAX_UNIX_EPOCH {

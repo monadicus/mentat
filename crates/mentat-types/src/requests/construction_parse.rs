@@ -5,9 +5,9 @@ use super::*;
 /// [`ConstructionParseRequest`] is the input to the `/construction/parse`
 /// endpoint. It allows the caller to parse either an unsigned or signed
 /// transaction.
-#[derive(Clone, Debug, Deserialize, Serialize, Default, Nullable)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
 #[serde(default)]
-pub struct NullableConstructionParseRequest {
+pub struct UncheckedConstructionParseRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]

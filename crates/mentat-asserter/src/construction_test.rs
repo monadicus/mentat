@@ -5,14 +5,14 @@ fn test_construction_preprocess_response() {
     let tests = vec![
         TestCase {
             name: "valid response",
-            payload: Some(NullableConstructionPreprocessResponse {
+            payload: Some(UncheckedConstructionPreprocessResponse {
                 ..Default::default()
             }),
             criteria: None,
         },
         TestCase {
             name: "valid response with accounts",
-            payload: Some(NullableConstructionPreprocessResponse {
+            payload: Some(UncheckedConstructionPreprocessResponse {
                 required_public_keys: vec![Some(AccountIdentifier {
                     address: "hello".into(),
                     ..Default::default()
@@ -23,7 +23,7 @@ fn test_construction_preprocess_response() {
         },
         TestCase {
             name: "invalid response with accounts",
-            payload: Some(NullableConstructionPreprocessResponse {
+            payload: Some(UncheckedConstructionPreprocessResponse {
                 required_public_keys: vec![Some(AccountIdentifier {
                     address: "".into(),
                     ..Default::default()
@@ -47,7 +47,7 @@ fn test_construction_metadata_response() {
     let tests = vec![
         TestCase {
             name: "valid response",
-            payload: Some(NullableConstructionMetadataResponse {
+            payload: Some(UncheckedConstructionMetadataResponse {
                 metadata: Some(Default::default()),
                 ..Default::default()
             }),
@@ -55,7 +55,7 @@ fn test_construction_metadata_response() {
         },
         TestCase {
             name: "with suggested fee",
-            payload: Some(NullableConstructionMetadataResponse {
+            payload: Some(UncheckedConstructionMetadataResponse {
                 metadata: Some(Default::default()),
                 suggested_fee: vec![valid_amount()],
             }),
@@ -63,7 +63,7 @@ fn test_construction_metadata_response() {
         },
         TestCase {
             name: "with duplicate suggested fee",
-            payload: Some(NullableConstructionMetadataResponse {
+            payload: Some(UncheckedConstructionMetadataResponse {
                 metadata: Some(Default::default()),
                 suggested_fee: vec![valid_amount(), valid_amount()],
             }),
@@ -95,7 +95,7 @@ fn test_transaction_identifier_response() {
     let tests = vec![
         TestCase {
             name: "valid response",
-            payload: Some(NullableTransactionIdentifierResponse {
+            payload: Some(UncheckedTransactionIdentifierResponse {
                 transaction_identifier: Some(TransactionIdentifier { hash: "tx1".into() }),
                 ..Default::default()
             }),
@@ -121,7 +121,7 @@ fn test_construction_combine_response() {
     let tests = vec![
         TestCase {
             name: "valid response",
-            payload: Some(NullableConstructionCombineResponse {
+            payload: Some(UncheckedConstructionCombineResponse {
                 signed_transaction: "signed tx".into(),
             }),
             criteria: None,
@@ -146,7 +146,7 @@ fn test_construction_derive_response() {
     let tests = vec![
         TestCase {
             name: "valid response",
-            payload: Some(NullableConstructionDeriveResponse {
+            payload: Some(UncheckedConstructionDeriveResponse {
                 account_identifier: Some(AccountIdentifier {
                     address: "addr".into(),
                     metadata: [("name".into(), "hello".into())].into(),
@@ -163,7 +163,7 @@ fn test_construction_derive_response() {
         },
         TestCase {
             name: "empty address",
-            payload: Some(NullableConstructionDeriveResponse {
+            payload: Some(UncheckedConstructionDeriveResponse {
                 metadata: [("name".into(), "hello".into())].into(),
                 ..Default::default()
             }),
@@ -176,7 +176,7 @@ fn test_construction_derive_response() {
 
 #[derive(Default)]
 struct ConstructionParseResponseTest {
-    payload: Option<NullableConstructionParseResponse>,
+    payload: Option<UncheckedConstructionParseResponse>,
     signed: bool,
 }
 
@@ -186,10 +186,10 @@ fn test_construction_parse_response() {
         TestCase {
             name: "valid response",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
+                payload: Some(UncheckedConstructionParseResponse {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -198,12 +198,12 @@ fn test_construction_parse_response() {
                             amount: valid_amount(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -224,10 +224,10 @@ fn test_construction_parse_response() {
         TestCase {
             name: "duplicate signer",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
+                payload: Some(UncheckedConstructionParseResponse {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -236,12 +236,12 @@ fn test_construction_parse_response() {
                             amount: valid_amount(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -270,7 +270,7 @@ fn test_construction_parse_response() {
         TestCase {
             name: "no operations",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
+                payload: Some(UncheckedConstructionParseResponse {
                     account_identifier_signers: vec![valid_account()],
                     metadata: [("extra".into(), "stuff".into())].into(),
                     ..Default::default()
@@ -282,9 +282,9 @@ fn test_construction_parse_response() {
         TestCase {
             name: "invalid operation ordering",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
-                    operations: vec![Some(NullableOperation {
-                        operation_identifier: Some(OperationIdentifier {
+                payload: Some(UncheckedConstructionParseResponse {
+                    operations: vec![Some(UncheckedOperation {
+                        operation_identifier: Some(UncheckedOperationIdentifier {
                             index: 1,
                             ..Default::default()
                         }),
@@ -304,10 +304,10 @@ fn test_construction_parse_response() {
         TestCase {
             name: "no signers",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
+                payload: Some(UncheckedConstructionParseResponse {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -316,12 +316,12 @@ fn test_construction_parse_response() {
                             amount: valid_amount(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -343,10 +343,10 @@ fn test_construction_parse_response() {
         TestCase {
             name: "empty account identifier signer",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
+                payload: Some(UncheckedConstructionParseResponse {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -355,12 +355,12 @@ fn test_construction_parse_response() {
                             amount: valid_amount(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -381,10 +381,10 @@ fn test_construction_parse_response() {
         TestCase {
             name: "invalid signer unsigned",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
+                payload: Some(UncheckedConstructionParseResponse {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -393,12 +393,12 @@ fn test_construction_parse_response() {
                             amount: valid_amount(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -421,10 +421,10 @@ fn test_construction_parse_response() {
         TestCase {
             name: "valid response unsigned",
             payload: Some(ConstructionParseResponseTest {
-                payload: Some(NullableConstructionParseResponse {
+                payload: Some(UncheckedConstructionParseResponse {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -433,12 +433,12 @@ fn test_construction_parse_response() {
                             amount: valid_amount(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -463,12 +463,12 @@ fn test_construction_parse_response() {
             network: "WORLD".into(),
             ..Default::default()
         }),
-        Some(NullableNetworkStatusResponse {
-            current_block_identifier: Some(BlockIdentifier {
+        Some(UncheckedNetworkStatusResponse {
+            current_block_identifier: Some(UncheckedBlockIdentifier {
                 index: 100,
                 hash: "block 100".into(),
             }),
-            genesis_block_identifier: Some(BlockIdentifier {
+            genesis_block_identifier: Some(UncheckedBlockIdentifier {
                 index: 0,
                 hash: "block 0".into(),
             }),
@@ -479,13 +479,13 @@ fn test_construction_parse_response() {
             })],
             ..Default::default()
         }),
-        Some(NullableNetworkOptionsResponse {
+        Some(UncheckedNetworkOptionsResponse {
             version: Some(Version {
                 rosetta_version: "1.4.0".into(),
                 node_version: "1.0".into(),
                 ..Default::default()
             }),
-            allow: Some(NullableAllow {
+            allow: Some(UncheckedAllow {
                 operation_statuses: vec![
                     Some(OperationStatus {
                         status: "SUCCESS".into(),
@@ -515,9 +515,9 @@ fn test_construction_payloads_response() {
     let tests = vec![
         TestCase {
             name: "valid response",
-            payload: Some(NullableConstructionPayloadsResponse {
+            payload: Some(UncheckedConstructionPayloadsResponse {
                 unsigned_transaction: "tx blob".into(),
-                payloads: vec![Some(NullableSigningPayload {
+                payloads: vec![Some(UncheckedSigningPayload {
                     account_identifier: Some(AccountIdentifier {
                         address: "hello".into(),
                         ..Default::default()
@@ -535,8 +535,8 @@ fn test_construction_payloads_response() {
         },
         TestCase {
             name: "empty unsigned transaction",
-            payload: Some(NullableConstructionPayloadsResponse {
-                payloads: vec![Some(NullableSigningPayload {
+            payload: Some(UncheckedConstructionPayloadsResponse {
+                payloads: vec![Some(UncheckedSigningPayload {
                     account_identifier: Some(AccountIdentifier {
                         address: "hello".into(),
                         ..Default::default()
@@ -550,7 +550,7 @@ fn test_construction_payloads_response() {
         },
         TestCase {
             name: "empty signing payloads",
-            payload: Some(NullableConstructionPayloadsResponse {
+            payload: Some(UncheckedConstructionPayloadsResponse {
                 unsigned_transaction: "tx blob".into(),
                 ..Default::default()
             }),
@@ -558,9 +558,9 @@ fn test_construction_payloads_response() {
         },
         TestCase {
             name: "invalid signing payload",
-            payload: Some(NullableConstructionPayloadsResponse {
+            payload: Some(UncheckedConstructionPayloadsResponse {
                 unsigned_transaction: "tx blob".into(),
-                payloads: vec![Some(NullableSigningPayload {
+                payloads: vec![Some(UncheckedSigningPayload {
                     bytes: "48656c6c6f20476f7068657221".into(),
                     ..Default::default()
                 })],
@@ -577,17 +577,17 @@ fn test_public_key() {
     let tests = vec![
         TestCase {
             name: "valid public key",
-            payload: Some(NullablePublicKey {
+            payload: Some(UncheckedPublicKey {
                 bytes: "blah".into(),
-                curve_type: NullableCurveType::SECP256K1.into(),
+                curve_type: UncheckedCurveType::SECP256K1.into(),
             }),
             criteria: None,
         },
         TestCase {
             name: "zero public key",
-            payload: Some(NullablePublicKey {
+            payload: Some(UncheckedPublicKey {
                 bytes: vec![0; 4],
-                curve_type: NullableCurveType::SECP256K1.into(),
+                curve_type: UncheckedCurveType::SECP256K1.into(),
             }),
             criteria: Some(ConstructionError::PublicKeyBytesZero.into()),
         },
@@ -598,15 +598,15 @@ fn test_public_key() {
         },
         TestCase {
             name: "invalid bytes",
-            payload: Some(NullablePublicKey {
-                curve_type: NullableCurveType::SECP256K1.into(),
+            payload: Some(UncheckedPublicKey {
+                curve_type: UncheckedCurveType::SECP256K1.into(),
                 ..Default::default()
             }),
             criteria: Some(ConstructionError::PublicKeyBytesEmpty.into()),
         },
         TestCase {
             name: "invalid curve",
-            payload: Some(NullablePublicKey {
+            payload: Some(UncheckedPublicKey {
                 bytes: "hello".into(),
                 curve_type: "test".into(),
             }),
@@ -622,7 +622,7 @@ fn test_signing_payload() {
     let tests = vec![
         TestCase {
             name: "valid signing payload",
-            payload: Some(NullableSigningPayload {
+            payload: Some(UncheckedSigningPayload {
                 account_identifier: Some(AccountIdentifier {
                     address: "hello".into(),
                     ..Default::default()
@@ -634,13 +634,13 @@ fn test_signing_payload() {
         },
         TestCase {
             name: "valid signing payload with signature type",
-            payload: Some(NullableSigningPayload {
+            payload: Some(UncheckedSigningPayload {
                 account_identifier: Some(AccountIdentifier {
                     address: "hello".into(),
                     ..Default::default()
                 }),
                 bytes: "blah".into(),
-                signature_type: NullableSignatureType::ED25519.into(),
+                signature_type: UncheckedSignatureType::ED25519.into(),
                 ..Default::default()
             }),
             criteria: None,
@@ -652,7 +652,7 @@ fn test_signing_payload() {
         },
         TestCase {
             name: "empty address",
-            payload: Some(NullableSigningPayload {
+            payload: Some(UncheckedSigningPayload {
                 bytes: "blah".into(),
                 ..Default::default()
             }),
@@ -660,7 +660,7 @@ fn test_signing_payload() {
         },
         TestCase {
             name: "zero signing payload",
-            payload: Some(NullableSigningPayload {
+            payload: Some(UncheckedSigningPayload {
                 account_identifier: Some(AccountIdentifier {
                     address: "hello".into(),
                     ..Default::default()
@@ -672,7 +672,7 @@ fn test_signing_payload() {
         },
         TestCase {
             name: "empty bytes",
-            payload: Some(NullableSigningPayload {
+            payload: Some(UncheckedSigningPayload {
                 account_identifier: Some(AccountIdentifier {
                     address: "hello".into(),
                     ..Default::default()
@@ -683,7 +683,7 @@ fn test_signing_payload() {
         },
         TestCase {
             name: "invalid signature",
-            payload: Some(NullableSigningPayload {
+            payload: Some(UncheckedSigningPayload {
                 account_identifier: Some(AccountIdentifier {
                     address: "hello".into(),
                     ..Default::default()
@@ -705,24 +705,24 @@ fn test_signatures() {
         TestCase {
             name: "valid signatures",
             payload: vec![
-                Some(NullableSignature {
-                    signing_payload: Some(NullableSigningPayload {
+                Some(UncheckedSignature {
+                    signing_payload: Some(UncheckedSigningPayload {
                         account_identifier: valid_account(),
                         bytes: "blah".into(),
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: NullableSignatureType::ED25519.into(),
+                    signature_type: UncheckedSignatureType::ED25519.into(),
                     bytes: "hello".into(),
                 }),
-                Some(NullableSignature {
-                    signing_payload: Some(NullableSigningPayload {
+                Some(UncheckedSignature {
+                    signing_payload: Some(UncheckedSigningPayload {
                         account_identifier: valid_account(),
                         bytes: "blah".into(),
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: NullableSignatureType::ECDSA_RECOVERY.into(),
+                    signature_type: UncheckedSignatureType::ECDSA_RECOVERY.into(),
                     bytes: "hello".into(),
                 }),
             ],
@@ -730,15 +730,15 @@ fn test_signatures() {
         },
         TestCase {
             name: "signature type match",
-            payload: vec![Some(NullableSignature {
-                signing_payload: Some(NullableSigningPayload {
+            payload: vec![Some(UncheckedSignature {
+                signing_payload: Some(UncheckedSigningPayload {
                     account_identifier: valid_account(),
                     bytes: "blah".into(),
-                    signature_type: NullableSignatureType::ED25519.into(),
+                    signature_type: UncheckedSignatureType::ED25519.into(),
                     ..Default::default()
                 }),
                 public_key: Some(valid_public_key()),
-                signature_type: NullableSignatureType::ED25519.into(),
+                signature_type: UncheckedSignatureType::ED25519.into(),
                 bytes: "hello".into(),
             })],
             criteria: None,
@@ -751,25 +751,25 @@ fn test_signatures() {
         TestCase {
             name: "empty signature",
             payload: vec![
-                Some(NullableSignature {
-                    signing_payload: Some(NullableSigningPayload {
+                Some(UncheckedSignature {
+                    signing_payload: Some(UncheckedSigningPayload {
                         account_identifier: valid_account(),
                         bytes: "blah".into(),
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: NullableSignatureType::ECDSA_RECOVERY.into(),
+                    signature_type: UncheckedSignatureType::ECDSA_RECOVERY.into(),
                     bytes: "hello".into(),
                 }),
-                Some(NullableSignature {
-                    signing_payload: Some(NullableSigningPayload {
+                Some(UncheckedSignature {
+                    signing_payload: Some(UncheckedSigningPayload {
                         account_identifier: valid_account(),
                         bytes: "blah".into(),
-                        signature_type: NullableSignatureType::ED25519.into(),
+                        signature_type: UncheckedSignatureType::ED25519.into(),
                         ..Default::default()
                     }),
                     public_key: Some(valid_public_key()),
-                    signature_type: NullableSignatureType::ED25519.into(),
+                    signature_type: UncheckedSignatureType::ED25519.into(),
                     ..Default::default()
                 }),
             ],
@@ -777,30 +777,30 @@ fn test_signatures() {
         },
         TestCase {
             name: "signature zero bytes",
-            payload: vec![Some(NullableSignature {
-                signing_payload: Some(NullableSigningPayload {
+            payload: vec![Some(UncheckedSignature {
+                signing_payload: Some(UncheckedSigningPayload {
                     account_identifier: valid_account(),
                     bytes: "blah".into(),
-                    signature_type: NullableSignatureType::ED25519.into(),
+                    signature_type: UncheckedSignatureType::ED25519.into(),
                     ..Default::default()
                 }),
                 public_key: Some(valid_public_key()),
-                signature_type: NullableSignatureType::ED25519.into(),
+                signature_type: UncheckedSignatureType::ED25519.into(),
                 bytes: vec![0],
             })],
             criteria: Some(ConstructionError::SignatureBytesZero.into()),
         },
         TestCase {
             name: "signature type mismatch",
-            payload: vec![Some(NullableSignature {
-                signing_payload: Some(NullableSigningPayload {
+            payload: vec![Some(UncheckedSignature {
+                signing_payload: Some(UncheckedSigningPayload {
                     account_identifier: valid_account(),
                     bytes: "blah".into(),
-                    signature_type: NullableSignatureType::ECDSA_RECOVERY.into(),
+                    signature_type: UncheckedSignatureType::ECDSA_RECOVERY.into(),
                     ..Default::default()
                 }),
                 public_key: Some(valid_public_key()),
-                signature_type: NullableSignatureType::ED25519.into(),
+                signature_type: UncheckedSignatureType::ED25519.into(),
                 bytes: "hello".into(),
             })],
             criteria: Some(ConstructionError::SignaturesReturnedSigMismatch.into()),

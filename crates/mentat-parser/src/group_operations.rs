@@ -18,8 +18,8 @@ impl OperationGroup {
     /// [`OperationGroup`].
     fn add_operation_to_group(
         &mut self,
-        destination_index: i64,
-        assignments: &mut [i64],
+        destination_index: usize,
+        assignments: &mut [usize],
         op: &Operation,
     ) {
         // Remove group type if different
@@ -30,7 +30,7 @@ impl OperationGroup {
         // Update op assignment
         self.operations.push(op.clone());
         // Safe to do since asserter has checked.
-        assignments[op.operation_identifier.index as usize] = destination_index;
+        assignments[op.operation_identifier.index] = destination_index;
 
         // Handle nil currency
         if op.amount.is_none() {
@@ -123,14 +123,14 @@ pub fn group_operations(transaction: &Transaction) -> Vec<OperationGroup> {
 
             let key = op_groups.len();
             op_groups.insert(key, value);
-            op_assignments[i] = key as i64;
+            op_assignments[i] = key;
             continue;
         }
 
         // Find groups to merge
         let mut groups_to_merge = Vec::new();
         for related_op in &op.related_operations {
-            let assignment = op_assignments[related_op.index as usize];
+            let assignment = op_assignments[related_op.index];
             if !groups_to_merge.contains(&assignment) {
                 groups_to_merge.push(assignment)
             }
@@ -143,7 +143,7 @@ pub fn group_operations(transaction: &Transaction) -> Vec<OperationGroup> {
         let merged_group_index = groups_to_merge[0];
 
         // Add op to unified group
-        op_groups[merged_group_index as usize].add_operation_to_group(
+        op_groups[merged_group_index].add_operation_to_group(
             merged_group_index,
             &mut op_assignments,
             op,
@@ -151,11 +151,11 @@ pub fn group_operations(transaction: &Transaction) -> Vec<OperationGroup> {
 
         // Merge Groups
         for other_group_index in groups_to_merge[1..].iter() {
-            let other_group = &op_groups[*other_group_index as usize];
+            let other_group = &op_groups[*other_group_index];
 
             // Add otherGroup ops to mergedGroup
             for other_op in other_group.operations.clone() {
-                op_groups[merged_group_index as usize].add_operation_to_group(
+                op_groups[merged_group_index].add_operation_to_group(
                     merged_group_index,
                     &mut op_assignments,
                     &other_op,
@@ -163,7 +163,7 @@ pub fn group_operations(transaction: &Transaction) -> Vec<OperationGroup> {
             }
 
             // Delete otherGroup
-            op_groups.remove(&(*other_group_index as usize)).unwrap();
+            op_groups.remove(other_group_index).unwrap();
         }
     }
 

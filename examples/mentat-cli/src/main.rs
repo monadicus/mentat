@@ -5,12 +5,8 @@ use mentat::{
     serde_json::json,
     tokio,
     types::{
-        BlockIdentifier,
-        NetworkIdentifier,
-        NullableAccountBalanceRequest,
-        NullableAccountCoinsRequest,
-        NullableMetadataRequest,
-        PartialBlockIdentifier,
+        BlockIdentifier, NetworkIdentifier, NullableAccountBalanceRequest,
+        NullableAccountCoinsRequest, NullableMetadataRequest, PartialBlockIdentifier,
     },
 };
 
@@ -39,7 +35,7 @@ struct Opts {
     pub(crate) subnetwork: String,
 
     #[clap(long)]
-    pub(crate) index: Option<i64>,
+    pub(crate) index: Option<isize>,
     #[clap(long)]
     pub(crate) hash: Option<String>,
 }

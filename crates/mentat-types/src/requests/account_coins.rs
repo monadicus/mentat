@@ -4,9 +4,9 @@ use super::*;
 
 /// `AccountCoinsRequest` is utilized to make a request on the `/account/coins`
 /// endpoint.
-#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableAccountCoinsRequest {
+pub struct UncheckedAccountCoinsRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -29,5 +29,5 @@ pub struct NullableAccountCoinsRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub currencies: Vec<Option<NullableCurrency>>,
+    pub currencies: Vec<Option<UncheckedCurrency>>,
 }

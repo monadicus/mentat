@@ -53,10 +53,10 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableEventsBlocksRequest>,
+        data: Option<UncheckedEventsBlocksRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableEventsBlocksResponse> {
+    ) -> MentatResponse<UncheckedEventsBlocksResponse> {
         asserter.events_block_request(data.as_ref())?;
         let resp = self
             .events_blocks(caller, data.unwrap().into(), rpc_caller)
@@ -73,10 +73,10 @@ pub trait CallerIndexerApi: Clone + IndexerApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableSearchTransactionsRequest>,
+        data: Option<UncheckedSearchTransactionsRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableSearchTransactionsResponse> {
+    ) -> MentatResponse<UncheckedSearchTransactionsResponse> {
         asserter.search_transactions_request(data.as_ref())?;
         let resp = self
             .search_transactions(caller, data.unwrap().into(), rpc_caller)

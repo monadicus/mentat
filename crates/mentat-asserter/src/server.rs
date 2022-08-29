@@ -59,7 +59,7 @@ impl Asserter {
     /// is well-formatted.
     pub fn account_balance_request(
         &self,
-        request: Option<&NullableAccountBalanceRequest>,
+        request: Option<&UncheckedAccountBalanceRequest>,
     ) -> AssertResult<()> {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
@@ -86,7 +86,7 @@ impl Asserter {
 
     /// [`block_request`] ensures that a [`BlockRequest`]
     /// is well-formatted.
-    pub fn block_request(&self, request: Option<&NullableBlockRequest>) -> AssertResult<()> {
+    pub fn block_request(&self, request: Option<&UncheckedBlockRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -97,7 +97,7 @@ impl Asserter {
     /// is well-formatted.
     pub fn block_transaction_request(
         &self,
-        request: Option<&NullableBlockTransactionRequest>,
+        request: Option<&UncheckedBlockTransactionRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockTransactionRequestIsNil)?;
@@ -110,7 +110,7 @@ impl Asserter {
     /// [`ConstructionMetadataRequest`] is well-formatted.
     pub fn construction_metadata_request(
         &self,
-        request: Option<&NullableConstructionMetadataRequest>,
+        request: Option<&UncheckedConstructionMetadataRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionMetadataRequestIsNil)?;
@@ -127,7 +127,7 @@ impl Asserter {
     /// [`ConstructionSubmitRequest`] is well-formatted.
     pub fn construction_submit_request(
         &self,
-        request: Option<&NullableConstructionSubmitRequest>,
+        request: Option<&UncheckedConstructionSubmitRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionSubmitRequestIsNil)?;
@@ -143,7 +143,7 @@ impl Asserter {
     /// [`MempoolTransactionRequest`] is well-formatted.
     pub fn mempool_transaction_request(
         &self,
-        request: Option<&NullableMempoolTransactionRequest>,
+        request: Option<&UncheckedMempoolTransactionRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::MempoolTransactionRequestIsNil)?;
@@ -153,7 +153,7 @@ impl Asserter {
 
     /// [`metadata_request`] ensures that a [`MetadataRequest`]
     /// is well-formatted.
-    pub fn metadata_request(&self, request: Option<&NullableMetadataRequest>) -> AssertResult<()> {
+    pub fn metadata_request(&self, request: Option<&UncheckedMetadataRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         request.ok_or(ServerError::MetadataRequestIsNil)?;
         Ok(())
@@ -161,7 +161,7 @@ impl Asserter {
 
     /// [`network_request`] ensures that a [`NetworkRequest`]
     /// is well-formatted.
-    pub fn network_request(&self, request: Option<&NullableNetworkRequest>) -> AssertResult<()> {
+    pub fn network_request(&self, request: Option<&UncheckedNetworkRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::NetworkRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())
@@ -171,7 +171,7 @@ impl Asserter {
     /// [`ConstructionDeriveRequest`] is well-formatted.
     pub fn construction_derive_request(
         &self,
-        request: Option<&NullableConstructionDeriveRequest>,
+        request: Option<&UncheckedConstructionDeriveRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionDeriveRequestIsNil)?;
@@ -183,7 +183,7 @@ impl Asserter {
     /// [`ConstructionPreprocessRequest`] is well-formatted.
     pub fn construction_preprocess_request(
         &self,
-        request: Option<&NullableConstructionPreprocessRequest>,
+        request: Option<&UncheckedConstructionPreprocessRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPreprocessRequestIsNil)?;
@@ -206,7 +206,7 @@ impl Asserter {
     /// [`ConstructionPayloadsRequest`] is well-formatted.
     pub fn construction_payload_request(
         &self,
-        request: Option<&NullableConstructionPayloadsRequest>,
+        request: Option<&UncheckedConstructionPayloadsRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPayloadsRequestIsNil)?;
@@ -222,7 +222,7 @@ impl Asserter {
     /// [`ConstructionCombineRequest`] is well-formatted.
     pub fn construction_combine_request(
         &self,
-        request: Option<&NullableConstructionCombineRequest>,
+        request: Option<&UncheckedConstructionCombineRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionCombineRequestIsNil)?;
@@ -244,7 +244,7 @@ impl Asserter {
     /// is well-formatted.
     pub fn construction_hash_request(
         &self,
-        request: Option<&NullableConstructionHashRequest>,
+        request: Option<&UncheckedConstructionHashRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionHashRequestIsNil)?;
@@ -260,7 +260,7 @@ impl Asserter {
     /// [`ConstructionParseRequest`] is well-formatted.
     pub fn construction_parse_request(
         &self,
-        request: Option<&NullableConstructionParseRequest>,
+        request: Option<&UncheckedConstructionParseRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionParseRequestIsNil)?;
@@ -290,7 +290,7 @@ impl Asserter {
 
     /// [`call_request`] ensures that a [`CallRequest`]
     /// is well-formatted.
-    pub fn call_request(&self, request: Option<&NullableCallRequest>) -> AssertResult<()> {
+    pub fn call_request(&self, request: Option<&UncheckedCallRequest>) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::CallRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
@@ -301,7 +301,7 @@ impl Asserter {
     /// is well-formatted.
     pub fn account_coins_request(
         &self,
-        request: Option<&NullableAccountCoinsRequest>,
+        request: Option<&UncheckedAccountCoinsRequest>,
     ) -> AssertResult<()> {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
@@ -332,7 +332,7 @@ impl Asserter {
     /// is well-formatted.
     pub fn events_block_request(
         &self,
-        request: Option<&NullableEventsBlocksRequest>,
+        request: Option<&UncheckedEventsBlocksRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::EventsBlocksRequestIsNil)?;
@@ -350,7 +350,7 @@ impl Asserter {
     /// [`SearchTransactionsRequest`] is well-formatted.
     pub fn search_transactions_request(
         &self,
-        request: Option<&NullableSearchTransactionsRequest>,
+        request: Option<&UncheckedSearchTransactionsRequest>,
     ) -> AssertResult<()> {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::SearchTransactionsRequestIsNil)?;

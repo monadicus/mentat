@@ -6,9 +6,9 @@ use super::*;
 /// endpoint. It contains the unsigned transaction blob returned by
 /// `/construction/payloads` and all required signatures to create a network
 /// transaction.
-#[derive(Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableConstructionCombineRequest {
+pub struct UncheckedConstructionCombineRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -20,5 +20,5 @@ pub struct NullableConstructionCombineRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub signatures: Vec<Option<NullableSignature>>,
+    pub signatures: Vec<Option<UncheckedSignature>>,
 }

@@ -58,7 +58,7 @@ impl From<(&str, &str, Option<&str>)> for NetworkIdentifier {
     }
 }
 
-impl From<Option<NetworkIdentifier>> for NullableNetworkRequest {
+impl From<Option<NetworkIdentifier>> for UncheckedNetworkRequest {
     fn from(net: Option<NetworkIdentifier>) -> Self {
         Self {
             network_identifier: net,

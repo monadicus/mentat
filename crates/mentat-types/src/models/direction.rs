@@ -10,9 +10,9 @@ use super::*;
 /// indicate if a transaction relation is from child to parent or the reverse.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct NullableDirection(String);
+pub struct UncheckedDirection(String);
 
-impl NullableDirection {
+impl UncheckedDirection {
     /// Direction indicating a transaction relation is from child to parent.
     pub const BACKWARD: &'static str = "backward";
     /// Direction indicating a transaction relation is from parent to child.
@@ -29,19 +29,19 @@ impl NullableDirection {
     }
 }
 
-impl fmt::Display for NullableDirection {
+impl fmt::Display for UncheckedDirection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<String> for NullableDirection {
+impl From<String> for UncheckedDirection {
     fn from(dir: String) -> Self {
         Self(dir)
     }
 }
 
-impl From<&str> for NullableDirection {
+impl From<&str> for UncheckedDirection {
     fn from(dir: &str) -> Self {
         dir.to_string().into()
     }
@@ -61,17 +61,17 @@ pub enum Direction {
     Forward,
 }
 
-impl From<NullableDirection> for Direction {
-    fn from(other: NullableDirection) -> Self {
+impl From<UncheckedDirection> for Direction {
+    fn from(other: UncheckedDirection) -> Self {
         match other.0.as_ref() {
-            NullableDirection::BACKWARD => Self::Backward,
-            NullableDirection::FORWARD => Self::Forward,
+            UncheckedDirection::BACKWARD => Self::Backward,
+            UncheckedDirection::FORWARD => Self::Forward,
             i => panic!("unsupported Direction: {i}"),
         }
     }
 }
 
-impl From<Direction> for NullableDirection {
+impl From<Direction> for UncheckedDirection {
     fn from(other: Direction) -> Self {
         match other {
             Direction::Backward => Self::BACKWARD.into(),

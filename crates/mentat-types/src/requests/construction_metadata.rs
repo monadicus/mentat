@@ -10,8 +10,8 @@ use super::*;
 /// an array of [`PublicKey`]s associated with the [`Account
 /// #[serde(default)]Identifier`]s
 /// returned in [`crate::responses::ConstructionPreprocessResponse`].
-#[derive(Clone, Debug, Deserialize, Serialize, Default, Nullable)]
-pub struct NullableConstructionMetadataRequest {
+#[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
+pub struct UncheckedConstructionMetadataRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -23,12 +23,12 @@ pub struct NullableConstructionMetadataRequest {
     /// populate an options object to limit the metadata returned to only the
     /// subset required.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub options: Option<Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub public_keys: Vec<Option<NullablePublicKey>>,
+    pub public_keys: Vec<Option<UncheckedPublicKey>>,
 }

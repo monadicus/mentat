@@ -8,10 +8,10 @@ use super::*;
 /// [`ConstructionParseResponse`] contains an array of operations that occur in
 /// a transaction blob. This should match the array of operations provided to
 /// `/construction/preprocess` and `/construction/payloads`.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Nullable)]
-pub struct NullableConstructionParseResponse {
+#[derive(Clone, Debug, Default, PartialEq, Eq, Unchecked)]
+pub struct UncheckedConstructionParseResponse {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub operations: Vec<Option<NullableOperation>>,
+    pub operations: Vec<Option<UncheckedOperation>>,
     /// [DEPRECATED by `account_identifier_signers` in v1.4.4] All signers
     /// (addresses) of a particular transaction. If the transaction is unsigned,
     /// it should be empty.
@@ -22,7 +22,7 @@ pub struct NullableConstructionParseResponse {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl Serialize for NullableConstructionParseResponse {
+impl Serialize for UncheckedConstructionParseResponse {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -61,7 +61,7 @@ pub struct ConstructionParseResponsePre {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub operations: Vec<Option<NullableOperation>>,
+    pub operations: Vec<Option<UncheckedOperation>>,
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
@@ -76,7 +76,7 @@ pub struct ConstructionParseResponsePre {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl<'de> Deserialize<'de> for NullableConstructionParseResponse {
+impl<'de> Deserialize<'de> for UncheckedConstructionParseResponse {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -98,7 +98,7 @@ impl<'de> Deserialize<'de> for NullableConstructionParseResponse {
                 pre.account_identifier_signers
             };
 
-        Ok(NullableConstructionParseResponse {
+        Ok(UncheckedConstructionParseResponse {
             operations: pre.operations,
             signers: Vec::new(),
             account_identifier_signers,

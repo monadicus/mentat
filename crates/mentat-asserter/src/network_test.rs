@@ -140,14 +140,14 @@ fn test_allow() {
     ];
     let operation_types = vec!["PAYMENT".to_string()];
     let call_methods = vec!["call".to_string()];
-    let balance_exemptions = vec![Some(NullableBalanceExemption {
+    let balance_exemptions = vec![Some(UncheckedBalanceExemption {
         sub_account_address: None,
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
         }),
-        exemption_type: NullableExemptionType::DYNAMIC.into(),
+        exemption_type: UncheckedExemptionType::DYNAMIC.into(),
     })];
     let neg_index = Some(-1);
     let index = Some(100);
@@ -155,7 +155,7 @@ fn test_allow() {
     let tests = vec![
         TestCase {
             name: "valid Allow",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 ..Default::default()
@@ -164,7 +164,7 @@ fn test_allow() {
         },
         TestCase {
             name: "valid Allow with call methods and exemptions",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods: call_methods.clone(),
@@ -177,7 +177,7 @@ fn test_allow() {
         },
         TestCase {
             name: "valid Allow with exemptions and no historical",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods,
@@ -188,7 +188,7 @@ fn test_allow() {
         },
         TestCase {
             name: "invalid timestamp start index",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 timestamp_start_index: neg_index,
@@ -203,7 +203,7 @@ fn test_allow() {
         },
         TestCase {
             name: "no OperationStatuses",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_types: operation_types.clone(),
                 ..Default::default()
             }),
@@ -211,7 +211,7 @@ fn test_allow() {
         },
         TestCase {
             name: "no successful OperationStatuses",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: vec![operation_statuses[1].clone()],
                 operation_types: operation_types.clone(),
                 ..Default::default()
@@ -220,7 +220,7 @@ fn test_allow() {
         },
         TestCase {
             name: "no OperationTypes",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: operation_statuses.clone(),
                 ..Default::default()
             }),
@@ -230,7 +230,7 @@ fn test_allow() {
         },
         TestCase {
             name: "duplicate call methods",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods: vec!["call".into(), "call".into()],
@@ -243,14 +243,14 @@ fn test_allow() {
         },
         TestCase {
             name: "empty exemption",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses: operation_statuses.clone(),
                 operation_types: operation_types.clone(),
                 call_methods: vec!["call".into()],
-                balance_exemptions: vec![Some(NullableBalanceExemption {
+                balance_exemptions: vec![Some(UncheckedBalanceExemption {
                     sub_account_address: None,
                     currency: None,
-                    exemption_type: NullableExemptionType::DYNAMIC.into(),
+                    exemption_type: UncheckedExemptionType::DYNAMIC.into(),
                 })],
                 ..Default::default()
             }),
@@ -258,11 +258,11 @@ fn test_allow() {
         },
         TestCase {
             name: "invalid exemption type",
-            payload: Some(NullableAllow {
+            payload: Some(UncheckedAllow {
                 operation_statuses,
                 operation_types,
                 call_methods: vec!["call".into()],
-                balance_exemptions: vec![Some(NullableBalanceExemption {
+                balance_exemptions: vec![Some(UncheckedBalanceExemption {
                     sub_account_address: None,
                     currency: None,
                     exemption_type: "test".into(),
@@ -281,7 +281,7 @@ fn test_error() {
     let tests = vec![
         TestCase {
             name: "valid error",
-            payload: Some(MentatError {
+            payload: Some(UncheckedMentatError {
                 code: 12,
                 message: "signature invalid".into(),
                 ..Default::default()
@@ -295,7 +295,7 @@ fn test_error() {
         },
         TestCase {
             name: "negative code",
-            payload: Some(MentatError {
+            payload: Some(UncheckedMentatError {
                 code: -1,
                 message: "signature invalid".into(),
                 ..Default::default()
@@ -304,7 +304,7 @@ fn test_error() {
         },
         TestCase {
             name: "empty message",
-            payload: Some(MentatError {
+            payload: Some(UncheckedMentatError {
                 code: 0,
                 message: String::new(),
                 ..Default::default()
@@ -322,12 +322,12 @@ fn test_errors() {
         TestCase {
             name: "valid errors",
             payload: vec![
-                Some(MentatError {
+                Some(UncheckedMentatError {
                     code: 0,
                     message: "error 1".into(),
                     ..Default::default()
                 }),
-                Some(MentatError {
+                Some(UncheckedMentatError {
                     code: 2,
                     message: "error 2".into(),
                     ..Default::default()
@@ -338,7 +338,7 @@ fn test_errors() {
         TestCase {
             name: "details populated",
             payload: vec![
-                Some(MentatError {
+                Some(UncheckedMentatError {
                     code: 0,
                     message: "error 1".into(),
                     details: indexmap!(
@@ -346,7 +346,7 @@ fn test_errors() {
                     ),
                     ..Default::default()
                 }),
-                Some(MentatError {
+                Some(UncheckedMentatError {
                     code: 1,
                     message: "error 2".into(),
                     ..Default::default()
@@ -357,12 +357,12 @@ fn test_errors() {
         TestCase {
             name: "duplicate error codes",
             payload: vec![
-                Some(MentatError {
+                Some(UncheckedMentatError {
                     code: 0,
                     message: "error 1".into(),
                     ..Default::default()
                 }),
-                Some(MentatError {
+                Some(UncheckedMentatError {
                     code: 0,
                     message: "error 2".into(),
                     ..Default::default()
@@ -402,7 +402,7 @@ fn test_network_list_response() {
     let tests = vec![
         TestCase {
             name: "valid network list",
-            payload: Some(NullableNetworkListResponse {
+            payload: Some(UncheckedNetworkListResponse {
                 network_identifiers: vec![network_1, network_1_sub.clone(), network_2],
             }),
             criteria: None,
@@ -414,14 +414,14 @@ fn test_network_list_response() {
         },
         TestCase {
             name: "network list duplicate",
-            payload: Some(NullableNetworkListResponse {
+            payload: Some(UncheckedNetworkListResponse {
                 network_identifiers: vec![network_1_sub.clone(), network_1_sub],
             }),
             criteria: Some(NetworkError::NetworkListResponseNetworksContainsDuplicates.into()),
         },
         TestCase {
             name: "invalid network",
-            payload: Some(NullableNetworkListResponse {
+            payload: Some(UncheckedNetworkListResponse {
                 network_identifiers: vec![network_3],
             }),
             criteria: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
