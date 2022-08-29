@@ -72,7 +72,7 @@ where
                     self.network.network
                 )
             })?;
-        self.next_index = index.unwrap_or(network_status.genesis_block_identifier.index as usize);
+        self.next_index = index.unwrap_or(network_status.genesis_block_identifier.index);
         self.genesis_block = Some(network_status.genesis_block_identifier);
         Ok(())
     }
@@ -97,14 +97,11 @@ where
             })?;
 
         // Update the syncer's known tip
-        let current_idx = network_status.current_block_identifier.index as usize;
-        let end_index = match end_index {
-            Some(i) if i < current_idx => i,
-            _ => current_idx,
-        };
+        let current_idx = network_status.current_block_identifier.index;
+        let end_index = end_index.unwrap_or(current_idx).min(current_idx);
         self.tip = Some(network_status.current_block_identifier);
 
-        if self.next_index as usize > end_index {
+        if self.next_index > end_index {
             Ok(None)
         } else {
             Ok(Some(end_index))
@@ -139,7 +136,7 @@ where
 
         // Ensure processing correct index
         let block = br.block.as_ref().unwrap();
-        if block.block_identifier.index as usize != self.next_index {
+        if block.block_identifier.index != self.next_index {
             Err(format!(
                 "expected block index {}, but got {}: {}",
                 self.next_index,
@@ -180,7 +177,7 @@ where
                         last_block.unwrap().index,
                     )
                 })?;
-            self.next_index = last_block.unwrap().index as usize;
+            self.next_index = last_block.unwrap().index;
             self.past_blocks.pop_back();
         } else {
             // mock structures inside syncer_tests require access to syncer during this
@@ -196,8 +193,8 @@ where
                     block.block_identifier.index
                 )
             })?;
-            self.next_index = block.block_identifier.index as usize + 1;
-            if self.past_blocks.len() >= self.past_block_limit as usize {
+            self.next_index = block.block_identifier.index + 1;
+            if self.past_blocks.len() >= self.past_block_limit {
                 self.past_blocks.pop_front();
             }
             self.past_blocks.push_back(block.block_identifier);
@@ -219,7 +216,7 @@ where
             context,
             &self.network,
             &PartialBlockIdentifier {
-                index: Some(index as i64),
+                index: Some(index),
                 ..Default::default()
             },
         );
@@ -364,7 +361,6 @@ where
             .copied()
             .unwrap_or_default() as f64
             * self.size_multiplier;
-
         let concurrency = *self.concurrency.lock();
 
         // Check if we have entered shutdown
@@ -400,10 +396,8 @@ where
         //
         // Note: We always will decrease size, regardless of last adjustment.
         if estimated_max_cache > self.cache_size as f64 {
-            let mut new_goal_concurrency = (self.cache_size as f64 / max) as usize;
-            if new_goal_concurrency < MIN_CONCURRENCY {
-                new_goal_concurrency = MIN_CONCURRENCY
-            }
+            let new_goal_concurrency =
+                ((self.cache_size as f64 / max) as usize).max(MIN_CONCURRENCY);
 
             // Only log if goal_concurrency != new_goal_concurrency
             let mut goal_concurrency = self.goal_concurrency.lock();
@@ -476,9 +470,10 @@ where
             if self.adjust_workers() && !thread_handler.ctx().done() {
                 // if sender was dropped by fetcher threads, continue to consume any blocks in
                 // buffer
-                let sender = match fetched_blocks_sender.upgrade() {
-                    Some(s) => s,
-                    None => continue,
+                let sender = if let Some(s) = fetched_blocks_sender.upgrade() {
+                    s
+                } else {
+                    continue;
                 };
                 self.spawn_fetcher(thread_handler, fetcher_index.clone(), end_index, sender)
             }
@@ -601,18 +596,11 @@ where
             self.sync_range(context, range_end)?;
         }
 
-        let idx = start_index.unwrap_or_else(|| {
-            self.genesis_block
-                .as_ref()
-                .unwrap()
-                .index
-                .try_into()
-                .unwrap()
-        });
+        let idx = start_index.unwrap_or_else(|| self.genesis_block.as_ref().unwrap().index);
         tracing::info!(
             "Finished syncing {}-{}\n",
             idx,
-            end_index.unwrap_or_else(|| self.tip().unwrap().index as usize)
+            end_index.unwrap_or_else(|| self.tip().unwrap().index)
         );
         Ok(())
     }

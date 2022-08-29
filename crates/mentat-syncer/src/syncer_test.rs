@@ -351,7 +351,7 @@ fn block_sequence_idx(id: usize) -> Option<Block> {
 fn expect_block(
     syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
     enforce_buf: bool,
-    index: Option<i64>,
+    index: Option<usize>,
     ret: SyncerResult<Option<Block>>,
     times: impl Into<TimesRange>,
 ) {
@@ -373,7 +373,7 @@ fn expect_block(
 
 fn custom_expect_block<F>(
     syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
-    index: Option<i64>,
+    index: Option<usize>,
     times: impl Into<TimesRange>,
     ret: F,
 ) where
@@ -471,7 +471,7 @@ fn expect_block_seen(
 
 fn expect_network_status(
     syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>,
-    idx: i64,
+    idx: usize,
     times: impl Into<TimesRange>,
 ) {
     let mut helper = syncer.helper.lock();
@@ -634,7 +634,7 @@ fn test_process_block() {
     }
 }
 
-fn create_blocks(start_index: i64, end_index: i64, add: &str) -> Vec<Option<Block>> {
+fn create_blocks(start_index: usize, end_index: usize, add: &str) -> Vec<Option<Block>> {
     (start_index..=end_index)
         .into_iter()
         .map(|i| {
@@ -672,7 +672,7 @@ fn test_sync_no_reorg() {
         blocks[99].as_ref().unwrap().block_identifier.clone();
 
     for (i, b) in blocks.into_iter().enumerate() {
-        expect_block(&mut syncer, true, Some(i as i64), Ok(b.clone()), 1);
+        expect_block(&mut syncer, true, Some(i as usize), Ok(b.clone()), 1);
 
         if let Some(b) = b {
             expect_block_seen(&mut syncer, true, b.clone(), 1);
@@ -966,7 +966,7 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
 
     for (i, b) in blocks.into_iter().enumerate() {
         let tmp_b = b.clone();
-        custom_expect_block(syncer, Some(i as i64), 1, move |s, _, _, id| {
+        custom_expect_block(syncer, Some(i as usize), 1, move |s, _, _, id| {
             if id.index == Some(100) {
                 assert_eq!(*s.concurrency.lock(), 1)
             }
