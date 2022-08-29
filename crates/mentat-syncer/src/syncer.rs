@@ -153,7 +153,7 @@ where
     }
 
     #[allow(clippy::missing_docs_in_private_items)]
-    pub fn process_block(
+    pub(crate) fn process_block(
         &mut self,
         context: &Context<SyncerError>,
         br: Option<BlockResult>,
@@ -243,7 +243,7 @@ where
 
     /// spawns a new fetcher thread, ensuring concurrency gets adjusted as
     /// needed
-    pub fn spawn_fetcher(
+    fn spawn_fetcher(
         &mut self,
         thread_handler: &mut ThreadHandler<(), SyncerError>,
         fetcher_index: Arc<AtomicUsize>,
