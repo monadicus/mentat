@@ -5,8 +5,20 @@ use std::fmt::Debug;
 use proc_macro2::{Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
 use quote::ToTokens;
 use syn::{
-    parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
-    Ident, ItemImpl, ItemStruct, Meta, MetaList, NestedMeta, Type,
+    parse_quote,
+    punctuated::Punctuated,
+    token::Brace,
+    Field,
+    FieldValue,
+    Fields,
+    FieldsNamed,
+    Ident,
+    ItemImpl,
+    ItemStruct,
+    Meta,
+    MetaList,
+    NestedMeta,
+    Type,
 };
 
 /// the nullable argument over a struct field
