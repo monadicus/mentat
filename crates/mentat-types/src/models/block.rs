@@ -16,15 +16,16 @@ pub struct NullableBlock {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<BlockIdentifier>,
+    pub block_identifier: Option<NullableBlockIdentifier>,
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_block_identifier: Option<BlockIdentifier>,
+    pub parent_block_identifier: Option<NullableBlockIdentifier>,
     /// The timestamp of the block in milliseconds since the Unix Epoch. The
     /// timestamp is stored in milliseconds because some blockchains produce
     /// blocks more often than once a second.
-    pub timestamp: i64,
+    #[nullable(usize)]
+    pub timestamp: isize,
     /// The list of [`Transaction`]s related to the block.
     #[serde(
         skip_serializing_if = "Vec::is_empty",

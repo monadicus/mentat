@@ -24,11 +24,11 @@ fn test_new() {
         sub_network_identifier: Default::default(),
     });
     let valid_network_status = Some(NullableNetworkStatusResponse {
-        genesis_block_identifier: Some(BlockIdentifier {
+        genesis_block_identifier: Some(NullableBlockIdentifier {
             index: 0,
             hash: "block 0".into(),
         }),
-        current_block_identifier: Some(BlockIdentifier {
+        current_block_identifier: Some(NullableBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -40,11 +40,11 @@ fn test_new() {
         ..Default::default()
     });
     let valid_network_status_sync_status = Some(NullableNetworkStatusResponse {
-        genesis_block_identifier: Some(BlockIdentifier {
+        genesis_block_identifier: Some(NullableBlockIdentifier {
             index: 0,
             hash: "block 0".into(),
         }),
-        current_block_identifier: Some(BlockIdentifier {
+        current_block_identifier: Some(NullableBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -53,7 +53,7 @@ fn test_new() {
             peer_id: "peer 1".into(),
             metadata: Default::default(),
         })],
-        sync_status: Some(SyncStatus {
+        sync_status: Some(NullableSyncStatus {
             current_index: Some(100),
             stage: Some("pre-sync".into()),
             ..Default::default()
@@ -61,7 +61,7 @@ fn test_new() {
         oldest_block_identifier: None,
     });
     let invalid_network_status = Some(NullableNetworkStatusResponse {
-        current_block_identifier: Some(BlockIdentifier {
+        current_block_identifier: Some(NullableBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -73,11 +73,11 @@ fn test_new() {
         ..Default::default()
     });
     let invalid_network_status_sync_status = Some(NullableNetworkStatusResponse {
-        genesis_block_identifier: Some(BlockIdentifier {
+        genesis_block_identifier: Some(NullableBlockIdentifier {
             index: 0,
             hash: "block 0".into(),
         }),
-        current_block_identifier: Some(BlockIdentifier {
+        current_block_identifier: Some(NullableBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -86,7 +86,7 @@ fn test_new() {
             peer_id: "peer 1".into(),
             metadata: Default::default(),
         })],
-        sync_status: Some(SyncStatus {
+        sync_status: Some(NullableSyncStatus {
             current_index: Some(-100),
             stage: Some("pre-sync".into()),
             ..Default::default()
@@ -105,7 +105,7 @@ fn test_new() {
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(NullableMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -128,7 +128,7 @@ fn test_new() {
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(NullableMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -148,7 +148,7 @@ fn test_new() {
         }),
         allow: Some(NullableAllow {
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(NullableMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -176,7 +176,7 @@ fn test_new() {
                 }),
             ],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(NullableMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -198,7 +198,7 @@ fn test_new() {
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string(), "Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(NullableMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -220,7 +220,7 @@ fn test_new() {
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(NullableMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),

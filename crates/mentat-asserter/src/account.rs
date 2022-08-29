@@ -56,11 +56,11 @@ pub fn assert_unique_amounts(amounts: &[Option<NullableAmount>]) -> AssertResult
 }
 
 /// `account_balance_response` returns an error if the provided
-/// [`PartialBlockIdentifier`] is invalid, if the requestBlock
+/// [`NullablePartialBlockIdentifier`] is invalid, if the requestBlock
 /// is not nil and not equal to the response block, or
 /// if the same currency is present in multiple amounts.
 pub fn account_balance_response(
-    request_block: Option<&PartialBlockIdentifier>,
+    request_block: Option<&NullablePartialBlockIdentifier>,
     response: &NullableAccountBalanceResponse,
 ) -> AssertResult<()> {
     block_identifier(response.block_identifier.as_ref())

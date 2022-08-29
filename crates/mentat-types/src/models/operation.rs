@@ -16,7 +16,7 @@ pub struct NullableOperation {
     /// The [`OperationIdentifier`] uniquely identifies an operation within a
     /// transaction.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub operation_identifier: Option<OperationIdentifier>,
+    pub operation_identifier: Option<NullableOperationIdentifier>,
     /// Restrict referenced related_operations to identifier indices " the
     /// current [`OperationIdentifier`].index. This ensures there exists a clear
     /// DAG-structure of relations. Since operations are one-sided, one could
@@ -26,7 +26,7 @@ pub struct NullableOperation {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub related_operations: Vec<Option<OperationIdentifier>>,
+    pub related_operations: Vec<Option<NullableOperationIdentifier>>,
     /// Type is the network-specific type of the operation. Ensure that any type
     /// that can be returned here is also specified in the
     /// [`crate::responses::NetworkOptionsResponse`]. This can be very useful to

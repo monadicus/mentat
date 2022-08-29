@@ -23,7 +23,7 @@ fn test_events_block_response() {
                 events: vec![
                     Some(NullableBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -31,7 +31,7 @@ fn test_events_block_response() {
                     }),
                     Some(NullableBlockEvent {
                         sequence: 1,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -48,7 +48,7 @@ fn test_events_block_response() {
                 events: vec![
                     Some(NullableBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: String::new(),
                         }),
@@ -56,7 +56,7 @@ fn test_events_block_response() {
                     }),
                     Some(NullableBlockEvent {
                         sequence: 1,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -73,7 +73,7 @@ fn test_events_block_response() {
                 events: vec![
                     Some(NullableBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -81,7 +81,7 @@ fn test_events_block_response() {
                     }),
                     Some(NullableBlockEvent {
                         sequence: 1,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -98,7 +98,7 @@ fn test_events_block_response() {
                 events: vec![
                     Some(NullableBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -106,7 +106,7 @@ fn test_events_block_response() {
                     }),
                     Some(NullableBlockEvent {
                         sequence: 2,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -123,7 +123,7 @@ fn test_events_block_response() {
                 events: vec![
                     Some(NullableBlockEvent {
                         sequence: -1,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),
@@ -131,7 +131,7 @@ fn test_events_block_response() {
                     }),
                     Some(NullableBlockEvent {
                         sequence: 0,
-                        block_identifier: Some(BlockIdentifier {
+                        block_identifier: Some(NullableBlockIdentifier {
                             index: 0,
                             hash: 0.to_string(),
                         }),

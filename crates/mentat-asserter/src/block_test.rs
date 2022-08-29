@@ -7,7 +7,7 @@ fn test_block_identifier() {
     let tests = vec![
         TestCase {
             name: "valid identifier",
-            payload: Some(BlockIdentifier {
+            payload: Some(NullableBlockIdentifier {
                 index: 1,
                 hash: "block 1".into(),
             }),
@@ -20,7 +20,7 @@ fn test_block_identifier() {
         },
         TestCase {
             name: "invalid index",
-            payload: Some(BlockIdentifier {
+            payload: Some(NullableBlockIdentifier {
                 index: -1,
                 hash: "block 1".into(),
             }),
@@ -28,7 +28,7 @@ fn test_block_identifier() {
         },
         TestCase {
             name: "invalid hash",
-            payload: Some(BlockIdentifier {
+            payload: Some(NullableBlockIdentifier {
                 index: 1,
                 hash: String::new(),
             }),
@@ -176,8 +176,8 @@ fn test_amount() {
 
 #[derive(Default)]
 struct OperationIdentTest {
-    ident: Option<OperationIdentifier>,
-    index: i64,
+    ident: Option<NullableOperationIdentifier>,
+    index: isize,
 }
 
 impl OperationIdentTest {
@@ -195,7 +195,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "valid identifier",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -214,7 +214,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "out-of-order index",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -225,7 +225,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "valid identifier with network index",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: Some(valid_network_index),
                 }),
@@ -236,7 +236,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "invalid identifier with network index",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: Some(invalid_network_index),
                 }),
@@ -356,12 +356,12 @@ fn test_operations_validations() {
                 sub_network_identifier: None,
             }),
             Some(NullableNetworkStatusResponse {
-                current_block_identifier: Some(BlockIdentifier {
+                current_block_identifier: Some(NullableBlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
                 }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: Some(BlockIdentifier {
+                genesis_block_identifier: Some(NullableBlockIdentifier {
                     index: 0,
                     hash: "block 0".into(),
                 }),
@@ -407,7 +407,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -418,7 +418,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -429,7 +429,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -452,7 +452,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -463,7 +463,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -486,7 +486,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -497,7 +497,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -520,7 +520,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -531,7 +531,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -550,7 +550,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -573,7 +573,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -584,7 +584,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -603,7 +603,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -626,7 +626,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -637,7 +637,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -656,7 +656,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -664,7 +664,7 @@ fn test_operations_validations() {
                             status: Some("SUCCESS".into()),
                             account: valid_account.clone(),
                             amount: valid_fee_amt.clone(),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             })],
@@ -683,7 +683,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -694,7 +694,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -713,7 +713,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -736,7 +736,7 @@ fn test_operations_validations() {
                 payload: OperationValidationsTest {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -747,7 +747,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -766,7 +766,7 @@ fn test_operations_validations() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -793,7 +793,7 @@ fn test_operations_validations() {
 #[derive(Default)]
 struct OperationTest {
     operation: Option<NullableOperation>,
-    index: i64,
+    index: isize,
     successful: bool,
     construction: bool,
 }
@@ -819,7 +819,7 @@ fn test_operation() {
             name: "valid operation",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -839,7 +839,7 @@ fn test_operation() {
             name: "valid operation no account",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -867,7 +867,7 @@ fn test_operation() {
             name: "invalid operation no account",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -886,7 +886,7 @@ fn test_operation() {
             name: "invalid operation empty account",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -906,7 +906,7 @@ fn test_operation() {
             name: "invalid operation invalid index",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -924,7 +924,7 @@ fn test_operation() {
             name: "invalid operation invalid type",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -942,7 +942,7 @@ fn test_operation() {
             name: "unsuccessful operation",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -960,7 +960,7 @@ fn test_operation() {
             name: "invalid operation invalid status",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -978,7 +978,7 @@ fn test_operation() {
             name: "valid construction operation",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -997,7 +997,7 @@ fn test_operation() {
             name: "valid construction operation (empty status)",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -1017,7 +1017,7 @@ fn test_operation() {
             name: "invalid construction operation",
             payload: OperationTest {
                 operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                    operation_identifier: Some(NullableOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -1042,12 +1042,12 @@ fn test_operation() {
             sub_network_identifier: None,
         }),
         Some(NullableNetworkStatusResponse {
-            current_block_identifier: Some(BlockIdentifier {
+            current_block_identifier: Some(NullableBlockIdentifier {
                 index: 100,
                 hash: "block 100".into(),
             }),
             current_block_timestamp: MIN_UNIX_EPOCH + 1,
-            genesis_block_identifier: Some(BlockIdentifier {
+            genesis_block_identifier: Some(NullableBlockIdentifier {
                 index: 0,
                 hash: "block 0".into(),
             }),
@@ -1125,22 +1125,22 @@ fn test_operation() {
 
 #[derive(Default)]
 struct BlockTestExtras {
-    genesis_index: i64,
-    start_index: Option<i64>,
+    genesis_index: isize,
+    start_index: Option<isize>,
     validation_file_path: Option<PathBuf>,
 }
 
 #[test]
 fn test_block() {
-    let genesis_ident = BlockIdentifier {
+    let genesis_ident = NullableBlockIdentifier {
         hash: "gen".into(),
         index: 0,
     };
-    let valid_block_ident = BlockIdentifier {
+    let valid_block_ident = NullableBlockIdentifier {
         hash: "blah".into(),
         index: 100,
     };
-    let valid_parent_block_ident = BlockIdentifier {
+    let valid_parent_block_ident = NullableBlockIdentifier {
         hash: "blah parent".into(),
         index: 99,
     };
@@ -1163,7 +1163,7 @@ fn test_block() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1174,11 +1174,11 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1207,11 +1207,11 @@ fn test_block() {
             hash: "blah".into(),
         }),
         operations: vec![Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+            operation_identifier: Some(NullableOperationIdentifier {
                 index: 0,
                 network_index: None,
             }),
-            related_operations: vec![Some(OperationIdentifier {
+            related_operations: vec![Some(NullableOperationIdentifier {
                 index: 0,
                 network_index: None,
             })],
@@ -1229,11 +1229,11 @@ fn test_block() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1244,7 +1244,7 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1263,11 +1263,11 @@ fn test_block() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 })],
@@ -1278,11 +1278,11 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1301,7 +1301,7 @@ fn test_block() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1312,16 +1312,16 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
                 related_operations: vec![
-                    Some(OperationIdentifier {
+                    Some(NullableOperationIdentifier {
                         index: 0,
                         network_index: None,
                     }),
-                    Some(OperationIdentifier {
+                    Some(NullableOperationIdentifier {
                         index: 0,
                         network_index: None,
                     }),
@@ -1341,7 +1341,7 @@ fn test_block() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1352,7 +1352,7 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
@@ -1363,7 +1363,7 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 2,
                     network_index: None,
                 }),
@@ -1382,7 +1382,7 @@ fn test_block() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1393,11 +1393,11 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1427,7 +1427,7 @@ fn test_block() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1438,11 +1438,11 @@ fn test_block() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1488,12 +1488,12 @@ fn test_block() {
                 sub_network_identifier: None,
             }),
             Some(NullableNetworkStatusResponse {
-                current_block_identifier: Some(BlockIdentifier {
+                current_block_identifier: Some(NullableBlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
                 }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: Some(BlockIdentifier {
+                genesis_block_identifier: Some(NullableBlockIdentifier {
                     index: extras.genesis_index,
                     hash: format!("block {}", extras.genesis_index),
                 }),
@@ -1744,7 +1744,7 @@ fn test_block() {
                 caller: asserter(Default::default()),
                 payload: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(BlockIdentifier {
+                    parent_block_identifier: Some(NullableBlockIdentifier {
                         index: valid_block_ident.index,
                         hash: valid_parent_block_ident.hash.clone(),
                     }),
@@ -1761,7 +1761,7 @@ fn test_block() {
                 caller: asserter(Default::default()),
                 payload: Some(NullableBlock {
                     block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(BlockIdentifier {
+                    parent_block_identifier: Some(NullableBlockIdentifier {
                         index: valid_parent_block_ident.index,
                         hash: valid_block_ident.hash.clone(),
                     }),

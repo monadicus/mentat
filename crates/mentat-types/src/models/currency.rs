@@ -16,7 +16,8 @@ pub struct NullableCurrency {
     /// amount. For example, BTC has 8 decimals. Note that it is not possible to
     /// represent the value of some currency in atomic units that is not base
     /// 10.
-    pub decimals: i32,
+    #[nullable(usize)]
+    pub decimals: isize,
     /// Any additional information related to the currency itself. For example,
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.

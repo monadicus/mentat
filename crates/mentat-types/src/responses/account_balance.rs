@@ -13,7 +13,7 @@ pub struct NullableAccountBalanceResponse {
     /// The `block_identifier` uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<BlockIdentifier>,
+    pub block_identifier: Option<NullableBlockIdentifier>,
     /// A single account may have a balance in multiple currencies.
     #[serde(
         skip_serializing_if = "Vec::is_empty",

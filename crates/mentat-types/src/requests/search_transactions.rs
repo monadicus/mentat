@@ -22,19 +22,19 @@ pub struct NullableSearchTransactionsRequest {
     /// possible a newly synced block will interfere with paginated transaction
     /// queries (as the offset could become invalid with newly added rows).
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub max_block: Option<i64>,
+    #[nullable(option_usize)]
+    pub max_block: Option<isize>,
     /// offset is the offset into the query result to start returning
     /// transactions. If any search conditions are changed, the query offset
     /// will change and you must restart your search iteration.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub offset: Option<i64>,
+    #[nullable(option_usize)]
+    pub offset: Option<isize>,
     /// limit is the maximum number of transactions to return in one call. The
     /// implementation may return "= limit transactions.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub limit: Option<i64>,
+    #[nullable(option_usize)]
+    pub limit: Option<isize>,
     /// The `TransactionIdentifier` uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
     #[serde(skip_serializing_if = "Option::is_none")]

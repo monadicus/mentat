@@ -8,7 +8,8 @@ use super::*;
 #[serde(default)]
 pub struct NullableEventsBlocksResponse {
     /// `max_sequence` is the maximum available sequence number to fetch.
-    pub max_sequence: i64,
+    #[nullable(usize)]
+    pub max_sequence: isize,
     /// events is an array of [`BlockEvent`]s indicating the order to add and
     /// remove blocks to maintain a canonical view of blockchain state.
     /// Lightweight clients can use this event stream to update state

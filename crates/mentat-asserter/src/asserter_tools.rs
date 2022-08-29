@@ -16,7 +16,7 @@ pub(crate) const ACCOUNT: &str = "account";
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct AsserterOperation {
-    pub count: i64,
+    pub count: isize,
     pub should_balance: bool,
 }
 
@@ -66,9 +66,9 @@ impl Validations {
 pub(crate) struct ResponseAsserter {
     pub(crate) network: NetworkIdentifier,
     pub(crate) operation_status_map: IndexMap<String, bool>,
-    pub(crate) error_type_map: IndexMap<i32, MentatError>,
-    pub(crate) genesis_block: BlockIdentifier,
-    pub(crate) timestamp_start_index: i64,
+    pub(crate) error_type_map: IndexMap<isize, NullableMentatError>,
+    pub(crate) genesis_block: NullableBlockIdentifier,
+    pub(crate) timestamp_start_index: usize,
 }
 
 /// For request assertion.
@@ -136,11 +136,11 @@ impl Asserter {
     /// NetworkOptionsResponse.
     pub fn new_client_with_options(
         network: Option<NetworkIdentifier>,
-        genesis_block: Option<BlockIdentifier>,
+        genesis_block: Option<NullableBlockIdentifier>,
         operation_types_: Vec<String>,
         operation_stats: Vec<Option<OperationStatus>>,
-        errors: Vec<Option<MentatError>>,
-        timestamp_start_index: Option<i64>,
+        errors: Vec<Option<NullableMentatError>>,
+        timestamp_start_index: Option<isize>,
         validations: Validations,
     ) -> AssertResult<Self> {
         network_identifier(network.as_ref())?;
@@ -152,17 +152,16 @@ impl Asserter {
         // TimestampStartIndex defaults to genesisIndex + 1 (this
         // avoid breaking existing clients using < v1.4.6).
         // safe to unwrap.
-        let mut parsed_timestamp_start_index = genesis_block.index + 1;
-        if let Some(tsi) = timestamp_start_index {
-            if tsi < 0 {
-                Err(AsserterError::from(format!(
-                    "{}: {tsi}",
-                    NetworkError::TimestampStartIndexInvalid
-                )))?;
-            }
-
-            parsed_timestamp_start_index = tsi;
-        }
+        let unparsed_timestamp_start_index =
+            timestamp_start_index.unwrap_or(genesis_block.index + 1);
+        let parsed_timestamp_start_index =
+            unparsed_timestamp_start_index.try_into().map_err(|_| {
+                format!(
+                    "{}: {}",
+                    NetworkError::TimestampStartIndexInvalid,
+                    timestamp_start_index.unwrap()
+                )
+            })?;
 
         // TODO these unwraps are not safe see operation_statuses fn.
         let operation_status_map = operation_stats
@@ -186,7 +185,7 @@ impl Asserter {
                 // safe to unwrap.
                 network: network.unwrap(),
                 genesis_block,
-                timestamp_start_index: parsed_timestamp_start_index as i64,
+                timestamp_start_index: parsed_timestamp_start_index,
                 operation_status_map,
                 error_type_map,
             }),
@@ -244,8 +243,8 @@ impl Asserter {
             genesis_block_identifier: Some(asserter.genesis_block.clone()),
             allowed_operation_types: self.operation_types.clone(),
             allowed_operation_statuses: allowed_operation_statuses.into_iter().map(Some).collect(),
-            allowed_errors: vec![Some(MentatError::default_error())],
-            allowed_timestamp_start_index: Some(asserter.timestamp_start_index),
+            allowed_errors: vec![Some(MentatError::default_error().into())],
+            allowed_timestamp_start_index: Some(asserter.timestamp_start_index as isize),
         })
     }
 
@@ -278,11 +277,11 @@ impl Asserter {
 #[allow(clippy::missing_docs_in_private_items)]
 pub(crate) struct Configuration {
     pub(crate) network_identifier: Option<NetworkIdentifier>,
-    pub(crate) genesis_block_identifier: Option<BlockIdentifier>,
+    pub(crate) genesis_block_identifier: Option<NullableBlockIdentifier>,
     pub(crate) allowed_operation_types: Vec<String>,
     pub(crate) allowed_operation_statuses: Vec<Option<OperationStatus>>,
-    pub(crate) allowed_errors: Vec<Option<MentatError>>,
-    pub(crate) allowed_timestamp_start_index: Option<i64>,
+    pub(crate) allowed_errors: Vec<Option<NullableMentatError>>,
+    pub(crate) allowed_timestamp_start_index: Option<isize>,
 }
 
 impl Configuration {

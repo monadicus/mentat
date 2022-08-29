@@ -23,23 +23,23 @@ pub(crate) fn valid_account_identifier() -> Option<AccountIdentifier> {
     })
 }
 
-pub(crate) const fn genesis_block_index() -> i64 {
+pub(crate) const fn genesis_block_index() -> isize {
     0
 }
 
-pub(crate) const fn valid_block_index() -> i64 {
+pub(crate) const fn valid_block_index() -> isize {
     1000
 }
 
-pub(crate) fn valid_partial_block_identifier() -> PartialBlockIdentifier {
-    PartialBlockIdentifier {
+pub(crate) fn valid_partial_block_identifier() -> NullablePartialBlockIdentifier {
+    NullablePartialBlockIdentifier {
         index: Some(valid_block_index()),
         ..Default::default()
     }
 }
 
-pub(crate) fn valid_block_identifier() -> Option<BlockIdentifier> {
-    Some(BlockIdentifier {
+pub(crate) fn valid_block_identifier() -> Option<NullableBlockIdentifier> {
+    Some(NullableBlockIdentifier {
         index: valid_block_index(),
         hash: "block 1".into(),
     })
@@ -78,7 +78,7 @@ pub(crate) fn valid_account() -> Option<AccountIdentifier> {
 pub(crate) fn valid_ops() -> Vec<Option<NullableOperation>> {
     vec![
         Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+            operation_identifier: Some(NullableOperationIdentifier {
                 index: 0,
                 ..Default::default()
             }),
@@ -88,7 +88,7 @@ pub(crate) fn valid_ops() -> Vec<Option<NullableOperation>> {
             ..Default::default()
         }),
         Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+            operation_identifier: Some(NullableOperationIdentifier {
                 index: 1,
                 ..Default::default()
             }),
@@ -103,7 +103,7 @@ pub(crate) fn valid_ops() -> Vec<Option<NullableOperation>> {
 pub(crate) fn unsupported_type_ops() -> Vec<Option<NullableOperation>> {
     vec![
         Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+            operation_identifier: Some(NullableOperationIdentifier {
                 index: 0,
                 ..Default::default()
             }),
@@ -113,11 +113,11 @@ pub(crate) fn unsupported_type_ops() -> Vec<Option<NullableOperation>> {
             ..Default::default()
         }),
         Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+            operation_identifier: Some(NullableOperationIdentifier {
                 index: 1,
                 ..Default::default()
             }),
-            related_operations: vec![Some(OperationIdentifier {
+            related_operations: vec![Some(NullableOperationIdentifier {
                 index: 0,
                 ..Default::default()
             })],
@@ -132,7 +132,7 @@ pub(crate) fn unsupported_type_ops() -> Vec<Option<NullableOperation>> {
 pub(crate) fn invalid_ops() -> Vec<Option<NullableOperation>> {
     vec![
         Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+            operation_identifier: Some(NullableOperationIdentifier {
                 index: 0,
                 ..Default::default()
             }),
@@ -143,11 +143,11 @@ pub(crate) fn invalid_ops() -> Vec<Option<NullableOperation>> {
             ..Default::default()
         }),
         Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+            operation_identifier: Some(NullableOperationIdentifier {
                 index: 1,
                 ..Default::default()
             }),
-            related_operations: vec![Some(OperationIdentifier {
+            related_operations: vec![Some(NullableOperationIdentifier {
                 index: 0,
                 ..Default::default()
             })],
@@ -496,7 +496,7 @@ fn test_account_balance_request() {
                 payload: Some(NullableAccountBalanceRequest {
                     network_identifier: valid_network_identifier(),
                     account_identifier: valid_account_identifier(),
-                    block_identifier: Some(PartialBlockIdentifier::default()),
+                    block_identifier: Some(NullablePartialBlockIdentifier::default()),
                     ..Default::default()
                 }),
             },
@@ -539,7 +539,7 @@ fn test_block_request() {
             name: "valid request for block 0",
             payload: Some(NullableBlockRequest {
                 network_identifier: valid_network_identifier(),
-                block_identifier: Some(PartialBlockIdentifier {
+                block_identifier: Some(NullablePartialBlockIdentifier {
                     index: Some(genesis_block_index()),
                     ..Default::default()
                 }),
@@ -571,7 +571,7 @@ fn test_block_request() {
             name: "invalid PartialBlockIdentifier request",
             payload: Some(NullableBlockRequest {
                 network_identifier: valid_network_identifier(),
-                block_identifier: Some(PartialBlockIdentifier::default()),
+                block_identifier: Some(NullablePartialBlockIdentifier::default()),
             }),
             criteria: Some(BlockError::PartialBlockIdentifierFieldsNotSet.into()),
         },
@@ -637,7 +637,7 @@ fn test_block_transaction_request() {
             name: "invalid BlockIdentifier request",
             payload: Some(NullableBlockTransactionRequest {
                 network_identifier: valid_network_identifier(),
-                block_identifier: Some(BlockIdentifier::default()),
+                block_identifier: Some(NullableBlockIdentifier::default()),
                 ..Default::default()
             }),
             criteria: Some(BlockError::BlockIdentifierHashMissing.into()),

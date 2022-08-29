@@ -19,20 +19,21 @@ pub struct NullableNetworkStatusResponse {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub current_block_identifier: Option<BlockIdentifier>,
+    pub current_block_identifier: Option<NullableBlockIdentifier>,
     /// The timestamp of the block in milliseconds since the Unix Epoch. The
     /// timestamp is stored in milliseconds because some blockchains produce
     /// blocks more often than once a second.
-    pub current_block_timestamp: i64,
+    #[nullable(usize)]
+    pub current_block_timestamp: isize,
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub genesis_block_identifier: Option<BlockIdentifier>,
+    pub genesis_block_identifier: Option<NullableBlockIdentifier>,
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[nullable(retain)]
-    pub oldest_block_identifier: Option<BlockIdentifier>,
+    pub oldest_block_identifier: Option<NullableBlockIdentifier>,
     /// `SyncStatus` is used to provide additional context about an
     /// implementation's sync status. This object is often used by
     /// implementations to indicate healthiness when block data cannot be
@@ -40,7 +41,7 @@ pub struct NullableNetworkStatusResponse {
     /// comparing the timestamp of the most recent block with the current time.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[nullable(retain)]
-    pub sync_status: Option<SyncStatus>,
+    pub sync_status: Option<NullableSyncStatus>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",

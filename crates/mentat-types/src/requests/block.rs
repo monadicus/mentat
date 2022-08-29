@@ -16,12 +16,12 @@ pub struct NullableBlockRequest {
     /// assumed that the client is making a request at the current block.
     /// This is represented via a [`PartialBlockIdentifier`].
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<PartialBlockIdentifier>,
+    pub block_identifier: Option<NullablePartialBlockIdentifier>,
 }
 
-impl From<(NetworkIdentifier, PartialBlockIdentifier)> for NullableBlockRequest {
+impl From<(NetworkIdentifier, NullablePartialBlockIdentifier)> for NullableBlockRequest {
     fn from(
-        (network_identifier, block_identifier): (NetworkIdentifier, PartialBlockIdentifier),
+        (network_identifier, block_identifier): (NetworkIdentifier, NullablePartialBlockIdentifier),
     ) -> Self {
         Self {
             network_identifier: Some(network_identifier),
@@ -30,9 +30,9 @@ impl From<(NetworkIdentifier, PartialBlockIdentifier)> for NullableBlockRequest 
     }
 }
 
-impl From<(PartialBlockIdentifier, NetworkIdentifier)> for NullableBlockRequest {
+impl From<(NullablePartialBlockIdentifier, NetworkIdentifier)> for NullableBlockRequest {
     fn from(
-        (block_identifier, network_identifier): (PartialBlockIdentifier, NetworkIdentifier),
+        (block_identifier, network_identifier): (NullablePartialBlockIdentifier, NetworkIdentifier),
     ) -> Self {
         Self {
             network_identifier: Some(network_identifier),

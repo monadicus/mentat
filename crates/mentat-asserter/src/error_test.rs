@@ -5,7 +5,7 @@ fn test_error_map() {
     let tests = vec![
         TestCase {
             name: "matching error",
-            payload: MentatError {
+            payload: NullableMentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 10".to_string(),
@@ -19,7 +19,7 @@ fn test_error_map() {
         },
         TestCase {
             name: "empty description",
-            payload: MentatError {
+            payload: NullableMentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 10".to_string(),
@@ -33,7 +33,7 @@ fn test_error_map() {
         },
         TestCase {
             name: "negative error",
-            payload: MentatError {
+            payload: NullableMentatError {
                 status_code: 0,
                 code: -1,
                 message: "error 10".to_string(),
@@ -47,7 +47,7 @@ fn test_error_map() {
         },
         TestCase {
             name: "retriable error",
-            payload: MentatError {
+            payload: NullableMentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 10".to_string(),
@@ -61,7 +61,7 @@ fn test_error_map() {
         },
         TestCase {
             name: "code mismatch",
-            payload: MentatError {
+            payload: NullableMentatError {
                 status_code: 0,
                 code: 20,
                 message: "error 20".to_string(),
@@ -75,7 +75,7 @@ fn test_error_map() {
         },
         TestCase {
             name: "code mismatch",
-            payload: MentatError {
+            payload: NullableMentatError {
                 status_code: 0,
                 code: 10,
                 message: "error 11".to_string(),
@@ -96,12 +96,12 @@ fn test_error_map() {
             sub_network_identifier: None,
         }),
         Some(NullableNetworkStatusResponse {
-            current_block_identifier: Some(BlockIdentifier {
+            current_block_identifier: Some(NullableBlockIdentifier {
                 index: 100,
                 hash: "block 100".to_string(),
             }),
             current_block_timestamp: MIN_UNIX_EPOCH + 1,
-            genesis_block_identifier: Some(BlockIdentifier {
+            genesis_block_identifier: Some(NullableBlockIdentifier {
                 index: 0,
                 hash: "block 0".to_string(),
             }),
@@ -121,7 +121,7 @@ fn test_error_map() {
             }),
             allow: Some(NullableAllow {
                 errors: vec![
-                    Some(MentatError {
+                    Some(NullableMentatError {
                         status_code: 0,
                         code: 10,
                         message: "error 10".to_string(),
@@ -129,7 +129,7 @@ fn test_error_map() {
                         retriable: true,
                         details: Default::default(),
                     }),
-                    Some(MentatError {
+                    Some(NullableMentatError {
                         status_code: 0,
                         code: 1,
                         message: "error 1".to_string(),

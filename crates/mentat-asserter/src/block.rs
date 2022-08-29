@@ -33,9 +33,12 @@ pub fn amount(amount: Option<&NullableAmount>) -> AssertResult<()> {
 }
 
 /// `operation_identifier` returns an error if index of the
-/// [`OperationIdentifier`] is out-of-order or if the NetworkIndex is
+/// [`NullableOperationIdentifier`] is out-of-order or if the NetworkIndex is
 /// invalid.
-pub fn operation_identifier(ident: Option<&OperationIdentifier>, index: i64) -> AssertResult<()> {
+pub fn operation_identifier(
+    ident: Option<&NullableOperationIdentifier>,
+    index: isize,
+) -> AssertResult<()> {
     let ident = ident.ok_or(BlockError::OperationIdentifierIndexIsNil)?;
 
     if ident.index != index {
@@ -128,7 +131,7 @@ impl Asserter {
     pub fn operation(
         &self,
         operation: Option<&NullableOperation>,
-        index: i64,
+        index: isize,
         construction: bool,
     ) -> AssertResult<()> {
         if self.response.is_none() && self.request.is_none() {
@@ -185,7 +188,7 @@ impl Asserter {
         let mut related_ops_exist = false;
 
         for (index, op) in operations.iter().enumerate() {
-            self.operation(op.as_ref(), index as i64, construction)?;
+            self.operation(op.as_ref(), index as isize, construction)?;
             let op = op.as_ref().unwrap();
             if self.validations.enabled {
                 if op.type_ == self.validations.payment.name {
@@ -266,9 +269,9 @@ impl Asserter {
     pub fn validate_payment_and_fee(
         &self,
         payment_total: BigInt,
-        payment_count: i64,
+        payment_count: isize,
         fee_total: BigInt,
-        fee_count: i64,
+        fee_count: isize,
     ) -> AssertResult<()> {
         let zero = BigInt::from(0u8);
         if self.validations.payment.operation.count != -1
@@ -399,7 +402,7 @@ impl Asserter {
 
         // Only check for timestamp validity if timestamp start index is <=
         // the current block index.
-        if asserter.timestamp_start_index <= block_identifier.index {
+        if asserter.timestamp_start_index as isize <= block_identifier.index {
             timestamp(block.timestamp)?;
         }
 
@@ -410,9 +413,9 @@ impl Asserter {
     }
 }
 
-/// `block_identifier` ensures a [`BlockIdentifier`]
+/// `block_identifier` ensures a [`NullableBlockIdentifier`]
 /// is well-formatted.
-pub fn block_identifier(block: Option<&BlockIdentifier>) -> AssertResult<()> {
+pub fn block_identifier(block: Option<&NullableBlockIdentifier>) -> AssertResult<()> {
     let block = block.ok_or(BlockError::BlockIdentifierIsNil)?;
     if block.hash.is_empty() {
         Err(BlockError::BlockIdentifierHashMissing)?
@@ -423,10 +426,10 @@ pub fn block_identifier(block: Option<&BlockIdentifier>) -> AssertResult<()> {
     }
 }
 
-/// `partial_block_identifier` ensures a [`PartialBlockIdentifier`]
+/// `partial_block_identifier` ensures a [`NullablePartialBlockIdentifier`]
 /// is well-formatted.
 pub fn partial_block_identifier(
-    block_identifier: Option<&PartialBlockIdentifier>,
+    block_identifier: Option<&NullablePartialBlockIdentifier>,
 ) -> AssertResult<()> {
     let block_identifier = block_identifier.ok_or(BlockError::PartialBlockIdentifierIsNil)?;
     if matches!(&block_identifier.hash, Some(hash) if !hash.is_empty())
@@ -470,13 +473,13 @@ pub fn transaction_identifier(ident: Option<&TransactionIdentifier>) -> AssertRe
 }
 
 /// The min unix epoch
-pub static MIN_UNIX_EPOCH: i64 = 946713600000;
+pub static MIN_UNIX_EPOCH: isize = 946713600000;
 /// The max unix epoch
-pub static MAX_UNIX_EPOCH: i64 = 2209017600000;
+pub static MAX_UNIX_EPOCH: isize = 2209017600000;
 
 /// `timestamp` returns an error if the timestamp
 /// on a block is less than or equal to 0.
-pub fn timestamp(timestamp: i64) -> Result<(), String> {
+pub fn timestamp(timestamp: isize) -> Result<(), String> {
     if timestamp < MIN_UNIX_EPOCH {
         Err(format!("{}: {timestamp}", BlockError::TimestampBeforeMin))
     } else if timestamp > MAX_UNIX_EPOCH {

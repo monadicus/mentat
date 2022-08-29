@@ -237,8 +237,8 @@ fn test_contains_duplicate_currency() {
 
 #[derive(Default)]
 struct AccountBalanceTest {
-    request_block: Option<PartialBlockIdentifier>,
-    response_block: BlockIdentifier,
+    request_block: Option<NullablePartialBlockIdentifier>,
+    response_block: NullableBlockIdentifier,
     balances: Vec<Option<NullableAmount>>,
     _metadata: IndexMap<String, Value>,
 }
@@ -258,11 +258,11 @@ impl AccountBalanceTest {
 
 #[test]
 fn test_account_balance() {
-    let valid_block = BlockIdentifier {
+    let valid_block = NullableBlockIdentifier {
         index: 1000,
         hash: "jsakdl".to_string(),
     };
-    let invalid_block = BlockIdentifier {
+    let invalid_block = NullableBlockIdentifier {
         index: 1,
         hash: String::new(),
     };
@@ -320,7 +320,7 @@ fn test_account_balance() {
         TestCase {
             name: "valid historical request index",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(NullablePartialBlockIdentifier {
                     index: Some(valid_block.index),
                     hash: None,
                 }),
@@ -333,7 +333,7 @@ fn test_account_balance() {
         TestCase {
             name: "valid historical request hash",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(NullablePartialBlockIdentifier {
                     index: None,
                     hash: Some(valid_block.hash.clone()),
                 }),
@@ -346,7 +346,7 @@ fn test_account_balance() {
         TestCase {
             name: "invalid historical request index",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(NullablePartialBlockIdentifier {
                     index: Some(invalid_index),
                     hash: Some(valid_block.hash.clone()),
                 }),
@@ -363,7 +363,7 @@ fn test_account_balance() {
         TestCase {
             name: "invalid historical request hash",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(NullablePartialBlockIdentifier {
                     index: Some(valid_block.index),
                     hash: Some(invalid_hash.to_string()),
                 }),

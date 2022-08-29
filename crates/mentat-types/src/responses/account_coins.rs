@@ -12,7 +12,7 @@ pub struct NullableAccountCoinsResponse {
     /// The `block_identifier` uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<BlockIdentifier>,
+    pub block_identifier: Option<NullableBlockIdentifier>,
     /// If a blockchain is UTXO-based, all unspent `Coin`s owned by an
     /// `account_identifier` should be returned alongside the balance. It is
     /// highly recommended to populate this field so that users of the Rosetta

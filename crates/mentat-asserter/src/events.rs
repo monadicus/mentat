@@ -38,7 +38,7 @@ pub fn events_blocks_response(response: Option<&NullableEventsBlocksResponse>) -
         if seq == -1 {
             seq = event.sequence
         }
-        if event.sequence != seq + (i as i64) {
+        if event.sequence != seq + (i as isize) {
             Err(EventError::SequenceOutOfOrder)?;
         }
     }

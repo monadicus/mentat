@@ -16,20 +16,24 @@ pub struct NullableBlockTransactionRequest {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<BlockIdentifier>,
+    pub block_identifier: Option<NullableBlockIdentifier>,
     /// The [`TransactionIdentifier`] uniquely identifies a transaction in a
     /// particular network and block or in the mempool.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_identifier: Option<TransactionIdentifier>,
 }
 
-impl From<(NetworkIdentifier, BlockIdentifier, TransactionIdentifier)>
-    for NullableBlockTransactionRequest
+impl
+    From<(
+        NetworkIdentifier,
+        NullableBlockIdentifier,
+        TransactionIdentifier,
+    )> for NullableBlockTransactionRequest
 {
     fn from(
         (network_identifier, block_identifier, transaction_identifier): (
             NetworkIdentifier,
-            BlockIdentifier,
+            NullableBlockIdentifier,
             TransactionIdentifier,
         ),
     ) -> Self {

@@ -281,7 +281,7 @@ fn test_error() {
     let tests = vec![
         TestCase {
             name: "valid error",
-            payload: Some(MentatError {
+            payload: Some(NullableMentatError {
                 code: 12,
                 message: "signature invalid".into(),
                 ..Default::default()
@@ -295,7 +295,7 @@ fn test_error() {
         },
         TestCase {
             name: "negative code",
-            payload: Some(MentatError {
+            payload: Some(NullableMentatError {
                 code: -1,
                 message: "signature invalid".into(),
                 ..Default::default()
@@ -304,7 +304,7 @@ fn test_error() {
         },
         TestCase {
             name: "empty message",
-            payload: Some(MentatError {
+            payload: Some(NullableMentatError {
                 code: 0,
                 message: String::new(),
                 ..Default::default()
@@ -322,12 +322,12 @@ fn test_errors() {
         TestCase {
             name: "valid errors",
             payload: vec![
-                Some(MentatError {
+                Some(NullableMentatError {
                     code: 0,
                     message: "error 1".into(),
                     ..Default::default()
                 }),
-                Some(MentatError {
+                Some(NullableMentatError {
                     code: 2,
                     message: "error 2".into(),
                     ..Default::default()
@@ -338,7 +338,7 @@ fn test_errors() {
         TestCase {
             name: "details populated",
             payload: vec![
-                Some(MentatError {
+                Some(NullableMentatError {
                     code: 0,
                     message: "error 1".into(),
                     details: indexmap!(
@@ -346,7 +346,7 @@ fn test_errors() {
                     ),
                     ..Default::default()
                 }),
-                Some(MentatError {
+                Some(NullableMentatError {
                     code: 1,
                     message: "error 2".into(),
                     ..Default::default()
@@ -357,12 +357,12 @@ fn test_errors() {
         TestCase {
             name: "duplicate error codes",
             payload: vec![
-                Some(MentatError {
+                Some(NullableMentatError {
                     code: 0,
                     message: "error 1".into(),
                     ..Default::default()
                 }),
-                Some(MentatError {
+                Some(NullableMentatError {
                     code: 0,
                     message: "error 2".into(),
                     ..Default::default()

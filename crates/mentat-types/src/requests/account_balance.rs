@@ -23,7 +23,7 @@ pub struct NullableAccountBalanceRequest {
     /// assumed that the client is making a request at the current block.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[nullable(retain)]
-    pub block_identifier: Option<PartialBlockIdentifier>,
+    pub block_identifier: Option<NullablePartialBlockIdentifier>,
     /// In some cases, the caller may not want to retrieve all available
     /// balances for an [`AccountIdentifier`]. If the currencies field is
     /// populated, only balances for the specified currencies will be

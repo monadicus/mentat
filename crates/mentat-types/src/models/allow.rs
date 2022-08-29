@@ -33,7 +33,7 @@ pub struct NullableAllow {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub errors: Vec<Option<MentatError>>,
+    pub errors: Vec<Option<NullableMentatError>>,
     /// Any Rosetta implementation that supports querying the balance of an
     /// account at any height in the past should set this to true.
     pub historical_balance_lookup: bool,
@@ -44,8 +44,8 @@ pub struct NullableAllow {
     /// populated, block timestamps are assumed to be valid for all available
     /// blocks.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub timestamp_start_index: Option<i64>,
+    #[nullable(option_usize)]
+    pub timestamp_start_index: Option<isize>,
     /// All methods that are supported by the `/call` endpoint. Communicating
     /// which parameters should be provided to `/call` is the responsibility of
     /// the implementer (this is en lieu of defining an entire type system and

@@ -8,7 +8,7 @@ fn test_search_transactions_response() {
         }),
         operations: vec![
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -19,11 +19,11 @@ fn test_search_transactions_response() {
                 ..Default::default()
             }),
             Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+                operation_identifier: Some(NullableOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(NullableOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -120,12 +120,12 @@ fn test_search_transactions_response() {
             sub_network_identifier: None,
         }),
         Some(NullableNetworkStatusResponse {
-            current_block_identifier: Some(BlockIdentifier {
+            current_block_identifier: Some(NullableBlockIdentifier {
                 index: 100,
                 hash: "block 100".into(),
             }),
             current_block_timestamp: MIN_UNIX_EPOCH + 1,
-            genesis_block_identifier: Some(BlockIdentifier {
+            genesis_block_identifier: Some(NullableBlockIdentifier {
                 index: 0,
                 hash: "block 0".into(),
             }),

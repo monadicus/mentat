@@ -5,20 +5,8 @@ use std::fmt::Debug;
 use proc_macro2::{Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
 use quote::ToTokens;
 use syn::{
-    parse_quote,
-    punctuated::Punctuated,
-    token::Brace,
-    Field,
-    FieldValue,
-    Fields,
-    FieldsNamed,
-    Ident,
-    ItemImpl,
-    ItemStruct,
-    Meta,
-    MetaList,
-    NestedMeta,
-    Type,
+    parse_quote, punctuated::Punctuated, token::Brace, Field, FieldValue, Fields, FieldsNamed,
+    Ident, ItemImpl, ItemStruct, Meta, MetaList, NestedMeta, Type,
 };
 
 /// the nullable argument over a struct field
@@ -33,6 +21,10 @@ enum Argument {
     Bytes,
     /// the field should be converted to an Option<Enum>
     OptionEnum,
+    /// the field should be converted to a usize
+    Usize,
+    /// the field should be converted to an Option<usize>
+    OptionUsize,
 }
 
 impl From<&Ident> for Argument {
@@ -43,6 +35,10 @@ impl From<&Ident> for Argument {
             Self::Bytes
         } else if other == "option_enum" {
             Self::OptionEnum
+        } else if other == "usize" {
+            Self::Usize
+        } else if other == "option_usize" {
+            Self::OptionUsize
         } else {
             panic!("unsupported argument {}", other)
         }
@@ -115,6 +111,10 @@ enum FieldBehavior {
     OptionEnum,
     /// Vec<u8> -> Vec<u8>
     Bytes,
+    /// Option<isize> -> usize
+    Usize,
+    /// Option<isize> -> Option<usize>
+    OptionUsize,
 }
 
 impl From<(FieldType, Argument)> for FieldBehavior {
@@ -130,6 +130,8 @@ impl From<(FieldType, Argument)> for FieldBehavior {
             (FieldType::Option, Argument::Retain) => FieldBehavior::RetainOption,
             (FieldType::Other, Argument::OptionEnum) => FieldBehavior::OptionEnum,
             (FieldType::Vec, Argument::Bytes) => FieldBehavior::Bytes,
+            (FieldType::Other, Argument::Usize) => FieldBehavior::Usize,
+            (FieldType::Option, Argument::OptionUsize) => FieldBehavior::OptionUsize,
             (f, a) => panic!("unsupported argument for field type: {f:?}, {a:?}"),
         }
     }
@@ -155,7 +157,9 @@ impl FieldData {
             FieldBehavior::VecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| v.into()).collect())
             }
-            FieldBehavior::Option => parse_quote!(#field_name: other.#field_name.unwrap().into()),
+            FieldBehavior::Option => {
+                parse_quote!(#field_name: other.#field_name.unwrap().into())
+            }
             FieldBehavior::RetainVecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
             }
@@ -168,6 +172,12 @@ impl FieldData {
                 } else {
                     Some(other.#field_name.into())
                 })
+            }
+            FieldBehavior::Usize => {
+                parse_quote!(#field_name: other.#field_name.try_into().unwrap())
+            }
+            FieldBehavior::OptionUsize => {
+                parse_quote!(#field_name: other.#field_name.map(|v| v.try_into().unwrap()))
             }
         }
     }
@@ -182,7 +192,9 @@ impl FieldData {
             FieldBehavior::VecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().map(|v| Some(v.into())).collect())
             }
-            FieldBehavior::Option => parse_quote!(#field_name: Some(other.#field_name.into())),
+            FieldBehavior::Option => {
+                parse_quote!(#field_name: Some(other.#field_name.into()))
+            }
             FieldBehavior::RetainVecOption => {
                 parse_quote!(#field_name: other.#field_name.into_iter().flatten().map(|v| Some(v.into())).collect())
             }
@@ -191,6 +203,12 @@ impl FieldData {
             }
             FieldBehavior::OptionEnum => {
                 parse_quote!(#field_name: other.#field_name.unwrap_or_default().into())
+            }
+            FieldBehavior::Usize => {
+                parse_quote!(#field_name: other.#field_name.try_into().unwrap())
+            }
+            FieldBehavior::OptionUsize => {
+                parse_quote!(#field_name: other.#field_name.map(|v| v.try_into().unwrap()))
             }
         }
     }
@@ -227,6 +245,17 @@ impl FieldData {
                 stream.insert(1, TokenTree::Punct(Punct::new('<', Spacing::Alone)));
                 stream.push(TokenTree::Punct(Punct::new('>', Spacing::Alone)));
             }
+            FieldBehavior::OptionUsize => {
+                stream = vec![
+                    TokenTree::Ident(Ident::new("Option", Span::call_site())),
+                    TokenTree::Punct(Punct::new('<', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("usize", Span::call_site())),
+                    TokenTree::Punct(Punct::new('>', Spacing::Alone)),
+                ];
+            }
+            FieldBehavior::Usize => {
+                stream = vec![TokenTree::Ident(Ident::new("usize", Span::call_site()))]
+            }
             _ => {}
         }
 
@@ -260,8 +289,10 @@ impl From<&Field> for FieldData {
                 docs.push(parse_quote!(#[serde(skip_serializing_if = "Vec::is_empty")]));
                 docs
             }
-            FieldBehavior::Option => docs,
-            FieldBehavior::OptionEnum | FieldBehavior::RetainOption => {
+            FieldBehavior::Option | FieldBehavior::Usize => docs,
+            FieldBehavior::OptionEnum
+            | FieldBehavior::RetainOption
+            | FieldBehavior::OptionUsize => {
                 docs.push(parse_quote!(#[serde(skip_serializing_if = "Option::is_none")]));
                 docs
             }

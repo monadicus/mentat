@@ -64,8 +64,8 @@ pub fn version(version: Option<&Version>) -> AssertResult<()> {
     Ok(())
 }
 
-/// `sync_status` ensures any [`SyncStatus`] is valid.
-pub fn sync_status(status: Option<&SyncStatus>) -> AssertResult<()> {
+/// `sync_status` ensures any [`NullableSyncStatus`] is valid.
+pub fn sync_status(status: Option<&NullableSyncStatus>) -> AssertResult<()> {
     let status = match status {
         Some(s) => s,
         None => return Ok(()),
@@ -92,7 +92,7 @@ pub fn network_status_response(resp: Option<&NullableNetworkStatusResponse>) -> 
     let resp = resp.ok_or(NetworkError::NetworkStatusResponseIsNil)?;
 
     block_identifier(resp.current_block_identifier.as_ref())?;
-    timestamp(resp.current_block_timestamp as i64)?;
+    timestamp(resp.current_block_timestamp as isize)?;
     block_identifier(resp.genesis_block_identifier.as_ref())?;
     resp.peers
         .iter()
@@ -139,8 +139,8 @@ pub fn operation_types(types: &[String]) -> AssertResult<()> {
     string_array("Allow.OperationTypes", types).map_err(AsserterError::from)
 }
 
-/// `error` ensures a [`MentatError`] is valid.
-pub fn error(err: Option<&MentatError>) -> AssertResult<()> {
+/// `error` ensures a [`NullableMentatError`] is valid.
+pub fn error(err: Option<&NullableMentatError>) -> AssertResult<()> {
     let err = err.ok_or(ErrorError::IsNil)?;
 
     if err.code < 0 {
@@ -154,9 +154,9 @@ pub fn error(err: Option<&MentatError>) -> AssertResult<()> {
     }
 }
 
-/// `errors` ensures each [`MentatError`] in a slice is valid
+/// `errors` ensures each [`NullableMentatError`] in a slice is valid
 /// and that there is no error code collision.
-pub fn errors(errors: &[Option<MentatError>]) -> AssertResult<()> {
+pub fn errors(errors: &[Option<NullableMentatError>]) -> AssertResult<()> {
     let mut status_codes = IndexSet::new();
 
     for err in errors {

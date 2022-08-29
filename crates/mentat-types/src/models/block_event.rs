@@ -9,11 +9,12 @@ use super::*;
 pub struct NullableBlockEvent {
     /// Sequence is the unique identifier of a BlockEvent within the context of
     /// a [`NetworkIdentifier`].
-    pub sequence: i64,
+    #[nullable(usize)]
+    pub sequence: isize,
     /// The `BlockIdentifier` uniquely identifies a block in a particular
     /// network.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_identifier: Option<BlockIdentifier>,
+    pub block_identifier: Option<NullableBlockIdentifier>,
     /// `BlockEventType` determines if a `BlockEvent` represents the addition or
     /// removal of a block.
     #[serde(rename = "type")]

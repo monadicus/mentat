@@ -189,7 +189,7 @@ fn test_construction_parse_response() {
                 payload: Some(NullableConstructionParseResponse {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -199,11 +199,11 @@ fn test_construction_parse_response() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -227,7 +227,7 @@ fn test_construction_parse_response() {
                 payload: Some(NullableConstructionParseResponse {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -237,11 +237,11 @@ fn test_construction_parse_response() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -284,7 +284,7 @@ fn test_construction_parse_response() {
             payload: Some(ConstructionParseResponseTest {
                 payload: Some(NullableConstructionParseResponse {
                     operations: vec![Some(NullableOperation {
-                        operation_identifier: Some(OperationIdentifier {
+                        operation_identifier: Some(NullableOperationIdentifier {
                             index: 1,
                             ..Default::default()
                         }),
@@ -307,7 +307,7 @@ fn test_construction_parse_response() {
                 payload: Some(NullableConstructionParseResponse {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -317,11 +317,11 @@ fn test_construction_parse_response() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -346,7 +346,7 @@ fn test_construction_parse_response() {
                 payload: Some(NullableConstructionParseResponse {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -356,11 +356,11 @@ fn test_construction_parse_response() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -384,7 +384,7 @@ fn test_construction_parse_response() {
                 payload: Some(NullableConstructionParseResponse {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -394,11 +394,11 @@ fn test_construction_parse_response() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -424,7 +424,7 @@ fn test_construction_parse_response() {
                 payload: Some(NullableConstructionParseResponse {
                     operations: vec![
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             }),
@@ -434,11 +434,11 @@ fn test_construction_parse_response() {
                             ..Default::default()
                         }),
                         Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                            operation_identifier: Some(NullableOperationIdentifier {
                                 index: 1,
                                 ..Default::default()
                             }),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(NullableOperationIdentifier {
                                 index: 0,
                                 ..Default::default()
                             })],
@@ -464,11 +464,11 @@ fn test_construction_parse_response() {
             ..Default::default()
         }),
         Some(NullableNetworkStatusResponse {
-            current_block_identifier: Some(BlockIdentifier {
+            current_block_identifier: Some(NullableBlockIdentifier {
                 index: 100,
                 hash: "block 100".into(),
             }),
-            genesis_block_identifier: Some(BlockIdentifier {
+            genesis_block_identifier: Some(NullableBlockIdentifier {
                 index: 0,
                 hash: "block 0".into(),
             }),

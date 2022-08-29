@@ -22,11 +22,12 @@ pub struct NullableSearchTransactionsResponse {
     /// `total_count` is the number of results for a given search. Callers
     /// typically use this value to concurrently fetch results by offset or to
     /// display a virtual page number associated with results.
-    pub total_count: i64,
+    #[nullable(usize)]
+    pub total_count: isize,
     /// `next_offset` is the next offset to use when paginating through
     /// transaction results. If this field is not populated, there are no more
     /// transactions to query.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub next_offset: Option<i64>,
+    #[nullable(option_usize)]
+    pub next_offset: Option<isize>,
 }
