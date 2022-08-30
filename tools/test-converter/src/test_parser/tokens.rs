@@ -43,9 +43,10 @@ pub enum TokenKind {
 
     // Complex Tokens
     Identifier(String),
+    Interface,
+    TypesDot,
     IntType,
     NewInt,
-    Interface,
     False,
     True,
     Nil,
@@ -63,12 +64,12 @@ impl Display for TokenKind {
             TokenKind::String(string) => write!(f, "\"{string}\""),
 
             TokenKind::Ampersand => write!(f, "&"),
-            TokenKind::Asterisk => write!(f, "*"),
+            TokenKind::Asterisk => write!(f, "Option<"),
             TokenKind::Colon => write!(f, ":"),
             TokenKind::Comma => write!(f, ","),
             TokenKind::Dot => write!(f, "."),
             TokenKind::LeftBracket => write!(f, "["),
-            TokenKind::ArrayType => write!(f, "[]"),
+            TokenKind::ArrayType => write!(f, "Vec<"),
             TokenKind::RightBracket => write!(f, "]"),
             TokenKind::LeftCurly => write!(f, "{{"),
             TokenKind::DefaultObject => write!(f, "{{}}"),
@@ -77,9 +78,10 @@ impl Display for TokenKind {
             TokenKind::RightParen => write!(f, ")"),
 
             TokenKind::Identifier(ident) => write!(f, "{ident}"),
+            TokenKind::Interface => write!(f, "serde_json::Value"),
+            TokenKind::TypesDot => write!(f, ""),
             TokenKind::IntType => write!(f, "todo"),
             TokenKind::NewInt => write!(f, "todo"),
-            TokenKind::Interface => write!(f, "serde_json::Value"),
             TokenKind::False => write!(f, "false"),
             TokenKind::True => write!(f, "true"),
             TokenKind::Nil => write!(f, "None"),

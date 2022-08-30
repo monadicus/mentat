@@ -76,19 +76,21 @@ impl ParserContext {
         looker(self.tokens.get(idx).unwrap_or(&Token::dummy()))
     }
 
-    // pub(super) fn eat_identifier(&mut self) -> Option<Identifier> {
-    //     if let TokenKind::Identifier(name) = self.token.token {
-    //         self.bump();
-    //         return Some(self.mk_ident_prev(name));
-    //     }
-    //     None
-    // }
+    pub(super) fn eat_identifier(&mut self) -> Option<String> {
+        if let TokenKind::Identifier(ident) = self.curr_token.kind.clone() {
+            self.bump();
+            return Some(ident);
+        }
+        None
+    }
 
-    // pub(super) fn expect_identifier(&mut self) -> Result<Identifier> {
-    //     self.eat_identifier().ok_or_else(|| {
-    //         ParserError::unexpected_str(&self.token.token, "identifier",
-    // self.token.span).into()     })
-    // }
+    pub(super) fn expect_identifier(&mut self) -> Result<String> {
+        if let Some(ident) = self.eat_identifier() {
+            Ok(ident)
+        } else {
+            ParserError::unexpected_token(&self.curr_token.kind, "identifier", self.curr_token.span)
+        }
+    }
 
     pub(super) fn eat_any(&mut self, tokens: &[TokenKind]) -> bool {
         tokens
@@ -98,10 +100,12 @@ impl ParserContext {
             .is_some()
     }
 
+    #[track_caller]
     fn unexpected<T>(&self, expected: impl std::fmt::Display) -> Result<T> {
         ParserError::unexpected_token(&self.curr_token.kind, expected, self.curr_token.span)
     }
 
+    #[track_caller]
     pub(super) fn expect(&mut self, token: &TokenKind) -> Result<Span> {
         if self.eat(token) {
             Ok(self.prev_token.span)
@@ -110,6 +114,7 @@ impl ParserContext {
         }
     }
 
+    #[track_caller]
     pub(super) fn expect_any(&mut self, tokens: &[TokenKind]) -> Result<Span> {
         if self.eat_any(tokens) {
             Ok(self.prev_token.span)
@@ -124,38 +129,34 @@ impl ParserContext {
         }
     }
 
-    pub(super) fn parse_list<T>(
+    #[track_caller]
+    pub(super) fn parse_list(
         &mut self,
         delimiter: Delimiter,
         sep: Option<TokenKind>,
-        mut inner: impl FnMut(&mut Self) -> Result<Option<T>>,
-    ) -> Result<(Vec<T>, bool, Span)> {
+        mut inner: impl FnMut(&mut Self) -> Result<()>,
+    ) -> Result<Span> {
         let (open, close) = delimiter.pair();
-        let mut list = Vec::new();
         let mut trailing = false;
         let open_span = self.expect(&open)?;
 
         while !self.check(&close) {
-            if let Some(elem) = inner(self)? {
-                list.push(elem);
-            }
+            inner(self)?;
 
             if sep.as_ref().filter(|sep| !self.eat(sep)).is_some() {
-                trailing = false;
                 break;
             }
-
-            trailing = true;
         }
 
         let span = open_span + self.expect(&close)?;
-        Ok((list, trailing, span))
+        Ok(span)
     }
 
-    pub(super) fn parse_paren_comma_list<T>(
+    #[track_caller]
+    pub(super) fn parse_curly_comma_list(
         &mut self,
-        f: impl FnMut(&mut Self) -> Result<Option<T>>,
-    ) -> Result<(Vec<T>, bool, Span)> {
-        self.parse_list(Delimiter::Parenthesis, Some(TokenKind::Comma), f)
+        f: impl FnMut(&mut Self) -> Result<()>,
+    ) -> Result<Span> {
+        self.parse_list(Delimiter::Brace, Some(TokenKind::Comma), f)
     }
 }

@@ -77,10 +77,14 @@ impl TokenKind {
             );
         }
 
-        let len = ident.len();
+        let mut len = ident.len();
         Ok((
             match &*ident {
                 "interface" => TokenKind::Interface,
+                "types" if matches!(input.next(), Some('.')) => {
+                    len += 1;
+                    TokenKind::TypesDot
+                }
                 "NewInt" => TokenKind::NewInt,
                 "Int" => TokenKind::IntType,
                 "false" => TokenKind::False,

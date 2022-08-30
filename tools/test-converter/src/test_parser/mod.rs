@@ -5,7 +5,9 @@ use self::{
     span::Span,
     tokens::{TokenKind, Tokenizer},
 };
-use crate::errors::Result;
+use crate::{errors::Result, parse_rules::RulesFile};
+
+mod converter;
 mod lexer;
 mod parser_context;
 mod source_map;
@@ -48,10 +50,9 @@ fn tokenize(src: &str) -> Result<Vec<Token>> {
     Ok(tokens)
 }
 
-pub(crate) fn parse(src: &Path) -> Result<()> {
+pub(crate) fn parse(src: &Path, rules: RulesFile) -> Result<()> {
     let sf = with_source_map(|s| s.load_file(src))?;
     let tokens = tokenize(&sf.src)?;
     let mut context = ParserContext::new(tokens);
-    context.expect(&TokenKind::Ampersand)?;
-    Ok(())
+    context.convert(rules)
 }

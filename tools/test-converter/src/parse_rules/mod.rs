@@ -26,22 +26,22 @@ use crate::errors::{Result, RulesFileError};
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TestStructCriteria {
     #[serde(rename = "type")]
-    type_: String,
-    from: String,
+    pub type_: String,
+    pub from: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub(crate) struct TestStructPayloadField {
+pub struct TestStructPayloadField {
     #[serde(rename = "type")]
-    type_: String,
-    from: String,
+    pub type_: String,
+    pub from: String,
     #[serde(flatten)]
-    sub_fields: IndexMap<String, Self>,
+    pub sub_fields: IndexMap<String, Self>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
-pub(crate) enum TestStructPayload {
+pub enum TestStructPayload {
     Dynamic {
         struct_name: String,
         #[serde(flatten)]
@@ -60,12 +60,12 @@ pub enum TypeOverrideTypes {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TestStruct {
-    test_fn_name: String,
-    struct_name: String,
-    struct_method: String,
-    closure: String,
-    criteria: TestStructCriteria,
-    payload: TestStructPayload,
+    pub test_fn_name: String,
+    pub struct_name: String,
+    pub struct_method: String,
+    pub closure: String,
+    pub criteria: TestStructCriteria,
+    pub payload: TestStructPayload,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -77,8 +77,8 @@ pub struct TypeOverride {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RulesFile {
-    test_struct: TestStruct,
-    types: IndexMap<String, TypeOverride>,
+    pub test_struct: TestStruct,
+    pub types: IndexMap<String, TypeOverride>,
 }
 
 impl RulesFile {

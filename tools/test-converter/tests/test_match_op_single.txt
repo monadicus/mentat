@@ -1,0 +1,75 @@
+{
+  "simple transfer (with extra op)": {
+		operations: []*types.Operation{
+			{
+				Account: &types.AccountIdentifier{
+					Address: "addr2",
+				},
+				Amount: &types.Amount{
+					Value: "100",
+				},
+			},
+			{}, // extra op ignored
+			{
+				Account: &types.AccountIdentifier{
+					Address: "addr1",
+				},
+				Amount: &types.Amount{
+					Value: "-100",
+				},
+			},
+		},
+		descriptions: &Descriptions{
+			OppositeAmounts: [][]int{{0, 1}},
+			OperationDescriptions: []*OperationDescription{
+				{
+					Account: &AccountDescription{
+						Exists: true,
+					},
+					Amount: &AmountDescription{
+						Exists: true,
+						Sign:   NegativeAmountSign,
+					},
+				},
+				{
+					Account: &AccountDescription{
+						Exists: true,
+					},
+					Amount: &AmountDescription{
+						Exists: true,
+						Sign:   PositiveAmountSign,
+					},
+				},
+			},
+		},
+		matches: []*Match{
+			{
+				Operations: []*types.Operation{
+					{
+						Account: &types.AccountIdentifier{
+							Address: "addr1",
+						},
+						Amount: &types.Amount{
+							Value: "-100",
+						},
+					},
+				},
+				Amounts: []*big.Int{big.NewInt(-100)},
+			},
+			{
+				Operations: []*types.Operation{
+					{
+						Account: &types.AccountIdentifier{
+							Address: "addr2",
+						},
+						Amount: &types.Amount{
+							Value: "100",
+						},
+					},
+				},
+				Amounts: []*big.Int{big.NewInt(100)},
+			},
+		},
+		err: false,
+	},
+}

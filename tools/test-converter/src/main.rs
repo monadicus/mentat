@@ -4,7 +4,6 @@ use clap::Parser;
 use parse_rules::RulesFile;
 use test_parser::{parse, set_source_map_if_not_set};
 
-mod converter;
 mod errors;
 mod parse_rules;
 mod test_parser;
@@ -35,7 +34,7 @@ fn main() -> Result<()> {
     let input_ext = options.rules.extension().and_then(|ext| ext.to_str());
     if matches!(input_ext, Some("toml")) {
         let rules = dbg!(RulesFile::from_toml_file(options.rules)?);
-        set_source_map_if_not_set(|_| handle_error(parse(&options.tests)));
+        set_source_map_if_not_set(|_| handle_error(parse(&options.tests, rules)));
         Ok(())
     } else {
         RulesFileError::unknown_input_file_extension(input_ext.unwrap_or_default())
