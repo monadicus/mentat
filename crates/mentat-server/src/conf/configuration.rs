@@ -12,7 +12,6 @@ use std::{
 };
 
 use axum::async_trait;
-use mentat_asserter::Asserter;
 use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 
@@ -34,7 +33,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
 
     // TODO make this return a struct/map with asserter instances for each route
     /// returns the asserter to be used when asserting requests
-    fn init_asserter(&self, network: &Network) -> Asserter;
+    fn init_asserter(&self, network: &Network) -> AsserterTable;
 
     /// The command for loading the node `Configuration`.
     ///
@@ -140,7 +139,7 @@ pub struct Configuration<Custom: NodeConf> {
     pub custom: Custom,
     /// returns the asserter to be used when asserting requests
     #[serde(skip)]
-    pub asserter: Asserter,
+    pub asserter: AsserterTable,
 }
 
 impl<Custom> Configuration<Custom>
