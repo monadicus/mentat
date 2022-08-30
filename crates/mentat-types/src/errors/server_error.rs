@@ -77,18 +77,6 @@ impl MentatError {
     }
 
     /// Not Found
-    fn not_found_example<D: Display, R>(details: Option<D>) -> Result<R> {
-        Err(MentatError {
-            status_code: 404,
-            code: 404,
-            message: "Not Found".to_string(),
-            description: None,
-            retriable: false,
-            details: Self::context(details, |n| n.to_string()),
-        })
-    }
-
-    /// Not Found
     pub async fn not_found() -> Self {
         MentatError {
             status_code: 404,

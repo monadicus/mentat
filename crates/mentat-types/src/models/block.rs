@@ -1,7 +1,5 @@
 //! The module defines the `Block` model.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// `Block`s contain an array of [`Transaction`]s that occurred at a particular
@@ -34,4 +32,14 @@ pub struct UncheckedBlock {
     pub transactions: Vec<Option<UncheckedTransaction>>,
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl EstimateSize for Block {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + self.block_identifier.estimated_size()
+            + self.parent_block_identifier.estimated_size()
+            + estimated_vec_size(&self.transactions)
+            + estimated_metadata_size(&self.metadata)
+    }
 }

@@ -1,7 +1,5 @@
 //! The module defines the `SubAccountIdentifier`.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// An account may have state specific to a contract address (ERC-20 token)
@@ -35,5 +33,13 @@ impl Sortable for SubAccountIdentifier {
         let mut new = self.clone();
         new.metadata.sort_keys();
         new
+    }
+}
+
+impl EstimateSize for SubAccountIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.address.as_str())
+            + estimated_metadata_size(&self.metadata)
     }
 }

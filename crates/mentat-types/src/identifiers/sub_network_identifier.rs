@@ -1,7 +1,5 @@
 //! The module defines the `SubNetworkIdentifier`.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// In blockchains with sharded state, the `SubNetworkIdentifier` is required to
@@ -38,5 +36,13 @@ impl Sortable for SubNetworkIdentifier {
         };
         new.metadata.sort_keys();
         new
+    }
+}
+
+impl EstimateSize for SubNetworkIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.network.as_str())
+            + estimated_metadata_size(&self.metadata)
     }
 }

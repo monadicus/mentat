@@ -1,7 +1,5 @@
 //! The module defines the Peer.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// A [`Peer`] is a representation of a node's peer.

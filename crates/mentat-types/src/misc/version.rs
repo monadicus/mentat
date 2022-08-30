@@ -1,7 +1,5 @@
 //! The module defines the `Version`.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// The [`Version`] object is utilized to inform the client of the versions of

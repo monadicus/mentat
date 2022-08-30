@@ -13,3 +13,9 @@ pub struct TransactionIdentifier {
     /// event) should use the hash of the block as the identifier.
     pub hash: String,
 }
+
+impl EstimateSize for TransactionIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self) + size_of_val(self.hash.as_str())
+    }
+}

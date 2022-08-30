@@ -6,10 +6,11 @@ members = [
         # Disabled for now.
         # Needs to be changed to match module.
         # "crates/mentat-keys",
-        "crates/mentat-parser",
-        "crates/mentat-test-utils",
-        "crates/mentat-server",
-        "crates/mentat-types",
         "mentat-macros",
+        "crates/mentat-parser",
+        "crates/mentat-server",
+        "crates/mentat-syncer",
+        "crates/mentat-test-utils",
+        "crates/mentat-types",
         # "examples/mentat-cli",
 ]

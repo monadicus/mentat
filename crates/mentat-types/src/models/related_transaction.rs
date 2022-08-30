@@ -33,3 +33,12 @@ impl Sortable for UncheckedRelatedTransaction {
         new
     }
 }
+
+impl EstimateSize for RelatedTransaction {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + estimated_option_size(&self.network_identifier)
+            + self.transaction_identifier.estimated_size()
+            + size_of_val(&self.direction)
+    }
+}

@@ -1,7 +1,5 @@
 //! The module defines the `ConstructionPreprocessRequest` request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]

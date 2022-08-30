@@ -20,3 +20,9 @@ pub struct UncheckedCoinChange {
     /// be created or spent more than once.
     pub coin_action: UncheckedCoinAction,
 }
+
+impl EstimateSize for CoinChange {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self) + self.coin_identifier.estimated_size()
+    }
+}

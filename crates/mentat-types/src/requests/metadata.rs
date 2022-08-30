@@ -1,7 +1,5 @@
 //! The module defines the `MetadataRequest` request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// A `MetadataRequest` is utilized in any request where the only argument is

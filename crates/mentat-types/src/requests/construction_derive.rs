@@ -1,7 +1,5 @@
 //! The module defines the ConstructionDeriveRequest request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`ConstructionDeriveRequest`] is passed to the `/construction/derive`

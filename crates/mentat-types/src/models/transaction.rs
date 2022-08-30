@@ -1,7 +1,5 @@
 //! The module defines the `Transaction` model.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`Transaction`]s contain an array of [`Operation`]s that are attributable to
@@ -26,8 +24,18 @@ pub struct UncheckedTransaction {
     )]
     pub related_transactions: Vec<Option<UncheckedRelatedTransaction>>,
     /// `Transaction`s that are related to other transactions (like a
-    /// cross-shard transaction) should include the tranaction_identifier of
+    /// cross-shard transaction) should include the transaction_identifier of
     /// these transactions in the metadata.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
+}
+
+impl EstimateSize for Transaction {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + self.transaction_identifier.estimated_size()
+            + estimated_vec_size(&self.operations)
+            + estimated_vec_size(&self.related_transactions)
+            + estimated_metadata_size(&self.metadata)
+    }
 }

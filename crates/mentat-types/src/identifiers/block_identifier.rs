@@ -14,3 +14,15 @@ pub struct UncheckedBlockIdentifier {
     /// The block hash..
     pub hash: String,
 }
+
+impl Sortable for BlockIdentifier {
+    fn sort(&self) -> Self {
+        self.clone()
+    }
+}
+
+impl EstimateSize for BlockIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self) + size_of_val(self.hash.as_str())
+    }
+}

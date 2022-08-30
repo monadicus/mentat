@@ -1,7 +1,8 @@
 //! The types module as according to the rosetta sdk specification.
 
-// TODO this is temporary to help find relevant warnings faster
-#![allow(unused)]
+#![warn(clippy::todo, clippy::use_debug)]
+
+use std::mem::size_of_val;
 
 use indexmap::IndexMap;
 use mentat_macros::Unchecked;
@@ -32,6 +33,7 @@ pub trait Sortable {
 }
 
 /// the current rosetta api version
+#[allow(unused)]
 const ROSETTA_API_VERSION: &str = "1.4.12";
 
 #[cfg(test)]

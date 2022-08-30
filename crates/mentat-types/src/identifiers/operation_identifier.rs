@@ -50,3 +50,13 @@ impl From<(usize, Option<usize>)> for OperationIdentifier {
         }
     }
 }
+
+impl EstimateSize for OperationIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + self
+                .network_index
+                .map(|i| size_of_val(&i))
+                .unwrap_or_default()
+    }
+}

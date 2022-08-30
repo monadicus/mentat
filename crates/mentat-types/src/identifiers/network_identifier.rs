@@ -76,3 +76,12 @@ impl Sortable for NetworkIdentifier {
         }
     }
 }
+
+impl EstimateSize for NetworkIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.blockchain.as_str())
+            + size_of_val(self.network.as_str())
+            + estimated_option_size(&self.sub_network_identifier)
+    }
+}

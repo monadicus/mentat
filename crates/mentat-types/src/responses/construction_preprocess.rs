@@ -1,7 +1,5 @@
 //! The module defines the `ConstructionPreprocessResponse` response.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`ConstructionPreprocessResponse`] contains options that will be sent

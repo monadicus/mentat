@@ -1,6 +1,5 @@
 //! The module defines the `ConstructionDeriveResponse` response.
 
-use indexmap::IndexMap;
 use serde::ser::SerializeStruct;
 
 use super::*;
