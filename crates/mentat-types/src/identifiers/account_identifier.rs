@@ -1,9 +1,5 @@
 //! The module defines the `AccountIdentifier`.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// The [`AccountIdentifier`] uniquely identifies an account within a network.

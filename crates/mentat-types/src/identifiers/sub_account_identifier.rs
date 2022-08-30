@@ -1,9 +1,5 @@
 //! The module defines the `SubAccountIdentifier`.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// An account may have state specific to a contract address (ERC-20 token)

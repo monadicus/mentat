@@ -1,9 +1,5 @@
 //! The module defines the `Currency` model.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`Currency`] is composed of a canonical Symbol and Decimals. This Decimals

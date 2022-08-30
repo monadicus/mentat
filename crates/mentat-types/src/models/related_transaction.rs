@@ -1,7 +1,5 @@
 //! The module defines the `RelatedTransaction` model.
 
-use std::mem::size_of_val;
-
 use super::*;
 
 /// The [`RelatedTransaction`] allows implementations to link together multiple

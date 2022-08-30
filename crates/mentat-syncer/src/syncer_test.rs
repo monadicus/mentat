@@ -1,28 +1,7 @@
-#![allow(clippy::missing_docs_in_private_items)]
-
-use std::{
-    sync::Arc,
-    thread::{sleep, spawn},
-    time::Duration,
-};
-
-use mentat_types::{
-    AccountIdentifier,
-    Amount,
-    Block,
-    BlockIdentifier,
-    Currency,
-    NetworkIdentifier,
-    NetworkStatusResponse,
-    Operation,
-    OperationIdentifier,
-    PartialBlockIdentifier,
-    Transaction,
-    TransactionIdentifier,
-};
 use mockall::{mock, TimesRange};
 use parking_lot::{Mutex, MutexGuard};
 
+use super::*;
 use crate::{
     errors::{SyncerError, SyncerResult},
     syncer::BlockResult,

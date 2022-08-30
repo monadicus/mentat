@@ -58,6 +58,7 @@ pub type SyncerResult<T, E = SyncerError> = Result<T, E>;
 
 /// Err takes an error as an argument and returns
 /// whether or not the error is one thrown by the syncer package
+#[cfg(test)]
 pub fn err(err: Box<dyn std::error::Error>) -> bool {
     err.is::<SyncerError>()
 }

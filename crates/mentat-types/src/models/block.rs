@@ -1,9 +1,5 @@
 //! The module defines the `Block` model.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// `Block`s contain an array of [`Transaction`]s that occurred at a particular

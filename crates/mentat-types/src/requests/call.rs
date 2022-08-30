@@ -1,7 +1,5 @@
 //! The module defines the `CallRequest` request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// `CallRequest` is the input to the `/call` endpoint.

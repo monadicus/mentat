@@ -1,21 +1,6 @@
-//! TODO
+//! types used to implement mentat-syncer
 
-use std::{collections::VecDeque, sync::Arc, time::Duration};
-
-use mentat_types::*;
-use parking_lot::Mutex;
-
-use crate::{
-    errors::{SyncerError, SyncerResult},
-    types::{
-        Block,
-        BlockIdentifier,
-        NetworkIdentifier,
-        NetworkStatusResponse,
-        PartialBlockIdentifier,
-    },
-    utils::Context,
-};
+use super::*;
 
 /// DEFAULT_PAST_BLOCK_LIMIT is the maximum number of previously
 /// processed block headers we keep in the syncer to handle

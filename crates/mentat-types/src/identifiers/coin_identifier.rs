@@ -1,7 +1,5 @@
 //! The module defines the `CoinIdentifier`.
 
-use std::mem::size_of_val;
-
 use from_tuple::FromTuple;
 
 use super::*;

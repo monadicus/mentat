@@ -1,7 +1,5 @@
 //! The module defines the `CoinChange` model.
 
-use std::mem::size_of_val;
-
 use super::*;
 
 /// [`CoinChange`] is used to represent a change in state of a some coin

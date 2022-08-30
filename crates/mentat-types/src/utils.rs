@@ -1,22 +1,13 @@
 //! Types module Util functions
 
-use std::{fmt::Debug, mem::size_of_val, str::FromStr};
+use std::{fmt::Debug, str::FromStr};
 
-use indexmap::IndexMap;
 use num_bigint_dig::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-use super::{
-    AccountIdentifier,
-    Amount,
-    BlockIdentifier,
-    PartialBlockIdentifier,
-    Sortable,
-    UncheckedAmount,
-    UncheckedCurrency,
-};
+use super::*;
 
 /// a trait to help determine the size of blocks in memory
 pub trait EstimateSize {
@@ -85,7 +76,7 @@ where
 ///
 /// It is useful to have this helper when making block requests
 /// with the fetcher.
-pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> PartialBlockIdentifier {
+pub fn construct_partialblock_identifier(block: &BlockIdentifier) -> PartialBlockIdentifier {
     PartialBlockIdentifier {
         index: Some(block.index),
         hash: Some(block.hash.clone()),
@@ -101,7 +92,7 @@ pub fn amount_value(amount: Option<&Amount>) -> Result<BigInt, String> {
 
 /// `account_string` returns a human-readable representation of a
 /// [`AccountIdentifier`].
-pub(crate) fn account_string(account: &AccountIdentifier) -> String {
+pub fn account_string(account: &AccountIdentifier) -> String {
     let sub_account = if let Some(sub_account) = account.sub_account.as_ref() {
         sub_account
     } else {
@@ -120,7 +111,7 @@ pub(crate) fn account_string(account: &AccountIdentifier) -> String {
 
 /// `currency_string` returns a human-readable representation
 /// of a *Currency.
-pub(crate) fn currency_string(currency: &UncheckedCurrency) -> String {
+pub fn currency_string(currency: &UncheckedCurrency) -> String {
     if currency.metadata.is_empty() {
         format!("{}:{}", currency.symbol, currency.decimals)
     } else {
@@ -132,7 +123,7 @@ pub(crate) fn currency_string(currency: &UncheckedCurrency) -> String {
 }
 
 /// `big_int` returns a *big.Int representation of a value.
-pub(crate) fn big_int(value: &str) -> Result<BigInt, String> {
+pub fn big_int(value: &str) -> Result<BigInt, String> {
     let parsed_val = BigInt::from_str(value).map_err(|_| format!("{value} is not an integer"))?;
     Ok(parsed_val)
 }
@@ -148,7 +139,7 @@ pub fn add_values(a: &str, b: &str) -> Result<String, String> {
 
 /// `subtract_values` subtracts a-b using
 /// big.Int.
-pub(crate) fn sub_values(a: &str, b: &str) -> Result<String, String> {
+pub fn sub_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val - b_val;
@@ -157,7 +148,7 @@ pub(crate) fn sub_values(a: &str, b: &str) -> Result<String, String> {
 
 /// `multiply_values` multiplies a*b using
 /// big.Int.
-pub(crate) fn multiply_values(a: &str, b: &str) -> Result<String, String> {
+pub fn multiply_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val * b_val;
@@ -166,7 +157,7 @@ pub(crate) fn multiply_values(a: &str, b: &str) -> Result<String, String> {
 
 /// `divide_values` divides a/b using
 /// big.Int.
-pub(crate) fn divide_values(a: &str, b: &str) -> Result<String, String> {
+pub fn divide_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val % b_val;
@@ -181,7 +172,7 @@ pub fn negate_value(val: &str) -> Result<String, String> {
 
 /// `extract_amount` returns the Amount from a slice of Balance
 /// pertaining to an AccountAndCurrency.
-pub(crate) fn extract_amount(
+pub fn extract_amount(
     balances: &[Option<UncheckedAmount>],
     currency: Option<&UncheckedCurrency>,
 ) -> UncheckedAmount {

@@ -1,7 +1,5 @@
 //! The module defines the `MempoolTransactionResponse` response.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// A [`MempoolTransactionResponse`] contains an estimate of a mempool

@@ -1,10 +1,8 @@
-#![allow(clippy::missing_docs_in_private_items)]
-
 use std::error::Error;
 
 use mentat_test_utils::TestCase;
 
-use crate::errors::{err, SyncerError};
+use super::*;
 
 #[test]
 fn test_err() {

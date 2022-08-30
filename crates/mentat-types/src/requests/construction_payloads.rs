@@ -1,7 +1,5 @@
 //! The module defines the ConstructionPayloadsRequest request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`ConstructionPayloadsRequest`] is the request to `/construction/payloads`.

@@ -1,7 +1,5 @@
 //! The module defines the `AccountCoinsResponse` response.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// `AccountCoinsResponse` is returned on the `/account/coins` endpoint and

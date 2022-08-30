@@ -1,9 +1,5 @@
 //! The module defines the `SubNetworkIdentifier`.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// In blockchains with sharded state, the `SubNetworkIdentifier` is required to

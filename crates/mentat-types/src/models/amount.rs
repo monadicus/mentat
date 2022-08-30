@@ -1,9 +1,5 @@
 //! The module defines the `Amount` model.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// Amount is some Value of a [`Currency`]. It is considered invalid to specify

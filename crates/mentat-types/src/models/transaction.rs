@@ -1,9 +1,5 @@
 //! The module defines the `Transaction` model.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`Transaction`]s contain an array of [`Operation`]s that are attributable to

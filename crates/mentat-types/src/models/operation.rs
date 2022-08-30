@@ -1,9 +1,5 @@
 //! The module defines the `Operation` model.
 
-use std::mem::size_of_val;
-
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`Operation`]s contain all balance-changing information within a

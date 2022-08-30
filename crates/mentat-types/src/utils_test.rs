@@ -1,5 +1,3 @@
-use std::fmt;
-
 use indexmap::indexmap;
 use mentat_test_utils::*;
 use serde_json::json;

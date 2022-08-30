@@ -1,7 +1,5 @@
 //! The module defines the `OperationIdentifier`.
 
-use std::mem::size_of_val;
-
 use super::*;
 
 /// The [`OperationIdentifier`] uniquely identifies an operation within a

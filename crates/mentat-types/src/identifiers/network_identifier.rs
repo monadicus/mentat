@@ -1,7 +1,5 @@
 //! The module defines the `NetworkIdentifier`.
 
-use std::mem::size_of_val;
-
 use super::*;
 
 /// The [`NetworkIdentifier`] specifies which network a particular object is

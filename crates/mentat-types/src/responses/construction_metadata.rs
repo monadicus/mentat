@@ -1,7 +1,5 @@
 //! The module defines the `ConstructionMetadataResponse` response.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// The [`ConstructionMetadataResponse`] returns network-specific metadata used

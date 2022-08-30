@@ -1,7 +1,5 @@
 //! The module defines the `TransactionIdentifierResponse` response.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`TransactionIdentifierResponse`] contains the `transaction_identifier` of a

@@ -1,7 +1,5 @@
 //! The module defines the `NetworkRequest` request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// A [`NetworkRequest`] is utilized to retrieve some data specific exclusively

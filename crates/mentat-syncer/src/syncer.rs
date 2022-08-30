@@ -1,32 +1,9 @@
 //! handles the synchronizing of blocks from a node
 
-use std::{
-    mem::size_of_val,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-        Weak,
-    },
-    thread::{sleep, spawn},
-};
-
 use crossbeam_channel::{bounded, Receiver, Sender};
 use indexmap::IndexMap;
-use mentat_types::{hash, Block, BlockIdentifier, EstimateSize, PartialBlockIdentifier};
 
-use crate::{
-    errors::{SyncerError, SyncerResult},
-    types::{
-        Handler,
-        Helper,
-        Syncer,
-        DEFAULT_CONCURRENCY,
-        DEFAULT_SYNC_SLEEP,
-        DEFAULT_TRAILING_WINDOW,
-        MIN_CONCURRENCY,
-    },
-    utils::{Context, ThreadHandler},
-};
+use super::*;
 
 /// BlockResult is returned by calls
 /// to fetch a particular index. We must
