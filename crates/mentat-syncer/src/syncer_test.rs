@@ -939,25 +939,31 @@ fn test_sync_manual_reorg() {
     syncer.handler.lock().checkpoint();
 }
 
-fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
+#[test]
+fn test_sync_dynamic() {
+    let mut syncer = syncer()
+        // 1 MB
+        .cache_size(1 << 20)
+        .build();
+
     // Force syncer to only get part of the way through the full range
-    expect_network_status(syncer, 1, 2);
-    expect_network_status(syncer, 1300, 2);
+    expect_network_status(&mut syncer, 1, 2);
+    expect_network_status(&mut syncer, 1300, 2);
 
     let mut blocks = create_blocks(0, 200, "");
+
     // Load blocks with a ton of transactions
-    for block in &mut blocks {
-        let mut block = block.as_mut().unwrap();
-        block.transactions = (0..10000)
+    blocks.iter_mut().flatten().for_each(|b| {
+        b.transactions = (0..10000)
             .into_iter()
             .map(|i| Transaction {
                 transaction_identifier: TransactionIdentifier {
-                    hash: format!("block {} tx {}", block.block_identifier.index, i),
+                    hash: format!("block {} tx {}", b.block_identifier.index, i),
                 },
                 ..Default::default()
             })
             .collect();
-    }
+    });
 
     // Create a block gap
     blocks[100] = None;
@@ -966,7 +972,7 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
 
     for (i, b) in blocks.into_iter().enumerate() {
         let tmp_b = b.clone();
-        custom_expect_block(syncer, Some(i as usize), 1, move |s, _, _, id| {
+        custom_expect_block(&mut syncer, Some(i as usize), 1, move |s, _, _, id| {
             if id.index == Some(100) {
                 assert_eq!(*s.concurrency.lock(), 1)
             }
@@ -974,8 +980,8 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
         });
 
         if let Some(b) = b {
-            expect_block_seen(syncer, true, b.clone(), 1);
-            expect_block_added(syncer, true, Some(b), 1);
+            expect_block_seen(&mut syncer, true, b.clone(), 1);
+            expect_block_added(&mut syncer, true, Some(b), 1);
         }
     }
 
@@ -986,15 +992,6 @@ fn sync_dynamic(syncer: &mut Syncer<ArcMockHandler, ArcMockHelper>) {
 }
 
 #[test]
-fn test_sync_dynamic() {
-    let mut syncer = syncer()
-        // 1 MB
-        .cache_size(1 << 20)
-        .build();
-    sync_dynamic(&mut syncer);
-}
-
-#[test]
 fn test_sync_dynamic_overhead() {
     let mut syncer = syncer()
         // 1 MB
@@ -1002,7 +999,37 @@ fn test_sync_dynamic_overhead() {
         // greatly increase synthetic size
         .size_multiplier(100000.0)
         .build();
-    sync_dynamic(&mut syncer);
+
+    // Force syncer to only get part of the way through the full range
+    expect_network_status(&mut syncer, 1, 2);
+    expect_network_status(&mut syncer, 1300, 2);
+
+    let mut blocks = create_blocks(0, 200, "");
+
+    // Create a block gap
+    blocks[100] = None;
+    blocks[101].as_mut().unwrap().parent_block_identifier =
+        blocks[99].as_ref().unwrap().block_identifier.clone();
+
+    for (i, b) in blocks.into_iter().enumerate() {
+        let tmp_b = b.clone();
+        custom_expect_block(&mut syncer, Some(i as usize), 1, move |s, _, _, id| {
+            if id.index == Some(100) {
+                assert_eq!(*s.concurrency.lock(), 1)
+            }
+            Ok(tmp_b.clone())
+        });
+
+        if let Some(b) = b {
+            expect_block_seen(&mut syncer, true, b.clone(), 1);
+            expect_block_added(&mut syncer, true, Some(b), 1);
+        }
+    }
+
+    syncer.sync(&buf(), None, Some(200)).unwrap();
+    assert_eq!(0, *syncer.concurrency.lock());
+    syncer.helper.lock().checkpoint();
+    syncer.handler.lock().checkpoint();
 }
 
 #[test]
