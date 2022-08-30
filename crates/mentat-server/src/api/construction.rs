@@ -3,7 +3,7 @@
 //! implementations.
 use super::*;
 
-/// Trait to define the endpoints necessary for the Rosetta Construction API.
+/// ConstructionAPIServicer defines the api actions for the ConstructionAPI service
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
     /// Combine creates a network-specific transaction from an unsigned
@@ -129,11 +129,12 @@ pub trait ConstructionApi: Default {
     }
 }
 
-/// Trait to wrap the `ConstructionApi`.
-/// This trait helps to define default behavior for running the endpoints
-/// on different modes.
+/// ConstructionAPIRouter defines the required methods for binding the api requests to a responses
+/// for the ConstructionAPI The ConstructionAPIRouter implementation should parse necessary
+/// information from the http request, pass the data to a ConstructionAPIServicer to perform the
+/// required actions, then write the service results to the http response.
 #[axum::async_trait]
-pub trait CallerConstructionApi: Clone + ConstructionApi {
+pub trait ConstructionApiRouter: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_combine(
         &self,
@@ -148,9 +149,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .combine(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_combine_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -168,9 +166,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .derive(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_derive_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -188,9 +183,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .hash(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     transaction_identifier_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -211,9 +203,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
                 .metadata(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            // if assert_resp {
-            //     construction_metadata_response(Some(&resp)).unwrap();
-            // }
             Ok(Json(resp))
         }
     }
@@ -229,13 +218,7 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
     ) -> MentatResponse<UncheckedConstructionParseResponse> {
         asserter.construction_parse_request(data.as_ref())?;
         let data: ConstructionParseRequest = data.unwrap().into();
-        // let signed = data.signed;
         let resp = self.parse(caller, data, rpc_caller).await?.into();
-        // if assert_resp {
-        //     asserter
-        //         .construction_parse_response(Some(&resp), signed)
-        //         .unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -253,9 +236,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .payloads(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_payloads_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -273,9 +253,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
             .preprocess(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_preprocess_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -296,9 +273,6 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
                 .submit(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            // if assert_resp {
-            //     transaction_identifier_response(Some(&resp)).unwrap();
-            // }
             Ok(Json(resp))
         }
     }

@@ -32,7 +32,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     /// The name of the blockchain run by the node.
     const BLOCKCHAIN: &'static str;
 
-    // TODO make this return a struct with asserter instances for each route
+    // TODO make this return a struct/map with asserter instances for each route
     /// returns the asserter to be used when asserting requests
     fn init_asserter(&self, network: &Network) -> Asserter;
 
@@ -56,25 +56,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
         Configuration::load(&path)
     }
 
-    // TODO: replace with bitcoin example once bitcoin is containerized
-    ///
     /// The user specified command for running a node.
-    ///
-    /// ```ignore
-    /// fn node_command(config: &Configuration<Self>) -> Command {
-    ///     let mut command = Command::new(&config.node_path);
-    ///     command.args(&[
-    ///         "--node",
-    ///         &format!("{}:4132", config.address),
-    ///         "--rpc",
-    ///         &format!("{}:{}", config.address, config.node_rpc_port),
-    ///         "--trial",
-    ///         "--verbosity",
-    ///         "2",
-    ///     ]);
-    ///     command
-    /// }
-    /// ```
     fn node_command(config: &Configuration<Self>) -> Command;
 
     /// Makes a system call with the command returned by

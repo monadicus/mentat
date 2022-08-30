@@ -4,7 +4,7 @@
 
 use super::*;
 
-/// Trait to define the endpoints necessary for the Rosetta Call API.
+/// CallAPIServicer defines the api actions for the CallAPI service
 #[axum::async_trait]
 pub trait CallApi {
     /// Make a Network-Specific Procedure Call
@@ -18,12 +18,14 @@ pub trait CallApi {
     }
 }
 
-/// Trait to wrap the `CallApi`.
-/// This trait helps to define default behavior for running the endpoints
-/// on different modes.
+/// CallAPIRouter defines the required methods for binding the api requests to a responses for the
+/// CallAPI
+/// The CallAPIRouter implementation should parse necessary information from the http request,
+/// pass the data to a CallAPIServicer to perform the required actions, then write the service
+/// results to the http response.
 #[axum::async_trait]
-pub trait CallerCallApi: CallApi + Clone + Default {
-    /// This endpoint only runs in online mode.
+pub trait CallApiRouter: CallApi + Clone + Default {
+    /// This endpoint only runs in online mode
     async fn call_call(
         &self,
         caller: Caller,
