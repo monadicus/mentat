@@ -62,11 +62,11 @@ impl ParserContext {
         let ident = self.expect_identifier()?;
         self.expect(&TokenKind::Colon)?;
 
-        print!("{}{ident}: ", INDENT.repeat(4));
+        print!("{}{ident}: ", INDENT.repeat(5));
 
         let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
-        self.parse_type(5, type_, optionify)?;
-        print!("{}", INDENT.repeat(4));
+        self.parse_type(6, type_, optionify)?;
+        print!("{}", INDENT.repeat(5));
         for i in 0..vecs_to_close {
             self.expect(&TokenKind::RightCurly)?;
             print!("]");
@@ -78,9 +78,9 @@ impl ParserContext {
     }
 
     fn parse_test_struct(&mut self, rules: &RulesFile) -> Result<()> {
-        println!("{INDENT}{} {{", rules.test_struct.struct_name);
+        println!("{}{} {{", INDENT.repeat(2), rules.test_struct.struct_name);
         if let TokenKind::String(test_name) = self.curr_token.kind.clone() {
-            println!("{}name: \"{test_name}\",", INDENT.repeat(2));
+            println!("{}name: \"{test_name}\",", INDENT.repeat(3));
         } else {
             ParserError::unexpected_token(&self.curr_token.kind, "String", self.curr_token.span)?;
         }
@@ -96,7 +96,7 @@ impl ParserContext {
             } => {
                 let struct_format = format!(
                     "{}{} {{",
-                    INDENT.repeat(3),
+                    INDENT.repeat(4),
                     struct_name.to_ascii_lowercase()
                 );
                 self.parse_curly_comma_list(|c| {
@@ -109,9 +109,21 @@ impl ParserContext {
     }
 
     pub(super) fn convert(&mut self, rules: RulesFile) -> Result<()> {
-        println!("let tests = vec![");
+        println!("#[test]");
+        println!("fn {}() {{", rules.test_struct.test_fn_name);
+        println!("{INDENT}let tests = vec![");
         self.parse_curly_comma_list(|c| ParserContext::parse_test_struct(c, &rules))?;
-        println!("];");
+        println!("{INDENT}];");
+        println!(
+            "{INDENT}{}::{}(",
+            rules.test_struct.struct_name, rules.test_struct.test_fn_name
+        );
+        println!("{}tests,", INDENT.repeat(2));
+        for line in rules.test_struct.closure.lines() {
+            println!("{:2}{line}", INDENT.repeat(2));
+        }
+        println!("{INDENT});");
+        println!("}}");
         Ok(())
     }
 }
