@@ -33,7 +33,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
 
     // TODO make this return a struct/map with asserter instances for each route
     /// returns the asserter to be used when asserting requests
-    fn init_asserter(&self, network: &Network) -> AsserterTable;
+    fn init_asserters(&self, network: &Network) -> AsserterTable;
 
     /// The command for loading the node `Configuration`.
     ///
@@ -174,7 +174,7 @@ where
                 )
             });
 
-            config.asserter = config.custom.init_asserter(&config.network);
+            config.asserter = config.custom.init_asserters(&config.network);
 
             if !config.node_path.exists() {
                 panic!("Failed to find node at `{}`", config.node_path.display())
@@ -225,7 +225,7 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
-            asserter: custom.init_asserter(&Network::Testnet),
+            asserter: custom.init_asserters(&Network::Testnet),
             custom,
         }
     }

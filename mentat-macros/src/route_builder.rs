@@ -4,218 +4,208 @@ use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
 
 /// mentat routes
-const ROUTES: &[ApiGroup] = &[
-    ApiGroup {
-        api: "optional_api",
-        route_groups: &[RouteGroup {
-            route_base: "/optional",
-            routes: &[
-                Route {
-                    path: "/health",
-                    method: "call_health",
-                    req_data: None,
-                    req_method: "get",
-                    never_cache: true,
-                },
-                Route {
-                    path: "/synced",
-                    method: "call_synced",
-                    req_data: None,
-                    req_method: "get",
-                    never_cache: true,
-                },
-            ],
+const ROUTES: &[RouteGroup] = &[
+    RouteGroup {
+        field: "optional_api",
+        route_base: "/optional",
+        routes: &[
+            Route {
+                path: "/health",
+                method: "call_health",
+                req_data: None,
+                req_method: "get",
+                never_cache: true,
+            },
+            Route {
+                path: "/synced",
+                method: "call_synced",
+                req_data: None,
+                req_method: "get",
+                never_cache: true,
+            },
+        ],
+    },
+    RouteGroup {
+        field: "call_api",
+        route_base: "/call",
+        routes: &[Route {
+            path: "",
+            method: "call_call",
+            req_data: Some("NullableCallRequest"),
+            req_method: "post",
+            never_cache: false,
         }],
     },
-    ApiGroup {
-        api: "call_api",
-        route_groups: &[RouteGroup {
-            route_base: "/",
-            routes: &[Route {
-                path: "call",
-                method: "call_call",
-                req_data: Some("NullableCallRequest"),
+    RouteGroup {
+        field: "construction_api",
+        route_base: "/construction",
+        routes: &[
+            Route {
+                path: "/combine",
+                method: "call_combine",
+                req_data: Some("NullableConstructionCombineRequest"),
                 req_method: "post",
                 never_cache: false,
-            }],
-        }],
-    },
-    ApiGroup {
-        api: "construction_api",
-        route_groups: &[RouteGroup {
-            route_base: "/construction",
-            routes: &[
-                Route {
-                    path: "/combine",
-                    method: "call_combine",
-                    req_data: Some("NullableConstructionCombineRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-                Route {
-                    path: "/derive",
-                    method: "call_derive",
-                    req_data: Some("NullableConstructionDeriveRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-                Route {
-                    path: "/hash",
-                    method: "call_hash",
-                    req_data: Some("NullableConstructionHashRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-                Route {
-                    path: "/metadata",
-                    method: "call_metadata",
-                    req_data: Some("NullableConstructionMetadataRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-                Route {
-                    path: "/parse",
-                    method: "call_parse",
-                    req_data: Some("NullableConstructionParseRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-                Route {
-                    path: "/payloads",
-                    method: "call_payloads",
-                    req_data: Some("NullableConstructionPayloadsRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-                Route {
-                    path: "/preprocess",
-                    method: "call_preprocess",
-                    req_data: Some("NullableConstructionPreprocessRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-                Route {
-                    path: "/submit",
-                    method: "call_submit",
-                    req_data: Some("NullableConstructionSubmitRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                },
-            ],
-        }],
-    },
-    ApiGroup {
-        api: "data_api",
-        route_groups: &[
-            RouteGroup {
-                route_base: "/network",
-                routes: &[
-                    Route {
-                        path: "/list",
-                        method: "call_network_list",
-                        req_data: Some("NullableMetadataRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                    Route {
-                        path: "/options",
-                        method: "call_network_options",
-                        req_data: Some("NullableNetworkRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                    Route {
-                        path: "/status",
-                        method: "call_network_status",
-                        req_data: Some("NullableNetworkRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                ],
             },
-            RouteGroup {
-                route_base: "/account",
-                routes: &[
-                    Route {
-                        path: "/balance",
-                        method: "call_account_balance",
-                        req_data: Some("NullableAccountBalanceRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                    Route {
-                        path: "/coins",
-                        method: "call_account_coins",
-                        req_data: Some("NullableAccountCoinsRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                ],
+            Route {
+                path: "/derive",
+                method: "call_derive",
+                req_data: Some("NullableConstructionDeriveRequest"),
+                req_method: "post",
+                never_cache: false,
             },
-            RouteGroup {
-                route_base: "/block",
-                routes: &[
-                    Route {
-                        path: "",
-                        method: "call_block",
-                        req_data: Some("NullableBlockRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                    Route {
-                        path: "/transaction",
-                        method: "call_block_transaction",
-                        req_data: Some("NullableBlockTransactionRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                ],
+            Route {
+                path: "/hash",
+                method: "call_hash",
+                req_data: Some("NullableConstructionHashRequest"),
+                req_method: "post",
+                never_cache: false,
             },
-            RouteGroup {
-                route_base: "/mempool",
-                routes: &[
-                    Route {
-                        path: "",
-                        method: "call_mempool",
-                        req_data: Some("NullableNetworkRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                    Route {
-                        path: "/transaction",
-                        method: "call_mempool_transaction",
-                        req_data: Some("NullableMempoolTransactionRequest"),
-                        req_method: "post",
-                        never_cache: false,
-                    },
-                ],
+            Route {
+                path: "/metadata",
+                method: "call_metadata",
+                req_data: Some("NullableConstructionMetadataRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/parse",
+                method: "call_parse",
+                req_data: Some("NullableConstructionParseRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/payloads",
+                method: "call_payloads",
+                req_data: Some("NullableConstructionPayloadsRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/preprocess",
+                method: "call_preprocess",
+                req_data: Some("NullableConstructionPreprocessRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/submit",
+                method: "call_submit",
+                req_data: Some("NullableConstructionSubmitRequest"),
+                req_method: "post",
+                never_cache: false,
             },
         ],
     },
-    ApiGroup {
-        api: "indexer_api",
-        route_groups: &[
-            RouteGroup {
-                route_base: "/events",
-                routes: &[Route {
-                    path: "/blocks",
-                    method: "call_events_blocks",
-                    req_data: Some("NullableEventsBlocksRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                }],
+    RouteGroup {
+        field: "network_api",
+        route_base: "/network",
+        routes: &[
+            Route {
+                path: "/list",
+                method: "call_network_list",
+                req_data: Some("NullableMetadataRequest"),
+                req_method: "post",
+                never_cache: false,
             },
-            RouteGroup {
-                route_base: "/search",
-                routes: &[Route {
-                    path: "/transactions",
-                    method: "call_search_transactions",
-                    req_data: Some("NullableSearchTransactionsRequest"),
-                    req_method: "post",
-                    never_cache: false,
-                }],
+            Route {
+                path: "/options",
+                method: "call_network_options",
+                req_data: Some("NullableNetworkRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/status",
+                method: "call_network_status",
+                req_data: Some("NullableNetworkRequest"),
+                req_method: "post",
+                never_cache: false,
             },
         ],
+    },
+    RouteGroup {
+        field: "account_api",
+        route_base: "/account",
+        routes: &[
+            Route {
+                path: "/balance",
+                method: "call_account_balance",
+                req_data: Some("NullableAccountBalanceRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/coins",
+                method: "call_account_coins",
+                req_data: Some("NullableAccountCoinsRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+        ],
+    },
+    RouteGroup {
+        field: "block_api",
+        route_base: "/block",
+        routes: &[
+            Route {
+                path: "",
+                method: "call_block",
+                req_data: Some("NullableBlockRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/transaction",
+                method: "call_block_transaction",
+                req_data: Some("NullableBlockTransactionRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+        ],
+    },
+    RouteGroup {
+        field: "mempool_api",
+        route_base: "/mempool",
+        routes: &[
+            Route {
+                path: "",
+                method: "call_mempool",
+                req_data: Some("NullableNetworkRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+            Route {
+                path: "/transaction",
+                method: "call_mempool_transaction",
+                req_data: Some("NullableMempoolTransactionRequest"),
+                req_method: "post",
+                never_cache: false,
+            },
+        ],
+    },
+    RouteGroup {
+        field: "events_api",
+        route_base: "/events",
+        routes: &[Route {
+            path: "/blocks",
+            method: "call_events_blocks",
+            req_data: Some("NullableEventsBlocksRequest"),
+            req_method: "post",
+            never_cache: false,
+        }],
+    },
+    RouteGroup {
+        field: "search_api",
+        route_base: "/search",
+        routes: &[Route {
+            path: "/transactions",
+            method: "call_search_transactions",
+            req_data: Some("NullableSearchTransactionsRequest"),
+            req_method: "post",
+            never_cache: false,
+        }],
     },
 ];
 
@@ -234,16 +224,9 @@ struct Route {
 #[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug)]
 struct RouteGroup {
+    field: &'static str,
     route_base: &'static str,
     routes: &'static [Route],
-}
-
-/// a base rosetta endpoint and its corresponding route groups
-#[allow(clippy::missing_docs_in_private_items)]
-#[derive(Debug)]
-struct ApiGroup {
-    api: &'static str,
-    route_groups: &'static [RouteGroup],
 }
 
 /// builds the routes for rosetta and any optional mentat routes the user
@@ -251,36 +234,34 @@ struct ApiGroup {
 pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStream2 {
     let mut out = TokenStream2::new();
 
-    for api_group in ROUTES {
-        let api = Ident::new(api_group.api, Span::call_site());
-        for route_group in api_group.route_groups {
-            for route in route_group.routes {
-                let method = Ident::new(route.method, Span::call_site());
-                let req_data = route.req_data.map(|d| Ident::new(d, Span::call_site()));
-                let req_method = Ident::new(route.req_method, Span::call_site());
-                let r = match cache_type {
-                    Some(cacher) if !route.never_cache => build_cached_route(
-                        server_type,
-                        &api,
-                        route_group.route_base,
-                        route.path,
-                        &method,
-                        req_data,
-                        &req_method,
-                        cacher,
-                    ),
-                    _ => build_route(
-                        server_type,
-                        &api,
-                        route_group.route_base,
-                        route.path,
-                        &method,
-                        req_data,
-                        &req_method,
-                    ),
-                };
-                out.extend(r);
-            }
+    for route_group in ROUTES {
+        let api_field = Ident::new(route_group.field, Span::call_site());
+        for route in route_group.routes {
+            let method = Ident::new(route.method, Span::call_site());
+            let req_data = route.req_data.map(|d| Ident::new(d, Span::call_site()));
+            let req_method = Ident::new(route.req_method, Span::call_site());
+            let r = match cache_type {
+                Some(cacher) if !route.never_cache => build_cached_route(
+                    server_type,
+                    &api_field,
+                    route_group.route_base,
+                    route.path,
+                    &method,
+                    req_data,
+                    &req_method,
+                    cacher,
+                ),
+                _ => build_route(
+                    server_type,
+                    &api_field,
+                    route_group.route_base,
+                    route.path,
+                    &method,
+                    req_data,
+                    &req_method,
+                ),
+            };
+            out.extend(r);
         }
     }
 
@@ -290,7 +271,7 @@ pub fn build_routes(server_type: &Ident, cache_type: Option<&Ident>) -> TokenStr
 /// builds a mentat route without caching enabled
 fn build_route(
     server_type: &Ident,
-    api: &Ident,
+    api_field: &Ident,
     route_base: &str,
     path: &str,
     method: &Ident,
@@ -310,7 +291,7 @@ fn build_route(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
         );
-        method_args = quote!(&conf.asserter, req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&conf.asserter.#api_field, req_data, &conf.mode, rpc_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
@@ -325,7 +306,7 @@ fn build_route(
         method_args = quote!(&conf.mode, rpc_caller, server_pid, node_pid,);
     }
     quote!(
-        let api = server.#api.clone();
+        let api = server.#api_field.clone();
         let #method = move |
             ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
             #req_input
@@ -349,7 +330,7 @@ fn build_route(
 /// builds a mentat route with caching enabled
 fn build_cached_route(
     server_type: &Ident,
-    api: &Ident,
+    api_field: &Ident,
     route_base: &str,
     path: &str,
     method: &Ident,
@@ -370,7 +351,7 @@ fn build_cached_route(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
         );
-        method_args = quote!(&conf.asserter, req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&conf.asserter.#api_field, req_data, &conf.mode, rpc_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
@@ -383,7 +364,7 @@ fn build_cached_route(
         method_args = quote!(server_pid, node_pid,);
     }
     quote!(
-        let api = server.#api.clone();
+        let api = server.#api_field.clone();
         let cache = Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None);
 
         let #method = move |
