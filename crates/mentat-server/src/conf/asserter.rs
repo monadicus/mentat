@@ -16,63 +16,63 @@ macro_rules! builder_fn {
 #[derive(Default)]
 pub struct AsserterTableBuilder {
     use_default: Option<Asserter>,
-    account: Option<Asserter>,
-    block: Option<Asserter>,
-    call: Option<Asserter>,
-    construction: Option<Asserter>,
-    events: Option<Asserter>,
-    mempool: Option<Asserter>,
-    network: Option<Asserter>,
-    search: Option<Asserter>,
+    account_api: Option<Asserter>,
+    block_api: Option<Asserter>,
+    call_api: Option<Asserter>,
+    construction_api: Option<Asserter>,
+    events_api: Option<Asserter>,
+    mempool_api: Option<Asserter>,
+    network_api: Option<Asserter>,
+    search_api: Option<Asserter>,
 }
 
 impl AsserterTableBuilder {
     builder_fn!(use_default);
-    builder_fn!(account);
-    builder_fn!(block);
-    builder_fn!(call);
-    builder_fn!(construction);
-    builder_fn!(events);
-    builder_fn!(mempool);
-    builder_fn!(network);
-    builder_fn!(search);
+    builder_fn!(account_api);
+    builder_fn!(block_api);
+    builder_fn!(call_api);
+    builder_fn!(construction_api);
+    builder_fn!(events_api);
+    builder_fn!(mempool_api);
+    builder_fn!(network_api);
+    builder_fn!(search_api);
 
     pub fn build(self) -> AsserterTable {
         AsserterTable {
-            account: self.account.unwrap_or_else(|| {
+            account_api: self.account_api.unwrap_or_else(|| {
                 self.use_default
                     .clone()
                     .expect("no account asserter provided")
             }),
-            block: self.block.unwrap_or_else(|| {
+            block_api: self.block_api.unwrap_or_else(|| {
                 self.use_default
                     .clone()
                     .expect("no block asserter provided")
             }),
-            call: self
-                .call
+            call_api: self
+                .call_api
                 .unwrap_or_else(|| self.use_default.clone().expect("no call asserter provided")),
-            construction: self.construction.unwrap_or_else(|| {
+            construction_api: self.construction_api.unwrap_or_else(|| {
                 self.use_default
                     .clone()
                     .expect("no construction asserter provided")
             }),
-            events: self.events.unwrap_or_else(|| {
+            events_api: self.events_api.unwrap_or_else(|| {
                 self.use_default
                     .clone()
                     .expect("no events asserter provided")
             }),
-            mempool: self.mempool.unwrap_or_else(|| {
+            mempool_api: self.mempool_api.unwrap_or_else(|| {
                 self.use_default
                     .clone()
                     .expect("no mempool asserter provided")
             }),
-            network: self.network.unwrap_or_else(|| {
+            network_api: self.network_api.unwrap_or_else(|| {
                 self.use_default
                     .clone()
                     .expect("no network asserter provided")
             }),
-            search: self.search.unwrap_or_else(|| {
+            search_api: self.search_api.unwrap_or_else(|| {
                 self.use_default
                     .clone()
                     .expect("no search asserter provided")
@@ -83,14 +83,14 @@ impl AsserterTableBuilder {
 
 #[derive(Clone, Debug, Default)]
 pub struct AsserterTable {
-    pub account: Asserter,
-    pub block: Asserter,
-    pub call: Asserter,
-    pub construction: Asserter,
-    pub events: Asserter,
-    pub mempool: Asserter,
-    pub network: Asserter,
-    pub search: Asserter,
+    pub account_api: Asserter,
+    pub block_api: Asserter,
+    pub call_api: Asserter,
+    pub construction_api: Asserter,
+    pub events_api: Asserter,
+    pub mempool_api: Asserter,
+    pub network_api: Asserter,
+    pub search_api: Asserter,
 }
 
 impl AsserterTable {
@@ -102,14 +102,14 @@ impl AsserterTable {
 impl From<Asserter> for AsserterTable {
     fn from(v: Asserter) -> Self {
         Self {
-            account: v.clone(),
-            block: v.clone(),
-            call: v.clone(),
-            construction: v.clone(),
-            events: v.clone(),
-            mempool: v.clone(),
-            network: v.clone(),
-            search: v,
+            account_api: v.clone(),
+            block_api: v.clone(),
+            call_api: v.clone(),
+            construction_api: v.clone(),
+            events_api: v.clone(),
+            mempool_api: v.clone(),
+            network_api: v.clone(),
+            search_api: v,
         }
     }
 }
