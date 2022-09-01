@@ -77,6 +77,7 @@ impl AsserterTableBuilder {
                     .clone()
                     .expect("no search asserter provided")
             }),
+            optional_api: (),
         }
     }
 }
@@ -91,6 +92,9 @@ pub struct AsserterTable {
     pub mempool_api: Asserter,
     pub network_api: Asserter,
     pub search_api: Asserter,
+    // TODO
+    /// exists due to an edge case in our proc macro
+    pub optional_api: (),
 }
 
 impl AsserterTable {
@@ -110,6 +114,7 @@ impl From<Asserter> for AsserterTable {
             mempool_api: v.clone(),
             network_api: v.clone(),
             search_api: v,
+            optional_api: (),
         }
     }
 }

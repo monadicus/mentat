@@ -31,10 +31,6 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     /// The name of the blockchain run by the node.
     const BLOCKCHAIN: &'static str;
 
-    // TODO make this return a struct/map with asserter instances for each route
-    /// returns the asserter to be used when asserting requests
-    fn init_asserters(&self, network: &Network) -> AsserterTable;
-
     /// The command for loading the node `Configuration`.
     ///
     /// WARNING: This defaults to assuming that the first argument passed to the
@@ -137,9 +133,6 @@ pub struct Configuration<Custom: NodeConf> {
         skip_serializing_if = "Configuration::<Custom>::skip_serializing_custom"
     )]
     pub custom: Custom,
-    /// returns the asserter to be used when asserting requests
-    #[serde(skip)]
-    pub asserter: AsserterTable,
 }
 
 impl<Custom> Configuration<Custom>
@@ -148,7 +141,7 @@ where
 {
     /// skips serializing the custom struct if it contains no fields
     fn skip_serializing_custom(_: &Custom) -> bool {
-        std::mem::size_of::<Self>() != 0
+        std::mem::size_of::<Custom>() == 0
     }
 
     /// Loads a configuration file from the supplied path.
@@ -166,15 +159,13 @@ where
                     e
                 )
             });
-            let mut config: Self = toml::from_str(&content).unwrap_or_else(|e| {
+            let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
                 panic!(
                     "Failed to parse config file at path `{}`: {}",
                     path.display(),
                     e
                 )
             });
-
-            config.asserter = config.custom.init_asserters(&config.network);
 
             if !config.node_path.exists() {
                 panic!("Failed to find node at `{}`", config.node_path.display())
@@ -225,7 +216,6 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
-            asserter: custom.init_asserters(&Network::Testnet),
             custom,
         }
     }

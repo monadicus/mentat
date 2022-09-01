@@ -1,21 +1,19 @@
 //! Defines the `Server` methods and launcher for Mentat.
 
 use serde::de::DeserializeOwned;
-use serde_json::Value;
 use sysinfo::{Pid, PidExt};
-mod middleware_checks;
+pub mod middleware;
 mod rpc_caller;
 
 use std::net::SocketAddr;
 
-use axum::{extract::Extension, handler::Handler, http::Extensions, middleware, Router};
-use mentat_types::{MentatError, Result};
+use axum::{extract::Extension, handler::Handler, Router};
+use mentat_types::MentatError;
 pub use rpc_caller::*;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;
 
-use self::middleware_checks::{check_network_identifier, middleware_checks};
-use crate::{api::*, conf::*};
+use crate::{api::*, conf::*, server::middleware::content_type_middleware};
 
 /// Contains the types required to construct a mentat [`Server`].
 ///
@@ -45,10 +43,12 @@ pub trait ServerType: Sized + 'static {
     /// The nodes's `NodeConf` implementation.
     type CustomConfig: DeserializeOwned + NodeConf;
 
-    /// A function to implement middleware checks.
-    fn middleware_checks(extensions: &Extensions, json: &Value) -> Result<()> {
-        check_network_identifier::<Self>(extensions, json)
-    }
+    /// returns the asserter to be used when asserting requests
+    fn init_asserters(_config: &Configuration<Self::CustomConfig>) -> AsserterTable;
+
+    /// an optional function to add middleware to the axum server. by default this does nothing.
+    /// look at the provided functions in [`middleware`] for help with constructing middleware layers
+    fn middleware(_config: &Configuration<Self::CustomConfig>, _router: &mut Router) {}
 
     /// Sets up a tracing subscriber dispatch
     fn setup_logging() -> tracing::Dispatch {
@@ -129,6 +129,9 @@ impl<Types: ServerType> Default for ServerBuilder<Types> {
 impl<Types: ServerType> ServerBuilder<Types> {
     /// Builds the Server.
     pub fn build(self) -> Server<Types> {
+        let configuration = self
+            .configuration
+            .expect("You did not set the custom configuration.");
         Server {
             account_api: self.account_api.expect("You did not set the call api."),
             block_api: self.block_api.expect("You did not set the call api."),
@@ -143,9 +146,8 @@ impl<Types: ServerType> ServerBuilder<Types> {
                 .optional_api
                 .expect("You did not set the additional api."),
             search_api: self.search_api.expect("You did not set the call api."),
-            configuration: self
-                .configuration
-                .expect("You did not set the custom configuration."),
+            asserters: Types::init_asserters(&configuration),
+            configuration,
         }
     }
 
@@ -244,10 +246,13 @@ pub struct Server<Types: ServerType> {
     pub optional_api: Types::OptionalApi,
     /// The optional configuration details.
     pub configuration: Configuration<Types::CustomConfig>,
+    /// the asserter to be used when asserting requests
+    pub asserters: AsserterTable,
 }
 
 impl<Types: ServerType> Default for Server<Types> {
     fn default() -> Self {
+        let configuration = Types::CustomConfig::load_config();
         Self {
             account_api: Default::default(),
             block_api: Default::default(),
@@ -258,7 +263,8 @@ impl<Types: ServerType> Default for Server<Types> {
             network_api: Default::default(),
             search_api: Default::default(),
             optional_api: Default::default(),
-            configuration: Types::CustomConfig::load_config(),
+            asserters: Types::init_asserters(&configuration),
+            configuration,
         }
     }
 }
@@ -278,8 +284,9 @@ impl<Types: ServerType> Server<Types> {
         let rpc_caller = RpcCaller::new(&self.configuration);
         let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
 
+        Types::middleware(&self.configuration, &mut app);
         app = app
-            .route_layer(middleware::from_fn(middleware_checks::<Types>))
+            .route_layer(axum::middleware::from_fn(content_type_middleware))
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(Extension(self.configuration))
@@ -301,15 +308,4 @@ impl<Types: ServerType> Server<Types> {
             .unwrap_or_else(|err| panic!("Failed to listen on addr `{addr}`: `{err}`."));
         Types::teardown_logging();
     }
-}
-
-/// CorsMiddleware handles CORS and ensures OPTIONS requests are
-/// handled properly.
-///
-/// This may be used to expose a Rosetta server instance to requests made by web
-/// apps served over a different domain. Note that his currently allows _all_
-/// third party domains so callers might want to adapt this middleware for their
-/// own use-cases.
-pub fn cors_middleware(next: ()) -> ! {
-    todo!()
 }

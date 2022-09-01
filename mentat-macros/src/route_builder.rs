@@ -291,7 +291,7 @@ fn build_route(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
         );
-        method_args = quote!(&conf.asserter.#api_field, req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&asserter, req_data, &conf.mode, rpc_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
@@ -303,10 +303,11 @@ fn build_route(
             tracing::info!("{}", server_pid);
             tracing::info!("{}", node_pid.0);
         );
-        method_args = quote!(&conf.mode, rpc_caller, server_pid, node_pid,);
+        method_args = quote!(&conf.mode, rpc_caller, server_pid, node_pid);
     }
     quote!(
         let api = server.#api_field.clone();
+        let asserter = server.asserters.#api_field.clone();
         let #method = move |
             ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
             #req_input
@@ -351,7 +352,7 @@ fn build_cached_route(
             tracing::info!("{:#?}", req_data);
             tracing::info!("{:#?}", conf);
         );
-        method_args = quote!(&conf.asserter.#api_field, req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&asserter, req_data, &conf.mode, rpc_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
@@ -361,10 +362,11 @@ fn build_cached_route(
             tracing::info!("{}", server_pid);
             tracing::info!("{}", node_pid.0);
         );
-        method_args = quote!(server_pid, node_pid,);
+        method_args = quote!(server_pid, node_pid);
     }
     quote!(
         let api = server.#api_field.clone();
+        let asserter = server.asserters.#api_field.clone();
         let cache = Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None);
 
         let #method = move |
