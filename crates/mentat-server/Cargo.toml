@@ -45,3 +45,4 @@ tracing-subscriber = { version = "0.3.15", features = [
 tracing-tree = { version = "0.2.1", default-features = false }
 sysinfo = { version = "0.23.9", default-features = false }
 const_format = "0.2.26"
+tower-http = { version = "0.3.4", features = ["cors"] }

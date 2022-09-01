@@ -1,22 +1,25 @@
 //! Defines the different API traits needed for Rosetta.
 
-use axum::Json;
-
-use crate::{conf::Mode, server::RpcCaller};
-
-mod optional;
-pub use optional::*;
-
+mod account;
+pub use account::*;
+mod block;
+pub use block::*;
 mod call;
 pub use call::*;
-
 mod construction;
 pub use construction::*;
-
-mod data;
-pub use data::*;
-
-mod indexer;
-pub use indexer::*;
-use mentat_asserter::*;
+mod events;
+pub use events::*;
+mod mempool;
+pub use mempool::*;
+mod network;
+pub use network::*;
+mod optional;
+pub use optional::*;
+mod search;
+use axum::Json;
+use mentat_asserter::Asserter;
 use mentat_types::*;
+pub use search::*;
+
+use crate::{conf::Mode, server::RpcCaller};

@@ -980,6 +980,7 @@ dependencies = [
  "tokio",
  "toml",
  "tower",
+ "tower-http",
  "tracing",
  "tracing-error",
  "tracing-opentelemetry",

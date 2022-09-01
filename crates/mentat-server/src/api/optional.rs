@@ -11,7 +11,7 @@ use crate::conf::NodePid;
 /// The `OptionalApi` Trait.
 pub trait OptionalApi: Clone + Default {
     /// returns local and global chain tips
-    async fn synced(&self, _rpc_caller: RpcCaller) -> MentatResponse<Synced> {
+    async fn synced(&self, _rpc_caller: RpcCaller) -> Result<Synced> {
         MentatError::not_implemented()
     }
 
@@ -23,10 +23,10 @@ pub trait OptionalApi: Clone + Default {
         rpc_caller: RpcCaller,
         server_pid: Pid,
         node_pid: NodePid,
-    ) -> MentatResponse<HealthCheckResponse> {
+    ) -> Result<HealthCheckResponse> {
         tracing::debug!("health check!");
         let system = System::new_all();
-        Ok(Json(HealthCheckResponse {
+        Ok(HealthCheckResponse {
             caller,
             msg: "Healthy!".to_string(),
             usage: self.usage("server", &system, server_pid).await?,
@@ -37,7 +37,7 @@ pub trait OptionalApi: Clone + Default {
                 net_usage: self.node_net_usage(mode, &rpc_caller).await?,
             },
             cache_usage: self.check_cache_usage().await?,
-        }))
+        })
     }
 
     /// A method for getting the usage of a Process.
@@ -89,7 +89,7 @@ pub trait OptionalApi: Clone + Default {
 /// This trait helps to define default behavior for running the endpoints
 /// on different modes.
 #[axum::async_trait]
-pub trait CallerOptionalApi: OptionalApi + Clone + Default {
+pub trait OptionalApiRouter: OptionalApi + Clone + Default {
     /// For performing a health check on the server.
     async fn call_health(
         &self,
@@ -114,7 +114,7 @@ pub trait CallerOptionalApi: OptionalApi + Clone + Default {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            self.synced(rpc_caller).await
+            Ok(Json(self.synced(rpc_caller).await?))
         }
     }
 }
