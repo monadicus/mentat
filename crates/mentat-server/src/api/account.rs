@@ -65,11 +65,11 @@ pub trait AccountApi: Default {
     }
 }
 
-/// AccountAPIRouter defines the required methods for binding the api requests to a responses for the
-/// AccountAPI
-/// The AccountAPIRouter implementation should parse necessary information from the http request,
-/// pass the data to a AccountAPIServicer to perform the required actions, then write the service
-/// results to the http response.
+/// AccountAPIRouter defines the required methods for binding the api requests
+/// to a responses for the AccountAPI
+/// The AccountAPIRouter implementation should parse necessary information from
+/// the http request, pass the data to a AccountAPIServicer to perform the
+/// required actions, then write the service results to the http response.
 #[axum::async_trait]
 pub trait AccountApiRouter: Clone + AccountApi {
     /// This endpoint only runs in online mode.

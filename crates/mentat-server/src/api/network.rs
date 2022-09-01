@@ -48,11 +48,11 @@ pub trait NetworkApi {
     }
 }
 
-/// NetworkAPIRouter defines the required methods for binding the api requests to a responses for the
-/// NetworkAPI
-/// The NetworkAPIRouter implementation should parse necessary information from the http request,
-/// pass the data to a NetworkAPIServicer to perform the required actions, then write the service
-/// results to the http response.
+/// NetworkAPIRouter defines the required methods for binding the api requests
+/// to a responses for the NetworkAPI
+/// The NetworkAPIRouter implementation should parse necessary information from
+/// the http request, pass the data to a NetworkAPIServicer to perform the
+/// required actions, then write the service results to the http response.
 #[axum::async_trait]
 pub trait NetworkApiRouter: NetworkApi + Clone + Default {
     /// This endpoint runs in both offline and online mode.

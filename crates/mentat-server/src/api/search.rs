@@ -26,11 +26,11 @@ pub trait SearchApi {
     }
 }
 
-/// SearchAPIRouter defines the required methods for binding the api requests to a responses for the
-/// SearchAPI
-/// The SearchAPIRouter implementation should parse necessary information from the http request,
-/// pass the data to a SearchAPIServicer to perform the required actions, then write the service
-/// results to the http response.
+/// SearchAPIRouter defines the required methods for binding the api requests to
+/// a responses for the SearchAPI
+/// The SearchAPIRouter implementation should parse necessary information from
+/// the http request, pass the data to a SearchAPIServicer to perform the
+/// required actions, then write the service results to the http response.
 #[axum::async_trait]
 pub trait SearchApiRouter: SearchApi + Clone + Default {
     /// This endpoint runs in both offline and online mode.

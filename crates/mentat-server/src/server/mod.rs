@@ -46,8 +46,9 @@ pub trait ServerType: Sized + 'static {
     /// returns the asserter to be used when asserting requests
     fn init_asserters(_config: &Configuration<Self::CustomConfig>) -> AsserterTable;
 
-    /// an optional function to add middleware to the axum server. by default this does nothing.
-    /// look at the provided functions in [`middleware`] for help with constructing middleware layers
+    /// an optional function to add middleware to the axum server. by default
+    /// this does nothing. look at the provided functions in [`middleware`]
+    /// for help with constructing middleware layers
     fn middleware(_config: &Configuration<Self::CustomConfig>, _router: &mut Router) {}
 
     /// Sets up a tracing subscriber dispatch

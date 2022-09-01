@@ -17,11 +17,9 @@ pub use network::*;
 mod optional;
 pub use optional::*;
 mod search;
+use axum::Json;
+use mentat_asserter::Asserter;
+use mentat_types::*;
 pub use search::*;
 
 use crate::{conf::Mode, server::RpcCaller};
-
-use mentat_asserter::Asserter;
-use mentat_types::*;
-
-use axum::Json;

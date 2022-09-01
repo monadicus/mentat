@@ -37,11 +37,11 @@ pub trait MempoolApi {
     }
 }
 
-/// MempoolAPIRouter defines the required methods for binding the api requests to a responses for the
-/// MempoolAPI
-/// The MempoolAPIRouter implementation should parse necessary information from the http request,
-/// pass the data to a MempoolAPIServicer to perform the required actions, then write the service
-/// results to the http response.
+/// MempoolAPIRouter defines the required methods for binding the api requests
+/// to a responses for the MempoolAPI
+/// The MempoolAPIRouter implementation should parse necessary information from
+/// the http request, pass the data to a MempoolAPIServicer to perform the
+/// required actions, then write the service results to the http response.
 #[axum::async_trait]
 pub trait MempoolApiRouter: MempoolApi + Clone + Default {
     /// This endpoint only runs in online mode.

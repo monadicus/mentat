@@ -3,7 +3,8 @@
 //! implementations.
 use super::*;
 
-/// ConstructionAPIServicer defines the api actions for the ConstructionAPI service
+/// ConstructionAPIServicer defines the api actions for the ConstructionAPI
+/// service
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
     /// Combine creates a network-specific transaction from an unsigned
@@ -129,10 +130,11 @@ pub trait ConstructionApi: Default {
     }
 }
 
-/// ConstructionAPIRouter defines the required methods for binding the api requests to a responses
-/// for the ConstructionAPI The ConstructionAPIRouter implementation should parse necessary
-/// information from the http request, pass the data to a ConstructionAPIServicer to perform the
-/// required actions, then write the service results to the http response.
+/// ConstructionAPIRouter defines the required methods for binding the api
+/// requests to a responses for the ConstructionAPI The ConstructionAPIRouter
+/// implementation should parse necessary information from the http request,
+/// pass the data to a ConstructionAPIServicer to perform the required actions,
+/// then write the service results to the http response.
 #[axum::async_trait]
 pub trait ConstructionApiRouter: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.

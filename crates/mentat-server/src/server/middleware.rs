@@ -4,7 +4,8 @@ use axum::{middleware::Next, response::IntoResponse};
 use hyper::{Body, HeaderMap, Method, Request, StatusCode};
 use mentat_types::Result;
 
-/// sets the `Content-Type` field in the response header to `application/json; charset=UTF-8`
+/// sets the `Content-Type` field in the response header to `application/json;
+/// charset=UTF-8`
 pub(crate) async fn content_type_middleware(
     req: Request<Body>,
     next: Next<Body>,
