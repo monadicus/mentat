@@ -8,6 +8,7 @@ use serde_json::Value;
 use super::ServerType;
 use crate::conf::{Configuration, Network, NodeConf};
 
+// TODO do we even need this anymore?
 // TODO i think this might be broken since its input is now an option, but it
 // doesnt actually cause any errors
 /// A function to do all middleware checks.
@@ -30,38 +31,37 @@ pub async fn middleware_checks<Types: ServerType>(
     Ok(next.run(req).await)
 }
 
-/// A struct for the checking the NetworkIdentifier.
-pub struct NetworkIdentifierCheck;
-
-impl NetworkIdentifierCheck {
-    // TODO i think this might be broken since its input is now an option, but it
-    // doesnt actually cause any errors
-    /// A function to check if the server Blockchain specified matches the user
-    /// request specified blockchain.
-    pub fn check<Types: ServerType>(extensions: &Extensions, json: &Value) -> Result<()> {
-        let config = extensions
-            .get::<Configuration<Types::CustomConfig>>()
-            .unwrap();
-        if let Some(net_id) = json.get("network_identifier") {
-            let network_identifier = serde_json::from_value::<NetworkIdentifier>(net_id.clone())?;
-            if network_identifier.blockchain.to_uppercase()
-                != Types::CustomConfig::BLOCKCHAIN.to_uppercase()
-            {
-                return Err(format!(
-                    "invalid blockchain ID: found `{}`, expected `{}`",
-                    network_identifier.blockchain.to_uppercase(),
-                    Types::CustomConfig::BLOCKCHAIN.to_uppercase()
-                )
-                .into());
-            } else if Network::from(network_identifier.network.to_uppercase()) != config.network {
-                return Err(format!(
-                    "invalid network ID: found `{}`, expected `{}`",
-                    network_identifier.network.to_uppercase(),
-                    config.network
-                )
-                .into());
-            }
+// TODO do we even need this anymore?
+// TODO i think this might be broken since its input is now an option, but it
+// doesnt actually cause any errors
+/// A function to check if the server Blockchain specified matches the user
+/// request specified blockchain.
+pub fn check_network_identifier<Types: ServerType>(
+    extensions: &Extensions,
+    json: &Value,
+) -> Result<()> {
+    let config = extensions
+        .get::<Configuration<Types::CustomConfig>>()
+        .unwrap();
+    if let Some(net_id) = json.get("network_identifier") {
+        let network_identifier = serde_json::from_value::<NetworkIdentifier>(net_id.clone())?;
+        if network_identifier.blockchain.to_uppercase()
+            != Types::CustomConfig::BLOCKCHAIN.to_uppercase()
+        {
+            return Err(format!(
+                "invalid blockchain ID: found `{}`, expected `{}`",
+                network_identifier.blockchain.to_uppercase(),
+                Types::CustomConfig::BLOCKCHAIN.to_uppercase()
+            )
+            .into());
+        } else if Network::from(network_identifier.network.to_uppercase()) != config.network {
+            return Err(format!(
+                "invalid network ID: found `{}`, expected `{}`",
+                network_identifier.network.to_uppercase(),
+                config.network
+            )
+            .into());
         }
-        Ok(())
     }
+    Ok(())
 }

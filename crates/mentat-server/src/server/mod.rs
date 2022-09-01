@@ -14,7 +14,7 @@ pub use rpc_caller::*;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;
 
-use self::middleware_checks::{middleware_checks, NetworkIdentifierCheck};
+use self::middleware_checks::{check_network_identifier, middleware_checks};
 use crate::{api::*, conf::*};
 
 /// Contains the types required to construct a mentat [`Server`].
@@ -47,7 +47,7 @@ pub trait ServerType: Sized + 'static {
 
     /// A function to implement middleware checks.
     fn middleware_checks(extensions: &Extensions, json: &Value) -> Result<()> {
-        NetworkIdentifierCheck::check::<Self>(extensions, json)
+        check_network_identifier::<Self>(extensions, json)
     }
 
     /// Sets up a tracing subscriber dispatch
@@ -301,4 +301,15 @@ impl<Types: ServerType> Server<Types> {
             .unwrap_or_else(|err| panic!("Failed to listen on addr `{addr}`: `{err}`."));
         Types::teardown_logging();
     }
+}
+
+/// CorsMiddleware handles CORS and ensures OPTIONS requests are
+/// handled properly.
+///
+/// This may be used to expose a Rosetta server instance to requests made by web
+/// apps served over a different domain. Note that his currently allows _all_
+/// third party domains so callers might want to adapt this middleware for their
+/// own use-cases.
+pub fn cors_middleware(next: ()) -> ! {
+    todo!()
 }
