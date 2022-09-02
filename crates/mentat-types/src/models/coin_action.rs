@@ -8,9 +8,9 @@ use super::*;
 /// assumed that a single Coin cannot be created or spent more than once.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(transparent)]
-pub struct NullableCoinAction(String);
+pub struct UncheckedCoinAction(String);
 
-impl NullableCoinAction {
+impl UncheckedCoinAction {
     /// `CoinAction` indicating a Coin was created.
     pub const COIN_CREATED: &'static str = "coin_created";
     /// `CoinAction` indicating a Coin was spent.
@@ -27,19 +27,19 @@ impl NullableCoinAction {
     }
 }
 
-impl fmt::Display for NullableCoinAction {
+impl fmt::Display for UncheckedCoinAction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<String> for NullableCoinAction {
+impl From<String> for UncheckedCoinAction {
     fn from(act: String) -> Self {
         Self(act)
     }
 }
 
-impl From<&str> for NullableCoinAction {
+impl From<&str> for UncheckedCoinAction {
     fn from(act: &str) -> Self {
         act.to_string().into()
     }
@@ -68,17 +68,17 @@ impl Default for CoinAction {
     }
 }
 
-impl From<NullableCoinAction> for CoinAction {
-    fn from(other: NullableCoinAction) -> Self {
+impl From<UncheckedCoinAction> for CoinAction {
+    fn from(other: UncheckedCoinAction) -> Self {
         match other.0.as_ref() {
-            NullableCoinAction::COIN_CREATED => Self::CoinCreated,
-            NullableCoinAction::COIN_SPENT => Self::CoinSpent,
+            UncheckedCoinAction::COIN_CREATED => Self::CoinCreated,
+            UncheckedCoinAction::COIN_SPENT => Self::CoinSpent,
             i => panic!("unsupported CoinAction: {i}"),
         }
     }
 }
 
-impl From<CoinAction> for NullableCoinAction {
+impl From<CoinAction> for UncheckedCoinAction {
     fn from(other: CoinAction) -> Self {
         match other {
             CoinAction::CoinCreated => Self::COIN_CREATED.into(),

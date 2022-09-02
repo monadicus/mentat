@@ -1,0 +1,24 @@
+[package]
+name = "mentat-syncer"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.62.1"
+
+[dependencies]
+mentat-types = { path = "../mentat-types" }
+mentat-asserter = { path = "../mentat-asserter" }
+mentat-test-utils = { path = "../mentat-test-utils" }
+thiserror = "1.0.31"
+tokio = { version = "1.17.0", default-features = false, features = ["macros", "time"] }
+indexmap = { version = "1.8.1", default-features = false, features = ["serde"] }
+crossbeam = "0.8.2"
+parking_lot = "0.12.1"
+tracing = { version = "0.1.36", default-features = false, features = [
+    "attributes",
+] }
+crossbeam-channel = "0.5.6"
+futures = "0.3.23"
+mockall = "0.11.2"
+
+[dev-dependencies]
+tokio-test = "0.4.2"

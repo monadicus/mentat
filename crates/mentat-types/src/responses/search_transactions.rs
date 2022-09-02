@@ -6,9 +6,9 @@ use super::*;
 /// [`BlockTransaction`]s that match the query in
 /// [`crate::requests::SearchTransactionsRequest`]. These [`BlockTransaction`]s
 /// are sorted from most recent block to oldest block.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableSearchTransactionsResponse {
+pub struct UncheckedSearchTransactionsResponse {
     /// transactions is an array of [`BlockTransaction`]s sorted by most recent
     /// [`BlockIdentifier`] (meaning that transactions in recent blocks appear
     /// first). If there are many transactions for a particular search,
@@ -18,15 +18,16 @@ pub struct NullableSearchTransactionsResponse {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub transactions: Vec<Option<NullableBlockTransaction>>,
+    pub transactions: Vec<Option<UncheckedBlockTransaction>>,
     /// `total_count` is the number of results for a given search. Callers
     /// typically use this value to concurrently fetch results by offset or to
     /// display a virtual page number associated with results.
-    pub total_count: i64,
+    #[unchecked(usize)]
+    pub total_count: isize,
     /// `next_offset` is the next offset to use when paginating through
     /// transaction results. If this field is not populated, there are no more
     /// transactions to query.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[nullable(retain)]
-    pub next_offset: Option<i64>,
+    #[unchecked(option_usize)]
+    pub next_offset: Option<isize>,
 }

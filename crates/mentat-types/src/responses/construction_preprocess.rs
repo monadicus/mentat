@@ -1,7 +1,5 @@
 //! The module defines the `ConstructionPreprocessResponse` response.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`ConstructionPreprocessResponse`] contains options that will be sent
@@ -12,9 +10,9 @@ use super::*;
 /// `required_public_keys` with the [`AccountIdentifier`]s associated with the
 /// desired [`PublicKey`]s. If it is not necessary to retrieve any
 /// [`PublicKey`]s for construction, `required_public_keys` should be omitted.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableConstructionPreprocessResponse {
+pub struct UncheckedConstructionPreprocessResponse {
     /// The options that will be sent directly to `/construction/metadata` by
     /// the caller.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]

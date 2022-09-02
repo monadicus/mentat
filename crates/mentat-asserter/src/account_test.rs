@@ -130,12 +130,12 @@ fn test_contains_duplicate_currency() {
         TestCase {
             name: "simple contains",
             payload: vec![
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }),
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -146,12 +146,12 @@ fn test_contains_duplicate_currency() {
         TestCase {
             name: "complex contains",
             payload: vec![
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }),
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
@@ -162,12 +162,12 @@ fn test_contains_duplicate_currency() {
         TestCase {
             name: "more complex contains",
             payload: vec![
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
                 }),
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah2".to_string() => json!("bye"), "blah".to_string() => json!("hello")),
@@ -183,12 +183,12 @@ fn test_contains_duplicate_currency() {
         TestCase {
             name: "symbol mismatch",
             payload: vec![
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "ERX".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }),
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
@@ -199,12 +199,12 @@ fn test_contains_duplicate_currency() {
         TestCase {
             name: "decimal mismatch",
             payload: vec![
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: Default::default(),
                 }),
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 6,
                     metadata: Default::default(),
@@ -215,12 +215,12 @@ fn test_contains_duplicate_currency() {
         TestCase {
             name: "metadata mismatch",
             payload: vec![
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("hello")),
                 }),
-                Some(NullableCurrency {
+                Some(UncheckedCurrency {
                     symbol: "BTC".to_string(),
                     decimals: 8,
                     metadata: indexmap!("blah".to_string() => json!("bye")),
@@ -237,9 +237,9 @@ fn test_contains_duplicate_currency() {
 
 #[derive(Default)]
 struct AccountBalanceTest {
-    request_block: Option<PartialBlockIdentifier>,
-    response_block: BlockIdentifier,
-    balances: Vec<Option<NullableAmount>>,
+    request_block: Option<UncheckedPartialBlockIdentifier>,
+    response_block: UncheckedBlockIdentifier,
+    balances: Vec<Option<UncheckedAmount>>,
     _metadata: IndexMap<String, Value>,
 }
 
@@ -247,7 +247,7 @@ impl AccountBalanceTest {
     fn run(self) -> AssertResult<()> {
         account_balance_response(
             self.request_block.as_ref(),
-            &NullableAccountBalanceResponse {
+            &UncheckedAccountBalanceResponse {
                 block_identifier: Some(self.response_block.clone()),
                 balances: self.balances.clone(),
                 metadata: Default::default(),
@@ -258,11 +258,11 @@ impl AccountBalanceTest {
 
 #[test]
 fn test_account_balance() {
-    let valid_block = BlockIdentifier {
+    let valid_block = UncheckedBlockIdentifier {
         index: 1000,
         hash: "jsakdl".to_string(),
     };
-    let invalid_block = BlockIdentifier {
+    let invalid_block = UncheckedBlockIdentifier {
         index: 1,
         hash: String::new(),
     };
@@ -270,9 +270,9 @@ fn test_account_balance() {
     let invalid_index = 1001;
     let invalid_hash = "ajsdk";
 
-    let valid_amt = Some(NullableAmount {
+    let valid_amt = Some(UncheckedAmount {
         value: "100".to_string(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".to_string(),
             decimals: 8,
             metadata: Default::default(),
@@ -320,7 +320,7 @@ fn test_account_balance() {
         TestCase {
             name: "valid historical request index",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(UncheckedPartialBlockIdentifier {
                     index: Some(valid_block.index),
                     hash: None,
                 }),
@@ -333,7 +333,7 @@ fn test_account_balance() {
         TestCase {
             name: "valid historical request hash",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(UncheckedPartialBlockIdentifier {
                     index: None,
                     hash: Some(valid_block.hash.clone()),
                 }),
@@ -346,7 +346,7 @@ fn test_account_balance() {
         TestCase {
             name: "invalid historical request index",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(UncheckedPartialBlockIdentifier {
                     index: Some(invalid_index),
                     hash: Some(valid_block.hash.clone()),
                 }),
@@ -363,7 +363,7 @@ fn test_account_balance() {
         TestCase {
             name: "invalid historical request hash",
             payload: AccountBalanceTest {
-                request_block: Some(PartialBlockIdentifier {
+                request_block: Some(UncheckedPartialBlockIdentifier {
                     index: Some(valid_block.index),
                     hash: Some(invalid_hash.to_string()),
                 }),

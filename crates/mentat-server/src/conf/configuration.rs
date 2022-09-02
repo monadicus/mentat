@@ -12,7 +12,6 @@ use std::{
 };
 
 use axum::async_trait;
-use mentat_asserter::Asserter;
 use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 
@@ -31,10 +30,6 @@ pub struct NodePid(pub Pid);
 pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
     /// The name of the blockchain run by the node.
     const BLOCKCHAIN: &'static str;
-
-    // TODO make this return a struct with asserter instances for each route
-    /// returns the asserter to be used when asserting requests
-    fn init_asserter(&self, network: &Network) -> Asserter;
 
     /// The command for loading the node `Configuration`.
     ///
@@ -56,25 +51,7 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
         Configuration::load(&path)
     }
 
-    // TODO: replace with bitcoin example once bitcoin is containerized
-    ///
     /// The user specified command for running a node.
-    ///
-    /// ```ignore
-    /// fn node_command(config: &Configuration<Self>) -> Command {
-    ///     let mut command = Command::new(&config.node_path);
-    ///     command.args(&[
-    ///         "--node",
-    ///         &format!("{}:4132", config.address),
-    ///         "--rpc",
-    ///         &format!("{}:{}", config.address, config.node_rpc_port),
-    ///         "--trial",
-    ///         "--verbosity",
-    ///         "2",
-    ///     ]);
-    ///     command
-    /// }
-    /// ```
     fn node_command(config: &Configuration<Self>) -> Command;
 
     /// Makes a system call with the command returned by
@@ -156,9 +133,6 @@ pub struct Configuration<Custom: NodeConf> {
         skip_serializing_if = "Configuration::<Custom>::skip_serializing_custom"
     )]
     pub custom: Custom,
-    /// returns the asserter to be used when asserting requests
-    #[serde(skip)]
-    pub asserter: Asserter,
 }
 
 impl<Custom> Configuration<Custom>
@@ -167,7 +141,7 @@ where
 {
     /// skips serializing the custom struct if it contains no fields
     fn skip_serializing_custom(_: &Custom) -> bool {
-        std::mem::size_of::<Self>() != 0
+        std::mem::size_of::<Custom>() == 0
     }
 
     /// Loads a configuration file from the supplied path.
@@ -185,15 +159,13 @@ where
                     e
                 )
             });
-            let mut config: Self = toml::from_str(&content).unwrap_or_else(|e| {
+            let config: Self = toml::from_str(&content).unwrap_or_else(|e| {
                 panic!(
                     "Failed to parse config file at path `{}`: {}",
                     path.display(),
                     e
                 )
             });
-
-            config.asserter = config.custom.init_asserter(&config.network);
 
             if !config.node_path.exists() {
                 panic!("Failed to find node at `{}`", config.node_path.display())
@@ -244,7 +216,6 @@ impl<Custom: NodeConf> Default for Configuration<Custom> {
             node_rpc_port: 4032,
             port: 8080,
             secure_http: true,
-            asserter: custom.init_asserter(&Network::Testnet),
             custom,
         }
     }

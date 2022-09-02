@@ -1,12 +1,10 @@
 //! The module defines the `ConstructionPreprocessRequest` request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 #[serde(default)]
-pub struct NullableConstructionPreprocessRequest {
+pub struct UncheckedConstructionPreprocessRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network_identifier: Option<NetworkIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
@@ -14,7 +12,7 @@ pub struct NullableConstructionPreprocessRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub operations: Vec<Option<NullableOperation>>,
+    pub operations: Vec<Option<UncheckedOperation>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     pub metadata: IndexMap<String, Value>,
@@ -23,7 +21,7 @@ pub struct NullableConstructionPreprocessRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub max_fee: Vec<Option<NullableAmount>>,
+    pub max_fee: Vec<Option<UncheckedAmount>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_fee_multiplier: Option<f64>,
@@ -72,22 +70,22 @@ pub struct ConstructionPreprocessRequest {
     pub suggested_fee_multiplier: Option<f64>,
 }
 
-impl From<NullableConstructionPreprocessRequest> for ConstructionPreprocessRequest {
-    fn from(nullable: NullableConstructionPreprocessRequest) -> Self {
+impl From<UncheckedConstructionPreprocessRequest> for ConstructionPreprocessRequest {
+    fn from(unchecked: UncheckedConstructionPreprocessRequest) -> Self {
         Self {
-            network_identifier: nullable.network_identifier.unwrap(),
-            operations: nullable
+            network_identifier: unchecked.network_identifier.unwrap(),
+            operations: unchecked
                 .operations
                 .into_iter()
                 .map(|op| op.unwrap().into())
                 .collect(),
-            metadata: nullable.metadata,
-            max_fee: nullable
+            metadata: unchecked.metadata,
+            max_fee: unchecked
                 .max_fee
                 .into_iter()
                 .map(|fee| fee.unwrap().into())
                 .collect(),
-            suggested_fee_multiplier: nullable.suggested_fee_multiplier,
+            suggested_fee_multiplier: unchecked.suggested_fee_multiplier,
         }
     }
 }

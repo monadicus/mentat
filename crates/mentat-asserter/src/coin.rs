@@ -3,7 +3,7 @@
 use super::*;
 
 /// `coin` returns an error if the provided [`Coin`] is invalid.
-pub fn coin(coin: Option<&NullableCoin>) -> AssertResult<()> {
+pub fn coin(coin: Option<&UncheckedCoin>) -> AssertResult<()> {
     let coin = coin.ok_or(CoinError::IsNil)?;
     coin_identifier(coin.coin_identifier.as_ref())
         .map_err(|e| format!("{e}: coin identifier is invalid"))?;
@@ -15,7 +15,7 @@ pub fn coin(coin: Option<&NullableCoin>) -> AssertResult<()> {
 /// [`Coin`] is invalid. If there are any
 /// duplicate identifiers, this function
 /// will also return an error.
-pub fn coins(coins: &[Option<NullableCoin>]) -> AssertResult<()> {
+pub fn coins(coins: &[Option<UncheckedCoin>]) -> AssertResult<()> {
     let mut ids = IndexSet::new();
     for c in coins {
         coin(c.as_ref()).map_err(|err| format!("{err}: coin is invalid"))?;
@@ -44,7 +44,7 @@ pub fn coin_identifier(coin_identifier: Option<&CoinIdentifier>) -> AssertResult
 
 /// `coin_change` returns an error if the provided [`CoinChange`]
 /// is invalid.
-pub fn coin_change(change: Option<&NullableCoinChange>) -> AssertResult<()> {
+pub fn coin_change(change: Option<&UncheckedCoinChange>) -> AssertResult<()> {
     let change = change.ok_or(CoinError::ChangeIsNil)?;
 
     coin_identifier(change.coin_identifier.as_ref())
@@ -55,7 +55,7 @@ pub fn coin_change(change: Option<&NullableCoinChange>) -> AssertResult<()> {
 
 /// coin_action returns an error if the provided [`CoinAction`]
 /// is invalid.
-pub fn coin_action(act: &NullableCoinAction) -> AssertResult<()> {
+pub fn coin_action(act: &UncheckedCoinAction) -> AssertResult<()> {
     if !act.valid() {
         Err(AsserterError::from(format!(
             "{}: {}",

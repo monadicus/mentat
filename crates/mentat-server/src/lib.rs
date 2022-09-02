@@ -22,25 +22,6 @@ pub use indexmap;
 /// If the `main` function is only calling
 /// `Server::default()` then consider using the [`macro@mentat`] macro
 /// instead.
-///
-/// ```ignore
-/// #[derive(Clone)]
-/// struct MentatSnarkos;
-///
-/// impl ServerType for MentatSnarkos {
-///     type CallApi = call_api::SnarkosCallApi;
-///     type ConstructionApi = construction_api::SnarkosConstructionApi;
-///     type CustomConfig = node::NodeConfig;
-///     type DataApi = data_api::SnarkosDataApi;
-///     type IndexerApi = indexer_api::SnarkosIndexerApi;
-/// }
-///
-/// #[mentat::main(DefaultCacheInner)]
-/// async fn main() -> Server<MentatSnarkos> {
-///     println!("hello rosetta!");
-///     Server::default()
-/// }
-/// ```
 pub use mentat_macros::main;
 /// A macro for generating mentat routes from a default [`server::Server`]
 /// instance.
@@ -52,19 +33,6 @@ pub use mentat_macros::main;
 ///
 /// If you prefer to use your own `main` function, consider using the
 /// [`macro@main`] macro instead.
-///
-/// ```ignore
-/// #[mentat(DefaultCacheInner)]
-/// struct MentatBitcoin;
-///
-/// impl ServerType for MentatBitcoin {
-///     type CallApi = call_api::BitcoinCallApi;
-///     type ConstructionApi = construction_api::BitcoinConstructionApi;
-///     type CustomConfig = node::NodeConfig;
-///     type DataApi = data_api::BitcoinDataApi;
-///     type IndexerApi = indexer_api::BitcoinIndexerApi;
-/// }
-/// ```
 pub use mentat_macros::mentat;
 pub use reqwest;
 pub use serde;
@@ -72,6 +40,8 @@ pub use serde_json;
 pub use sysinfo;
 pub use tokio;
 pub use tracing;
+pub use tracing_subscriber;
+pub use tracing_tree;
 
 #[doc(hidden)]
 pub mod macro_exports {

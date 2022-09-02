@@ -7,7 +7,7 @@ fn test_block_identifier() {
     let tests = vec![
         TestCase {
             name: "valid identifier",
-            payload: Some(BlockIdentifier {
+            payload: Some(UncheckedBlockIdentifier {
                 index: 1,
                 hash: "block 1".into(),
             }),
@@ -20,7 +20,7 @@ fn test_block_identifier() {
         },
         TestCase {
             name: "invalid index",
-            payload: Some(BlockIdentifier {
+            payload: Some(UncheckedBlockIdentifier {
                 index: -1,
                 hash: "block 1".into(),
             }),
@@ -28,7 +28,7 @@ fn test_block_identifier() {
         },
         TestCase {
             name: "invalid hash",
-            payload: Some(BlockIdentifier {
+            payload: Some(UncheckedBlockIdentifier {
                 index: 1,
                 hash: String::new(),
             }),
@@ -44,9 +44,9 @@ fn test_amount() {
     let tests = vec![
         TestCase {
             name: "valid amount",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "100000".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -57,9 +57,9 @@ fn test_amount() {
         },
         TestCase {
             name: "valid amount no decimals",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "100000".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: "BTC".into(),
                     decimals: Default::default(),
                     metadata: Default::default(),
@@ -70,9 +70,9 @@ fn test_amount() {
         },
         TestCase {
             name: "valid negative amount",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "-100000".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -88,7 +88,7 @@ fn test_amount() {
         },
         TestCase {
             name: "nil currency",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "-100000".into(),
                 currency: None,
                 metadata: Default::default(),
@@ -97,9 +97,9 @@ fn test_amount() {
         },
         TestCase {
             name: "invalid non number",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "blah".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -113,9 +113,9 @@ fn test_amount() {
         },
         TestCase {
             name: "invalid integer format",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "1.0".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -129,9 +129,9 @@ fn test_amount() {
         },
         TestCase {
             name: "invalid non-integer",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "1.1".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: "BTC".into(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -145,9 +145,9 @@ fn test_amount() {
         },
         TestCase {
             name: "invalid symbol",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "11".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: String::new(),
                     decimals: 1,
                     metadata: Default::default(),
@@ -158,9 +158,9 @@ fn test_amount() {
         },
         TestCase {
             name: "invalid decimals",
-            payload: Some(NullableAmount {
+            payload: Some(UncheckedAmount {
                 value: "111".into(),
-                currency: Some(NullableCurrency {
+                currency: Some(UncheckedCurrency {
                     symbol: "BTC".into(),
                     decimals: -1,
                     metadata: Default::default(),
@@ -176,8 +176,8 @@ fn test_amount() {
 
 #[derive(Default)]
 struct OperationIdentTest {
-    ident: Option<OperationIdentifier>,
-    index: i64,
+    ident: Option<UncheckedOperationIdentifier>,
+    index: isize,
 }
 
 impl OperationIdentTest {
@@ -195,7 +195,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "valid identifier",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -214,7 +214,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "out-of-order index",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -225,7 +225,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "valid identifier with network index",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: Some(valid_network_index),
                 }),
@@ -236,7 +236,7 @@ fn test_operation_identifier() {
         TestCase {
             name: "invalid identifier with network index",
             payload: Some(OperationIdentTest {
-                ident: Some(OperationIdentifier {
+                ident: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: Some(invalid_network_index),
                 }),
@@ -301,42 +301,42 @@ fn test_account_identifier() {
 
 #[derive(Default)]
 struct OperationValidationsTest {
-    operations: Vec<Option<NullableOperation>>,
+    operations: Vec<Option<UncheckedOperation>>,
     construction: bool,
 }
 
 #[test]
 fn test_operations_validations() {
-    let valid_deposit_amt = Some(NullableAmount {
+    let valid_deposit_amt = Some(UncheckedAmount {
         value: "1000".into(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         }),
         metadata: Default::default(),
     });
-    let valid_withdraw_amt = Some(NullableAmount {
+    let valid_withdraw_amt = Some(UncheckedAmount {
         value: "-1000".into(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         }),
         metadata: Default::default(),
     });
-    let valid_fee_amt = Some(NullableAmount {
+    let valid_fee_amt = Some(UncheckedAmount {
         value: "-100".into(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
         }),
         metadata: Default::default(),
     });
-    let invalid_fee_amt = Some(NullableAmount {
+    let invalid_fee_amt = Some(UncheckedAmount {
         value: "100".into(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
@@ -351,17 +351,17 @@ fn test_operations_validations() {
     let asserter = |validation_file_path: &Path| {
         Asserter::new_client_with_responses(
             Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
-            Some(NullableNetworkStatusResponse {
-                current_block_identifier: Some(BlockIdentifier {
+            Some(UncheckedNetworkStatusResponse {
+                current_block_identifier: Some(UncheckedBlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
                 }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: Some(BlockIdentifier {
+                genesis_block_identifier: Some(UncheckedBlockIdentifier {
                     index: 0,
                     hash: "block 0".into(),
                 }),
@@ -372,14 +372,14 @@ fn test_operations_validations() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NullableNetworkOptionsResponse {
+            Some(UncheckedNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(NullableAllow {
+                allow: Some(UncheckedAllow {
                     operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
@@ -406,8 +406,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_balanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -417,8 +417,8 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -428,8 +428,8 @@ fn test_operations_validations() {
                             amount: valid_withdraw_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -451,8 +451,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_balanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -462,8 +462,8 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -485,8 +485,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_balanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -496,8 +496,8 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
@@ -519,8 +519,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_balanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -530,17 +530,17 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
                             type_: "PAYMENT".into(),
                             status: Some("SUCCESS".into()),
                             account: valid_account.clone(),
-                            amount: Some(NullableAmount {
+                            amount: Some(UncheckedAmount {
                                 value: "-2000".into(),
-                                currency: Some(NullableCurrency {
+                                currency: Some(UncheckedCurrency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
                                     metadata: Default::default(),
@@ -549,8 +549,8 @@ fn test_operations_validations() {
                             }),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -572,8 +572,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_unbalanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -583,17 +583,17 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
                             type_: "PAYMENT".into(),
                             status: Some("SUCCESS".into()),
                             account: valid_account.clone(),
-                            amount: Some(NullableAmount {
+                            amount: Some(UncheckedAmount {
                                 value: "-2000".into(),
-                                currency: Some(NullableCurrency {
+                                currency: Some(UncheckedCurrency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
                                     metadata: Default::default(),
@@ -602,8 +602,8 @@ fn test_operations_validations() {
                             }),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -625,8 +625,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_unbalanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -636,17 +636,17 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
                             type_: "PAYMENT".into(),
                             status: Some("SUCCESS".into()),
                             account: valid_account.clone(),
-                            amount: Some(NullableAmount {
+                            amount: Some(UncheckedAmount {
                                 value: "-2000".into(),
-                                currency: Some(NullableCurrency {
+                                currency: Some(UncheckedCurrency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
                                     metadata: Default::default(),
@@ -655,8 +655,8 @@ fn test_operations_validations() {
                             }),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -664,7 +664,7 @@ fn test_operations_validations() {
                             status: Some("SUCCESS".into()),
                             account: valid_account.clone(),
                             amount: valid_fee_amt.clone(),
-                            related_operations: vec![Some(OperationIdentifier {
+                            related_operations: vec![Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             })],
@@ -682,8 +682,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_unbalanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -693,17 +693,17 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt.clone(),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
                             type_: "PAYMENT".into(),
                             status: Some("SUCCESS".into()),
                             account: valid_account.clone(),
-                            amount: Some(NullableAmount {
+                            amount: Some(UncheckedAmount {
                                 value: "-2000".into(),
-                                currency: Some(NullableCurrency {
+                                currency: Some(UncheckedCurrency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
                                     metadata: Default::default(),
@@ -712,8 +712,8 @@ fn test_operations_validations() {
                             }),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -735,8 +735,8 @@ fn test_operations_validations() {
                 caller: asserter(Path::new("validation_fee_and_payment_unbalanced.json")),
                 payload: OperationValidationsTest {
                     operations: vec![
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 0,
                                 network_index: None,
                             }),
@@ -746,17 +746,17 @@ fn test_operations_validations() {
                             amount: valid_deposit_amt,
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 1,
                                 network_index: None,
                             }),
                             type_: "PAYMENT".into(),
                             status: Some("SUCCESS".into()),
                             account: valid_account.clone(),
-                            amount: Some(NullableAmount {
+                            amount: Some(UncheckedAmount {
                                 value: "-2000".into(),
-                                currency: Some(NullableCurrency {
+                                currency: Some(UncheckedCurrency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
                                     metadata: Default::default(),
@@ -765,8 +765,8 @@ fn test_operations_validations() {
                             }),
                             ..Default::default()
                         }),
-                        Some(NullableOperation {
-                            operation_identifier: Some(OperationIdentifier {
+                        Some(UncheckedOperation {
+                            operation_identifier: Some(UncheckedOperationIdentifier {
                                 index: 2,
                                 network_index: None,
                             }),
@@ -792,17 +792,17 @@ fn test_operations_validations() {
 
 #[derive(Default)]
 struct OperationTest {
-    operation: Option<NullableOperation>,
-    index: i64,
+    operation: Option<UncheckedOperation>,
+    index: isize,
     successful: bool,
     construction: bool,
 }
 
 #[test]
 fn test_operation() {
-    let valid_amount = Some(NullableAmount {
+    let valid_amount = Some(UncheckedAmount {
         value: "1000".into(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
@@ -818,8 +818,8 @@ fn test_operation() {
         TestCase {
             name: "valid operation",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -838,8 +838,8 @@ fn test_operation() {
         TestCase {
             name: "valid operation no account",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -866,8 +866,8 @@ fn test_operation() {
         TestCase {
             name: "invalid operation no account",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -885,8 +885,8 @@ fn test_operation() {
         TestCase {
             name: "invalid operation empty account",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -905,8 +905,8 @@ fn test_operation() {
         TestCase {
             name: "invalid operation invalid index",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -923,8 +923,8 @@ fn test_operation() {
         TestCase {
             name: "invalid operation invalid type",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -941,8 +941,8 @@ fn test_operation() {
         TestCase {
             name: "unsuccessful operation",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -959,8 +959,8 @@ fn test_operation() {
         TestCase {
             name: "invalid operation invalid status",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -977,8 +977,8 @@ fn test_operation() {
         TestCase {
             name: "valid construction operation",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -996,8 +996,8 @@ fn test_operation() {
         TestCase {
             name: "valid construction operation (empty status)",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -1016,8 +1016,8 @@ fn test_operation() {
         TestCase {
             name: "invalid construction operation",
             payload: OperationTest {
-                operation: Some(NullableOperation {
-                    operation_identifier: Some(OperationIdentifier {
+                operation: Some(UncheckedOperation {
+                    operation_identifier: Some(UncheckedOperationIdentifier {
                         index: 1,
                         network_index: None,
                     }),
@@ -1037,17 +1037,17 @@ fn test_operation() {
 
     let asserter = Asserter::new_client_with_responses(
         Some(NetworkIdentifier {
-            blockchain: "hello".into(),
-            network: "world".into(),
+            blockchain: "HELLO".into(),
+            network: "WORLD".into(),
             sub_network_identifier: None,
         }),
-        Some(NullableNetworkStatusResponse {
-            current_block_identifier: Some(BlockIdentifier {
+        Some(UncheckedNetworkStatusResponse {
+            current_block_identifier: Some(UncheckedBlockIdentifier {
                 index: 100,
                 hash: "block 100".into(),
             }),
             current_block_timestamp: MIN_UNIX_EPOCH + 1,
-            genesis_block_identifier: Some(BlockIdentifier {
+            genesis_block_identifier: Some(UncheckedBlockIdentifier {
                 index: 0,
                 hash: "block 0".into(),
             }),
@@ -1058,14 +1058,14 @@ fn test_operation() {
                 metadata: Default::default(),
             })],
         }),
-        Some(NullableNetworkOptionsResponse {
+        Some(UncheckedNetworkOptionsResponse {
             version: Some(Version {
                 rosetta_version: "1.4.0".into(),
                 node_version: "1.0".into(),
                 middleware_version: None,
                 metadata: Default::default(),
             }),
-            allow: Some(NullableAllow {
+            allow: Some(UncheckedAllow {
                 operation_statuses: vec![
                     Some(OperationStatus {
                         status: "SUCCESS".into(),
@@ -1125,28 +1125,28 @@ fn test_operation() {
 
 #[derive(Default)]
 struct BlockTestExtras {
-    genesis_index: i64,
-    start_index: Option<i64>,
+    genesis_index: isize,
+    start_index: Option<isize>,
     validation_file_path: Option<PathBuf>,
 }
 
 #[test]
 fn test_block() {
-    let genesis_ident = BlockIdentifier {
+    let genesis_ident = UncheckedBlockIdentifier {
         hash: "gen".into(),
         index: 0,
     };
-    let valid_block_ident = BlockIdentifier {
+    let valid_block_ident = UncheckedBlockIdentifier {
         hash: "blah".into(),
         index: 100,
     };
-    let valid_parent_block_ident = BlockIdentifier {
+    let valid_parent_block_ident = UncheckedBlockIdentifier {
         hash: "blah parent".into(),
         index: 99,
     };
-    let valid_amount = Some(NullableAmount {
+    let valid_amount = Some(UncheckedAmount {
         value: "1000".into(),
-        currency: Some(NullableCurrency {
+        currency: Some(UncheckedCurrency {
             symbol: "BTC".into(),
             decimals: 8,
             metadata: Default::default(),
@@ -1157,13 +1157,13 @@ fn test_block() {
         address: "test".into(),
         ..Default::default()
     });
-    let valid_transaction = Some(NullableTransaction {
+    let valid_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1173,12 +1173,12 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1189,29 +1189,29 @@ fn test_block() {
                 ..Default::default()
             }),
         ],
-        related_transactions: vec![Some(NullableRelatedTransaction {
+        related_transactions: vec![Some(UncheckedRelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
             transaction_identifier: Some(TransactionIdentifier {
                 hash: "blah".into(),
             }),
-            direction: NullableDirection::FORWARD.into(),
+            direction: UncheckedDirection::FORWARD.into(),
         })],
         metadata: Default::default(),
     });
-    let related_to_self_transaction = Some(NullableTransaction {
+    let related_to_self_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
-        operations: vec![Some(NullableOperation {
-            operation_identifier: Some(OperationIdentifier {
+        operations: vec![Some(UncheckedOperation {
+            operation_identifier: Some(UncheckedOperationIdentifier {
                 index: 0,
                 network_index: None,
             }),
-            related_operations: vec![Some(OperationIdentifier {
+            related_operations: vec![Some(UncheckedOperationIdentifier {
                 index: 0,
                 network_index: None,
             })],
@@ -1223,17 +1223,17 @@ fn test_block() {
         })],
         ..Default::default()
     });
-    let out_of_order_transaction = Some(NullableTransaction {
+    let out_of_order_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1243,8 +1243,8 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1257,17 +1257,17 @@ fn test_block() {
         ],
         ..Default::default()
     });
-    let related_to_later_transaction = Some(NullableTransaction {
+    let related_to_later_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 })],
@@ -1277,12 +1277,12 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1295,13 +1295,13 @@ fn test_block() {
         ],
         ..Default::default()
     });
-    let related_duplicate_transaction = Some(NullableTransaction {
+    let related_duplicate_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1311,17 +1311,17 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
                 related_operations: vec![
-                    Some(OperationIdentifier {
+                    Some(UncheckedOperationIdentifier {
                         index: 0,
                         network_index: None,
                     }),
-                    Some(OperationIdentifier {
+                    Some(UncheckedOperationIdentifier {
                         index: 0,
                         network_index: None,
                     }),
@@ -1335,13 +1335,13 @@ fn test_block() {
         ],
         ..Default::default()
     });
-    let related_missing_transaction = Some(NullableTransaction {
+    let related_missing_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1351,8 +1351,8 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
@@ -1362,8 +1362,8 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 2,
                     network_index: None,
                 }),
@@ -1376,13 +1376,13 @@ fn test_block() {
         ],
         ..Default::default()
     });
-    let invalid_related_transaction = Some(NullableTransaction {
+    let invalid_related_transaction = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1392,12 +1392,12 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1408,10 +1408,10 @@ fn test_block() {
                 ..Default::default()
             }),
         ],
-        related_transactions: vec![Some(NullableRelatedTransaction {
+        related_transactions: vec![Some(UncheckedRelatedTransaction {
             network_identifier: Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
             transaction_identifier: Some(TransactionIdentifier {
@@ -1421,13 +1421,13 @@ fn test_block() {
         })],
         ..Default::default()
     });
-    let duplicated_related_transactions = Some(NullableTransaction {
+    let duplicated_related_transactions = Some(UncheckedTransaction {
         transaction_identifier: Some(TransactionIdentifier {
             hash: "blah".into(),
         }),
         operations: vec![
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 }),
@@ -1437,12 +1437,12 @@ fn test_block() {
                 amount: valid_amount.clone(),
                 ..Default::default()
             }),
-            Some(NullableOperation {
-                operation_identifier: Some(OperationIdentifier {
+            Some(UncheckedOperation {
+                operation_identifier: Some(UncheckedOperationIdentifier {
                     index: 1,
                     network_index: None,
                 }),
-                related_operations: vec![Some(OperationIdentifier {
+                related_operations: vec![Some(UncheckedOperationIdentifier {
                     index: 0,
                     network_index: None,
                 })],
@@ -1454,10 +1454,10 @@ fn test_block() {
             }),
         ],
         related_transactions: vec![
-            Some(NullableRelatedTransaction {
+            Some(UncheckedRelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
-                    blockchain: "hello".into(),
-                    network: "world".into(),
+                    blockchain: "HELLO".into(),
+                    network: "WORLD".into(),
                     sub_network_identifier: None,
                 }),
                 transaction_identifier: Some(TransactionIdentifier {
@@ -1465,10 +1465,10 @@ fn test_block() {
                 }),
                 direction: "Forward".into(),
             }),
-            Some(NullableRelatedTransaction {
+            Some(UncheckedRelatedTransaction {
                 network_identifier: Some(NetworkIdentifier {
-                    blockchain: "hello".into(),
-                    network: "world".into(),
+                    blockchain: "HELLO".into(),
+                    network: "WORLD".into(),
                     sub_network_identifier: None,
                 }),
                 transaction_identifier: Some(TransactionIdentifier {
@@ -1483,17 +1483,17 @@ fn test_block() {
     let asserter = |extras: BlockTestExtras| {
         Asserter::new_client_with_responses(
             Some(NetworkIdentifier {
-                blockchain: "hello".into(),
-                network: "world".into(),
+                blockchain: "HELLO".into(),
+                network: "WORLD".into(),
                 sub_network_identifier: None,
             }),
-            Some(NullableNetworkStatusResponse {
-                current_block_identifier: Some(BlockIdentifier {
+            Some(UncheckedNetworkStatusResponse {
+                current_block_identifier: Some(UncheckedBlockIdentifier {
                     index: 100,
                     hash: "block 100".into(),
                 }),
                 current_block_timestamp: MIN_UNIX_EPOCH + 1,
-                genesis_block_identifier: Some(BlockIdentifier {
+                genesis_block_identifier: Some(UncheckedBlockIdentifier {
                     index: extras.genesis_index,
                     hash: format!("block {}", extras.genesis_index),
                 }),
@@ -1504,14 +1504,14 @@ fn test_block() {
                     metadata: Default::default(),
                 })],
             }),
-            Some(NullableNetworkOptionsResponse {
+            Some(UncheckedNetworkOptionsResponse {
                 version: Some(Version {
                     rosetta_version: "1.4.0".into(),
                     node_version: "1.0".into(),
                     middleware_version: None,
                     metadata: Default::default(),
                 }),
-                allow: Some(NullableAllow {
+                allow: Some(UncheckedAllow {
                     operation_statuses: vec![
                         Some(OperationStatus {
                             status: "SUCCESS".into(),
@@ -1537,7 +1537,7 @@ fn test_block() {
             name: "valid block",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1554,7 +1554,7 @@ fn test_block() {
                     start_index: Some(valid_block_ident.index + 1),
                     ..Default::default()
                 }),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![valid_transaction.clone()],
@@ -1570,7 +1570,7 @@ fn test_block() {
                     genesis_index: valid_block_ident.index,
                     ..Default::default()
                 }),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![valid_transaction.clone()],
@@ -1587,7 +1587,7 @@ fn test_block() {
                     start_index: Some(genesis_ident.index + 1),
                     ..Default::default()
                 }),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident.clone()),
                     transactions: vec![valid_transaction.clone()],
@@ -1604,7 +1604,7 @@ fn test_block() {
                     start_index: Some(genesis_ident.index),
                     ..Default::default()
                 }),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(genesis_ident.clone()),
                     parent_block_identifier: Some(genesis_ident),
                     transactions: vec![valid_transaction.clone()],
@@ -1617,7 +1617,7 @@ fn test_block() {
             name: "out of order transaction operations",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1631,7 +1631,7 @@ fn test_block() {
             name: "related to self transaction operations",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1645,7 +1645,7 @@ fn test_block() {
             name: "related to later transaction operations",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1659,7 +1659,7 @@ fn test_block() {
             name: "duplicate related transaction operations",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1678,7 +1678,7 @@ fn test_block() {
                     )),
                     ..Default::default()
                 }),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1700,7 +1700,7 @@ fn test_block() {
             name: "nil block hash",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: None,
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1714,7 +1714,7 @@ fn test_block() {
             name: "invalid block hash",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(Default::default()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1728,7 +1728,7 @@ fn test_block() {
             name: "block previous hash missing",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(Default::default()),
                     timestamp: (MIN_UNIX_EPOCH + 1),
@@ -1742,9 +1742,9 @@ fn test_block() {
             name: "invalid parent block index",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(BlockIdentifier {
+                    parent_block_identifier: Some(UncheckedBlockIdentifier {
                         index: valid_block_ident.index,
                         hash: valid_parent_block_ident.hash.clone(),
                     }),
@@ -1759,9 +1759,9 @@ fn test_block() {
             name: "invalid parent block hash",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
-                    parent_block_identifier: Some(BlockIdentifier {
+                    parent_block_identifier: Some(UncheckedBlockIdentifier {
                         index: valid_parent_block_ident.index,
                         hash: valid_block_ident.hash.clone(),
                     }),
@@ -1776,7 +1776,7 @@ fn test_block() {
             name: "invalid block timestamp less than MinUnixEpoch",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![valid_transaction.clone()],
@@ -1789,7 +1789,7 @@ fn test_block() {
             name: "invalid block timestamp greater than MaxUnixEpoch",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![valid_transaction],
@@ -1803,7 +1803,7 @@ fn test_block() {
             name: "invalid block transaction",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![Some(Default::default())],
@@ -1817,7 +1817,7 @@ fn test_block() {
             name: "invalid related transaction",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident.clone()),
                     parent_block_identifier: Some(valid_parent_block_ident.clone()),
                     transactions: vec![invalid_related_transaction],
@@ -1831,7 +1831,7 @@ fn test_block() {
             name: "duplicate related transaction",
             payload: MethodPayload {
                 caller: asserter(Default::default()),
-                payload: Some(NullableBlock {
+                payload: Some(UncheckedBlock {
                     block_identifier: Some(valid_block_ident),
                     parent_block_identifier: Some(valid_parent_block_ident),
                     transactions: vec![duplicated_related_transactions],

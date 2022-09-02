@@ -1,5 +1,3 @@
-use std::fmt;
-
 use indexmap::indexmap;
 use mentat_test_utils::*;
 use serde_json::json;
@@ -235,7 +233,7 @@ fn test_currency_string() {
     let tests = vec![
         TestCase {
             name: "simple currency",
-            payload: NullableCurrency {
+            payload: UncheckedCurrency {
                 symbol: "BTC".into(),
                 decimals: 8,
                 ..Default::default()
@@ -244,7 +242,7 @@ fn test_currency_string() {
         },
         TestCase {
             name: "currency with string metadata",
-            payload: NullableCurrency {
+            payload: UncheckedCurrency {
                 symbol: "BTC".into(),
                 decimals: 8,
                 metadata: [("issuer".into(), "satoshi".into())].into(),
@@ -253,7 +251,7 @@ fn test_currency_string() {
         },
         TestCase {
             name: "currency with number metadata",
-            payload: NullableCurrency {
+            payload: UncheckedCurrency {
                 symbol: "BTC".into(),
                 decimals: 8,
                 metadata: [("issuer".into(), 1.into())].into(),
@@ -262,7 +260,7 @@ fn test_currency_string() {
         },
         TestCase {
             name: "currency with complex metadata",
-            payload: NullableCurrency {
+            payload: UncheckedCurrency {
                 symbol: "BTC".into(),
                 decimals: 8,
                 metadata: [
@@ -325,25 +323,25 @@ fn test_amount_value() {
 
 #[test]
 fn test_extract_amount() {
-    let currency_1 = Some(NullableCurrency {
+    let currency_1 = Some(UncheckedCurrency {
         symbol: "curr1".into(),
         decimals: 4,
         ..Default::default()
     });
 
-    let currency_2 = Some(NullableCurrency {
+    let currency_2 = Some(UncheckedCurrency {
         symbol: "curr2".into(),
         decimals: 7,
         ..Default::default()
     });
 
-    let amount1 = NullableAmount {
+    let amount1 = UncheckedAmount {
         value: "100".into(),
         currency: currency_1.clone(),
         ..Default::default()
     };
 
-    let amount2 = NullableAmount {
+    let amount2 = UncheckedAmount {
         value: "200".into(),
         currency: currency_2.clone(),
         ..Default::default()
@@ -351,7 +349,7 @@ fn test_extract_amount() {
 
     let balances = &[Some(amount1.clone()), Some(amount2.clone())];
 
-    let bad_cur = Some(NullableCurrency {
+    let bad_cur = Some(UncheckedCurrency {
         symbol: "no cur".into(),
         decimals: 100,
         ..Default::default()

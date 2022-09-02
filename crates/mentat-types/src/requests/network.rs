@@ -1,14 +1,12 @@
 //! The module defines the `NetworkRequest` request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// A [`NetworkRequest`] is utilized to retrieve some data specific exclusively
 /// to a [`NetworkIdentifier`].
-#[derive(Clone, Debug, Default, Deserialize, Serialize, Nullable)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
 #[serde(default)]
-pub struct NullableNetworkRequest {
+pub struct UncheckedNetworkRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -17,7 +15,7 @@ pub struct NullableNetworkRequest {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl From<NetworkIdentifier> for NullableNetworkRequest {
+impl From<NetworkIdentifier> for UncheckedNetworkRequest {
     fn from(net: NetworkIdentifier) -> Self {
         Self {
             network_identifier: Some(net),

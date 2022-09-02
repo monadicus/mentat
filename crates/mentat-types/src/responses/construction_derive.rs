@@ -1,29 +1,28 @@
 //! The module defines the `ConstructionDeriveResponse` response.
 
-use indexmap::IndexMap;
 use serde::ser::SerializeStruct;
 
 use super::*;
 
 /// [`ConstructionDeriveResponse`] is returned by the `/construction/derive`
 /// endpoint.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Nullable)]
-pub struct NullableConstructionDeriveResponse {
+#[derive(Clone, Debug, Default, PartialEq, Eq, Unchecked)]
+pub struct UncheckedConstructionDeriveResponse {
     /// [DEPRECATED by `account_identifier` in v1.4.4] Address in
     /// network-specific format.
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub address: Option<String>,
     /// The [`AccountIdentifier`] uniquely identifies an account within a
     /// network. All fields in the `account_identifier` are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub account_identifier: Option<AccountIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
     pub metadata: IndexMap<String, Value>,
 }
 
-impl Serialize for NullableConstructionDeriveResponse {
+impl Serialize for UncheckedConstructionDeriveResponse {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -58,7 +57,7 @@ pub struct ConstructionDeriveResponsePre {
     pub metadata: IndexMap<String, Value>,
 }
 
-impl<'de> Deserialize<'de> for NullableConstructionDeriveResponse {
+impl<'de> Deserialize<'de> for UncheckedConstructionDeriveResponse {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -74,7 +73,7 @@ impl<'de> Deserialize<'de> for NullableConstructionDeriveResponse {
             })
         };
 
-        Ok(NullableConstructionDeriveResponse {
+        Ok(UncheckedConstructionDeriveResponse {
             address: None,
             account_identifier,
             metadata: pre.metadata,

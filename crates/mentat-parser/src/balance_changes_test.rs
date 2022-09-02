@@ -7,10 +7,10 @@ pub fn simple_asserter_configuration(
         Asserter::new_client_with_options(
             Some(NetworkIdentifier {
                 blockchain: "bitcoin".to_string(),
-                network: "mainnent".to_string(),
+                network: "mainnet".to_string(),
                 ..Default::default()
             }),
-            Some(BlockIdentifier {
+            Some(UncheckedBlockIdentifier {
                 hash: "block 0".to_string(),
                 index: 0,
             }),
@@ -162,7 +162,7 @@ fn test_balance_changes() {
                             index: 0,
                         },
                         transactions: vec![recipient_transaction.clone()],
-                        timestamp: MIN_UNIX_EPOCH + 1,
+                        timestamp: MIN_UNIX_EPOCH as usize + 1,
                         ..Default::default()
                     },
                     orphan: false,
@@ -198,7 +198,7 @@ fn test_balance_changes() {
                             index: 0,
                         },
                         transactions: vec![recipient_transaction],
-                        timestamp: MIN_UNIX_EPOCH + 1,
+                        timestamp: MIN_UNIX_EPOCH as usize + 1,
                         ..Default::default()
                     },
                     orphan: false,
@@ -225,7 +225,7 @@ fn test_balance_changes() {
                             simple_transaction_factory("tx2", "addr1", "150", currency.clone()),
                             simple_transaction_factory("tx3", "addr2", "150", currency.clone()),
                         ],
-                        timestamp: MIN_UNIX_EPOCH + 1,
+                        timestamp: MIN_UNIX_EPOCH as usize + 1,
                         ..Default::default()
                     },
                     orphan: false,
@@ -277,7 +277,7 @@ fn test_balance_changes() {
                             simple_transaction_factory("tx2", "addr1", "150", currency.clone()),
                             simple_transaction_factory("tx3", "addr2", "150", currency.clone()),
                         ],
-                        timestamp: MIN_UNIX_EPOCH + 1,
+                        timestamp: MIN_UNIX_EPOCH as usize + 1,
                         ..Default::default()
                     },
                     orphan: true,
@@ -312,9 +312,10 @@ fn test_balance_changes() {
         },
     ];
 
-    TestCase::run_output_match(tests, |t| {
+    TestCase::run_async_output_match(tests, |t| async move {
         t.caller
-            .balance_changes((), &t.payload.block, t.payload.orphan)
+            .balance_changes(&t.payload.block, t.payload.orphan)
+            .await
             .unwrap()
     });
 }

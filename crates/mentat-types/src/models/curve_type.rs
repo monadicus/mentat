@@ -7,9 +7,9 @@ use super::*;
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct NullableCurveType(String);
+pub struct UncheckedCurveType(String);
 
-impl NullableCurveType {
+impl UncheckedCurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
     pub const EDWARDS25519: &'static str = "edwards25519";
     /// https://github.com/zcash/pasta
@@ -35,19 +35,19 @@ impl NullableCurveType {
     }
 }
 
-impl fmt::Display for NullableCurveType {
+impl fmt::Display for UncheckedCurveType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<String> for NullableCurveType {
+impl From<String> for UncheckedCurveType {
     fn from(ct: String) -> Self {
         Self(ct)
     }
 }
 
-impl From<&str> for NullableCurveType {
+impl From<&str> for UncheckedCurveType {
     fn from(ct: &str) -> Self {
         ct.to_string().into()
     }
@@ -70,20 +70,20 @@ pub enum CurveType {
     Pallas,
 }
 
-impl From<NullableCurveType> for CurveType {
-    fn from(other: NullableCurveType) -> Self {
+impl From<UncheckedCurveType> for CurveType {
+    fn from(other: UncheckedCurveType) -> Self {
         match other.0.as_ref() {
-            NullableCurveType::EDWARDS25519 => Self::Edwards25519,
-            NullableCurveType::SECP256K1 => Self::Secp256k1,
-            NullableCurveType::SECP256R1 => Self::Secp256r1,
-            NullableCurveType::TWEEDLE => Self::Tweedle,
-            NullableCurveType::PALLAS => Self::Pallas,
+            UncheckedCurveType::EDWARDS25519 => Self::Edwards25519,
+            UncheckedCurveType::SECP256K1 => Self::Secp256k1,
+            UncheckedCurveType::SECP256R1 => Self::Secp256r1,
+            UncheckedCurveType::TWEEDLE => Self::Tweedle,
+            UncheckedCurveType::PALLAS => Self::Pallas,
             i => panic!("unsupported CurveType: {i}"),
         }
     }
 }
 
-impl From<CurveType> for NullableCurveType {
+impl From<CurveType> for UncheckedCurveType {
     fn from(other: CurveType) -> Self {
         match other {
             CurveType::Edwards25519 => Self::EDWARDS25519.into(),

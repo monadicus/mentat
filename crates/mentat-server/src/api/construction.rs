@@ -3,7 +3,8 @@
 //! implementations.
 use super::*;
 
-/// Trait to define the endpoints necessary for the Rosetta Construction API.
+/// ConstructionAPIServicer defines the api actions for the ConstructionAPI
+/// service
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
     /// Combine creates a network-specific transaction from an unsigned
@@ -129,28 +130,27 @@ pub trait ConstructionApi: Default {
     }
 }
 
-/// Trait to wrap the `ConstructionApi`.
-/// This trait helps to define default behavior for running the endpoints
-/// on different modes.
+/// ConstructionAPIRouter defines the required methods for binding the api
+/// requests to a responses for the ConstructionAPI The ConstructionAPIRouter
+/// implementation should parse necessary information from the http request,
+/// pass the data to a ConstructionAPIServicer to perform the required actions,
+/// then write the service results to the http response.
 #[axum::async_trait]
-pub trait CallerConstructionApi: Clone + ConstructionApi {
+pub trait ConstructionApiRouter: Clone + ConstructionApi {
     /// This endpoint runs in both offline and online mode.
     async fn call_combine(
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionCombineRequest>,
+        data: Option<UncheckedConstructionCombineRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionCombineResponse> {
+    ) -> MentatResponse<UncheckedConstructionCombineResponse> {
         asserter.construction_combine_request(data.as_ref())?;
         let resp = self
             .combine(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_combine_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -159,18 +159,15 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionDeriveRequest>,
+        data: Option<UncheckedConstructionDeriveRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionDeriveResponse> {
+    ) -> MentatResponse<UncheckedConstructionDeriveResponse> {
         asserter.construction_derive_request(data.as_ref())?;
         let resp = self
             .derive(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_derive_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -179,18 +176,15 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionHashRequest>,
+        data: Option<UncheckedConstructionHashRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
+    ) -> MentatResponse<UncheckedTransactionIdentifierResponse> {
         asserter.construction_hash_request(data.as_ref())?;
         let resp = self
             .hash(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     transaction_identifier_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -199,21 +193,18 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionMetadataRequest>,
+        data: Option<UncheckedConstructionMetadataRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionMetadataResponse> {
+    ) -> MentatResponse<UncheckedConstructionMetadataResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.construction_metadata_request(data.as_ref())?;
             let resp = self
                 .metadata(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            // if assert_resp {
-            //     construction_metadata_response(Some(&resp)).unwrap();
-            // }
             Ok(Json(resp))
         }
     }
@@ -223,19 +214,13 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionParseRequest>,
+        data: Option<UncheckedConstructionParseRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionParseResponse> {
+    ) -> MentatResponse<UncheckedConstructionParseResponse> {
         asserter.construction_parse_request(data.as_ref())?;
         let data: ConstructionParseRequest = data.unwrap().into();
-        // let signed = data.signed;
         let resp = self.parse(caller, data, rpc_caller).await?.into();
-        // if assert_resp {
-        //     asserter
-        //         .construction_parse_response(Some(&resp), signed)
-        //         .unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -244,18 +229,15 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionPayloadsRequest>,
+        data: Option<UncheckedConstructionPayloadsRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionPayloadsResponse> {
+    ) -> MentatResponse<UncheckedConstructionPayloadsResponse> {
         asserter.construction_payload_request(data.as_ref())?;
         let resp = self
             .payloads(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_payloads_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -264,18 +246,15 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionPreprocessRequest>,
+        data: Option<UncheckedConstructionPreprocessRequest>,
         _mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableConstructionPreprocessResponse> {
+    ) -> MentatResponse<UncheckedConstructionPreprocessResponse> {
         asserter.construction_preprocess_request(data.as_ref())?;
         let resp = self
             .preprocess(caller, data.unwrap().into(), rpc_caller)
             .await?
             .into();
-        // if assert_resp {
-        //     construction_preprocess_response(Some(&resp)).unwrap();
-        // }
         Ok(Json(resp))
     }
 
@@ -284,21 +263,18 @@ pub trait CallerConstructionApi: Clone + ConstructionApi {
         &self,
         caller: Caller,
         asserter: &Asserter,
-        data: Option<NullableConstructionSubmitRequest>,
+        data: Option<UncheckedConstructionSubmitRequest>,
         mode: &Mode,
         rpc_caller: RpcCaller,
-    ) -> MentatResponse<NullableTransactionIdentifierResponse> {
+    ) -> MentatResponse<UncheckedTransactionIdentifierResponse> {
         if mode.is_offline() {
-            MentatError::wrong_network(Some(mode))
+            MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.construction_submit_request(data.as_ref())?;
             let resp = self
                 .submit(caller, data.unwrap().into(), rpc_caller)
                 .await?
                 .into();
-            // if assert_resp {
-            //     transaction_identifier_response(Some(&resp)).unwrap();
-            // }
             Ok(Json(resp))
         }
     }

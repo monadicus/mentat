@@ -11,17 +11,19 @@ use axum::{
 use super::*;
 
 /// The Error type for any mentat responses.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-pub struct MentatError {
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
+pub struct UncheckedMentatError {
     /// The http status code.
     #[serde(skip)]
     pub status_code: u16,
     /// The rosetta error code
-    pub code: i32,
+    #[unchecked(usize)]
+    pub code: isize,
     /// The message for the error.
     pub message: String,
     /// The optional description of the error.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[unchecked(retain)]
     pub description: Option<String>,
     /// If the method is retriable.
     pub retriable: bool,
@@ -71,33 +73,7 @@ impl MentatError {
             MentatError::transaction_not_found::<&str, ()>(None).unwrap_err(),
             MentatError::couldnt_get_fee_rate::<&str, ()>(None).unwrap_err(),
             MentatError::couldnt_get_balance::<&str, ()>(None).unwrap_err(),
-            MentatError::wrong_network::<&str, ()>(None).unwrap_err(),
-            MentatError::not_found_example::<&str, ()>(None).unwrap_err(),
         ]
-    }
-
-    /// For when a method called but not available on the current network.
-    pub fn wrong_network<D: Display, R>(details: Option<D>) -> Result<R> {
-        Err(MentatError {
-            status_code: 500,
-            code: 500,
-            message: "requestNetwork not supported".to_string(),
-            description: None,
-            retriable: false,
-            details: Self::context(details, |n| format!("unsupported network {n}")),
-        })
-    }
-
-    /// Not Found
-    fn not_found_example<D: Display, R>(details: Option<D>) -> Result<R> {
-        Err(MentatError {
-            status_code: 404,
-            code: 404,
-            message: "Not Found".to_string(),
-            description: None,
-            retriable: false,
-            details: Self::context(details, |n| n.to_string()),
-        })
     }
 
     /// Not Found
@@ -356,7 +332,11 @@ impl MentatError {
 
 impl<T: Display> From<T> for MentatError {
     fn from(e: T) -> Self {
-        Self::node_error::<T, ()>(Some(e)).unwrap_err()
+        Self {
+            status_code: 500,
+            message: e.to_string(),
+            ..Default::default()
+        }
     }
 }
 

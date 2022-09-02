@@ -10,8 +10,8 @@ use super::*;
 #[derive(Default)]
 struct TestNewExtras {
     network: Option<NetworkIdentifier>,
-    network_status: Option<NullableNetworkStatusResponse>,
-    network_options: Option<NullableNetworkOptionsResponse>,
+    network_status: Option<UncheckedNetworkStatusResponse>,
+    network_options: Option<UncheckedNetworkOptionsResponse>,
     validation_file_path: Option<PathBuf>,
     skip_load_test: bool,
 }
@@ -19,16 +19,16 @@ struct TestNewExtras {
 #[test]
 fn test_new() {
     let valid_network = Some(NetworkIdentifier {
-        blockchain: "hello".into(),
-        network: "world".into(),
+        blockchain: "HELLO".into(),
+        network: "WORLD".into(),
         sub_network_identifier: Default::default(),
     });
-    let valid_network_status = Some(NullableNetworkStatusResponse {
-        genesis_block_identifier: Some(BlockIdentifier {
+    let valid_network_status = Some(UncheckedNetworkStatusResponse {
+        genesis_block_identifier: Some(UncheckedBlockIdentifier {
             index: 0,
             hash: "block 0".into(),
         }),
-        current_block_identifier: Some(BlockIdentifier {
+        current_block_identifier: Some(UncheckedBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -39,12 +39,12 @@ fn test_new() {
         })],
         ..Default::default()
     });
-    let valid_network_status_sync_status = Some(NullableNetworkStatusResponse {
-        genesis_block_identifier: Some(BlockIdentifier {
+    let valid_network_status_sync_status = Some(UncheckedNetworkStatusResponse {
+        genesis_block_identifier: Some(UncheckedBlockIdentifier {
             index: 0,
             hash: "block 0".into(),
         }),
-        current_block_identifier: Some(BlockIdentifier {
+        current_block_identifier: Some(UncheckedBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -53,15 +53,15 @@ fn test_new() {
             peer_id: "peer 1".into(),
             metadata: Default::default(),
         })],
-        sync_status: Some(SyncStatus {
+        sync_status: Some(UncheckedSyncStatus {
             current_index: Some(100),
             stage: Some("pre-sync".into()),
             ..Default::default()
         }),
         oldest_block_identifier: None,
     });
-    let invalid_network_status = Some(NullableNetworkStatusResponse {
-        current_block_identifier: Some(BlockIdentifier {
+    let invalid_network_status = Some(UncheckedNetworkStatusResponse {
+        current_block_identifier: Some(UncheckedBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -72,12 +72,12 @@ fn test_new() {
         })],
         ..Default::default()
     });
-    let invalid_network_status_sync_status = Some(NullableNetworkStatusResponse {
-        genesis_block_identifier: Some(BlockIdentifier {
+    let invalid_network_status_sync_status = Some(UncheckedNetworkStatusResponse {
+        genesis_block_identifier: Some(UncheckedBlockIdentifier {
             index: 0,
             hash: "block 0".into(),
         }),
-        current_block_identifier: Some(BlockIdentifier {
+        current_block_identifier: Some(UncheckedBlockIdentifier {
             index: 100,
             hash: "block 100".into(),
         }),
@@ -86,26 +86,26 @@ fn test_new() {
             peer_id: "peer 1".into(),
             metadata: Default::default(),
         })],
-        sync_status: Some(SyncStatus {
+        sync_status: Some(UncheckedSyncStatus {
             current_index: Some(-100),
             stage: Some("pre-sync".into()),
             ..Default::default()
         }),
         oldest_block_identifier: None,
     });
-    let valid_network_options = Some(NullableNetworkOptionsResponse {
+    let valid_network_options = Some(UncheckedNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(NullableAllow {
+        allow: Some(UncheckedAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(UncheckedMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -116,19 +116,19 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let valid_network_options_with_start_index = Some(NullableNetworkOptionsResponse {
+    let valid_network_options_with_start_index = Some(UncheckedNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(NullableAllow {
+        allow: Some(UncheckedAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(UncheckedMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -140,15 +140,15 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let invalid_network_options = Some(NullableNetworkOptionsResponse {
+    let invalid_network_options = Some(UncheckedNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(NullableAllow {
+        allow: Some(UncheckedAllow {
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(UncheckedMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -158,13 +158,13 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let duplicate_statuses = Some(NullableNetworkOptionsResponse {
+    let duplicate_statuses = Some(UncheckedNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(NullableAllow {
+        allow: Some(UncheckedAllow {
             operation_statuses: vec![
                 Some(OperationStatus {
                     status: "Success".into(),
@@ -176,7 +176,7 @@ fn test_new() {
                 }),
             ],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(UncheckedMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -186,19 +186,19 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let duplicate_types = Some(NullableNetworkOptionsResponse {
+    let duplicate_types = Some(UncheckedNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(NullableAllow {
+        allow: Some(UncheckedAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string(), "Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(UncheckedMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),
@@ -208,19 +208,19 @@ fn test_new() {
             ..Default::default()
         }),
     });
-    let negative_start_index = Some(NullableNetworkOptionsResponse {
+    let negative_start_index = Some(UncheckedNetworkOptionsResponse {
         version: Some(Version {
             rosetta_version: "1.4.0".into(),
             node_version: "1.0".into(),
             ..Default::default()
         }),
-        allow: Some(NullableAllow {
+        allow: Some(UncheckedAllow {
             operation_statuses: vec![Some(OperationStatus {
                 status: "Success".into(),
                 successful: true,
             })],
             operation_types: vec!["Transfer".to_string()],
-            errors: vec![Some(MentatError {
+            errors: vec![Some(UncheckedMentatError {
                 status_code: 0,
                 code: 1,
                 message: "error".into(),

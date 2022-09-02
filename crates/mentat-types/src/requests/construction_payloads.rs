@@ -1,7 +1,5 @@
 //! The module defines the ConstructionPayloadsRequest request.
 
-use indexmap::IndexMap;
-
 use super::*;
 
 /// [`ConstructionPayloadsRequest`] is the request to `/construction/payloads`.
@@ -10,9 +8,9 @@ use super::*;
 /// request can also include an array of [`PublicKey`]s associated with the
 /// [`AccountIdentifier`]s returned in
 /// [`crate::responses::ConstructionPreprocessResponse`].
-#[derive(Clone, Debug, Deserialize, Serialize, Default, Nullable)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
 #[serde(default)]
-pub struct NullableConstructionPayloadsRequest {
+pub struct UncheckedConstructionPayloadsRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,15 +20,15 @@ pub struct NullableConstructionPayloadsRequest {
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub operations: Vec<Option<NullableOperation>>,
+    pub operations: Vec<Option<UncheckedOperation>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub metadata: IndexMap<String, Value>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         deserialize_with = "null_default"
     )]
-    pub public_keys: Vec<Option<NullablePublicKey>>,
+    pub public_keys: Vec<Option<UncheckedPublicKey>>,
 }

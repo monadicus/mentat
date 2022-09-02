@@ -4,17 +4,34 @@ use std::{fmt::Debug, str::FromStr};
 
 use num_bigint_dig::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-use super::{
-    AccountIdentifier,
-    Amount,
-    BlockIdentifier,
-    NullableAmount,
-    NullableCurrency,
-    PartialBlockIdentifier,
-    Sortable,
-};
+use super::*;
+
+/// a trait to help determine the size of blocks in memory
+pub trait EstimateSize {
+    /// returns the estimated size of `self` and all it's owned values as bytes
+    fn estimated_size(&self) -> usize;
+}
+
+// TODO doesnt correctly track true size of json values, only the size of the
+// enum pointing to the data
+pub(crate) fn estimated_metadata_size(metadata: &IndexMap<String, Value>) -> usize {
+    size_of_val(&metadata)
+        + metadata
+            .iter()
+            .map(|(s, v)| size_of_val(s.as_str()) + size_of_val(v))
+            .sum::<usize>()
+}
+
+pub(crate) fn estimated_option_size<T: EstimateSize>(v: &Option<T>) -> usize {
+    v.as_ref().map(|v| v.estimated_size()).unwrap_or_default()
+}
+
+pub(crate) fn estimated_vec_size<T: EstimateSize>(v: &[T]) -> usize {
+    size_of_val(v) + v.iter().map(|v| v.estimated_size()).sum::<usize>()
+}
 
 /// `hash_bytes` returns a hex-encoded sha256 hash of the provided
 /// byte slice.
@@ -59,7 +76,7 @@ where
 ///
 /// It is useful to have this helper when making block requests
 /// with the fetcher.
-pub(crate) fn construct_partialblock_identifier(block: &BlockIdentifier) -> PartialBlockIdentifier {
+pub fn construct_partialblock_identifier(block: &BlockIdentifier) -> PartialBlockIdentifier {
     PartialBlockIdentifier {
         index: Some(block.index),
         hash: Some(block.hash.clone()),
@@ -75,7 +92,7 @@ pub fn amount_value(amount: Option<&Amount>) -> Result<BigInt, String> {
 
 /// `account_string` returns a human-readable representation of a
 /// [`AccountIdentifier`].
-pub(crate) fn account_string(account: &AccountIdentifier) -> String {
+pub fn account_string(account: &AccountIdentifier) -> String {
     let sub_account = if let Some(sub_account) = account.sub_account.as_ref() {
         sub_account
     } else {
@@ -83,29 +100,30 @@ pub(crate) fn account_string(account: &AccountIdentifier) -> String {
     };
 
     if sub_account.metadata.is_empty() {
-        return format!("{}:{}", account.address, sub_account.address);
+        format!("{}:{}", account.address, sub_account.address)
+    } else {
+        format!(
+            "{}:{}:{:?}",
+            account.address, sub_account.address, sub_account.metadata
+        )
     }
-
-    format!(
-        "{}:{}:{:?}",
-        account.address, sub_account.address, sub_account.metadata
-    )
 }
 
 /// `currency_string` returns a human-readable representation
 /// of a *Currency.
-pub(crate) fn currency_string(currency: &NullableCurrency) -> String {
+pub fn currency_string(currency: &UncheckedCurrency) -> String {
     if currency.metadata.is_empty() {
-        return format!("{}:{}", currency.symbol, currency.decimals);
+        format!("{}:{}", currency.symbol, currency.decimals)
+    } else {
+        format!(
+            "{}:{}:{:?}",
+            currency.symbol, currency.decimals, currency.metadata
+        )
     }
-    return format!(
-        "{}:{}:{:?}",
-        currency.symbol, currency.decimals, currency.metadata
-    );
 }
 
 /// `big_int` returns a *big.Int representation of a value.
-pub(crate) fn big_int(value: &str) -> Result<BigInt, String> {
+pub fn big_int(value: &str) -> Result<BigInt, String> {
     let parsed_val = BigInt::from_str(value).map_err(|_| format!("{value} is not an integer"))?;
     Ok(parsed_val)
 }
@@ -121,7 +139,7 @@ pub fn add_values(a: &str, b: &str) -> Result<String, String> {
 
 /// `subtract_values` subtracts a-b using
 /// big.Int.
-pub(crate) fn sub_values(a: &str, b: &str) -> Result<String, String> {
+pub fn sub_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val - b_val;
@@ -130,7 +148,7 @@ pub(crate) fn sub_values(a: &str, b: &str) -> Result<String, String> {
 
 /// `multiply_values` multiplies a*b using
 /// big.Int.
-pub(crate) fn multiply_values(a: &str, b: &str) -> Result<String, String> {
+pub fn multiply_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val * b_val;
@@ -139,7 +157,7 @@ pub(crate) fn multiply_values(a: &str, b: &str) -> Result<String, String> {
 
 /// `divide_values` divides a/b using
 /// big.Int.
-pub(crate) fn divide_values(a: &str, b: &str) -> Result<String, String> {
+pub fn divide_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
     let new_val = a_val % b_val;
@@ -154,10 +172,10 @@ pub fn negate_value(val: &str) -> Result<String, String> {
 
 /// `extract_amount` returns the Amount from a slice of Balance
 /// pertaining to an AccountAndCurrency.
-pub(crate) fn extract_amount(
-    balances: &[Option<NullableAmount>],
-    currency: Option<&NullableCurrency>,
-) -> NullableAmount {
+pub fn extract_amount(
+    balances: &[Option<UncheckedAmount>],
+    currency: Option<&UncheckedCurrency>,
+) -> UncheckedAmount {
     balances
         .iter()
         .find(|amt| {
@@ -169,7 +187,7 @@ pub(crate) fn extract_amount(
         })
         .cloned()
         .flatten()
-        .unwrap_or(NullableAmount {
+        .unwrap_or(UncheckedAmount {
             value: "0".to_string(),
             currency: currency.cloned(),
             ..Default::default()
@@ -184,6 +202,22 @@ where
 {
     let opt = Option::deserialize(deserializer)?;
     Ok(opt.unwrap_or_default())
+}
+
+/// custom deserializer that makes string values all uppercase
+pub(crate) fn string_as_uppercase<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    String::deserialize(deserializer).map(|s| s.to_uppercase())
+}
+
+/// custom serializer that makes string values all uppercase
+pub(crate) fn string_to_uppercase<S>(str: &str, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_str(&str.to_uppercase())
 }
 
 /// For hex look ups when encoding bytes to hex

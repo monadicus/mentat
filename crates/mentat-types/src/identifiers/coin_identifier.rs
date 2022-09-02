@@ -12,3 +12,9 @@ pub struct CoinIdentifier {
     /// Coin. In Bitcoin, this identifier would be transaction_hash:index.
     pub identifier: String,
 }
+
+impl EstimateSize for CoinIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self) + size_of_val(self.identifier.as_str())
+    }
+}

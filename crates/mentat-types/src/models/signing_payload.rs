@@ -4,33 +4,33 @@ use serde::ser::SerializeStruct;
 
 use super::*;
 
-// TODO add `#[nullable(skip_serde)]` and copy paste serde impls for
-// non-nullable struct
+// TODO add `#[unchecked(skip_serde)]` and copy paste serde impls for
+// non-unchecked struct
 /// [`SigningPayload`] is signed by the client with the keypair associated with
 /// an [`AccountIdentifier`] using the specified [`SignatureType`].
 /// [`SignatureType`] can be optionally populated if there is a restriction on
 /// the signature scheme that can be used to sign the payload.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Nullable)]
-pub struct NullableSigningPayload {
+#[derive(Clone, Debug, Default, PartialEq, Eq, Unchecked)]
+pub struct UncheckedSigningPayload {
     /// [DEPRECATED by account_identifier in v1.4.4] The network-specific
     /// address of the account that should sign the payload.
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub address: Option<String>,
     /// The `AccountIdentifier` uniquely identifies an account within a
     /// network. All fields in the account_identifier are utilized to
     /// determine this uniqueness (including the metadata field, if
     /// populated).
-    #[nullable(retain)]
+    #[unchecked(retain)]
     pub account_identifier: Option<AccountIdentifier>,
     /// The hex bytes of the Signing Payload.
-    #[nullable(bytes)]
+    #[unchecked(bytes)]
     pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
-    #[nullable(option_enum)]
-    pub signature_type: NullableSignatureType,
+    #[unchecked(option_enum)]
+    pub signature_type: UncheckedSignatureType,
 }
 
-impl Serialize for NullableSigningPayload {
+impl Serialize for UncheckedSigningPayload {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -67,10 +67,10 @@ struct SigningPayloadPre {
         deserialize_with = "null_default_bytes_to_hex"
     )]
     pub bytes: Vec<u8>,
-    pub signature_type: NullableSignatureType,
+    pub signature_type: UncheckedSignatureType,
 }
 
-impl<'de> Deserialize<'de> for NullableSigningPayload {
+impl<'de> Deserialize<'de> for UncheckedSigningPayload {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -86,7 +86,7 @@ impl<'de> Deserialize<'de> for NullableSigningPayload {
             })
         };
 
-        Ok(NullableSigningPayload {
+        Ok(UncheckedSigningPayload {
             address: None,
             account_identifier,
             bytes: pre.bytes,

@@ -8,10 +8,18 @@ use super::*;
 #[serde(default)]
 pub struct NetworkIdentifier {
     /// The name of the blockchain.
+    #[serde(
+        serialize_with = "string_to_uppercase",
+        deserialize_with = "string_as_uppercase"
+    )]
     pub blockchain: String,
     /// If a blockchain has a specific chain-id or network identifier, it should
     /// go in this field. It is up to the client to determine which
     /// network-specific identifier is mainnet or testnet.
+    #[serde(
+        serialize_with = "string_to_uppercase",
+        deserialize_with = "string_as_uppercase"
+    )]
     pub network: String,
     /// In blockchains with sharded state, the `SubNetworkIdentifier` is
     /// required to query some object on a specific shard. This identifier
@@ -20,37 +28,37 @@ pub struct NetworkIdentifier {
     pub sub_network_identifier: Option<SubNetworkIdentifier>,
 }
 
-impl From<(String, String)> for NetworkIdentifier {
-    fn from((blockchain, network): (String, String)) -> Self {
+impl From<(&str, &str)> for NetworkIdentifier {
+    fn from((blockchain, network): (&str, &str)) -> Self {
         Self {
-            blockchain,
-            network,
+            blockchain: blockchain.to_uppercase(),
+            network: network.to_uppercase(),
             ..Default::default()
         }
     }
 }
 
-impl From<(String, String, String)> for NetworkIdentifier {
-    fn from((blockchain, network, subnet): (String, String, String)) -> Self {
+impl From<(&str, &str, &str)> for NetworkIdentifier {
+    fn from((blockchain, network, subnet): (&str, &str, &str)) -> Self {
         Self {
-            blockchain,
-            network,
+            blockchain: blockchain.to_uppercase(),
+            network: network.to_uppercase(),
             sub_network_identifier: Some(subnet.into()),
         }
     }
 }
 
-impl From<(String, String, Option<String>)> for NetworkIdentifier {
-    fn from((blockchain, network, subnet): (String, String, Option<String>)) -> Self {
+impl From<(&str, &str, Option<&str>)> for NetworkIdentifier {
+    fn from((blockchain, network, subnet): (&str, &str, Option<&str>)) -> Self {
         Self {
-            blockchain,
-            network,
+            blockchain: blockchain.to_uppercase(),
+            network: network.to_uppercase(),
             sub_network_identifier: subnet.map(|s| s.into()),
         }
     }
 }
 
-impl From<Option<NetworkIdentifier>> for NullableNetworkRequest {
+impl From<Option<NetworkIdentifier>> for UncheckedNetworkRequest {
     fn from(net: Option<NetworkIdentifier>) -> Self {
         Self {
             network_identifier: net,
@@ -61,8 +69,19 @@ impl From<Option<NetworkIdentifier>> for NullableNetworkRequest {
 
 impl Sortable for NetworkIdentifier {
     fn sort(&self) -> Self {
-        let mut new = self.clone();
-        new.sub_network_identifier = new.sub_network_identifier.map(|sni| sni.sort());
-        new
+        Self {
+            blockchain: self.blockchain.to_uppercase(),
+            network: self.network.to_uppercase(),
+            sub_network_identifier: self.sub_network_identifier.clone().map(|sni| sni.sort()),
+        }
+    }
+}
+
+impl EstimateSize for NetworkIdentifier {
+    fn estimated_size(&self) -> usize {
+        size_of_val(self)
+            + size_of_val(self.blockchain.as_str())
+            + size_of_val(self.network.as_str())
+            + estimated_option_size(&self.sub_network_identifier)
     }
 }
