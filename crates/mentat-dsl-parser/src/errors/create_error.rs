@@ -35,7 +35,7 @@ macro_rules! CreateErrorType {
       use colored::Colorize;
 
       #[derive(Debug, Default, thiserror::Error)]
-      pub(crate) struct $struct_name;
+      pub struct $struct_name;
 
       impl core::fmt::Display for $struct_name {
           fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

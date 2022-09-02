@@ -4,9 +4,6 @@ use super::tokens::TokenKind;
 use crate::errors::{LexerError, Result};
 
 impl TokenKind {
-    // TODO consider simplicity purpose and just parse negation sign...
-    // Might not even need to parse the numbers?
-    // I think we just need to move them.
     fn tokenize_number(
         input: &mut Peekable<impl Iterator<Item = char>>,
     ) -> Result<(TokenKind, usize)> {
@@ -49,7 +46,7 @@ impl TokenKind {
             let n: f64 = LexerError::could_not_lex_decimal_number(number.parse(), number)?;
             Ok((TokenKind::from(n), bytes_read))
         } else if negated {
-            let n: i128 = LexerError::could_not_lex_signed_number(number.parse(), number)?;
+            let n: isize = LexerError::could_not_lex_signed_number(number.parse(), number)?;
             Ok((TokenKind::from(n), bytes_read))
         } else {
             let n: usize = LexerError::could_not_lex_number(number.parse(), number)?;
@@ -244,10 +241,10 @@ lexer_test!(
     ".Foo_bar"
 );
 
-lexer_test!(INT: tokenize_a_negative_single_digit_integer, "-1" => -1i128);
+lexer_test!(INT: tokenize_a_negative_single_digit_integer, "-1" => -1isize);
 lexer_test!(INT: tokenize_a_single_digit_integer, "1" => 1usize);
 lexer_test!(INT: tokenize_a_longer_integer, "1234567890" => 1234567890usize);
-lexer_test!(INT: tokenize_a_longer_negative_integer, "-1234567890" => -1234567890i128);
+lexer_test!(INT: tokenize_a_longer_negative_integer, "-1234567890" => -1234567890isize);
 lexer_test!(INT: tokenize_basic_decimal, "12.3" => 12.3);
 lexer_test!(INT: tokenize_string_with_multiple_decimal_points, "12.3.456" => 12.3);
 lexer_test!(

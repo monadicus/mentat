@@ -1,3 +1,5 @@
+use std::vec;
+
 use indexmap::IndexMap;
 
 use super::{parser_context::ParserContext, tokens::TokenKind, Token};
@@ -10,7 +12,6 @@ const INDENT: &'static str = "  ";
 
 impl ParserContext {
     fn parse_type(&mut self, indent: usize, type_: String, optionify: bool) -> Result<()> {
-        print!("{}", INDENT.repeat(indent));
         if self.check(&TokenKind::DefaultObject) {
             self.eat(&TokenKind::DefaultObject);
             self.eat(&TokenKind::Comma);
@@ -18,11 +19,29 @@ impl ParserContext {
             return Ok(());
         }
 
-        self.expect(&TokenKind::LeftCurly)?;
         if optionify {
             println!("Some({type_} {{");
         } else {
             println!("{type_} {{");
+        }
+
+        match self.curr_token.kind.clone() {
+            TokenKind::LeftCurly => {
+                self.bump();
+                self.parse_field(indent + 1)?;
+            }
+            TokenKind::Identifier(field) => {
+                self.bump();
+                self.expect(&TokenKind::Colon)?;
+                print!(
+                    "{}{}: {}",
+                    INDENT.repeat(indent),
+                    field.to_ascii_lowercase(),
+                    self.curr_token.kind
+                );
+                self.bump();
+            }
+            _ => todo!("error"),
         }
 
         self.eat(&TokenKind::Comma);
@@ -53,34 +72,48 @@ impl ParserContext {
         Ok((close_vec_count, optionify, type_))
     }
 
-    fn parse_dynamic_payload(
-        &mut self,
-        struct_format: &str,
-        fields: &IndexMap<String, TestStructPayloadField>,
-    ) -> Result<()> {
+    fn parse_field(&mut self, indent: usize) -> Result<()> {
+        let ident = self.expect_identifier()?;
+        self.expect(&TokenKind::Colon)?;
+
+        print!("{}{}: ", INDENT.repeat(indent), ident.to_ascii_lowercase());
+
+        let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
+        self.parse_type(indent + 1, type_, optionify)?;
+        print!("{}", INDENT.repeat(indent));
+        for i in 0..(vecs_to_close) {
+            self.expect(&TokenKind::RightCurly)?;
+            print!("]");
+        }
+
+        Ok(())
+    }
+
+    fn parse_dynamic_payload(&mut self, struct_format: &str) -> Result<()> {
         println!("{struct_format}");
         let ident = self.expect_identifier()?;
         self.expect(&TokenKind::Colon)?;
 
-        print!("{}{ident}: ", INDENT.repeat(5));
+        print!("{}{ident}: ", INDENT.repeat(4));
 
         let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
-        self.parse_type(6, type_, optionify)?;
         print!("{}", INDENT.repeat(5));
-        for i in 0..vecs_to_close {
-            self.expect(&TokenKind::RightCurly)?;
-            print!("]");
-        }
-        self.expect(&TokenKind::Comma)?;
-        println!(",");
+        // self.parse_type(5, type_, optionify)?;
+        // print!("{}", INDENT.repeat(4));
+        // for i in 0..vecs_to_close {
+        //     self.expect(&TokenKind::RightCurly)?;
+        //     print!("]");
+        // }
+        // self.expect(&TokenKind::Comma)?;
+        // println!(",");
 
         Ok(())
     }
 
     fn parse_test_struct(&mut self, rules: &RulesFile) -> Result<()> {
         println!("{}{} {{", INDENT.repeat(2), rules.test_struct.struct_name);
-        if let TokenKind::String(test_name) = self.curr_token.kind.clone() {
-            println!("{}name: \"{test_name}\",", INDENT.repeat(3));
+        if matches!(self.curr_token.kind, TokenKind::String(_)) {
+            println!("{}name: {},", INDENT.repeat(3), self.curr_token.kind);
         } else {
             ParserError::unexpected_token(&self.curr_token.kind, "String", self.curr_token.span)?;
         }
@@ -89,18 +122,15 @@ impl ParserContext {
 
         self.expect(&TokenKind::Colon)?;
 
+        print!("{}payload: ", INDENT.repeat(3));
         match &rules.test_struct.payload {
             TestStructPayload::Dynamic {
                 struct_name,
                 fields,
             } => {
-                let struct_format = format!(
-                    "{}{} {{",
-                    INDENT.repeat(4),
-                    struct_name.to_ascii_lowercase()
-                );
+                let struct_format = format!("{} {{", struct_name);
                 self.parse_curly_comma_list(|c| {
-                    ParserContext::parse_dynamic_payload(c, &struct_format, fields)
+                    ParserContext::parse_dynamic_payload(c, &struct_format)
                 })?;
                 Ok(())
             }

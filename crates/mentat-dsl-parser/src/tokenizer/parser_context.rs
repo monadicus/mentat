@@ -59,6 +59,7 @@ impl ParserContext {
         &self.curr_token.kind == tok
     }
 
+    #[track_caller]
     pub(super) fn eat(&mut self, token: &TokenKind) -> bool {
         self.check(token).then(|| self.bump()).is_some()
     }
@@ -76,6 +77,7 @@ impl ParserContext {
         looker(self.tokens.get(idx).unwrap_or(&Token::dummy()))
     }
 
+    #[track_caller]
     pub(super) fn eat_identifier(&mut self) -> Option<String> {
         if let TokenKind::Identifier(ident) = self.curr_token.kind.clone() {
             self.bump();
@@ -84,6 +86,7 @@ impl ParserContext {
         None
     }
 
+    #[track_caller]
     pub(super) fn expect_identifier(&mut self) -> Result<String> {
         if let Some(ident) = self.eat_identifier() {
             Ok(ident)
@@ -92,6 +95,7 @@ impl ParserContext {
         }
     }
 
+    #[track_caller]
     pub(super) fn eat_any(&mut self, tokens: &[TokenKind]) -> bool {
         tokens
             .iter()

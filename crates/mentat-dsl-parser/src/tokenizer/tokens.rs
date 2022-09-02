@@ -5,7 +5,7 @@ use crate::errors::Result;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Integer {
     UInt(usize),
-    Int(i128),
+    Int(isize),
 }
 
 impl Display for Integer {
@@ -109,8 +109,8 @@ impl From<usize> for TokenKind {
     }
 }
 
-impl From<i128> for TokenKind {
-    fn from(other: i128) -> TokenKind {
+impl From<isize> for TokenKind {
+    fn from(other: isize) -> TokenKind {
         TokenKind::Integer(Integer::Int(other))
     }
 }
