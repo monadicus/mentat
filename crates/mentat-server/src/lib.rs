@@ -47,17 +47,10 @@ pub use tracing_tree;
 pub mod macro_exports {
     pub use axum::{
         extract::{self, ConnectInfo, Extension, Json},
-        routing,
-        Router,
+        routing, Router,
     };
     pub use mentat_types::*;
     pub use tracing::Instrument;
 
-    pub use super::{
-        api::*,
-        cache::Cache,
-        conf::Configuration,
-        server::{RpcCaller, RpcResponse, Server},
-        *,
-    };
+    pub use super::{api::*, cache::Cache, conf::Configuration, server::Server, *};
 }

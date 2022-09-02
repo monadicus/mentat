@@ -7,6 +7,9 @@ use super::*;
 /// EventsAPIServicer defines the api actions for the EventsAPI service
 #[axum::async_trait]
 pub trait EventsApi {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// `/events/blocks` allows the `_caller` to query a sequence of
     /// [`crate::models::BlockEvent`]s indicating which blocks were added and
     /// removed from storage to reach the current state. Following
@@ -20,7 +23,7 @@ pub trait EventsApi {
         &self,
         _caller: Caller,
         _data: EventsBlocksRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<EventsBlocksResponse> {
         MentatError::not_implemented()
     }
@@ -40,11 +43,11 @@ pub trait EventsApiRouter: EventsApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedEventsBlocksRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedEventsBlocksResponse> {
         asserter.events_block_request(data.as_ref())?;
         let resp = self
-            .events_blocks(caller, data.unwrap().into(), rpc_caller)
+            .events_blocks(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         // if assert_resp {

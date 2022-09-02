@@ -7,6 +7,9 @@ use super::*;
 /// NetworkAPIServicer defines the api actions for the NetworkAPI service
 #[axum::async_trait]
 pub trait NetworkApi {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// This endpoint returns a list of
     /// [`crate::identifiers::NetworkIdentifier`]s that the Rosetta
     /// server supports.
@@ -14,7 +17,7 @@ pub trait NetworkApi {
         &self,
         _caller: Caller,
         _data: MetadataRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<NetworkListResponse> {
         MentatError::not_implemented()
     }
@@ -30,7 +33,7 @@ pub trait NetworkApi {
         &self,
         _caller: Caller,
         _data: NetworkRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<NetworkOptionsResponse> {
         MentatError::not_implemented()
     }
@@ -42,7 +45,7 @@ pub trait NetworkApi {
         &self,
         _caller: Caller,
         _data: NetworkRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<NetworkStatusResponse> {
         MentatError::not_implemented()
     }
@@ -62,11 +65,11 @@ pub trait NetworkApiRouter: NetworkApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedMetadataRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedNetworkListResponse> {
         asserter.metadata_request(data.as_ref())?;
         let resp = self
-            .network_list(caller, data.unwrap().into(), rpc_caller)
+            .network_list(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
@@ -79,11 +82,11 @@ pub trait NetworkApiRouter: NetworkApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedNetworkRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedNetworkOptionsResponse> {
         asserter.network_request(data.as_ref())?;
         let resp = self
-            .network_options(caller, data.unwrap().into(), rpc_caller)
+            .network_options(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
@@ -96,14 +99,14 @@ pub trait NetworkApiRouter: NetworkApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedNetworkRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedNetworkStatusResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.network_request(data.as_ref())?;
             let resp = self
-                .network_status(caller, data.unwrap().into(), rpc_caller)
+                .network_status(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))

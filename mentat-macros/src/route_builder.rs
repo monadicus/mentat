@@ -285,36 +285,35 @@ fn build_route(
         req_input = quote!(
             Json(req_data): Json<Option<#r>>,
             Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
-            Extension(rpc_caller): Extension<RpcCaller>,
         );
         req_trace = quote!(
-            tracing::info!("{:#?}", req_data);
-            tracing::info!("{:#?}", conf);
+            tracing::info!("{:?}", req_data);
+            tracing::info!("{:?}", conf);
         );
-        method_args = quote!(&asserter, req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&asserter, req_data, &conf.mode, &node_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
             Extension(node_pid): Extension<NodePid>,
             Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
-            Extension(rpc_caller): Extension<RpcCaller>
         );
         req_trace = quote! (
             tracing::info!("{}", server_pid);
             tracing::info!("{}", node_pid.0);
         );
-        method_args = quote!(&conf.mode, rpc_caller, server_pid, node_pid);
+        method_args = quote!(&conf.mode, &node_caller, server_pid, node_pid);
     }
     quote!(
         let api = server.#api_field.clone();
         let asserter = server.asserters.#api_field.clone();
+        let node_caller = server.node_caller.clone();
         let #method = move |
             ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
             #req_input
             | {
                 ::std::boxed::Box::pin(async move {
                     let c = Caller { ip };
-                    tracing::info!("{:#?}", c);
+                    tracing::info!("{:?}", c);
                     #req_trace
                     let resp = api.#method(c, #method_args).await;
                     #[cfg(debug_assertions)]
@@ -346,13 +345,12 @@ fn build_cached_route(
         req_input = quote!(
             Json(req_data): Json<Option<#r>>,
             Extension(conf): Extension<Configuration<<#server_type as ServerType>::CustomConfig>>,
-            Extension(rpc_caller): Extension<RpcCaller>,
         );
         req_trace = quote!(
-            tracing::info!("{:#?}", req_data);
-            tracing::info!("{:#?}", conf);
+            tracing::info!("{:?}", req_data);
+            tracing::info!("{:?}", conf);
         );
-        method_args = quote!(&asserter, req_data, &conf.mode, rpc_caller);
+        method_args = quote!(&asserter, req_data, &conf.mode, &node_caller);
     } else {
         req_input = quote!(
             Extension(server_pid): Extension<Pid>,
@@ -367,6 +365,7 @@ fn build_cached_route(
     quote!(
         let api = server.#api_field.clone();
         let asserter = server.asserters.#api_field.clone();
+        let node_caller = server.node_caller.clone();
         let cache = Cache::<#cacher<_>>::new(::std::default::Default::default(), ::std::option::Option::None);
 
         let #method = move |
@@ -375,7 +374,7 @@ fn build_cached_route(
             | {
                 Box::pin(async move {
                     let c = Caller { ip };
-                    tracing::info!("{:#?}", c);
+                    tracing::info!("{:?}", c);
                     #req_trace
                     cache.get_cached(move || {
                         std::boxed::Box::pin(async move {

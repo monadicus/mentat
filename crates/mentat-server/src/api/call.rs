@@ -7,12 +7,15 @@ use super::*;
 /// CallAPIServicer defines the api actions for the CallAPI service
 #[axum::async_trait]
 pub trait CallApi {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// Make a Network-Specific Procedure Call
     async fn call(
         &self,
         _caller: Caller,
         _data: CallRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<CallResponse> {
         MentatError::not_implemented()
     }
@@ -32,14 +35,14 @@ pub trait CallApiRouter: CallApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedCallRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedCallResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.call_request(data.as_ref())?;
             Ok(Json(
-                self.call(caller, data.unwrap().into(), rpc_caller)
+                self.call(caller, data.unwrap().into(), node_caller)
                     .await?
                     .into(),
             ))

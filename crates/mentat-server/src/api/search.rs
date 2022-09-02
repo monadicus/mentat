@@ -7,6 +7,9 @@ use super::*;
 /// SearchAPIServicer defines the api actions for the SearchAPI service
 #[axum::async_trait]
 pub trait SearchApi {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// `/events/blocks` allows the `_caller` to query a sequence of
     /// [`crate::models::BlockEvent`]s indicating which blocks were added and
     /// removed from storage to reach the current state. Following
@@ -20,7 +23,7 @@ pub trait SearchApi {
         &self,
         _caller: Caller,
         _data: SearchTransactionsRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<SearchTransactionsResponse> {
         MentatError::not_implemented()
     }
@@ -40,11 +43,11 @@ pub trait SearchApiRouter: SearchApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedSearchTransactionsRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedSearchTransactionsResponse> {
         asserter.search_transactions_request(data.as_ref())?;
         let resp = self
-            .search_transactions(caller, data.unwrap().into(), rpc_caller)
+            .search_transactions(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
