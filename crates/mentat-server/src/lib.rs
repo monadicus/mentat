@@ -47,7 +47,8 @@ pub use tracing_tree;
 pub mod macro_exports {
     pub use axum::{
         extract::{self, ConnectInfo, Extension, Json},
-        routing, Router,
+        routing,
+        Router,
     };
     pub use mentat_types::*;
     pub use tracing::Instrument;
