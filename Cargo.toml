@@ -2,7 +2,6 @@
 members = [
         "crates/mentat-asserter",
         "crates/mentat-client",
-        "crates/mentat-dsl-parser",
         # Disabled for now.
         # Needs to be changed to match module.
         # "crates/mentat-keys",
@@ -11,6 +10,7 @@ members = [
         "crates/mentat-server",
         "crates/mentat-syncer",
         "crates/mentat-test-utils",
+        "crates/mentat-tokenizer",
         "crates/mentat-types",
         # "examples/mentat-cli",
         # "tools/test-converter",
