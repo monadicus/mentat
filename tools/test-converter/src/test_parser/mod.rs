@@ -1,15 +1,10 @@
 use std::path::Path;
 
-use self::{
-    parser_context::ParserContext,
-    span::Span,
-    tokens::{TokenKind, Tokenizer},
-};
 use crate::{errors::Result, parse_rules::RulesFile};
 
 mod converter;
 use indexmap::IndexMap;
-pub(crate) use source_map::*;
+use mentat_tokenizer::*;
 
 pub(crate) fn parse(
     src: &Path,

@@ -2,7 +2,7 @@ use std::{io::Read, path::PathBuf};
 
 use clap::Parser;
 use parse_rules::RulesFile;
-use test_parser::{parse, set_source_map_if_not_set};
+use test_parser::parse;
 
 mod errors;
 mod parse_rules;
@@ -45,7 +45,7 @@ fn main() -> Result<()> {
             .read_to_string(&mut struct_max_fields_str)
             .unwrap();
         let struct_max_fields = toml::from_str(&struct_max_fields_str).unwrap();
-        set_source_map_if_not_set(|_| {
+        mentat_tokenizer::set_source_map_if_not_set(|_| {
             handle_error(parse(&options.tests, struct_max_fields, rules))
         });
         Ok(())

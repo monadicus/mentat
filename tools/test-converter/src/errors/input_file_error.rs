@@ -1,3 +1,5 @@
+use mentat_tokenizer::CreateErrorType;
+
 CreateErrorType! {
   RulesFileError
 

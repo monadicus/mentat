@@ -1059,6 +1059,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "mentat-tokenizer"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "error-stack",
+ "indexmap",
+ "scoped-tls",
+ "thiserror",
+]
+
+[[package]]
 name = "mentat-types"
 version = "0.1.0"
 dependencies = [
@@ -1071,17 +1082,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
-]
-
-[[package]]
-name = "metnat-dsl-parser"
-version = "0.1.0"
-dependencies = [
- "colored",
- "error-stack",
- "indexmap",
- "scoped-tls",
- "thiserror",
 ]
 
 [[package]]
@@ -1806,6 +1806,7 @@ dependencies = [
  "clap",
  "indexmap",
  "lazy_static",
+ "mentat-tokenizer",
  "serde",
  "thiserror",
  "toml",

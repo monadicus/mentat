@@ -1,19 +1,14 @@
-use std::path::Path;
-
-use self::{
-    parser_context::ParserContext,
-    span::Span,
-    tokens::{TokenKind, Tokenizer},
-};
 use crate::errors::Result;
 
 mod lexer;
 mod parser_context;
+pub use parser_context::*;
 mod source_map;
-use indexmap::IndexMap;
-pub(crate) use source_map::*;
+pub use source_map::*;
 mod span;
+pub use span::*;
 mod tokens;
+pub use tokens::*;
 
 #[derive(Debug, Clone)]
 pub struct Token {

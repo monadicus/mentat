@@ -1,5 +1,5 @@
 [package]
-name = "metnat-dsl-parser"
+name = "mentat-tokenizer"
 version = "0.1.0"
 edition = "2021"
 

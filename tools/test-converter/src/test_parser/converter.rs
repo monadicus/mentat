@@ -1,14 +1,7 @@
-use std::vec;
+use super::*;
+use crate::parse_rules::{RulesFile, TestStructPayload};
 
-use indexmap::IndexMap;
-
-use super::{parser_context::ParserContext, tokens::TokenKind, Token};
-use crate::{
-    errors::{ParserError, Result},
-    parse_rules::{RulesFile, TestStructPayload, TestStructPayloadField},
-};
-
-const INDENT: &'static str = "  ";
+const INDENT: &str = "  ";
 
 impl ParserContext {
     fn parse_type(&mut self, indent: usize, type_: String, optionify: bool) -> Result<()> {

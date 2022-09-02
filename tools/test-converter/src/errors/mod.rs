@@ -1,6 +1,6 @@
 mod input_file_error;
-use error_stack::Report;
 pub(crate) use input_file_error::*;
+use mentat_tokenizer::Report;
 use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]

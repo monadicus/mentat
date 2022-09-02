@@ -1,7 +1,6 @@
 use std::{io::Read, path::PathBuf};
 
-use indexmap::{indexmap, IndexMap};
-use lazy_static::lazy_static;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{Result, RulesFileError};

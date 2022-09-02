@@ -1,3 +1,4 @@
+#[macro_export]
 macro_rules! CreateErrorType {
   (@step) => {};
   (@step ($(#[$doc:meta])* new, $fn_name:ident, $($arg_name:ident,)*, $($err_msg:expr,)*, $($suggestion:expr,)*), $(($(#[$docs:meta])* $new_or_from:ident, $fn_names:ident, $($arg_names:ident,)*, $($err_msgs:expr,)*, $($suggestions:expr,)*),)* ) => {

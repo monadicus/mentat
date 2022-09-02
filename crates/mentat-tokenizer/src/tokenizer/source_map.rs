@@ -1,8 +1,6 @@
 use std::{
     cell::RefCell,
-    fmt,
     fs,
-    io,
     path::{Path, PathBuf},
     rc::Rc,
 };
@@ -236,7 +234,7 @@ impl SpanLocation {
 }
 
 impl SourceMap {
-    pub(super) fn load_file(&self, path: &Path) -> Result<Rc<SourceFile>> {
+    pub fn load_file(&self, path: &Path) -> Result<Rc<SourceFile>> {
         Ok(self.new_source(
             &LexerError::could_not_load_file(fs::read_to_string(path), path.display())?,
             path.to_owned(),
@@ -286,7 +284,7 @@ impl SourceMap {
         })
     }
 
-    pub(super) fn span_to_string(&self, span: Span) -> String {
+    pub fn span_to_string(&self, span: Span) -> String {
         let loc = match self.span_to_location(span) {
             None => return "no-location".to_string(),
             Some(l) => l,
@@ -302,7 +300,7 @@ impl SourceMap {
         }
     }
 
-    pub(super) fn contents_of_span(&self, span: Span) -> Option<String> {
+    pub fn contents_of_span(&self, span: Span) -> Option<String> {
         let begin = self.find_source_file(span.start)?;
         let end = self.find_source_file(span.stop)?;
         assert_eq!(begin.start_pos, end.start_pos);
@@ -329,7 +327,7 @@ impl SourceMap {
 scoped_tls::scoped_thread_local!(pub static SOURCE_MAP: SourceMap);
 
 #[inline]
-pub(crate) fn set_source_map_if_not_set<R>(f: impl FnOnce(&SourceMap) -> R) -> R {
+pub fn set_source_map_if_not_set<R>(f: impl FnOnce(&SourceMap) -> R) -> R {
     if !SOURCE_MAP.is_set() {
         let sg = SourceMap::default();
         SOURCE_MAP.set(&sg, || SOURCE_MAP.with(f))
@@ -339,6 +337,6 @@ pub(crate) fn set_source_map_if_not_set<R>(f: impl FnOnce(&SourceMap) -> R) -> R
 }
 
 #[inline]
-pub(crate) fn with_source_map<R>(f: impl FnOnce(&SourceMap) -> R) -> R {
+pub fn with_source_map<R>(f: impl FnOnce(&SourceMap) -> R) -> R {
     SOURCE_MAP.with(f)
 }

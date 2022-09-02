@@ -8,7 +8,7 @@ use super::{with_source_map, SpanLocation};
 
 /// [start, stop)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct Span {
+pub struct Span {
     pub start: BytePos,
     pub stop: BytePos,
 }

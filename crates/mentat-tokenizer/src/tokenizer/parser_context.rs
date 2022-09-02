@@ -4,7 +4,7 @@ use super::{span::Span, tokens::TokenKind, Token};
 use crate::errors::{ParserError, Result};
 
 #[derive(Debug, Clone, Copy)]
-pub(super) enum Delimiter {
+pub enum Delimiter {
     Brace,
     Bracket,
     Parenthesis,
@@ -20,14 +20,14 @@ impl Delimiter {
     }
 }
 
-pub(super) struct ParserContext {
+pub struct ParserContext {
     tokens: Vec<Token>,
-    pub(super) curr_token: Token,
-    pub(super) prev_token: Token,
+    pub curr_token: Token,
+    pub prev_token: Token,
 }
 
 impl ParserContext {
-    pub(super) fn new(mut tokens: Vec<Token>) -> Self {
+    pub fn new(mut tokens: Vec<Token>) -> Self {
         tokens.reverse();
 
         let mut context = Self {
@@ -40,7 +40,7 @@ impl ParserContext {
         context
     }
 
-    pub(super) fn bump(&mut self) {
+    pub fn bump(&mut self) {
         if let TokenKind::Eof = self.prev_token.kind {
             panic!("attempted to bump the parser past EOF (may be stuck in a loop)");
         }
@@ -55,16 +55,16 @@ impl ParserContext {
         self.prev_token = std::mem::replace(&mut self.curr_token, next_token);
     }
 
-    pub(super) fn check(&self, tok: &TokenKind) -> bool {
+    pub fn check(&self, tok: &TokenKind) -> bool {
         &self.curr_token.kind == tok
     }
 
     #[track_caller]
-    pub(super) fn eat(&mut self, token: &TokenKind) -> bool {
+    pub fn eat(&mut self, token: &TokenKind) -> bool {
         self.check(token).then(|| self.bump()).is_some()
     }
 
-    pub(super) fn look_ahead<R>(&self, dist: usize, looker: impl FnOnce(&Token) -> R) -> R {
+    pub fn look_ahead<R>(&self, dist: usize, looker: impl FnOnce(&Token) -> R) -> R {
         if dist == 0 {
             return looker(&self.curr_token);
         }
@@ -78,7 +78,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub(super) fn eat_identifier(&mut self) -> Option<String> {
+    pub fn eat_identifier(&mut self) -> Option<String> {
         if let TokenKind::Identifier(ident) = self.curr_token.kind.clone() {
             self.bump();
             return Some(ident);
@@ -87,7 +87,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub(super) fn expect_identifier(&mut self) -> Result<String> {
+    pub fn expect_identifier(&mut self) -> Result<String> {
         if let Some(ident) = self.eat_identifier() {
             Ok(ident)
         } else {
@@ -96,7 +96,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub(super) fn eat_any(&mut self, tokens: &[TokenKind]) -> bool {
+    pub fn eat_any(&mut self, tokens: &[TokenKind]) -> bool {
         tokens
             .iter()
             .any(|x| self.check(x))
@@ -110,7 +110,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub(super) fn expect(&mut self, token: &TokenKind) -> Result<Span> {
+    pub fn expect(&mut self, token: &TokenKind) -> Result<Span> {
         if self.eat(token) {
             Ok(self.prev_token.span)
         } else {
@@ -119,7 +119,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub(super) fn expect_any(&mut self, tokens: &[TokenKind]) -> Result<Span> {
+    pub fn expect_any(&mut self, tokens: &[TokenKind]) -> Result<Span> {
         if self.eat_any(tokens) {
             Ok(self.prev_token.span)
         } else {
@@ -134,14 +134,13 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub(super) fn parse_list(
+    pub fn parse_list(
         &mut self,
         delimiter: Delimiter,
         sep: Option<TokenKind>,
         mut inner: impl FnMut(&mut Self) -> Result<()>,
     ) -> Result<Span> {
         let (open, close) = delimiter.pair();
-        let mut trailing = false;
         let open_span = self.expect(&open)?;
 
         while !self.check(&close) {
@@ -157,7 +156,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub(super) fn parse_curly_comma_list(
+    pub fn parse_curly_comma_list(
         &mut self,
         f: impl FnMut(&mut Self) -> Result<()>,
     ) -> Result<Span> {

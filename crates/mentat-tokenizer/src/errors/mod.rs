@@ -1,5 +1,5 @@
 #[macro_use]
-mod create_error;
+pub mod create_error;
 
 mod error_msg;
 pub(crate) use error_msg::*;

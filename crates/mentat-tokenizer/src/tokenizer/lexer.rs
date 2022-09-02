@@ -75,24 +75,21 @@ impl TokenKind {
         }
 
         let mut len = ident.len();
-        Ok((
-            match &*ident {
-                "interface" => TokenKind::Interface,
-                "types" if matches!(input.next(), Some('.')) => {
-                    len += 1;
-                    TokenKind::TypesDot
-                }
-                "NewInt" => TokenKind::NewInt,
-                "Int" => TokenKind::IntType,
-                "false" => TokenKind::False,
-                "true" => TokenKind::True,
-                "nil" => TokenKind::Nil,
-                "map" => TokenKind::Map,
-                "big" => TokenKind::Big,
-                _ => TokenKind::Identifier(ident),
-            },
-            len,
-        ))
+        Ok(match &*ident {
+            "interface" => (TokenKind::Interface, len),
+            "types" if matches!(input.next(), Some('.')) => {
+                len += 1;
+                (TokenKind::TypesDot, len)
+            }
+            "NewInt" => (TokenKind::NewInt, len),
+            "Int" => (TokenKind::IntType, len),
+            "false" => (TokenKind::False, len),
+            "true" => (TokenKind::True, len),
+            "nil" => (TokenKind::Nil, len),
+            "map" => (TokenKind::Map, len),
+            "big" => (TokenKind::Big, len),
+            _ => (TokenKind::Identifier(ident), len),
+        })
     }
 
     #[inline]
