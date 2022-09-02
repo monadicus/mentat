@@ -1,7 +1,6 @@
 mod input_file_error;
-pub(crate) use input_file_error::*;
-
 use error_stack::Report;
+pub(crate) use input_file_error::*;
 use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]

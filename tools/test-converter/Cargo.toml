@@ -7,11 +7,9 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "3.2.16", features = ["derive"] }
-colored = "2.0.0"
-error-stack = "0.1.1"
 indexmap = { version = "1.9.1", features = ["serde"] }
 lazy_static = "1.4.0"
-scoped-tls = "1.0.0"
+mentat-tokenizer = { path = "../../crates/mentat-tokenizer" }
 serde = { version = "1.0.143", features = ["derive"] }
 thiserror = "1.0.32"
 toml = "0.5.9"

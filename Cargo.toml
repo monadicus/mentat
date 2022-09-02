@@ -13,5 +13,5 @@ members = [
         "crates/mentat-tokenizer",
         "crates/mentat-types",
         # "examples/mentat-cli",
-        # "tools/test-converter",
+        "tools/test-converter",
 ]
