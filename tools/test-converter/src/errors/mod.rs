@@ -7,7 +7,7 @@ use thiserror::Error as ThisError;
 pub enum Error {
     #[error("{0:?}")]
     RulesError(Report<RulesFileError>),
-    #[error("{0:?}")]
+    #[error("{0}")]
     TokenizerError(TokenizeError),
 }
 

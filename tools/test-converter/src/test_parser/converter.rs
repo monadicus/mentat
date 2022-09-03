@@ -1,9 +1,21 @@
-use mentat_tokenizer::ParserError;
+use mentat_tokenizer::ContextError;
 
 use super::*;
-use crate::parse_rules::{RulesFile, TestStructPayload};
+use crate::parse_rules::TestStructPayload;
 
 const INDENT: &str = "  ";
+
+macro_rules! emit {
+    ($parser:ident, $($arg:tt)*) => {
+        $parser.emit(format_args!($($arg)*), false)
+    };
+}
+
+macro_rules! emitln {
+    ($parser:ident, $($arg:tt)*) => {
+        $parser.emit(format_args!($($arg)*), true)
+    };
+}
 
 // TODO SPANS
 impl Parser {
@@ -116,11 +128,13 @@ impl Parser {
         println!("{struct_format}");
         let ident = self.context.expect_identifier()?;
         self.context.expect(&TokenKind::Colon)?;
+        self.inc_indent();
 
-        print!("{}{ident}: ", INDENT.repeat(4));
+        emit!(self, "{ident}: ");
 
         let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
-        print!("{}", INDENT.repeat(5));
+        self.inc_indent();
+        // self.emit("{}", false);
         // self.context.parse_type(5, type_, optionify)?;
         // print!("{}", INDENT.repeat(4));
         // for i in 0..vecs_to_close {
@@ -134,19 +148,12 @@ impl Parser {
     }
 
     fn parse_test_struct(&mut self) -> Result<()> {
-        println!(
-            "{}{} {{",
-            INDENT.repeat(2),
-            self.rules.test_struct.struct_name
-        );
+        emitln!(self, "{} {{", self.rules.test_struct.struct_name);
+        self.inc_indent();
         if matches!(self.context.curr_token.kind, TokenKind::String(_)) {
-            println!(
-                "{}name: {},",
-                INDENT.repeat(3),
-                self.context.curr_token.kind
-            );
+            emitln!(self, "name: {},", self.context.curr_token.kind);
         } else {
-            ParserError::unexpected_token(
+            ContextError::unexpected_token(
                 &self.context.curr_token.kind,
                 "String",
                 self.context.curr_token.span,
@@ -157,7 +164,7 @@ impl Parser {
 
         self.context.expect(&TokenKind::Colon)?;
 
-        print!("{}payload: ", INDENT.repeat(3));
+        emit!(self, "payload: ");
         match &self.rules.test_struct.payload {
             TestStructPayload::Dynamic {
                 struct_name,
@@ -165,28 +172,37 @@ impl Parser {
             } => {
                 let struct_format = format!("{} {{", struct_name);
                 self.parse_curly_comma_list(|c| Parser::parse_dynamic_payload(c, &struct_format))?;
-                Ok(())
             }
             TestStructPayload::Single { struct_name, value } => todo!(),
         }
+
+        self.dec_indent();
+        Ok(())
     }
 
     pub(super) fn convert(&mut self) -> Result<()> {
-        println!("#[test]");
-        println!("fn {}() {{", self.rules.test_struct.test_fn_name);
-        println!("{INDENT}let tests = vec![");
-        self.parse_curly_comma_list(|c| Parser::parse_test_struct(c))?;
-        println!("{INDENT}];");
-        println!(
-            "{INDENT}{}::{}(",
-            self.rules.test_struct.struct_name, self.rules.test_struct.test_fn_name
+        emitln!(self, "#[test]");
+        emitln!(self, "fn {}() {{", self.rules.test_struct.test_fn_name);
+        self.inc_indent();
+        emitln!(self, "let tests = vec![");
+        self.parse_curly_comma_list(Parser::parse_test_struct)?;
+        emitln!(self, "];");
+        emitln!(
+            self,
+            "{}::{}(",
+            self.rules.test_struct.struct_name,
+            self.rules.test_struct.test_fn_name
         );
-        println!("{}tests,", INDENT.repeat(2));
+        self.inc_indent();
+        emitln!(self, "tests,");
         for line in self.rules.test_struct.closure.lines() {
+            // exception for alignment
             println!("{:2}{line}", INDENT.repeat(2));
         }
-        println!("{INDENT});");
-        println!("}}");
+        self.dec_indent();
+        emitln!(self, ");");
+        self.dec_indent();
+        emitln!(self, "}}");
         Ok(())
     }
 }

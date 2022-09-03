@@ -14,6 +14,8 @@ pub(crate) struct Parser {
 }
 
 impl Parser {
+    const INDENT: &'static str = "  ";
+
     fn new(
         context: ParserContext,
         rules: RulesFile,
@@ -24,6 +26,21 @@ impl Parser {
             rules,
             struct_max_fields_str,
             indent: 0,
+        }
+    }
+
+    fn dec_indent(&mut self) {
+        self.indent -= 1;
+    }
+
+    fn inc_indent(&mut self) {
+        self.indent += 1;
+    }
+
+    fn emit(&self, out: impl core::fmt::Display, lnbreak: bool) {
+        print!("{}{out}", Self::INDENT.repeat(self.indent));
+        if lnbreak {
+            println!();
         }
     }
 }
