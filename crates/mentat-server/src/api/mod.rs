@@ -22,4 +22,4 @@ use mentat_asserter::Asserter;
 use mentat_types::*;
 pub use search::*;
 
-use crate::{conf::Mode, server::RpcCaller};
+use crate::conf::Mode;

@@ -7,6 +7,9 @@ use super::*;
 /// service
 #[axum::async_trait]
 pub trait ConstructionApi: Default {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// Combine creates a network-specific transaction from an unsigned
     /// transaction and an array of provided signatures. The signed transaction
     /// returned from this method will be sent to the /construction/submit
@@ -15,7 +18,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionCombineRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<ConstructionCombineResponse> {
         MentatError::not_implemented()
     }
@@ -27,7 +30,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionDeriveRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<ConstructionDeriveResponse> {
         MentatError::not_implemented()
     }
@@ -38,7 +41,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionHashRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<TransactionIdentifierResponse> {
         MentatError::not_implemented()
     }
@@ -59,7 +62,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionMetadataRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<ConstructionMetadataResponse> {
         MentatError::not_implemented()
     }
@@ -72,7 +75,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionParseRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<ConstructionParseResponse> {
         MentatError::not_implemented()
     }
@@ -92,7 +95,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionPayloadsRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<ConstructionPayloadsResponse> {
         MentatError::not_implemented()
     }
@@ -109,7 +112,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionPreprocessRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<ConstructionPreprocessResponse> {
         MentatError::not_implemented()
     }
@@ -124,7 +127,7 @@ pub trait ConstructionApi: Default {
         &self,
         _caller: Caller,
         _data: ConstructionSubmitRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<TransactionIdentifierResponse> {
         MentatError::not_implemented()
     }
@@ -144,11 +147,11 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionCombineRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionCombineResponse> {
         asserter.construction_combine_request(data.as_ref())?;
         let resp = self
-            .combine(caller, data.unwrap().into(), rpc_caller)
+            .combine(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
@@ -161,11 +164,11 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionDeriveRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionDeriveResponse> {
         asserter.construction_derive_request(data.as_ref())?;
         let resp = self
-            .derive(caller, data.unwrap().into(), rpc_caller)
+            .derive(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
@@ -178,11 +181,11 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionHashRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedTransactionIdentifierResponse> {
         asserter.construction_hash_request(data.as_ref())?;
         let resp = self
-            .hash(caller, data.unwrap().into(), rpc_caller)
+            .hash(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
@@ -195,14 +198,14 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionMetadataRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionMetadataResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.construction_metadata_request(data.as_ref())?;
             let resp = self
-                .metadata(caller, data.unwrap().into(), rpc_caller)
+                .metadata(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -216,11 +219,11 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionParseRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionParseResponse> {
         asserter.construction_parse_request(data.as_ref())?;
         let data: ConstructionParseRequest = data.unwrap().into();
-        let resp = self.parse(caller, data, rpc_caller).await?.into();
+        let resp = self.parse(caller, data, node_caller).await?.into();
         Ok(Json(resp))
     }
 
@@ -231,11 +234,11 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionPayloadsRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionPayloadsResponse> {
         asserter.construction_payload_request(data.as_ref())?;
         let resp = self
-            .payloads(caller, data.unwrap().into(), rpc_caller)
+            .payloads(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
@@ -248,11 +251,11 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionPreprocessRequest>,
         _mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionPreprocessResponse> {
         asserter.construction_preprocess_request(data.as_ref())?;
         let resp = self
-            .preprocess(caller, data.unwrap().into(), rpc_caller)
+            .preprocess(caller, data.unwrap().into(), node_caller)
             .await?
             .into();
         Ok(Json(resp))
@@ -265,14 +268,14 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
         asserter: &Asserter,
         data: Option<UncheckedConstructionSubmitRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedTransactionIdentifierResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.construction_submit_request(data.as_ref())?;
             let resp = self
-                .submit(caller, data.unwrap().into(), rpc_caller)
+                .submit(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))

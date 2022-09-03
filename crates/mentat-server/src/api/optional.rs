@@ -10,8 +10,11 @@ use crate::conf::NodePid;
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
 pub trait OptionalApi: Clone + Default {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// returns local and global chain tips
-    async fn synced(&self, _rpc_caller: RpcCaller) -> Result<Synced> {
+    async fn synced(&self, _node_caller: &Self::NodeCaller) -> Result<Synced> {
         MentatError::not_implemented()
     }
 
@@ -20,7 +23,7 @@ pub trait OptionalApi: Clone + Default {
         &self,
         caller: Caller,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
         server_pid: Pid,
         node_pid: NodePid,
     ) -> Result<HealthCheckResponse> {
@@ -32,9 +35,9 @@ pub trait OptionalApi: Clone + Default {
             usage: self.usage("server", &system, server_pid).await?,
             node: NodeInformation {
                 usage: self.usage("node", &system, node_pid.0).await?,
-                address: self.node_address(&rpc_caller).await?,
-                connections: self.node_connections(mode, &rpc_caller).await?,
-                net_usage: self.node_net_usage(mode, &rpc_caller).await?,
+                address: self.node_address(node_caller).await?,
+                connections: self.node_connections(mode, node_caller).await?,
+                net_usage: self.node_net_usage(mode, node_caller).await?,
             },
             cache_usage: self.check_cache_usage().await?,
         })
@@ -57,7 +60,7 @@ pub trait OptionalApi: Clone + Default {
     }
 
     /// A method for getting the address of the node.
-    async fn node_address(&self, _rpc_caller: &RpcCaller) -> Result<String> {
+    async fn node_address(&self, _node_caller: &Self::NodeCaller) -> Result<String> {
         Ok(String::new())
     }
 
@@ -65,7 +68,7 @@ pub trait OptionalApi: Clone + Default {
     async fn node_connections(
         &self,
         _mode: &Mode,
-        _rpc_caller: &RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<Option<NodeConnections>> {
         Ok(None)
     }
@@ -74,7 +77,7 @@ pub trait OptionalApi: Clone + Default {
     async fn node_net_usage(
         &self,
         _mode: &Mode,
-        _rpc_caller: &RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<Option<NodeNetwork>> {
         Ok(None)
     }
@@ -95,7 +98,7 @@ pub trait OptionalApiRouter: OptionalApi + Clone + Default {
         &self,
         _caller: Caller,
         _mode: &Mode,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
         _server_pid: Pid,
         _node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
@@ -107,14 +110,14 @@ pub trait OptionalApiRouter: OptionalApi + Clone + Default {
         &self,
         _caller: Caller,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
         _server_pid: Pid,
         _node_pid: NodePid,
     ) -> MentatResponse<Synced> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            Ok(Json(self.synced(rpc_caller).await?))
+            Ok(Json(self.synced(node_caller).await?))
         }
     }
 }

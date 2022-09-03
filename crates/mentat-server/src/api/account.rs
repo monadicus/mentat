@@ -7,6 +7,9 @@ use super::*;
 /// AccountAPIServicer defines the api actions for the AccountAPI service
 #[axum::async_trait]
 pub trait AccountApi: Default {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// Get an array of all AccountBalances for an
     /// [`crate::identifiers::AccountIdentifier`] and the
     /// [`crate::identifiers::BlockIdentifier`] at which the balance lookup was
@@ -30,7 +33,7 @@ pub trait AccountApi: Default {
         &self,
         _caller: Caller,
         _data: AccountBalanceRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<AccountBalanceResponse> {
         MentatError::not_implemented()
     }
@@ -59,7 +62,7 @@ pub trait AccountApi: Default {
         &self,
         _caller: Caller,
         _data: AccountCoinsRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<AccountCoinsResponse> {
         MentatError::not_implemented()
     }
@@ -79,14 +82,14 @@ pub trait AccountApiRouter: Clone + AccountApi {
         asserter: &Asserter,
         data: Option<UncheckedAccountBalanceRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedAccountBalanceResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.account_balance_request(data.as_ref())?;
             let resp = self
-                .account_balance(caller, data.unwrap().into(), rpc_caller)
+                .account_balance(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -100,14 +103,14 @@ pub trait AccountApiRouter: Clone + AccountApi {
         asserter: &Asserter,
         data: Option<UncheckedAccountCoinsRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedAccountCoinsResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.account_coins_request(data.as_ref())?;
             let resp = self
-                .account_coins(caller, data.unwrap().into(), rpc_caller)
+                .account_coins(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
