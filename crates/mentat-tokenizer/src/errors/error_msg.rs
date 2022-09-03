@@ -1,7 +1,7 @@
 use colored::Colorize;
 
 #[derive(Debug, Default)]
-pub(crate) struct ErrorMsg(String);
+pub struct ErrorMsg(String);
 
 impl From<&'static str> for ErrorMsg {
     fn from(s: &'static str) -> Self {

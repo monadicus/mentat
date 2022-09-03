@@ -12,8 +12,8 @@ pub use tokens::*;
 
 #[derive(Debug, Clone)]
 pub struct Token {
-    span: Span,
-    kind: TokenKind,
+    pub span: Span,
+    pub kind: TokenKind,
 }
 
 impl Token {

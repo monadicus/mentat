@@ -2,16 +2,16 @@
 pub mod create_error;
 
 mod error_msg;
-pub(crate) use error_msg::*;
+pub use error_msg::*;
 
 mod lexer_error;
-pub(crate) use lexer_error::*;
+pub use lexer_error::*;
 mod parser_error;
-pub(crate) use parser_error::*;
+pub use parser_error::*;
 
 mod suggestion;
 use error_stack::Report;
-pub(crate) use suggestion::*;
+pub use suggestion::*;
 use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]
@@ -34,4 +34,4 @@ impl From<Report<ParserError>> for Error {
     }
 }
 
-pub(crate) type Result<T, E = Error> = core::result::Result<T, E>;
+pub type Result<T, E = Error> = core::result::Result<T, E>;

@@ -1,13 +1,43 @@
+use mentat_tokenizer::ParserError;
+
 use super::*;
 use crate::parse_rules::{RulesFile, TestStructPayload};
 
 const INDENT: &str = "  ";
 
-impl ParserContext {
+// TODO SPANS
+impl Parser {
+    #[track_caller]
+    pub fn parse_list(
+        &mut self,
+        delimiter: Delimiter,
+        sep: Option<TokenKind>,
+        mut inner: impl FnMut(&mut Self) -> Result<()>,
+    ) -> Result<()> {
+        let (open, close) = delimiter.pair();
+        let open_span = self.context.expect(&open)?;
+
+        while !self.context.check(&close) {
+            inner(self)?;
+
+            if sep.as_ref().filter(|sep| !self.context.eat(sep)).is_some() {
+                break;
+            }
+        }
+
+        let span = open_span + self.context.expect(&close)?;
+        Ok(())
+    }
+
+    #[track_caller]
+    pub fn parse_curly_comma_list(&mut self, f: impl FnMut(&mut Self) -> Result<()>) -> Result<()> {
+        self.parse_list(Delimiter::Brace, Some(TokenKind::Comma), f)
+    }
+
     fn parse_type(&mut self, indent: usize, type_: String, optionify: bool) -> Result<()> {
-        if self.check(&TokenKind::DefaultObject) {
-            self.eat(&TokenKind::DefaultObject);
-            self.eat(&TokenKind::Comma);
+        if self.context.check(&TokenKind::DefaultObject) {
+            self.context.eat(&TokenKind::DefaultObject);
+            self.context.eat(&TokenKind::Comma);
             println!("Default::default(),");
             return Ok(());
         }
@@ -18,26 +48,26 @@ impl ParserContext {
             println!("{type_} {{");
         }
 
-        match self.curr_token.kind.clone() {
+        match self.context.curr_token.kind.clone() {
             TokenKind::LeftCurly => {
-                self.bump();
+                self.context.bump();
                 self.parse_field(indent + 1)?;
             }
             TokenKind::Identifier(field) => {
-                self.bump();
-                self.expect(&TokenKind::Colon)?;
+                self.context.bump();
+                self.context.expect(&TokenKind::Colon)?;
                 print!(
                     "{}{}: {}",
                     INDENT.repeat(indent),
                     field.to_ascii_lowercase(),
-                    self.curr_token.kind
+                    self.context.curr_token.kind
                 );
-                self.bump();
+                self.context.bump();
             }
             _ => todo!("error"),
         }
 
-        self.eat(&TokenKind::Comma);
+        self.context.eat(&TokenKind::Comma);
         Ok(())
     }
 
@@ -46,8 +76,8 @@ impl ParserContext {
         let mut optionify = false;
         let mut is_type = false;
         let mut type_ = String::new();
-        while !self.check(&TokenKind::LeftCurly) {
-            match &self.curr_token.kind {
+        while !self.context.check(&TokenKind::LeftCurly) {
+            match &self.context.curr_token.kind {
                 TokenKind::ArrayType => {
                     println!("vec![");
                     close_vec_count += 1
@@ -58,16 +88,16 @@ impl ParserContext {
                 _ => {}
             }
 
-            self.bump();
+            self.context.bump();
         }
 
-        self.expect(&TokenKind::LeftCurly)?;
+        self.context.expect(&TokenKind::LeftCurly)?;
         Ok((close_vec_count, optionify, type_))
     }
 
     fn parse_field(&mut self, indent: usize) -> Result<()> {
-        let ident = self.expect_identifier()?;
-        self.expect(&TokenKind::Colon)?;
+        let ident = self.context.expect_identifier()?;
+        self.context.expect(&TokenKind::Colon)?;
 
         print!("{}{}: ", INDENT.repeat(indent), ident.to_ascii_lowercase());
 
@@ -75,7 +105,7 @@ impl ParserContext {
         self.parse_type(indent + 1, type_, optionify)?;
         print!("{}", INDENT.repeat(indent));
         for i in 0..(vecs_to_close) {
-            self.expect(&TokenKind::RightCurly)?;
+            self.context.expect(&TokenKind::RightCurly)?;
             print!("]");
         }
 
@@ -84,65 +114,75 @@ impl ParserContext {
 
     fn parse_dynamic_payload(&mut self, struct_format: &str) -> Result<()> {
         println!("{struct_format}");
-        let ident = self.expect_identifier()?;
-        self.expect(&TokenKind::Colon)?;
+        let ident = self.context.expect_identifier()?;
+        self.context.expect(&TokenKind::Colon)?;
 
         print!("{}{ident}: ", INDENT.repeat(4));
 
         let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
         print!("{}", INDENT.repeat(5));
-        // self.parse_type(5, type_, optionify)?;
+        // self.context.parse_type(5, type_, optionify)?;
         // print!("{}", INDENT.repeat(4));
         // for i in 0..vecs_to_close {
-        //     self.expect(&TokenKind::RightCurly)?;
+        //     self.context.expect(&TokenKind::RightCurly)?;
         //     print!("]");
         // }
-        // self.expect(&TokenKind::Comma)?;
+        // self.context.expect(&TokenKind::Comma)?;
         // println!(",");
 
         Ok(())
     }
 
-    fn parse_test_struct(&mut self, rules: &RulesFile) -> Result<()> {
-        println!("{}{} {{", INDENT.repeat(2), rules.test_struct.struct_name);
-        if matches!(self.curr_token.kind, TokenKind::String(_)) {
-            println!("{}name: {},", INDENT.repeat(3), self.curr_token.kind);
+    fn parse_test_struct(&mut self) -> Result<()> {
+        println!(
+            "{}{} {{",
+            INDENT.repeat(2),
+            self.rules.test_struct.struct_name
+        );
+        if matches!(self.context.curr_token.kind, TokenKind::String(_)) {
+            println!(
+                "{}name: {},",
+                INDENT.repeat(3),
+                self.context.curr_token.kind
+            );
         } else {
-            ParserError::unexpected_token(&self.curr_token.kind, "String", self.curr_token.span)?;
+            ParserError::unexpected_token(
+                &self.context.curr_token.kind,
+                "String",
+                self.context.curr_token.span,
+            )?;
         }
 
-        self.bump();
+        self.context.bump();
 
-        self.expect(&TokenKind::Colon)?;
+        self.context.expect(&TokenKind::Colon)?;
 
         print!("{}payload: ", INDENT.repeat(3));
-        match &rules.test_struct.payload {
+        match &self.rules.test_struct.payload {
             TestStructPayload::Dynamic {
                 struct_name,
                 fields,
             } => {
                 let struct_format = format!("{} {{", struct_name);
-                self.parse_curly_comma_list(|c| {
-                    ParserContext::parse_dynamic_payload(c, &struct_format)
-                })?;
+                self.parse_curly_comma_list(|c| Parser::parse_dynamic_payload(c, &struct_format))?;
                 Ok(())
             }
             TestStructPayload::Single { struct_name, value } => todo!(),
         }
     }
 
-    pub(super) fn convert(&mut self, rules: RulesFile) -> Result<()> {
+    pub(super) fn convert(&mut self) -> Result<()> {
         println!("#[test]");
-        println!("fn {}() {{", rules.test_struct.test_fn_name);
+        println!("fn {}() {{", self.rules.test_struct.test_fn_name);
         println!("{INDENT}let tests = vec![");
-        self.parse_curly_comma_list(|c| ParserContext::parse_test_struct(c, &rules))?;
+        self.parse_curly_comma_list(|c| Parser::parse_test_struct(c))?;
         println!("{INDENT}];");
         println!(
             "{INDENT}{}::{}(",
-            rules.test_struct.struct_name, rules.test_struct.test_fn_name
+            self.rules.test_struct.struct_name, self.rules.test_struct.test_fn_name
         );
         println!("{}tests,", INDENT.repeat(2));
-        for line in rules.test_struct.closure.lines() {
+        for line in self.rules.test_struct.closure.lines() {
             println!("{:2}{line}", INDENT.repeat(2));
         }
         println!("{INDENT});");

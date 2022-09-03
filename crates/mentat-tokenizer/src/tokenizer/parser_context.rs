@@ -11,7 +11,7 @@ pub enum Delimiter {
 }
 
 impl Delimiter {
-    fn pair(self) -> (TokenKind, TokenKind) {
+    pub fn pair(self) -> (TokenKind, TokenKind) {
         match self {
             Self::Brace => (TokenKind::LeftCurly, TokenKind::RightCurly),
             Self::Bracket => (TokenKind::LeftBracket, TokenKind::RightBracket),
@@ -131,35 +131,5 @@ impl ParserContext {
                     .join(", "),
             )
         }
-    }
-
-    #[track_caller]
-    pub fn parse_list(
-        &mut self,
-        delimiter: Delimiter,
-        sep: Option<TokenKind>,
-        mut inner: impl FnMut(&mut Self) -> Result<()>,
-    ) -> Result<Span> {
-        let (open, close) = delimiter.pair();
-        let open_span = self.expect(&open)?;
-
-        while !self.check(&close) {
-            inner(self)?;
-
-            if sep.as_ref().filter(|sep| !self.eat(sep)).is_some() {
-                break;
-            }
-        }
-
-        let span = open_span + self.expect(&close)?;
-        Ok(span)
-    }
-
-    #[track_caller]
-    pub fn parse_curly_comma_list(
-        &mut self,
-        f: impl FnMut(&mut Self) -> Result<()>,
-    ) -> Result<Span> {
-        self.parse_list(Delimiter::Brace, Some(TokenKind::Comma), f)
     }
 }

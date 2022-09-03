@@ -1,7 +1,7 @@
 use colored::Colorize;
 
 #[derive(Debug, Default)]
-pub(crate) struct Suggestion(String);
+pub struct Suggestion(String);
 impl From<&'static str> for Suggestion {
     fn from(s: &'static str) -> Self {
         Self(s.to_string())
