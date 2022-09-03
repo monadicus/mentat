@@ -6,8 +6,8 @@ pub use error_msg::*;
 
 mod lexer_error;
 pub use lexer_error::*;
-mod parser_error;
-pub use parser_error::*;
+mod context_error;
+pub use context_error::*;
 
 mod suggestion;
 use error_stack::Report;
@@ -19,7 +19,7 @@ pub enum Error {
     #[error("{0:?}")]
     LexerError(Report<LexerError>),
     #[error("{0:?}")]
-    ParserError(Report<ParserError>),
+    ContextError(Report<ContextError>),
 }
 
 impl From<Report<LexerError>> for Error {
@@ -28,9 +28,9 @@ impl From<Report<LexerError>> for Error {
     }
 }
 
-impl From<Report<ParserError>> for Error {
-    fn from(r: Report<ParserError>) -> Self {
-        Self::ParserError(r)
+impl From<Report<ContextError>> for Error {
+    fn from(r: Report<ContextError>) -> Self {
+        Self::ContextError(r)
     }
 }
 

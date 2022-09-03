@@ -1,7 +1,7 @@
 // TODO
 
 use super::{span::Span, tokens::TokenKind, Token};
-use crate::errors::{ParserError, Result};
+use crate::errors::{ContextError, Result};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Delimiter {
@@ -91,7 +91,11 @@ impl ParserContext {
         if let Some(ident) = self.eat_identifier() {
             Ok(ident)
         } else {
-            ParserError::unexpected_token(&self.curr_token.kind, "identifier", self.curr_token.span)
+            ContextError::unexpected_token(
+                &self.curr_token.kind,
+                "identifier",
+                self.curr_token.span,
+            )
         }
     }
 
@@ -106,7 +110,7 @@ impl ParserContext {
 
     #[track_caller]
     fn unexpected<T>(&self, expected: impl std::fmt::Display) -> Result<T> {
-        ParserError::unexpected_token(&self.curr_token.kind, expected, self.curr_token.span)
+        ContextError::unexpected_token(&self.curr_token.kind, expected, self.curr_token.span)
     }
 
     #[track_caller]

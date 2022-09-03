@@ -1,5 +1,5 @@
 CreateErrorType! {
-  ParserError
+  ContextError
 
   new unexpected_token {
     args: (received, expected, span),
