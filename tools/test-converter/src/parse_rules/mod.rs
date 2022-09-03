@@ -29,7 +29,7 @@ pub struct TestStructCriteria {
     pub from: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TestStructPayloadField {
     #[serde(rename = "type")]
     pub type_: String,
@@ -38,7 +38,7 @@ pub struct TestStructPayloadField {
     pub sub_fields: IndexMap<String, Self>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum TestStructPayload {
     Dynamic {

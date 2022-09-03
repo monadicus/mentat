@@ -1,7 +1,7 @@
 use mentat_tokenizer::ContextError;
 
 use super::*;
-use crate::parse_rules::TestStructPayload;
+use crate::parse_rules::{TestStructPayload, TestStructPayloadField};
 
 const INDENT: &str = "  ";
 
@@ -20,7 +20,7 @@ macro_rules! emitln {
 // TODO SPANS
 impl Parser {
     #[track_caller]
-    pub fn parse_list(
+    fn parse_list(
         &mut self,
         delimiter: Delimiter,
         sep: Option<TokenKind>,
@@ -42,44 +42,52 @@ impl Parser {
     }
 
     #[track_caller]
-    pub fn parse_curly_comma_list(&mut self, f: impl FnMut(&mut Self) -> Result<()>) -> Result<()> {
+    fn parse_curly_comma_list(&mut self, f: impl FnMut(&mut Self) -> Result<()>) -> Result<()> {
         self.parse_list(Delimiter::Brace, Some(TokenKind::Comma), f)
     }
 
-    fn parse_type(&mut self, indent: usize, type_: String, optionify: bool) -> Result<()> {
+    fn parse_object(&mut self, type_: String, optionify: bool) -> Result<()> {
         if self.context.check(&TokenKind::DefaultObject) {
             self.context.eat(&TokenKind::DefaultObject);
             self.context.eat(&TokenKind::Comma);
-            println!("Default::default(),");
+            emitln!(self, "Default::default(),");
             return Ok(());
         }
 
         if optionify {
-            println!("Some({type_} {{");
+            emitln!(self, "Some({type_} {{");
         } else {
-            println!("{type_} {{");
+            emitln!(self, "{type_} {{");
         }
 
-        match self.context.curr_token.kind.clone() {
-            TokenKind::LeftCurly => {
-                self.context.bump();
-                self.parse_field(indent + 1)?;
-            }
-            TokenKind::Identifier(field) => {
-                self.context.bump();
-                self.context.expect(&TokenKind::Colon)?;
-                print!(
-                    "{}{}: {}",
-                    INDENT.repeat(indent),
-                    field.to_ascii_lowercase(),
-                    self.context.curr_token.kind
-                );
-                self.context.bump();
-            }
-            _ => todo!("error"),
-        }
+        self.context.expect(&TokenKind::LeftCurly)?;
+        self.inc_indent();
+        let ident = self.context.expect_identifier()?;
+        self.context.expect(&TokenKind::Colon)?;
+        emit!(self, "{ident}: ");
+        dbg!("foo bar?");
+        self.parse_object_or_simple()?;
 
-        self.context.eat(&TokenKind::Comma);
+        // match self.context.curr_token.kind.clone() {
+        //     TokenKind::LeftCurly => {
+        //         self.context.bump();
+        //         self.parse_field(indent + 1)?;
+        //     }
+        //     TokenKind::Identifier(field) => {
+        //         self.context.bump();
+        //         self.context.expect(&TokenKind::Colon)?;
+        //         print!(
+        //             "{}{}: {}",
+        //             INDENT.repeat(indent),
+        //             field.to_ascii_lowercase(),
+        //             self.context.curr_token.kind
+        //         );
+        //         self.context.bump();
+        //     }
+        //     _ => todo!("error"),
+        // }
+
+        // self.context.eat(&TokenKind::Comma);
         Ok(())
     }
 
@@ -107,42 +115,79 @@ impl Parser {
         Ok((close_vec_count, optionify, type_))
     }
 
-    fn parse_field(&mut self, indent: usize) -> Result<()> {
-        let ident = self.context.expect_identifier()?;
-        self.context.expect(&TokenKind::Colon)?;
+    // fn parse_field(&mut self, indent: usize) -> Result<()> {
+    //     let ident = self.context.expect_identifier()?;
+    //     self.context.expect(&TokenKind::Colon)?;
 
-        print!("{}{}: ", INDENT.repeat(indent), ident.to_ascii_lowercase());
+    //     print!("{}{}: ", INDENT.repeat(indent), ident.to_ascii_lowercase());
 
-        let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
-        self.parse_type(indent + 1, type_, optionify)?;
-        print!("{}", INDENT.repeat(indent));
-        for i in 0..(vecs_to_close) {
-            self.context.expect(&TokenKind::RightCurly)?;
-            print!("]");
+    //     let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
+    //     self.inc_indent();
+    //     self.parse_object(type_, optionify)?;
+    //     print!("{}", INDENT.repeat(indent));
+    //     for i in 0..(vecs_to_close) {
+    //         self.context.expect(&TokenKind::RightCurly)?;
+    //         print!("]");
+    //     }
+
+    //     Ok(())
+    // }
+
+    // TODO need a way to emit with no ident
+    fn parse_object_or_simple(&mut self) -> Result<()> {
+        // Object type
+        // &types.TypeIdent or &TypeIdent
+        if self
+            .context
+            .look_ahead(2, |t| (t.kind == TokenKind::LeftCurly))
+            || self
+                .context
+                .look_ahead(3, |t| (t.kind == TokenKind::LeftCurly))
+            || self
+                .context
+                .look_ahead(4, |t| (t.kind == TokenKind::LeftCurly))
+        {
+            dbg!("look ahead");
+            let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
+            self.inc_indent();
+
+            // self.emit("{}", false);
+            self.parse_object(type_, optionify)?;
+            // print!("{}", INDENT.repeat(4));
+            for i in 0..vecs_to_close {
+                self.context.expect(&TokenKind::RightCurly)?;
+                emit!(self, "]");
+            }
+        } else {
+            dbg!("direct");
+            // direct type
+            println!("{},", self.context.curr_token.kind);
+            self.context.bump();
         }
-
         Ok(())
     }
 
-    fn parse_dynamic_payload(&mut self, struct_format: &str) -> Result<()> {
+    fn parse_dynamic_payload(
+        &mut self,
+        struct_format: &str,
+        payload_fields: &IndexMap<String, TestStructPayloadField>,
+    ) -> Result<()> {
+        // TODO emit with no indent
         println!("{struct_format}");
+        self.inc_indent();
         let ident = self.context.expect_identifier()?;
         self.context.expect(&TokenKind::Colon)?;
-        self.inc_indent();
-
         emit!(self, "{ident}: ");
 
-        let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
-        self.inc_indent();
-        // self.emit("{}", false);
-        // self.context.parse_type(5, type_, optionify)?;
-        // print!("{}", INDENT.repeat(4));
-        // for i in 0..vecs_to_close {
-        //     self.context.expect(&TokenKind::RightCurly)?;
-        //     print!("]");
-        // }
+        // This is a dynamic Payload field
+        if payload_fields.contains_key(&ident) {
+            self.parse_object_or_simple()?;
+
         // self.context.expect(&TokenKind::Comma)?;
         // println!(",");
+        } else {
+            // We need to store this and emit it at the right time.
+        }
 
         Ok(())
     }
@@ -165,13 +210,15 @@ impl Parser {
         self.context.expect(&TokenKind::Colon)?;
 
         emit!(self, "payload: ");
-        match &self.rules.test_struct.payload {
+        match self.rules.test_struct.payload.clone() {
             TestStructPayload::Dynamic {
                 struct_name,
                 fields,
             } => {
                 let struct_format = format!("{} {{", struct_name);
-                self.parse_curly_comma_list(|c| Parser::parse_dynamic_payload(c, &struct_format))?;
+                self.parse_curly_comma_list(|c| {
+                    Parser::parse_dynamic_payload(c, &struct_format, &fields)
+                })?;
             }
             TestStructPayload::Single { struct_name, value } => todo!(),
         }
