@@ -154,7 +154,14 @@ impl<'a> Tokenizer<'a> {
             .remaining_text
             .chars()
             .take_while(|c| c.is_ascii_whitespace())
-            .fold(0, |sum, c| sum + c.len_utf8());
+            .fold(0, |sum, c| {
+                if matches!(c, '\t') {
+                    // the tab lang we use
+                    sum + 2
+                } else {
+                    sum + c.len_utf8()
+                }
+            });
         self.chomp(skipped);
     }
 

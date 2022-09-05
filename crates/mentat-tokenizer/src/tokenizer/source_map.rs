@@ -15,7 +15,22 @@ struct MultiByteChar {
 }
 
 fn normalize_src(src: &mut String) {
+    normalize_tabs(src);
     normalize_newlines(src);
+}
+
+fn normalize_tabs(src: &mut String) {
+    if !src.as_bytes().contains(&b'\t') {
+        return;
+    }
+
+    let mut buf = std::mem::take(src);
+    buf = buf
+        .lines()
+        .map(|l| l.replace('\t', "  "))
+        .collect::<Vec<String>>()
+        .join("\n");
+    *src = buf;
 }
 
 fn normalize_newlines(src: &mut String) {
