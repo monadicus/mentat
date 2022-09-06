@@ -1030,6 +1030,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mentat-utils"
+version = "0.1.0"
+dependencies = [
+ "crossbeam-channel",
+ "mentat-asserter",
+ "mentat-types",
+ "parking_lot",
+]
+
+[[package]]
 name = "mime"
 version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"

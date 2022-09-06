@@ -12,5 +12,6 @@ members = [
         "crates/mentat-syncer",
         "crates/mentat-test-utils",
         "crates/mentat-types",
+        "crates/mentat-utils",
         # "examples/mentat-cli",
 ]

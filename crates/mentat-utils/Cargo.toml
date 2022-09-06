@@ -1,0 +1,13 @@
+[package]
+name = "mentat-utils"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.62.1"
+
+[dependencies]
+mentat-asserter = { path = "../mentat-asserter" }
+# mentat-fetcher = { path = "../mentat-fetcher" }
+# mentat-storage = { path = "../mentat-storage" }
+mentat-types = { path = "../mentat-types" }
+parking_lot = "0.12.1"
+crossbeam-channel = "0.5.6"
