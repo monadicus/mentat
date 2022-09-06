@@ -11,15 +11,15 @@ pub(crate) fn valid_network_identifier() -> Option<NetworkIdentifier> {
 pub(crate) fn wrong_network_identifier() -> Option<NetworkIdentifier> {
     Some(NetworkIdentifier {
         blockchain: "Bitcoin".into(),
-        ..Default::default()
+        network: "Testnet".into(),
+        sub_network_identifier: None,
     })
 }
 
 pub(crate) fn missing_network_identifier() -> Option<NetworkIdentifier> {
     Some(NetworkIdentifier {
-        blockchain: "Bitcoin".into(),
-        network: "Testnet".into(),
-        sub_network_identifier: None,
+        blockchain: "blah".into(),
+        ..Default::default()
     })
 }
 
@@ -69,11 +69,11 @@ pub(crate) fn valid_public_key() -> UncheckedPublicKey {
     }
 }
 
-pub(crate) fn missing_bytes_public_key() -> UncheckedPublicKey {
-    UncheckedPublicKey {
+pub(crate) fn missing_bytes_public_key() -> Option<UncheckedPublicKey> {
+    Some(UncheckedPublicKey {
         curve_type: UncheckedCurveType::SECP256K1.into(),
         ..Default::default()
-    }
+    })
 }
 
 pub(crate) fn valid_amount() -> Option<UncheckedAmount> {

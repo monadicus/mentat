@@ -299,10 +299,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            criteria: Some(AsserterError::from(format!(
-                "{}: block identifier is invalid",
-                BlockError::BlockIdentifierHashMissing
-            ))),
+            criteria: Some(BlockError::BlockIdentifierHashMissing.into()),
         },
         TestCase {
             name: "duplicate currency",
@@ -369,7 +366,7 @@ fn test_account_balance() {
                 _metadata: Default::default(),
             },
             criteria: Some(AsserterError::from(format!(
-                "requested block hash {invalid_hash} but got {}: {}",
+                "requested block hash {invalid_hash}, but got {}: {}",
                 valid_block.hash,
                 AccountBalanceError::ReturnedBlockHashMismatch,
             ))),

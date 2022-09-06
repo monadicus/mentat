@@ -470,7 +470,7 @@ fn test_new() {
 
             if let Some(e) = test.criteria {
                 let err = asserter.unwrap_err();
-                assert!(check_err_match::<(), _>(&Some(err), &Err(e)))
+                assert!(check_err_match::<(), _>(&Some(e), &Err(err)))
             } else {
                 let configuration = asserter.unwrap().client_configuration().unwrap();
                 assert_eq!(payload.network, configuration.network_identifier);

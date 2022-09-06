@@ -51,8 +51,13 @@ impl Validations {
             let content = DATA_DIR
                 .get_file(path)
                 .ok_or_else(|| format!("failed to read file {}", path.display()))?;
-            let config: Self = serde_json::from_str(content.contents_utf8().unwrap())
-                .map_err(|e| format!("failed to deserialize contents of file {}: {e}", path.display()))?;
+            let config: Self =
+                serde_json::from_str(content.contents_utf8().unwrap()).map_err(|e| {
+                    format!(
+                        "failed to deserialize contents of file {}: {e}",
+                        path.display()
+                    )
+                })?;
             return Ok(config);
         }
 
@@ -159,7 +164,7 @@ impl Asserter {
             .map_err(|e| format!("genesis block identifier {genesis_block:?} is invalid: {e}"))?;
         let genesis_block = genesis_block.unwrap();
         operation_statuses(&operation_stats)
-            .map_err(|e| "operation statuses {operation_stats:?} are invalid: {e}")?;
+            .map_err(|e| format!("operation statuses {operation_stats:?} are invalid: {e}"))?;
         operation_types(&operation_types_)
             .map_err(|e| format!("operation types {operation_types_:?} are invalid: {e}"))?;
 
