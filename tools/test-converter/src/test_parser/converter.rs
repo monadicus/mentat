@@ -118,24 +118,6 @@ impl Parser {
         Ok((close_vec_count, optionify, type_))
     }
 
-    // fn parse_field(&mut self, indent: usize) -> Result<()> {
-    //     let ident = self.context.expect_identifier()?;
-    //     self.context.expect(&TokenKind::Colon)?;
-
-    //     print!("{}{}: ", INDENT.repeat(indent), ident.to_ascii_lowercase());
-
-    //     let (vecs_to_close, optionify, type_) = self.parse_type_context()?;
-    //     self.inc_indent();
-    //     self.parse_object(type_, optionify)?;
-    //     print!("{}", INDENT.repeat(indent));
-    //     for i in 0..(vecs_to_close) {
-    //         self.context.expect(&TokenKind::RightCurly)?;
-    //         print!("]");
-    //     }
-
-    //     Ok(())
-    // }
-
     // TODO need a way to emit with no ident
     fn parse_object_or_simple(&mut self) -> Result<()> {
         // Object type:
@@ -172,11 +154,7 @@ impl Parser {
             } else {
                 self.parse_object(&type_, optionify)?;
             }
-
-            // self.emit("{}", false);
-            // print!("{}", INDENT.repeat(4));
         } else {
-            // dbg!("direct");
             // direct type
             emitln!(self, "{},", self.context.curr_token.kind);
             self.context.bump();
@@ -186,23 +164,8 @@ impl Parser {
         Ok(())
     }
 
-    fn parse_dynamic_payload(
-        &mut self,
-        struct_format: &str,
-        payload_fields: &IndexMap<String, TestStructPayloadField>,
-    ) -> Result<()> {
-        emitln!(self, "{struct_format}");
-        self.inc_indent();
-        let ident = self.context.expect_identifier()?;
-        self.context.expect(&TokenKind::Colon)?;
-        emit!(self, "{ident}: ");
-
-        // This is a dynamic Payload field
-        if payload_fields.contains_key(&ident) {
-            self.parse_object_or_simple()?;
-        } else {
-            todo!("error!");
-        }
+    fn parse_dynamic_payload(&mut self) -> Result<()> {
+        self.parse_object_or_simple()?;
 
         emitln!(self, "}},");
         Ok(())
@@ -232,14 +195,32 @@ impl Parser {
             } => {
                 emitln!(self, "payload:");
                 self.inc_indent();
-                let struct_format = format!("{} {{", struct_name);
-                self.parse_curly_comma_list(|c| {
-                    Parser::parse_dynamic_payload(c, &struct_format, &fields)
-                })?;
-                self.dec_indent();
-                emitln!(self, "}},");
+                self.context.expect(&TokenKind::LeftCurly)?;
+
+                emitln!(self, "{} {{", struct_name);
+                self.inc_indent();
+
+                while matches!(self.context.curr_token.kind, TokenKind::Identifier(_)) {
+                    let ident = self.context.expect_identifier()?;
+                    // dbg!(&ident);
+                    self.context.expect(&TokenKind::Colon)?;
+                    emit!(self, "{ident}: ");
+                    // This is a dynamic Payload field
+                    if fields.contains_key(&ident) {
+                        self.parse_dynamic_payload()?;
+                    } else {
+                        todo!("not a dynamic payload!");
+                    }
+
+                    self.context.expect(&TokenKind::RightCurly)?;
+                    self.context.expect(&TokenKind::Comma)?;
+                    self.dec_indent();
+                    emitln!(self, "}},");
+                }
             }
-            TestStructPayload::Single { struct_name, value } => todo!(),
+            TestStructPayload::Single { struct_name, value } => {
+                todo!("Non custom payload objects not yet supported.")
+            }
         }
 
         self.dec_indent();
