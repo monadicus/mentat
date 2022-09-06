@@ -25,8 +25,11 @@ impl Asserter {
         response.transactions.iter().try_for_each(|t| {
             // TODO: coinbase never checks for nil here
             let t = t.as_ref().unwrap();
-            block_identifier(t.block_identifier.as_ref())?;
+            block_identifier(t.block_identifier.as_ref()).map_err(|e| {
+                format!("block identifier {:?} is invalid: {e}", t.block_identifier)
+            })?;
             self.transaction(t.transaction.as_ref())
+                .map_err(|e| format!("transaction {:?} is invalid: {e}", t.transaction).into())
         })
     }
 }

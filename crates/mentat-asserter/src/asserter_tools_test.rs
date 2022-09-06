@@ -331,7 +331,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            criteria: Some("TimestampStartIndex is invalid: -1".into()),
+            criteria: Some(NetworkError::TimestampStartIndexInvalid.into()),
         },
     ];
 

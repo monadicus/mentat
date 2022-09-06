@@ -91,14 +91,30 @@ pub fn sync_status(status: Option<&UncheckedSyncStatus>) -> AssertResult<()> {
 pub fn network_status_response(resp: Option<&UncheckedNetworkStatusResponse>) -> AssertResult<()> {
     let resp = resp.ok_or(NetworkError::NetworkStatusResponseIsNil)?;
 
-    block_identifier(resp.current_block_identifier.as_ref())?;
-    timestamp(resp.current_block_timestamp as isize)?;
-    block_identifier(resp.genesis_block_identifier.as_ref())?;
+    block_identifier(resp.current_block_identifier.as_ref()).map_err(|e| {
+        format!(
+            "current block identifier {:?} is invalid: {e}",
+            resp.current_block_identifier
+        )
+    })?;
+    timestamp(resp.current_block_timestamp as isize).map_err(|e| {
+        format!(
+            "current block timestamp {} is invalid: {e}",
+            resp.current_block_timestamp
+        )
+    })?;
+    block_identifier(resp.genesis_block_identifier.as_ref()).map_err(|e| {
+        format!(
+            "genesis block identifier {:?} is invalid: {e}",
+            resp.genesis_block_identifier
+        )
+    })?;
     resp.peers
         .iter()
-        .map(|p| peer(p.as_ref()))
+        .map(|p| peer(p.as_ref()).map_err(|e| format!("peer {p:?} is invalid: {e}").into()))
         .collect::<AssertResult<Vec<_>>>()?;
     sync_status(resp.sync_status.as_ref())
+        .map_err(|e| format!("sync status {:?} is invalid: {e}", resp.sync_status).into())
 }
 
 /// `operation_statuses` ensures all [`OperationStatus`] in
@@ -160,7 +176,7 @@ pub fn errors(errors: &[Option<UncheckedMentatError>]) -> AssertResult<()> {
     let mut status_codes = IndexSet::new();
 
     for err in errors {
-        error(err.as_ref())?;
+        error(err.as_ref()).map_err(|e| format!("error {err:?} is invalid: {e}"))?;
         let err = err.as_ref().unwrap();
 
         if !err.details.is_empty() {
@@ -179,39 +195,42 @@ pub fn errors(errors: &[Option<UncheckedMentatError>]) -> AssertResult<()> {
 
 /// `balance_exemptions` ensures [`BalanceExemption`]] in a slice is valid.
 pub fn balance_exemptions(exemptions: &[Option<UncheckedBalanceExemption>]) -> AssertResult<()> {
-    for (index, exemption) in exemptions.iter().enumerate() {
+    for exemption in exemptions {
         let exemption = exemption.as_ref().ok_or(format!(
-            "{} (index {})",
+            "balance exemption {exemption:?} is invalid: {}",
             NetworkError::BalanceExemptionIsNil,
-            index
         ))?;
 
         if !exemption.exemption_type.valid() {
             Err(format!(
-                "{} (index {}): {}",
+                "balance exemption type {:?} is invalid: {}",
+                exemption.exemption_type,
                 NetworkError::BalanceExemptionTypeInvalid,
-                index,
-                exemption.exemption_type
             ))?;
         }
 
         if exemption.currency.is_none() && exemption.sub_account_address.is_none() {
             Err(format!(
-                "{} (index {index})",
+                "balance exemption {exemption:?} is invalid: {}",
                 NetworkError::BalanceExemptionMissingSubject
             ))?
         }
 
         if exemption.currency.is_some() {
-            currency(exemption.currency.as_ref())
-                .map_err(|err| format!("{err} (index {index})"))?;
+            currency(exemption.currency.as_ref()).map_err(|e| {
+                format!(
+                    "balance exemption currency {:?} is invalid: {e}",
+                    exemption.currency
+                )
+            })?;
         }
 
         if exemption.sub_account_address.is_some()
             && exemption.sub_account_address.as_ref().unwrap().is_empty()
         {
             Err(format!(
-                "{} (index {index})",
+                "balance exemption sub account address {:?} is invalid: {}",
+                exemption.sub_account_address,
                 NetworkError::BalanceExemptionSubAccountAddressEmpty
             ))?
         }
@@ -227,27 +246,44 @@ pub fn call_methods(methods: &[String]) -> AssertResult<()> {
     }
 
     string_array("Allow.CallMethods", methods)
+        .map_err(|e| format!("methods {methods:?} are invalid: {e}").into())
 }
 
 /// `allow` ensures a [`Allow`] object is valid.
 pub fn allow(allowed: Option<&UncheckedAllow>) -> AssertResult<()> {
     let allowed = allowed.ok_or(NetworkError::AllowIsNil)?;
 
-    operation_statuses(&allowed.operation_statuses)?;
-    operation_types(&allowed.operation_types)?;
-    errors(&allowed.errors)?;
-    call_methods(&allowed.call_methods)?;
-    balance_exemptions(&allowed.balance_exemptions)?;
+    operation_statuses(&allowed.operation_statuses).map_err(|e| {
+        format!(
+            "operation statuses {:?} are invalid: {e}",
+            allowed.operation_statuses
+        )
+    })?;
+    operation_types(&allowed.operation_types).map_err(|e| {
+        format!(
+            "operation types {:?} are invalid: {e}",
+            allowed.operation_types
+        )
+    })?;
+    errors(&allowed.errors).map_err(|e| format!("errors {:?} are invalid: {e}", allowed.errors))?;
+    call_methods(&allowed.call_methods)
+        .map_err(|e| format!("call methods {:?} are invalid: {e}", allowed.call_methods))?;
+    balance_exemptions(&allowed.balance_exemptions).map_err(|e| {
+        format!(
+            "balance exemptions {:?} are invalid: {e}",
+            allowed.balance_exemptions
+        )
+    })?;
 
     if !allowed.balance_exemptions.is_empty() && !allowed.historical_balance_lookup {
         Err(NetworkError::BalanceExemptionNoHistoricalLookup)?;
     }
 
-    if allowed.timestamp_start_index.is_some() && allowed.timestamp_start_index.unwrap() < 0 {
+    if matches!(allowed.timestamp_start_index, Some(i) if i < 0) {
         Err(format!(
-            "{}: {}",
+            "timestamp start index {} is invalid: {}",
+            allowed.timestamp_start_index.unwrap(),
             NetworkError::TimestampStartIndexInvalid,
-            allowed.timestamp_start_index.unwrap()
         ))?
     }
 
@@ -283,7 +319,8 @@ pub fn network_list_response(resp: Option<&UncheckedNetworkListResponse>) -> Ass
     let resp = resp.ok_or(NetworkError::NetworkListResponseIsNil)?;
     let mut seen = Vec::new();
     for network in &resp.network_identifiers {
-        network_identifier(network.as_ref())?;
+        network_identifier(network.as_ref())
+            .map_err(|e| format!("network identifier {network:?} is invalid: {e}"))?;
         if contains_network_identifier(&seen, network.as_ref()) {
             Err(NetworkError::NetworkListResponseNetworksContainsDuplicates)?;
         }

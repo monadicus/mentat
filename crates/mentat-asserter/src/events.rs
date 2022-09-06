@@ -12,7 +12,12 @@ pub fn block_event(event: Option<&UncheckedBlockEvent>) -> AssertResult<()> {
         Err(EventError::SequenceInvalid)?;
     }
 
-    block_identifier(event.block_identifier.as_ref())?;
+    block_identifier(event.block_identifier.as_ref()).map_err(|e| {
+        format!(
+            "block identifier {:?} is invalid: {e}",
+            event.block_identifier
+        )
+    })?;
 
     if !event.type_.valid() {
         Err(EventError::BlockEventTypeInvalid)?
@@ -34,7 +39,8 @@ pub fn events_blocks_response(
     }
     let mut seq = -1;
     for (i, event) in response.events.iter().enumerate() {
-        block_event(event.as_ref())?;
+        block_event(event.as_ref())
+            .map_err(|e| format!("block event {event:?} is invalid: {e}"))?;
         let event = event.as_ref().unwrap();
 
         if seq == -1 {

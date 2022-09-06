@@ -44,12 +44,16 @@ pub fn assert_unique_amounts(amounts: &[Option<UncheckedAmount>]) -> AssertResul
         let key = hash(amt.currency.as_ref());
 
         if seen.contains(&key) {
-            Err(format!("currency {:?} used multiple times", amt.currency))?;
+            Err(format!(
+                "amount currency {:?} of amount {amt:?} is invalid: {}",
+                amt.currency,
+                AccountBalanceError::CurrencyUsedMultipleTimes
+            ))?;
         }
 
         seen.insert(key);
 
-        amount(Some(amt))?;
+        amount(Some(amt)).map_err(|e| format!("amount {amt:?} is invalid: {e}"))?;
     }
 
     Ok(())
@@ -63,10 +67,14 @@ pub fn account_balance_response(
     request_block: Option<&UncheckedPartialBlockIdentifier>,
     response: &UncheckedAccountBalanceResponse,
 ) -> AssertResult<()> {
-    block_identifier(response.block_identifier.as_ref())
-        .map_err(|e| format!("{e}: block identifier is invalid"))?;
+    block_identifier(response.block_identifier.as_ref()).map_err(|e| {
+        format!(
+            "block identifier {:?} is invalid: {e}",
+            response.block_identifier
+        )
+    })?;
     assert_unique_amounts(&response.balances)
-        .map_err(|e| format!("{e}: balance amounts are invalid"))?;
+        .map_err(|e| format!("balance amounts {:?} are invalid: {e}", response.balances))?;
 
     if request_block.is_none() {
         return Ok(());
@@ -76,17 +84,17 @@ pub fn account_balance_response(
 
     if matches!(request_block.hash.as_ref(), Some(i) if i != &block_identifier.hash) {
         Err(format!(
-            "{}: requested block hash {} but got {}",
-            AccountBalanceError::ReturnedBlockHashMismatch,
+            "requested block hash {}, but got {}: {}",
             request_block.hash.as_ref().unwrap(),
-            block_identifier.hash
+            block_identifier.hash,
+            AccountBalanceError::ReturnedBlockHashMismatch,
         ))?
     } else if matches!(request_block.index, Some(i) if i != block_identifier.index) {
         Err(format!(
-            "{}: requested block index {} but got {}",
-            AccountBalanceError::ReturnedBlockIndexMismatch,
+            "requested block index {} but got {}: {}",
             request_block.index.unwrap(),
-            block_identifier.index
+            block_identifier.index,
+            AccountBalanceError::ReturnedBlockIndexMismatch,
         ))?
     } else {
         Ok(())
@@ -96,8 +104,12 @@ pub fn account_balance_response(
 /// `account_coins` returns an error if the provided
 /// [`AccountCoinsResponse`] is invalid.
 pub fn account_coins(response: &UncheckedAccountCoinsResponse) -> AssertResult<()> {
-    block_identifier(response.block_identifier.as_ref())
-        .map_err(|e| format!("{e}: block identifier is invalid"))?;
-    coins(&response.coins).map_err(|e| format!("{e}: coins are invalid"))?;
+    block_identifier(response.block_identifier.as_ref()).map_err(|e| {
+        format!(
+            "block identifier {:?} is invalid: {e}",
+            response.block_identifier
+        )
+    })?;
+    coins(&response.coins).map_err(|e| format!("coins {:?} are invalid: {e}", response.coins))?;
     Ok(())
 }

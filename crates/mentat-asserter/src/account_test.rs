@@ -312,10 +312,7 @@ fn test_account_balance() {
                 balances: vec![valid_amt.clone(), valid_amt.clone()],
                 _metadata: Default::default(),
             },
-            criteria: Some(AsserterError::from(format!(
-                "currency {:?} used multiple times: balance amounts are invalid",
-                &valid_amt.as_ref().unwrap().currency
-            ))),
+            criteria: Some(AccountBalanceError::CurrencyUsedMultipleTimes.into()),
         },
         TestCase {
             name: "valid historical request index",
@@ -355,9 +352,9 @@ fn test_account_balance() {
                 _metadata: Default::default(),
             },
             criteria: Some(AsserterError::from(format!(
-                "{}: requested block index {invalid_index} but got {}",
-                AccountBalanceError::ReturnedBlockIndexMismatch,
+                "requested block index {invalid_index} but got {}: {}",
                 valid_block.index,
+                AccountBalanceError::ReturnedBlockIndexMismatch,
             ))),
         },
         TestCase {
@@ -372,9 +369,9 @@ fn test_account_balance() {
                 _metadata: Default::default(),
             },
             criteria: Some(AsserterError::from(format!(
-                "{}: requested block hash {invalid_hash} but got {}",
-                AccountBalanceError::ReturnedBlockHashMismatch,
+                "requested block hash {invalid_hash} but got {}: {}",
                 valid_block.hash,
+                AccountBalanceError::ReturnedBlockHashMismatch,
             ))),
         },
     ];

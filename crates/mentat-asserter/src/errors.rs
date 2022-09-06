@@ -6,6 +6,8 @@ use thiserror::Error;
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum AccountBalanceError {
+    #[error("currency is used multiple times")]
+    CurrencyUsedMultipleTimes,
     #[error("request block hash does not match response block hash")]
     ReturnedBlockHashMismatch,
     #[error("request block index does not match response block index")]
@@ -136,8 +138,6 @@ pub enum ConstructionError {
     SignedTxEmpty,
     #[error("construction derive response cannot be nil")]
     ConstructionDeriveResponseIsNil,
-    #[error("address cannot be empty")]
-    ConstructionDeriveResponseAddrEmpty,
     #[error("construction parse response cannot be nil")]
     ConstructionParseResponseIsNil,
     #[error("operations cannot be empty")]
@@ -146,10 +146,6 @@ pub enum ConstructionError {
     ConstructionParseResponseSignersEmptyOnSignedTx,
     #[error("signers should be empty for unsigned txs")]
     ConstructionParseResponseSignersNonEmptyOnUnsignedTx,
-    #[error("signer cannot be empty string")]
-    ConstructionParseResponseSignerEmpty,
-    #[error("found duplicate signer")]
-    ConstructionParseResponseDuplicateSigner,
     #[error("construction payloads response cannot be nil")]
     ConstructionPayloadsResponseIsNil,
     #[error("unsigned transaction cannot be empty")]
@@ -166,8 +162,6 @@ pub enum ConstructionError {
     CurveTypeNotSupported,
     #[error("signing payload cannot be nil")]
     SigningPayloadIsNil,
-    #[error("signing payload address cannot be empty")]
-    SigningPayloadAddrEmpty,
     #[error("signing payload bytes cannot be empty")]
     SigningPayloadBytesEmpty,
     #[error("signing payload bytes cannot be 0")]
@@ -250,7 +244,7 @@ pub enum ServerError {
     NoSupportedNetworks,
     #[error("supported network duplicate")]
     SupportedNetworksDuplicate,
-    #[error("requestNetwork not supported")]
+    #[error("requestNetwork is not supported")]
     RequestedNetworkNotSupported,
     #[error("AccountBalanceRequest is nil")]
     AccountBalanceRequestIsNil,
@@ -364,6 +358,24 @@ pub enum ErrorError {
     DescriptionEmpty,
 }
 
+/// Util errors
+#[derive(Debug, Error, Eq, PartialEq)]
+#[allow(clippy::missing_docs_in_private_items)]
+pub enum UtilError {
+    #[error("string array is empty")]
+    StringArrayEmpty,
+    #[error("empty string exists in string array")]
+    StringArrayEmptyString,
+    #[error("duplicate string exists in string array")]
+    StringArrayDuplicateString,
+    #[error("account array is empty")]
+    AccountArrayEmpty,
+    #[error("invalid account exists in account array")]
+    AccountArrayInvalidAccount,
+    #[error("duplicate account exists in account array")]
+    AccountArrayDuplicateAccount,
+}
+
 /// Asserter Errors
 #[derive(Debug, Error, Eq, PartialEq)]
 #[allow(clippy::missing_docs_in_private_items)]
@@ -390,6 +402,8 @@ pub enum AsserterError {
     Search(#[from] SearchError),
     #[error(transparent)]
     Error(#[from] ErrorError),
+    #[error(transparent)]
+    Util(#[from] UtilError),
     #[error("{0}")]
     StringError(String),
 }
@@ -431,6 +445,8 @@ pub fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
         (true, "search error")
     } else if err.is::<ServerError>() {
         (true, "server error")
+    } else if err.is::<UtilError>() {
+        (true, "util error")
     } else {
         (false, "")
     }

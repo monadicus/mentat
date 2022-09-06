@@ -6,8 +6,9 @@ use super::*;
 pub fn coin(coin: Option<&UncheckedCoin>) -> AssertResult<()> {
     let coin = coin.ok_or(CoinError::IsNil)?;
     coin_identifier(coin.coin_identifier.as_ref())
-        .map_err(|e| format!("{e}: coin identifier is invalid"))?;
-    amount(coin.amount.as_ref()).map_err(|e| format!("{e}: coin amount is invalid"))?;
+        .map_err(|e| format!("coin identifier {:?} is invalid: {e}", coin.coin_identifier))?;
+    amount(coin.amount.as_ref())
+        .map_err(|e| format!("coin amount {:?} is invalid: {e}", coin.amount))?;
     Ok(())
 }
 
@@ -18,11 +19,11 @@ pub fn coin(coin: Option<&UncheckedCoin>) -> AssertResult<()> {
 pub fn coins(coins: &[Option<UncheckedCoin>]) -> AssertResult<()> {
     let mut ids = IndexSet::new();
     for c in coins {
-        coin(c.as_ref()).map_err(|err| format!("{err}: coin is invalid"))?;
+        coin(c.as_ref()).map_err(|e| format!("coin {c:?} is invalid: {e}"))?;
         let c = c.as_ref().unwrap();
         let c_ident = c.coin_identifier.as_ref().unwrap();
         if ids.contains(&c_ident.identifier) {
-            Err(format!("{}: {}", CoinError::Duplicate, c_ident.identifier))?;
+            Err(format!("coin {c:?} is invalid: {}", CoinError::Duplicate))?;
         }
 
         ids.insert(&c_ident.identifier);
@@ -47,9 +48,14 @@ pub fn coin_identifier(coin_identifier: Option<&CoinIdentifier>) -> AssertResult
 pub fn coin_change(change: Option<&UncheckedCoinChange>) -> AssertResult<()> {
     let change = change.ok_or(CoinError::ChangeIsNil)?;
 
-    coin_identifier(change.coin_identifier.as_ref())
-        .map_err(|e| format!("{e}: coin identifier is invalid"))?;
-    coin_action(&change.coin_action).map_err(|e| format!("{e}: coin action is invalid"))?;
+    coin_identifier(change.coin_identifier.as_ref()).map_err(|e| {
+        format!(
+            "coin identifier {:?} is invalid: {e}",
+            change.coin_identifier
+        )
+    })?;
+    coin_action(&change.coin_action)
+        .map_err(|e| format!("coin action {:?} is invalid: {e}", change.coin_action))?;
     Ok(())
 }
 
@@ -58,9 +64,8 @@ pub fn coin_change(change: Option<&UncheckedCoinChange>) -> AssertResult<()> {
 pub fn coin_action(act: &UncheckedCoinAction) -> AssertResult<()> {
     if !act.valid() {
         Err(AsserterError::from(format!(
-            "{}: {}",
+            "failed to validate coin action {act}: {}",
             CoinError::ActionInvalid,
-            act
         )))
     } else {
         Ok(())
