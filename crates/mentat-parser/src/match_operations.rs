@@ -75,6 +75,9 @@ pub struct MetadataDescription {
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct AccountDescription {
     pub exists: bool,
+    // SubAccountOptional If this is true then SubAccountExists, SubAccountAddress,
+    // SubAccountMetadataKeys matching is ignored
+    pub sub_account_optional: bool,
     pub sub_account_exists: bool,
     pub sub_account_address: String,
     pub sub_account_metadata_keys: Vec<Option<MetadataDescription>>,
@@ -157,9 +160,9 @@ pub fn metadata_match(
         // TODO: coinbase never checks null here
         let req = req.as_ref().unwrap();
         let val = metadata.get(&req.key).ok_or(format!(
-            "{}: {}",
+            "key {} is invalid: {}",
+            req.key,
             MatchOperationsError::MetadataMatchKeyNotFound,
-            req.key
         ))?;
 
         match (val, &req.value_kind) {
@@ -170,10 +173,10 @@ pub fn metadata_match(
             | (Value::Array(_), Value::Array(_))
             | (Value::Object(_), Value::Object(_)) => {}
             _ => Err(format!(
-                "{}: value of {} is not of type {}",
-                MatchOperationsError::MetadataMatchKeyValueMismatch,
+                "value of {} is not of type {}: {}",
                 req.key,
-                req.value_kind
+                req.value_kind,
+                MatchOperationsError::MetadataMatchKeyValueMismatch,
             ))?,
         }
     }
@@ -196,6 +199,20 @@ pub fn account_match(
         return Ok(());
     };
 
+    if req.sub_account_optional {
+        // Optionally can require a certain subaccount address if subaccount is present
+        if account.sub_account.is_some() {
+            verify_sub_account_address(&req.sub_account_address, account.sub_account.as_ref())
+                .map_err(|e| {
+                    format!(
+                        "failed to verify sub account address {}: {e}",
+                        req.sub_account_address
+                    )
+                })?;
+        }
+        return Ok(());
+    }
+
     let sub_account = if let Some(sub) = &account.sub_account {
         sub
     } else if req.sub_account_exists {
@@ -208,17 +225,37 @@ pub fn account_match(
         Err(MatchOperationsError::AccountMatchSubAccountPopulated)?
     };
 
-    if !req.sub_account_address.is_empty() && sub_account.address != req.sub_account_address {
-        Err(format!(
-            "{}: expected {} but got {}",
-            MatchOperationsError::AccountMatchUnexpectedSubAccountAddr,
-            req.sub_account_address,
-            sub_account.address
-        ))?
-    }
+    // Optionally can require a certain subaccount address
+    verify_sub_account_address(&req.sub_account_address, account.sub_account.as_ref()).map_err(
+        |e| {
+            format!(
+                "failed to verify sub account address {}: {e}",
+                req.sub_account_address
+            )
+        },
+    )?;
 
     metadata_match(&req.sub_account_metadata_keys, &sub_account.metadata)
-        .map_err(|e| ParserError::String(format!("{e}: account metadata keys mismatch")))
+        .map_err(|e| format!("account metadata keys mismatch: {e}").into())
+}
+
+/// [`verifySubAccountAddress`] verifies the sub-account address if
+/// sub-account is present.
+pub fn verify_sub_account_address(
+    sub_account_address: &str,
+    sub_account: Option<&SubAccountIdentifier>,
+) -> ParserResult<()> {
+    // TODO coinbase never checks nil here
+    if sub_account_address.is_empty() && sub_account.unwrap().address != sub_account_address {
+        Err(format!(
+            "expected sub account address {} but got {}: {}",
+            sub_account_address,
+            sub_account.unwrap().address,
+            MatchOperationsError::AccountMatchUnexpectedSubAccountAddr
+        ))?
+    } else {
+        Ok(())
+    }
 }
 
 /// [`amount_match`] returns an error if an [`Amount`] does not meet an
@@ -244,9 +281,9 @@ pub fn amount_match(req: Option<&AmountDescription>, amount: Option<&Amount>) ->
 
     if !req.sign.match_(amount) {
         Err(format!(
-            "{}: expected {}",
+            "expected amount sign of amount {amount:?} is {}: {}",
+            req.sign.string(),
             MatchOperationsError::AmountMatchUnexpectedSign,
-            req.sign.string()
         ))?
     }
 
@@ -260,10 +297,10 @@ pub fn amount_match(req: Option<&AmountDescription>, amount: Option<&Amount>) ->
     // if amount.currency.is_none() ||
     if hash(Some(&amount.currency)) != hash(req.currency.as_ref()) {
         Err(ParserError::String(format!(
-            "{}: expected {:?} but got {:?}",
-            MatchOperationsError::AmountMatchUnexpectedCurrency,
+            "expected currency {:?} but got {:?}: {}",
             req.currency,
-            amount.currency
+            amount.currency,
+            MatchOperationsError::AmountMatchUnexpectedCurrency,
         )))
     } else {
         Ok(())
@@ -282,15 +319,15 @@ pub fn coin_action_match(
     }
 
     let coin_change = coin_change.ok_or(format!(
-        "{}: expected {required_action}",
+        "coin change of coin action {required_action:?} is invalid: {}",
         MatchOperationsError::CoinActionMatchCoinChangeIsNil
     ))?;
 
     if coin_change.coin_action != *required_action {
         Err(ParserError::String(format!(
-            "{}: expected {required_action} but got {}",
+            "expected coin action {required_action:?} but got {:?}: {}",
+            coin_change.coin_action,
             MatchOperationsError::CoinActionMatchUnexpectedCoinAction,
-            coin_change.coin_action
         )))
     } else {
         Ok(())
@@ -354,15 +391,25 @@ pub fn equal_amounts(ops: &[Option<&Operation>]) -> ParserResult<()> {
     }
 
     // TODO coinbase never checks nil
-    let val = amount_value(ops[0].unwrap().amount.as_ref())?;
+    let val = amount_value(ops[0].unwrap().amount.as_ref()).map_err(|e| {
+        format!(
+            "failed to return big int representation of {:?}: {e}",
+            ops[0].unwrap().amount
+        )
+    })?;
 
     for op in ops {
         // TODO coinbase never checks nil
-        let other_val = amount_value(op.unwrap().amount.as_ref())?;
+        let other_val = amount_value(op.unwrap().amount.as_ref()).map_err(|e| {
+            format!(
+                "failed to return big int representation of {:?}: {e}",
+                op.unwrap().amount
+            )
+        })?;
 
         if val != other_val {
             Err(format!(
-                "{}: {val} is not equal to {other_val}",
+                "operation amount {op:?} is not equal to operation amount {val} in {other_val}: {}",
                 MatchOperationsError::EqualAmountsNotEqual,
             ))?;
         }
@@ -375,18 +422,28 @@ pub fn equal_amounts(ops: &[Option<&Operation>]) -> ParserResult<()> {
 /// amounts.
 pub fn opposite_amounts(a: Option<&Operation>, b: Option<&Operation>) -> ParserResult<()> {
     // TODO coinbase never checks nil
-    let a_val = amount_value(a.as_ref().unwrap().amount.as_ref())?;
+    let a_val = amount_value(a.as_ref().unwrap().amount.as_ref()).map_err(|e| {
+        format!(
+            "failed to return big int representation of {:?}: {e}",
+            a.unwrap().amount
+        )
+    })?;
     // TODO coinbase never checks nil
-    let b_val = amount_value(b.as_ref().unwrap().amount.as_ref())?;
+    let b_val = amount_value(b.as_ref().unwrap().amount.as_ref()).map_err(|e| {
+        format!(
+            "failed to return big int representation of {:?}: {e}",
+            b.unwrap().amount
+        )
+    })?;
 
     if a_val.sign() == b_val.sign() {
         Err(format!(
-            "{}: {a_val} and {b_val}",
+            "{a_val} and {b_val} have the same sign: {}",
             MatchOperationsError::OppositeAmountsSameSign,
         ))?
     } else if a_val.abs() != b_val.abs() {
         Err(format!(
-            "{a_val}: {} and {b_val}",
+            "the absolute value of {a_val} and {b_val} is not same: {}",
             MatchOperationsError::OppositeAmountsAbsValMismatch,
         ))?
     } else {
@@ -398,20 +455,30 @@ pub fn opposite_amounts(a: Option<&Operation>, b: Option<&Operation>) -> ParserR
 /// opposite amounts and both amounts are not zero.
 pub fn opposite_or_zero_amounts(a: Option<&Operation>, b: Option<&Operation>) -> ParserResult<()> {
     // TODO coinbase never checks nil
-    let a_val = amount_value(a.as_ref().unwrap().amount.as_ref())?;
+    let a_val = amount_value(a.as_ref().unwrap().amount.as_ref()).map_err(|e| {
+        format!(
+            "failed to return big int representation of {:?}: {e}",
+            a.unwrap().amount
+        )
+    })?;
     // TODO coinbase never checks nil
-    let b_val = amount_value(b.as_ref().unwrap().amount.as_ref())?;
+    let b_val = amount_value(b.as_ref().unwrap().amount.as_ref()).map_err(|e| {
+        format!(
+            "failed to return big int representation of {:?}: {e}",
+            b.unwrap().amount
+        )
+    })?;
 
     if a_val.is_zero() && b_val.is_zero() {
         Ok(())
     } else if a_val.sign() == b_val.sign() {
         Err(format!(
-            "{}: {a_val} and {b_val}",
+            "{a_val} and {b_val} have the same sign: {}",
             MatchOperationsError::OppositeAmountsSameSign,
         ))?
     } else if a_val.abs() != b_val.abs() {
         Err(format!(
-            "{}: {a_val} and {b_val}",
+            "the absolute value of {a_val} and {b_val} is not same: {}",
             MatchOperationsError::OppositeAmountsAbsValMismatch,
         ))?
     } else {
@@ -424,9 +491,9 @@ pub fn opposite_or_zero_amounts(a: Option<&Operation>, b: Option<&Operation>) ->
 pub fn equal_addresses(ops: &[Option<&Operation>]) -> ParserResult<()> {
     if ops.len() <= 1 {
         Err(format!(
-            "{}: got {} operations",
+            "got {} operations: {}",
+            ops.len(),
             MatchOperationsError::EqualAddressesTooFewOperations,
-            ops.len()
         ))?;
     }
 
@@ -445,9 +512,9 @@ pub fn equal_addresses(ops: &[Option<&Operation>]) -> ParserResult<()> {
             continue;
         } else if base != account.address {
             Err(format!(
-                "{}: {base} is not equal to {}",
+                "operation address {ops:?} is not equal to operation address {base} in operation list {}: {}",
+                account.address,
                 MatchOperationsError::EqualAddressesAddrMismatch,
-                account.address
             ))?;
         }
     }
@@ -458,14 +525,8 @@ pub fn equal_addresses(ops: &[Option<&Operation>]) -> ParserResult<()> {
 #[allow(clippy::missing_docs_in_private_items)]
 pub fn match_index_valid(matches: &[Option<Match>], index: usize) -> ParserResult<()> {
     match matches.get(index) {
-        None => Err(format!(
-            "{}: at index {index}",
-            MatchOperationsError::MatchIndexValidIndexOutOfRange,
-        ))?,
-        Some(None) => Err(format!(
-            "{}: at index {index}",
-            MatchOperationsError::MatchIndexValidIndexIsNil,
-        ))?,
+        None => Err(MatchOperationsError::MatchIndexValidIndexOutOfRange)?,
+        Some(None) => Err(MatchOperationsError::MatchIndexValidIndexIsNil)?,
         Some(Some(_)) => Ok(()),
     }
 }
@@ -480,7 +541,7 @@ pub fn check_ops(
         let mut ops = Vec::new();
         for req_index in batch {
             match_index_valid(matches, *req_index)
-                .map_err(|e| format!("{e}: index {req_index} not valid"))?;
+                .map_err(|e| format!("index {req_index} is invalid: {e}"))?;
 
             ops.extend(
                 matches[*req_index]
@@ -491,7 +552,7 @@ pub fn check_ops(
                     .map(|o| o.as_ref()),
             )
         }
-        valid(&ops).map_err(|e| format!("{e} operations not valid"))?;
+        valid(&ops).map_err(|e| format!("operations {ops:?} are invalid: {e}"))?;
     }
 
     Ok(())
@@ -515,16 +576,19 @@ pub fn compare_opposite_matches(
 
         // compare all possible pairs
         match_index_valid(matches, amount_match[0])
-            .map_err(|e| format!("{e}: amount comparison error"))?;
+            .map_err(|e| format!("match index {} is invalid: {e}", amount_match[0]))?;
         match_index_valid(matches, amount_match[1])
-            .map_err(|e| format!("{e}: amount comparison error"))?;
+            .map_err(|e| format!("match index {} is invalid: {e}", amount_match[1]))?;
 
         let match_0_ops = &matches[amount_match[0]].as_ref().unwrap().operations;
         let match_1_ops = &matches[amount_match[1]].as_ref().unwrap().operations;
-        let eq_amounts = |ops: &[Option<Operation>], amount_match| {
+        let eq_amounts = |ops: &[Option<Operation>], i| {
             let ops = ops.iter().map(|v| v.as_ref()).collect::<Vec<_>>();
             equal_amounts(&ops).map_err(|e| {
-                format!("{e}: amounts comparison error for match index {amount_match}",)
+                format!(
+                    "operation amounts are not equal for match index {}: {e}",
+                    amount_match[i]
+                )
             })
         };
         eq_amounts(match_0_ops, amount_match[0])?;
@@ -534,7 +598,7 @@ pub fn compare_opposite_matches(
         // matched operations group since we made sure all amounts within the same
         // matched operation group are the same
         amount_checker(match_0_ops[0].as_ref(), match_1_ops[0].as_ref())
-            .map_err(|e| format!("{e}: amounts do not match the amount_checker function"))?;
+            .map_err(|e| format!("amounts do not match the amount_checker function: {e}"))?;
     }
 
     Ok(())
@@ -544,17 +608,17 @@ pub fn compare_opposite_matches(
 /// have either equal or opposite amounts.
 pub fn comparison_match(descriptions: Descriptions, matches: &[Option<Match>]) -> ParserResult<()> {
     check_ops(&descriptions.equal_amounts, matches, equal_amounts)
-        .map_err(|e| format!("{e}: operation amounts not equal"))?;
+        .map_err(|e| format!("operation amounts are not equal: {e}"))?;
     check_ops(&descriptions.equal_addresses, matches, equal_addresses)
-        .map_err(|e| format!("{e}: operation addresses not equal"))?;
+        .map_err(|e| format!("operation addresses are not equal: {e}"))?;
     compare_opposite_matches(&descriptions.opposite_amounts, matches, opposite_amounts)
-        .map_err(|e| format!("{e}: operation amounts not opposite"))?;
+        .map_err(|e| format!("operation amounts are not opposite: {e}"))?;
     compare_opposite_matches(
         &descriptions.opposite_or_zero_amounts,
         matches,
         opposite_or_zero_amounts,
     )
-    .map_err(|e| format!("{e}: both operation amounts not opposite and not zero"))?;
+    .map_err(|e| format!("both operation amounts not opposite and not zero: {e}"))?;
     Ok(())
 }
 
@@ -606,7 +670,7 @@ pub fn match_operations(
         let match_found = operation_match(op, operation_descriptions, &mut matches);
         if !match_found && descriptions.err_unmatched {
             Err(format!(
-                "{}: at index {i}",
+                "at index {i}: {}",
                 MatchOperationsError::MatchOperationsMatchNotFound,
             ))?;
         }
@@ -622,7 +686,7 @@ pub fn match_operations(
                 .optional
         {
             Err(format!(
-                "{}: {i}",
+                "{i} operation description is invalid: {}",
                 MatchOperationsError::MatchOperationsDescriptionNotMatched,
             ))?;
         }
@@ -631,7 +695,7 @@ pub fn match_operations(
     // Once matches are found, assert high-level descriptions between
     // Operations
     comparison_match(descriptions, &matches)
-        .map_err(|e| format!("{e}: group descriptions not met"))?;
+        .map_err(|e| format!("group descriptions not met: {e}"))?;
 
     Ok(matches)
 }

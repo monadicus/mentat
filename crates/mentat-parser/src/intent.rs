@@ -14,24 +14,24 @@ use crate::{IntentError, Parser, ParserResult};
 pub fn expected_operation(intent: &Operation, observed: &Operation) -> ParserResult<()> {
     if hash(intent.account.as_ref()) != hash(observed.account.as_ref()) {
         Err(format!(
-            "{}: expected {} but got {}",
-            IntentError::ExpectedOperationAccountMismatch,
+            "expected operation account identifier {} but got {}: {}",
             serde_json::to_string_pretty(&intent.account).unwrap(),
-            serde_json::to_string_pretty(&observed.account).unwrap()
+            serde_json::to_string_pretty(&observed.account).unwrap(),
+            IntentError::ExpectedOperationAccountMismatch,
         ))?
     } else if hash(intent.amount.as_ref()) != hash(observed.amount.as_ref()) {
         Err(format!(
-            "{}: expected {} but got {}",
-            IntentError::ExpectedOperationAmountMismatch,
+            "expected operation amount {} but got {}: {}",
             serde_json::to_string_pretty(&intent.amount).unwrap(),
-            serde_json::to_string_pretty(&observed.amount).unwrap()
+            serde_json::to_string_pretty(&observed.amount).unwrap(),
+            IntentError::ExpectedOperationAmountMismatch,
         ))?
     } else if intent.type_ != observed.type_ {
         Err(format!(
-            "{}: expected {} but got {}",
-            IntentError::ExpectedOperationTypeMismatch,
+            "expected operation type {} but got {}: {}",
             intent.type_,
-            observed.type_
+            observed.type_,
+            IntentError::ExpectedOperationTypeMismatch,
         ))?
     } else {
         Ok(())
@@ -77,7 +77,9 @@ impl Parser {
                         .as_ref()
                         .unwrap()
                         .operation_successful(obs)
-                        .map_err(|e| format!("{e}: unable to check operation success"))?;
+                        .map_err(|e| {
+                            format!("failed to check the status of operation {obs:?}: {e}")
+                        })?;
 
                     if !obs_success {
                         failed_matches.push(obs);
@@ -156,9 +158,9 @@ pub fn expected_signers(
         let hash = hash(payload.account_identifier.as_ref());
         if !seen_signers.contains(&hash) {
             Err(format!(
-                "{}: {}",
+                "payload account identifier {:?} is invalid: {}",
+                payload.account_identifier,
                 IntentError::ExpectedSignerMissing,
-                serde_json::to_string(&payload.account_identifier).unwrap()
             ))?;
         }
     }
@@ -167,9 +169,8 @@ pub fn expected_signers(
     // were not expected.
     if !unmatched.is_empty() {
         Err(format!(
-            "{}: {}",
+            "unmatched signers are {unmatched:?}: {}",
             IntentError::ExpectedSignerUnexpectedSigner,
-            serde_json::to_string_pretty(&unmatched).unwrap()
         ))?
     } else {
         Ok(())

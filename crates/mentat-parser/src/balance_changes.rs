@@ -25,7 +25,12 @@ impl Parser {
     /// not be processed if it is considered unsuccessful.
     pub fn skip_operation(&self, op: &Operation) -> ParserResult<bool> {
         // TODO they don't check nil here
-        let successful = self.asserter.as_ref().unwrap().operation_successful(op)?;
+        let successful = self
+            .asserter
+            .as_ref()
+            .unwrap()
+            .operation_successful(op)
+            .map_err(|e| format!("failed to check the status of operation {op:?}: {e}"))?;
 
         if !successful {
             return Ok(true);
@@ -61,7 +66,9 @@ impl Parser {
 
         for tx in block.transactions.iter() {
             for op in tx.operations.iter() {
-                let skip = self.skip_operation(op)?;
+                let skip = self
+                    .skip_operation(op)
+                    .map_err(|e| format!("failed to skip operation {op:?}: {e}"))?;
 
                 if skip {
                     // Continue the inner loop.
@@ -76,7 +83,8 @@ impl Parser {
                 let block_ident = block.block_identifier.clone();
 
                 if block_removed {
-                    let negated_value = negate_value(&amount_value)?;
+                    let negated_value = negate_value(&amount_value)
+                        .map_err(|e| format!("failed to flip the sign of {amount_value:?}: {e}"))?;
                     amount_value = negated_value;
                 }
 
@@ -102,7 +110,9 @@ impl Parser {
                 }
 
                 let mut val = val.unwrap();
-                let new_diff = add_values(val.difference.as_ref(), &amount_value)?;
+                let new_diff = add_values(val.difference.as_ref(), &amount_value).map_err(|e| {
+                    format!("failed to add {} and {amount_value:?}: {e}", val.difference)
+                })?;
                 val.difference = new_diff;
             }
         }

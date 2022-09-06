@@ -8,9 +8,10 @@ pub fn construction_preprocess_response(
 ) -> AssertResult<()> {
     let resp = resp.ok_or(ConstructionError::ConstructionPreprocessResponseIsNil)?;
 
-    resp.required_public_keys
-        .iter()
-        .try_for_each(|pub_key| account_identifier(pub_key.as_ref()))?;
+    resp.required_public_keys.iter().try_for_each(|pub_key| {
+        account_identifier(pub_key.as_ref())
+            .map_err(|e| format!("account identifier {pub_key:?} is invalid: {e}"))
+    })?;
 
     Ok(())
 }
@@ -27,7 +28,7 @@ pub fn construction_metadata_response(
     }
 
     assert_unique_amounts(&resp.suggested_fee)
-        .map_err(|err| format!("{err}: duplicate suggested fee currency found"))?;
+        .map_err(|err| format!("suggested fee {:?} is invalid: {err}", resp.suggested_fee))?;
 
     Ok(())
 }
@@ -39,7 +40,13 @@ pub fn transaction_identifier_response(
     response: Option<&UncheckedTransactionIdentifierResponse>,
 ) -> AssertResult<()> {
     let response = response.ok_or(ConstructionError::TxIdentifierResponseIsNil)?;
-    transaction_identifier(response.transaction_identifier.as_ref())
+    transaction_identifier(response.transaction_identifier.as_ref()).map_err(|e| {
+        format!(
+            "transaction identifier {:?} is invalid: {e}",
+            response.transaction_identifier
+        )
+        .into()
+    })
 }
 
 /// `ConstructionCombineResponse` returns an error if
@@ -64,10 +71,10 @@ pub fn construction_derive_response(
 ) -> AssertResult<()> {
     let resp = resp.ok_or(ConstructionError::ConstructionDeriveResponseIsNil)?;
 
-    account_identifier(resp.account_identifier.as_ref()).map_err(|err| {
+    account_identifier(resp.account_identifier.as_ref()).map_err(|e| {
         format!(
-            "{}: {err}",
-            ConstructionError::ConstructionDeriveResponseAddrEmpty
+            "account identifier {:?} is invalid: {e}",
+            resp.account_identifier
         )
     })?;
 
@@ -95,7 +102,7 @@ impl Asserter {
         }
 
         self.operations(&resp.operations, true)
-            .map_err(|err| format!("{err} unable to parse operations"))?;
+            .map_err(|e| format!("operations {:?} are invalid: {e}", resp.operations))?;
 
         if signed && resp.account_identifier_signers.is_empty() {
             Err(ConstructionError::ConstructionParseResponseSignersEmptyOnSignedTx)?;
@@ -107,21 +114,16 @@ impl Asserter {
 
         resp.account_identifier_signers
             .iter()
-            .enumerate()
-            .try_for_each(|(index, ident)| {
-                account_identifier(ident.as_ref()).map_err(|_| {
-                    format!(
-                        "{} at index {index}",
-                        ConstructionError::ConstructionParseResponseSignerEmpty
-                    )
-                })
+            .try_for_each(|ident| {
+                account_identifier(ident.as_ref())
+                    .map_err(|e| format!("account identifier of signer {ident:?} is invalid: {e}",))
             })?;
 
         if !resp.account_identifier_signers.is_empty() {
-            account_array("signers", &resp.account_identifier_signers).map_err(|err| {
+            account_array("signers", &resp.account_identifier_signers).map_err(|e| {
                 format!(
-                    "{}: {err}",
-                    ConstructionError::ConstructionParseResponseDuplicateSigner
+                    "account identifiers of signers {:?} are invalid: {e}",
+                    resp.account_identifier_signers
                 )
             })?;
         }
@@ -147,13 +149,10 @@ pub fn construction_payloads_response(
         Err(ConstructionError::ConstructionPayloadsResponsePayloadsEmpty)?;
     }
 
-    resp.payloads
-        .iter()
-        .enumerate()
-        .try_for_each(|(index, payload)| {
-            signing_payload(payload.as_ref())
-                .map_err(|err| format!("{err}: signing payload {index} is invalid"))
-        })?;
+    resp.payloads.iter().try_for_each(|payload| {
+        signing_payload(payload.as_ref())
+            .map_err(|e| format!("signing payload {payload:?} is invalid: {e}"))
+    })?;
 
     Ok(())
 }
@@ -173,7 +172,7 @@ pub fn public_key(key: Option<&UncheckedPublicKey>) -> AssertResult<()> {
     }
 
     curve_type(&key.curve_type)
-        .map_err(|err| format!("{err} public key curve type is not supported"))?;
+        .map_err(|e| format!("public key curve type {} is invalid: {e}", key.curve_type))?;
 
     Ok(())
 }
@@ -182,11 +181,7 @@ pub fn public_key(key: Option<&UncheckedPublicKey>) -> AssertResult<()> {
 /// the curve is not a valid [CurveType].
 pub fn curve_type(curve: &UncheckedCurveType) -> AssertResult<()> {
     if !curve.valid() {
-        Err(format!(
-            "{}: {}",
-            ConstructionError::CurveTypeNotSupported,
-            curve
-        ))?
+        Err(ConstructionError::CurveTypeNotSupported)?
     } else {
         Ok(())
     }
@@ -199,8 +194,12 @@ pub fn curve_type(curve: &UncheckedCurveType) -> AssertResult<()> {
 pub fn signing_payload(payload: Option<&UncheckedSigningPayload>) -> AssertResult<()> {
     let payload = payload.ok_or(ConstructionError::SigningPayloadIsNil)?;
 
-    account_identifier(payload.account_identifier.as_ref())
-        .map_err(|err| format!("{}: {err}", ConstructionError::SigningPayloadAddrEmpty))?;
+    account_identifier(payload.account_identifier.as_ref()).map_err(|e| {
+        format!(
+            "account identifier {:?} is invalid: {e}",
+            payload.account_identifier
+        )
+    })?;
 
     if payload.bytes.is_empty() {
         Err(ConstructionError::SigningPayloadBytesEmpty)?;
@@ -215,8 +214,12 @@ pub fn signing_payload(payload: Option<&UncheckedSigningPayload>) -> AssertResul
         return Ok(());
     }
 
-    signature_type(&payload.signature_type)
-        .map_err(|err| format!("{err} signature payload signature type is not valid"))?;
+    signature_type(&payload.signature_type).map_err(|e| {
+        format!(
+            "signature type {:?} is invalid: {e}",
+            payload.signature_type
+        )
+    })?;
 
     Ok(())
 }
@@ -228,17 +231,17 @@ pub fn signatures(signatures: &[Option<&UncheckedSignature>]) -> AssertResult<()
         Err(ConstructionError::SignaturesEmpty)?;
     }
 
-    for (index, sig) in signatures.iter().enumerate() {
+    for sig in signatures {
         // TODO coinbase doesn't check for nil here
         let sig = sig.unwrap();
         signing_payload(sig.signing_payload.as_ref())
-            .map_err(|err| format!("{err}: signature {index} has invalid signing payload"))?;
+            .map_err(|e| format!("signing payload {:?} is invalid: {e}", sig.signing_payload))?;
 
         public_key(sig.public_key.as_ref())
-            .map_err(|err| format!("{err}: signature {index} has invalid public key"))?;
+            .map_err(|e| format!("public key {:?} is invalid: {e}", sig.public_key))?;
 
         signature_type(&sig.signature_type)
-            .map_err(|err| format!("{err}: signature {index} has invalid signature type"))?;
+            .map_err(|e| format!("signature type {:?} is invalid: {e}", sig.signature_type))?;
 
         // Return an error if the requested signature type does not match the
         // signature type in the returned signature.
@@ -246,10 +249,7 @@ pub fn signatures(signatures: &[Option<&UncheckedSignature>]) -> AssertResult<()
         if !sig_type.is_empty() && *sig_type != sig.signature_type {
             Err(ConstructionError::SignaturesReturnedSigMismatch)?;
         } else if sig.bytes.is_empty() {
-            Err(format!(
-                "{}: signature {index} has 0 bytes",
-                ConstructionError::SignatureBytesEmpty
-            ))?;
+            Err(ConstructionError::SignatureBytesEmpty)?;
         } else if bytes_array_zero(&sig.bytes) {
             Err(ConstructionError::SignatureBytesZero)?;
         }
@@ -262,11 +262,7 @@ pub fn signatures(signatures: &[Option<&UncheckedSignature>]) -> AssertResult<()
 /// signature is not a valid [`SignatureType`].
 pub fn signature_type(st: &UncheckedSignatureType) -> AssertResult<()> {
     if !st.valid() {
-        Err(AsserterError::from(format!(
-            "{}: {}",
-            ConstructionError::SignatureTypeNotSupported,
-            st
-        )))
+        Err(ConstructionError::SignatureTypeNotSupported)?
     } else {
         Ok(())
     }

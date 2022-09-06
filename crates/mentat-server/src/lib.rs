@@ -53,11 +53,5 @@ pub mod macro_exports {
     pub use mentat_types::*;
     pub use tracing::Instrument;
 
-    pub use super::{
-        api::*,
-        cache::Cache,
-        conf::Configuration,
-        server::{RpcCaller, RpcResponse, Server},
-        *,
-    };
+    pub use super::{api::*, cache::Cache, conf::Configuration, server::Server, *};
 }

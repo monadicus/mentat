@@ -50,9 +50,14 @@ impl Validations {
         if let Some(path) = validation_file_path {
             let content = DATA_DIR
                 .get_file(path)
-                .ok_or_else(|| format!("failed to get file `{}`", path.display()))?;
-            let config: Self = serde_json::from_str(content.contents_utf8().unwrap())
-                .map_err(|e| format!("failed to read `{}` file contents: {}", path.display(), e))?;
+                .ok_or_else(|| format!("failed to read file {}", path.display()))?;
+            let config: Self =
+                serde_json::from_str(content.contents_utf8().unwrap()).map_err(|e| {
+                    format!(
+                        "failed to deserialize contents of file {}: {e}",
+                        path.display()
+                    )
+                })?;
             return Ok(config);
         }
 
@@ -103,16 +108,26 @@ impl Asserter {
         mempool_coins: bool,
         validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
-        operation_types(&supported_operation_types)?;
-        supported_networks(&supp_networks.iter().cloned().map(Some).collect::<Vec<_>>())?;
+        operation_types(&supported_operation_types).map_err(|e| {
+            format!(
+                "operation types {:?} are invalid: {e}",
+                supported_operation_types
+            )
+        })?;
+        supported_networks(&supp_networks.iter().cloned().map(Some).collect::<Vec<_>>())
+            .map_err(|e| format!("network identifiers {:?} are invalid: {e}", supp_networks))?;
 
-        let validations = Validations::get_validation_config(validation_file_path)?;
+        let validations = Validations::get_validation_config(validation_file_path)
+            .map_err(|e| format!("config {:?} is invalid: {e}", validation_file_path))?;
         let mut call_map: IndexSet<String> = IndexSet::new();
         for method in call_methods {
             if method.is_empty() {
                 Err(ServerError::CallMethodEmpty)?
             } else if call_map.contains(&method) {
-                Err(format!("{}: {method}", ServerError::CallMethodDuplicate))?
+                Err(format!(
+                    "failed to call method {method}: {}",
+                    ServerError::CallMethodDuplicate
+                ))?
             } else {
                 call_map.insert(method);
             }
@@ -143,11 +158,15 @@ impl Asserter {
         timestamp_start_index: Option<isize>,
         validations: Validations,
     ) -> AssertResult<Self> {
-        network_identifier(network.as_ref())?;
-        block_identifier(genesis_block.as_ref())?;
+        network_identifier(network.as_ref())
+            .map_err(|e| format!("network identifier {network:?} is invalid: {e}",))?;
+        block_identifier(genesis_block.as_ref())
+            .map_err(|e| format!("genesis block identifier {genesis_block:?} is invalid: {e}"))?;
         let genesis_block = genesis_block.unwrap();
-        operation_statuses(&operation_stats)?;
-        operation_types(&operation_types_)?;
+        operation_statuses(&operation_stats)
+            .map_err(|e| format!("operation statuses {operation_stats:?} are invalid: {e}"))?;
+        operation_types(&operation_types_)
+            .map_err(|e| format!("operation types {operation_types_:?} are invalid: {e}"))?;
 
         // TimestampStartIndex defaults to genesisIndex + 1 (this
         // avoid breaking existing clients using < v1.4.6).
@@ -157,9 +176,9 @@ impl Asserter {
         let parsed_timestamp_start_index =
             unparsed_timestamp_start_index.try_into().map_err(|_| {
                 format!(
-                    "{}: {}",
+                    "failed to validate index {}: {}",
+                    timestamp_start_index.unwrap(),
                     NetworkError::TimestampStartIndexInvalid,
-                    timestamp_start_index.unwrap()
                 )
             })?;
 
@@ -202,13 +221,17 @@ impl Asserter {
         options: Option<UncheckedNetworkOptionsResponse>,
         validation_file_path: Option<&PathBuf>,
     ) -> AssertResult<Self> {
-        network_identifier(network.as_ref())?;
-        network_status_response(status.as_ref())?;
-        network_options_response(options.as_ref())?;
+        network_identifier(network.as_ref())
+            .map_err(|e| format!("network identifier {network:?} is invalid: {e}"))?;
+        network_status_response(status.as_ref())
+            .map_err(|e| format!("network status response {status:?} is invalid: {e}"))?;
+        network_options_response(options.as_ref())
+            .map_err(|e| format!("network options response {options:?} is invalid: {e}"))?;
         // safe to unwrap.
         let allow = options.unwrap().allow.unwrap();
 
-        let validations = Validations::get_validation_config(validation_file_path)?;
+        let validations = Validations::get_validation_config(validation_file_path)
+            .map_err(|e| format!("config {validation_file_path:?} is invalid: {e}"))?;
 
         Self::new_client_with_options(
             network,
@@ -266,7 +289,7 @@ impl Asserter {
             Ok(*val)
         } else {
             Err(AsserterError::from(format!(
-                "{} not found",
+                "operation status {} is not found",
                 operation.status.as_ref().unwrap()
             )))
         }
@@ -292,13 +315,12 @@ impl Configuration {
     /// The filePath provided is parsed relative to the current directory.
     pub(crate) fn new_client_with_file(path: &Path) -> AssertResult<Asserter> {
         let content = File::open(path).map_err(|e| {
-            AsserterError::StringError(format!("failed to read file `{}`: {}", path.display(), e))
+            AsserterError::StringError(format!("failed to read file {}: {e}", path.display()))
         })?;
         let config: Self = serde_json::from_reader(content).map_err(|e| {
             AsserterError::StringError(format!(
-                "failed to read contents of file `{}`: {}",
+                "failed to deserialize contents of file `{}`: {e}",
                 path.display(),
-                e
             ))
         })?;
 

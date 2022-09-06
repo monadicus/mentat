@@ -331,7 +331,7 @@ fn test_new() {
                 validation_file_path: None,
                 skip_load_test: false,
             }),
-            criteria: Some("TimestampStartIndex is invalid: -1".into()),
+            criteria: Some(NetworkError::TimestampStartIndexInvalid.into()),
         },
     ];
 
@@ -470,7 +470,7 @@ fn test_new() {
 
             if let Some(e) = test.criteria {
                 let err = asserter.unwrap_err();
-                assert!(check_err_match::<(), _>(&Some(err), &Err(e)))
+                assert!(check_err_match::<(), _>(&Some(e), &Err(err)))
             } else {
                 let configuration = asserter.unwrap().client_configuration().unwrap();
                 assert_eq!(payload.network, configuration.network_identifier);

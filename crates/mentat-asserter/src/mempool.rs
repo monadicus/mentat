@@ -7,7 +7,8 @@ use super::*;
 /// The correctness of each populated [`MempoolTransaction`] is
 /// asserted by [`Transaction`].
 pub fn mempool_transactions(transactions: &[Option<TransactionIdentifier>]) -> AssertResult<()> {
-    transactions
-        .iter()
-        .try_for_each(|t| transaction_identifier(t.as_ref()))
+    transactions.iter().try_for_each(|t| {
+        transaction_identifier(t.as_ref())
+            .map_err(|e| format!("transaction identifier {t:?} is invalid: {e}").into())
+    })
 }

@@ -7,6 +7,9 @@ use super::*;
 /// BlockAPIServicer defines the api actions for the BlockAPI service
 #[axum::async_trait]
 pub trait BlockApi {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// Get a block by its [`crate::identifiers::BlockIdentifier`]. If
     /// transactions are returned in the same call to the node as fetching
     /// the block, the response should include these transactions in the
@@ -24,7 +27,7 @@ pub trait BlockApi {
         &self,
         _caller: Caller,
         _data: BlockRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<BlockResponse> {
         MentatError::not_implemented()
     }
@@ -53,7 +56,7 @@ pub trait BlockApi {
         &self,
         _caller: Caller,
         _data: BlockTransactionRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<BlockTransactionResponse> {
         MentatError::not_implemented()
     }
@@ -73,14 +76,14 @@ pub trait BlockApiRouter: BlockApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedBlockRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedBlockResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.block_request(data.as_ref())?;
             let resp: UncheckedBlockResponse = self
-                .block(caller, data.unwrap().into(), rpc_caller)
+                .block(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -94,14 +97,14 @@ pub trait BlockApiRouter: BlockApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedBlockTransactionRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedBlockTransactionResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.block_transaction_request(data.as_ref())?;
             let resp: UncheckedBlockTransactionResponse = self
-                .block_transaction(caller, data.unwrap().into(), rpc_caller)
+                .block_transaction(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))

@@ -7,12 +7,15 @@ use super::*;
 /// MempoolAPIServicer defines the api actions for the MempoolAPI service
 #[axum::async_trait]
 pub trait MempoolApi {
+    /// the caller used to interact with the underlying node
+    type NodeCaller: Send + Sync;
+
     /// Get all [`crate::identifiers::TransactionIdentifier`]s in the mempool
     async fn mempool(
         &self,
         _caller: Caller,
         _data: NetworkRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<MempoolResponse> {
         MentatError::not_implemented()
     }
@@ -31,7 +34,7 @@ pub trait MempoolApi {
         &self,
         _caller: Caller,
         _data: MempoolTransactionRequest,
-        _rpc_caller: RpcCaller,
+        _node_caller: &Self::NodeCaller,
     ) -> Result<MempoolTransactionResponse> {
         MentatError::not_implemented()
     }
@@ -51,14 +54,14 @@ pub trait MempoolApiRouter: MempoolApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedNetworkRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedMempoolResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.network_request(data.as_ref())?;
             let resp: UncheckedMempoolResponse = self
-                .mempool(caller, data.unwrap().into(), rpc_caller)
+                .mempool(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -72,14 +75,14 @@ pub trait MempoolApiRouter: MempoolApi + Clone + Default {
         asserter: &Asserter,
         data: Option<UncheckedMempoolTransactionRequest>,
         mode: &Mode,
-        rpc_caller: RpcCaller,
+        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedMempoolTransactionResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.mempool_transaction_request(data.as_ref())?;
             let resp: UncheckedMempoolTransactionResponse = self
-                .mempool_transaction(caller, data.unwrap().into(), rpc_caller)
+                .mempool_transaction(caller, data.unwrap().into(), node_caller)
                 .await?
                 .into();
             Ok(Json(resp))

@@ -17,23 +17,23 @@ impl Asserter {
         let value = asserter
             .error_type_map
             .get(&err.code)
-            .ok_or_else(|| format!("{}: code {}", ErrorError::UnexpectedCode, err.code))?;
+            .ok_or_else(|| format!("code {}: {}", err.code, ErrorError::UnexpectedCode))?;
 
         if value.message != err.message {
             Err(format!(
-                "{}: expected {} actual {}",
-                ErrorError::MessageMismatch,
+                "expected {} actual {}: {}",
                 value.message,
                 err.message,
+                ErrorError::MessageMismatch,
             ))?;
         }
 
         if value.retriable != err.retriable {
             Err(format!(
-                "{}: expected {} actual {}",
-                ErrorError::RetriableMismatch,
+                "expected {} actual {}: {}",
                 value.message,
                 err.message,
+                ErrorError::RetriableMismatch,
             ))?;
         }
 

@@ -3,13 +3,11 @@
 use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 pub mod middleware;
-mod rpc_caller;
 
 use std::net::SocketAddr;
 
 use axum::{extract::Extension, handler::Handler, Router};
 use mentat_types::MentatError;
-pub use rpc_caller::*;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;
 
@@ -40,6 +38,8 @@ pub trait ServerType: Sized + 'static {
     type OptionalApi: OptionalApiRouter;
     /// The blockchain's `SearchApi` Rosetta implementation.
     type SearchApi: SearchApiRouter;
+    /// The Caller used to interact with the node.
+    type NodeCaller: From<Configuration<Self::CustomConfig>> + Send + Sync + Clone;
     /// The nodes's `NodeConf` implementation.
     type CustomConfig: DeserializeOwned + NodeConf;
 
@@ -106,6 +106,8 @@ pub struct ServerBuilder<Types: ServerType> {
     search_api: Option<Types::SearchApi>,
     /// The Optional API endpoints.
     optional_api: Option<Types::OptionalApi>,
+    /// The Caller used to interact with the node
+    node_caller: Option<Types::NodeCaller>,
     /// The optional configuration details.
     configuration: Option<Configuration<Types::CustomConfig>>,
 }
@@ -122,6 +124,7 @@ impl<Types: ServerType> Default for ServerBuilder<Types> {
             network_api: None,
             search_api: None,
             optional_api: None,
+            node_caller: None,
             configuration: None,
         }
     }
@@ -147,6 +150,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
                 .optional_api
                 .expect("You did not set the additional api."),
             search_api: self.search_api.expect("You did not set the call api."),
+            node_caller: self.node_caller.expect("You did not set the rpc caller"),
             asserters: Types::init_asserters(&configuration),
             configuration,
         }
@@ -245,6 +249,8 @@ pub struct Server<Types: ServerType> {
     pub search_api: Types::SearchApi,
     /// The Optional API endpoints.
     pub optional_api: Types::OptionalApi,
+    /// The caller used to interact with the node
+    pub node_caller: Types::NodeCaller,
     /// The optional configuration details.
     pub configuration: Configuration<Types::CustomConfig>,
     /// the asserter to be used when asserting requests
@@ -264,6 +270,7 @@ impl<Types: ServerType> Default for Server<Types> {
             network_api: Default::default(),
             search_api: Default::default(),
             optional_api: Default::default(),
+            node_caller: Types::NodeCaller::from(configuration.clone()),
             asserters: Types::init_asserters(&configuration),
             configuration,
         }
@@ -282,7 +289,6 @@ impl<Types: ServerType> Server<Types> {
         let node_pid = Types::CustomConfig::start_node(&self.configuration);
         let server_pid = Pid::from_u32(std::process::id());
 
-        let rpc_caller = RpcCaller::new(&self.configuration);
         let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
 
         Types::middleware(&self.configuration, &mut app);
@@ -292,8 +298,7 @@ impl<Types: ServerType> Server<Types> {
                 tower::ServiceBuilder::new()
                     .layer(Extension(self.configuration))
                     .layer(Extension(node_pid))
-                    .layer(Extension(server_pid))
-                    .layer(Extension(rpc_caller)),
+                    .layer(Extension(server_pid)),
             )
             .fallback(MentatError::not_found.into_service());
 

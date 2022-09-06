@@ -24,7 +24,7 @@ fn test_coin() {
             criteria: None,
         },
         TestCase {
-            name: "valid coin",
+            name: "nil",
             payload: None,
             criteria: Some(CoinError::IsNil.into()),
         },
@@ -36,9 +36,7 @@ fn test_coin() {
                 }),
                 amount: Some(valid_amount),
             }),
-            criteria: Some(AsserterError::from(
-                "coin identifier cannot be empty: coin identifier is invalid".to_string(),
-            )),
+            criteria: Some(CoinError::IdentifierNotSet.into()),
         },
         TestCase {
             name: "invalid amount",
@@ -52,7 +50,7 @@ fn test_coin() {
                     metadata: Default::default(),
                 }),
             }),
-            criteria: Some(AsserterError::from("amount is invalid".to_string())),
+            criteria: Some(BlockError::AmountCurrencyIsNil.into()),
         },
         TestCase {
             name: "nil amount",
@@ -62,7 +60,7 @@ fn test_coin() {
                 }),
                 amount: None,
             }),
-            criteria: Some(AsserterError::from("amount is invalid".to_string())),
+            criteria: Some(BlockError::AmountValueMissing.into()),
         },
     ];
 

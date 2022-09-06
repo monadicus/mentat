@@ -67,13 +67,7 @@ fn test_construction_metadata_response() {
                 metadata: Some(Default::default()),
                 suggested_fee: vec![valid_amount(), valid_amount()],
             }),
-            criteria: Some(
-                format!(
-                    "currency {:?} used multiple times",
-                    valid_amount().unwrap().currency
-                )
-                .into(),
-            ),
+            criteria: Some(AccountBalanceError::CurrencyUsedMultipleTimes.into()),
         },
         TestCase {
             name: "nil response",
@@ -167,7 +161,7 @@ fn test_construction_derive_response() {
                 metadata: [("name".into(), "hello".into())].into(),
                 ..Default::default()
             }),
-            criteria: Some(ConstructionError::ConstructionDeriveResponseAddrEmpty.into()),
+            criteria: Some(BlockError::AccountIsNil.into()),
         },
     ];
 
@@ -260,7 +254,7 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
-            criteria: Some(ConstructionError::ConstructionParseResponseDuplicateSigner.into()),
+            criteria: Some(UtilError::AccountArrayDuplicateAccount.into()),
         },
         TestCase {
             name: "nil response",
@@ -376,7 +370,7 @@ fn test_construction_parse_response() {
                 }),
                 signed: true,
             }),
-            criteria: Some(ConstructionError::ConstructionParseResponseSignerEmpty.into()),
+            criteria: Some(BlockError::AccountAddrMissing.into()),
         },
         TestCase {
             name: "invalid signer unsigned",
@@ -565,7 +559,7 @@ fn test_construction_payloads_response() {
                     ..Default::default()
                 })],
             }),
-            criteria: Some(ConstructionError::SigningPayloadAddrEmpty.into()),
+            criteria: Some(BlockError::AccountIsNil.into()),
         },
     ];
 
@@ -656,7 +650,7 @@ fn test_signing_payload() {
                 bytes: "blah".into(),
                 ..Default::default()
             }),
-            criteria: Some(ConstructionError::SigningPayloadAddrEmpty.into()),
+            criteria: Some(BlockError::AccountIsNil.into()),
         },
         TestCase {
             name: "zero signing payload",

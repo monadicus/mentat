@@ -7,7 +7,6 @@ use std::{
     net::Ipv4Addr,
     path::{Path, PathBuf},
     process::{exit, Command, Stdio},
-    str::FromStr,
     thread,
 };
 
@@ -90,19 +89,6 @@ pub trait NodeConf: Clone + Default + Send + Serialize + Sync + 'static {
                 }
             }
         });
-    }
-
-    /// Builds the url used to call the node using the settings in the user
-    /// config. The default implementation may need to be changed if a
-    /// custom url format is needed.
-    fn build_url(conf: &Configuration<Self>) -> reqwest::Url {
-        let url = format!(
-            "{}://{}:{}",
-            if conf.secure_http { "https" } else { "http" },
-            conf.node_address,
-            conf.node_rpc_port
-        );
-        reqwest::Url::from_str(&url).expect("Invalid node url: {url}")
     }
 }
 
