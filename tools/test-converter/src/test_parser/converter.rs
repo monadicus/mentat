@@ -50,7 +50,11 @@ impl Parser {
         if self.context.check(&TokenKind::DefaultObject) {
             self.context.eat(&TokenKind::DefaultObject);
             self.context.eat(&TokenKind::Comma);
-            emitln!(self, "Default::default(),");
+            if optionify {
+                emitln!(self, "Some(Default::default()),");
+            } else {
+                emitln!(self, "Default::default(),");
+            }
             return Ok(());
         }
 
@@ -59,7 +63,7 @@ impl Parser {
         } else {
             println!("{type_} {{");
         }
-        // self.inc_indent();
+        self.inc_indent();
 
         self.context.expect(&TokenKind::LeftCurly)?;
 
@@ -79,10 +83,13 @@ impl Parser {
         }
         self.context.expect(&TokenKind::RightCurly)?;
         self.context.expect(&TokenKind::Comma)?;
-        emitln!(self, "}},");
 
         if optionify {
+            emitln!(self, "}}");
+            self.dec_indent();
             emitln!(self, "),");
+        } else {
+            emitln!(self, "}},");
         }
 
         Ok(())
@@ -150,7 +157,14 @@ impl Parser {
             self.inc_indent();
 
             if vecs_to_close > 0 {
-                self.parse_curly_comma_list(|p| Parser::parse_object(p, &type_, optionify))?;
+                self.context.expect(&TokenKind::LeftCurly)?;
+                while !self.context.check(&TokenKind::RightCurly) {
+                    self.parse_object(&type_, optionify)?;
+                    if matches!(self.context.curr_token.kind, TokenKind::Comment(_)) {
+                        self.context.bump();
+                    }
+                }
+
                 // for _ in 0..vecs_to_close {
                 //     self.context.expect(&TokenKind::RightCurly)?;
                 //     emit!(self, "]");
@@ -187,11 +201,9 @@ impl Parser {
         // This is a dynamic Payload field
         if payload_fields.contains_key(&ident) {
             self.parse_object_or_simple()?;
-
-        // self.context.expect(&TokenKind::Comma)?;
-        // println!(",");
         } else {
             // We need to store this and emit it at the right time.
+            todo!("emit later!");
         }
 
         Ok(())
