@@ -165,10 +165,10 @@ impl Parser {
                     }
                 }
 
-                // for _ in 0..vecs_to_close {
-                //     self.context.expect(&TokenKind::RightCurly)?;
-                //     emit!(self, "]");
-                // }
+                for _ in 0..vecs_to_close {
+                    self.dec_indent();
+                    emitln!(self, "],");
+                }
             } else {
                 self.parse_object(&type_, optionify)?;
             }
@@ -191,7 +191,6 @@ impl Parser {
         struct_format: &str,
         payload_fields: &IndexMap<String, TestStructPayloadField>,
     ) -> Result<()> {
-        // TODO emit with no indent
         emitln!(self, "{struct_format}");
         self.inc_indent();
         let ident = self.context.expect_identifier()?;
@@ -202,10 +201,10 @@ impl Parser {
         if payload_fields.contains_key(&ident) {
             self.parse_object_or_simple()?;
         } else {
-            // We need to store this and emit it at the right time.
-            todo!("emit later!");
+            todo!("error!");
         }
 
+        emitln!(self, "}},");
         Ok(())
     }
 
@@ -238,11 +237,13 @@ impl Parser {
                     Parser::parse_dynamic_payload(c, &struct_format, &fields)
                 })?;
                 self.dec_indent();
+                emitln!(self, "}},");
             }
             TestStructPayload::Single { struct_name, value } => todo!(),
         }
 
         self.dec_indent();
+
         Ok(())
     }
 
