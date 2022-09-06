@@ -11,11 +11,12 @@ pub fn supported_networks(networks: &[Option<NetworkIdentifier>]) -> AssertResul
 
     let mut parsed = Vec::new();
     for network in networks {
-        network_identifier(network.as_ref())?;
+        network_identifier(network.as_ref())
+            .map_err(|e| format!("network identifier {network:?} is invalid: {e}",))?;
 
         if contains_network_identifier(&parsed, network.as_ref()) {
             Err(format!(
-                "{}: {network:?}",
+                "network identifier {network:?} is invalid: {}",
                 ServerError::SupportedNetworksDuplicate
             ))?;
         }
@@ -36,10 +37,7 @@ impl Asserter {
         let asserter = self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
 
         if !contains_network_identifier(&asserter.supported_networks, request_network) {
-            Err(format!(
-                "{}: {request_network:?}",
-                ServerError::RequestedNetworkNotSupported
-            ))?
+            Err(ServerError::RequestedNetworkNotSupported)?
         } else {
             Ok(())
         }
@@ -51,8 +49,11 @@ impl Asserter {
         &self,
         request_network: Option<&NetworkIdentifier>,
     ) -> AssertResult<()> {
-        network_identifier(request_network)?;
-        self.supported_network(request_network)
+        network_identifier(request_network)
+            .map_err(|e| format!("network identifier {request_network:?} is invalid: {e}"))?;
+        self.supported_network(request_network).map_err(|e| {
+            format!("network identifier {request_network:?} is not supported: {e}").into()
+        })
     }
 
     /// [`account_balance_request`] ensures that a [`AccountBalanceRequest`]
@@ -66,7 +67,12 @@ impl Asserter {
         let request = request.ok_or(ServerError::AccountBalanceRequestIsNil)?;
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        account_identifier(request.account_identifier.as_ref())?;
+        account_identifier(request.account_identifier.as_ref()).map_err(|e| {
+            format!(
+                "account identifier {:?} is invalid: {e}",
+                request.account_identifier
+            )
+        })?;
         if let Some(c) = contains_duplicate_currency(
             &request
                 .currencies
@@ -74,7 +80,10 @@ impl Asserter {
                 .map(|i| i.as_ref())
                 .collect::<Vec<_>>(),
         ) {
-            Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
+            Err(format!(
+                "currency {c:?} is invalid: {}",
+                ServerError::DuplicateCurrency
+            ))?
         } else if request.block_identifier.is_none() {
             Ok(())
         } else if !asserter.historical_balance_lookup {
@@ -102,7 +111,12 @@ impl Asserter {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::BlockTransactionRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        block_identifier(request.block_identifier.as_ref())?;
+        block_identifier(request.block_identifier.as_ref()).map_err(|e| {
+            format!(
+                "block identifier {:?} is invalid: {e}",
+                request.block_identifier
+            )
+        })?;
         transaction_identifier(request.transaction_identifier.as_ref())
     }
 
@@ -117,10 +131,9 @@ impl Asserter {
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
 
-        request
-            .public_keys
-            .iter()
-            .try_for_each(|k| public_key(k.as_ref()))
+        request.public_keys.iter().try_for_each(|k| {
+            public_key(k.as_ref()).map_err(|e| format!("public key {k:?} is invalid: {e}").into())
+        })
     }
 
     /// [`construction_submit_request`] ensures that a
@@ -177,6 +190,7 @@ impl Asserter {
         let request = request.ok_or(ServerError::ConstructionDeriveRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         public_key(request.public_key.as_ref())
+            .map_err(|e| format!("public key {:?} is invalid: {e}", request.public_key).into())
     }
 
     /// [`construction_preprocess_request`] ensures that a
@@ -188,14 +202,15 @@ impl Asserter {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPreprocessRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        self.operations(&request.operations, true)?;
+        self.operations(&request.operations, true)
+            .map_err(|e| format!("operations {:?} are invalid: {e}", request.operations))?;
         assert_unique_amounts(&request.max_fee)
-            .map_err(|e| format!("{e}: duplicate max fee currency found"))?;
+            .map_err(|e| format!("max fee {:?} is invalid: {e}", request.max_fee))?;
         if matches!(request.suggested_fee_multiplier, Some(i) if i < 0.0) {
             Err(format!(
-                "{}: {}",
+                "suggested fee multiplier {} is invalid: {}",
+                request.suggested_fee_multiplier.unwrap(),
                 ServerError::ConstructionPreprocessRequestSuggestedFeeMultiplierIsNeg,
-                request.suggested_fee_multiplier.unwrap()
             ))?
         } else {
             Ok(())
@@ -211,11 +226,11 @@ impl Asserter {
         self.request.as_ref().ok_or(AsserterError::NotInitialized)?;
         let request = request.ok_or(ServerError::ConstructionPayloadsRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
-        self.operations(&request.operations, true)?;
-        request
-            .public_keys
-            .iter()
-            .try_for_each(|k| public_key(k.as_ref()))
+        self.operations(&request.operations, true)
+            .map_err(|e| format!("operations {:?} are invalid: {e}", request.operations))?;
+        request.public_keys.iter().try_for_each(|k| {
+            public_key(k.as_ref()).map_err(|e| format!("public key {k:?} is invalid: {e}",).into())
+        })
     }
 
     /// [`construction_combine_request`] ensures that a
@@ -237,6 +252,7 @@ impl Asserter {
                     .map(|i| i.as_ref())
                     .collect::<Vec<_>>(),
             )
+            .map_err(|e| format!("signatures {:?} are invalid: {e}", request.signatures).into())
         }
     }
 
@@ -284,7 +300,7 @@ impl Asserter {
         asserter
             .call_methods
             .get(method)
-            .ok_or_else(|| format!("{}: {method}", ServerError::CallMethodUnsupported))?;
+            .ok_or(ServerError::CallMethodUnsupported)?;
         Ok(())
     }
 
@@ -295,6 +311,7 @@ impl Asserter {
         let request = request.ok_or(ServerError::CallRequestIsNil)?;
         self.valid_supported_network(request.network_identifier.as_ref())?;
         self.valid_call_method(request.method.as_ref())
+            .map_err(|e| format!("method {} is invalid: {e}", request.method).into())
     }
 
     /// [`account_coins_request`] ensures that a [`AccountCoinsRequest`]
@@ -309,7 +326,12 @@ impl Asserter {
 
         self.valid_supported_network(request.network_identifier.as_ref())?;
 
-        account_identifier(request.account_identifier.as_ref())?;
+        account_identifier(request.account_identifier.as_ref()).map_err(|e| {
+            format!(
+                "account identifier {:?} is invalid: {e}",
+                request.account_identifier
+            )
+        })?;
 
         if request.include_mempool && !asserter.mempool_coins {
             Err(ServerError::MempoolCoinsNotSupported)?
@@ -322,7 +344,10 @@ impl Asserter {
                 .map(|i| i.as_ref())
                 .collect::<Vec<_>>(),
         ) {
-            Err(format!("{}: {c:?}", ServerError::DuplicateCurrency))?
+            Err(format!(
+                "currency {c:?} is invalid: {}",
+                ServerError::DuplicateCurrency
+            ))?
         } else {
             Ok(())
         }
@@ -370,27 +395,45 @@ impl Asserter {
         }
 
         if request.transaction_identifier.is_some() {
-            transaction_identifier(request.transaction_identifier.as_ref())?;
+            transaction_identifier(request.transaction_identifier.as_ref()).map_err(|e| {
+                format!(
+                    "transaction identifier {:?} is invalid: {e}",
+                    request.transaction_identifier
+                )
+            })?;
         }
 
         if request.account_identifier.is_some() {
-            account_identifier(request.account_identifier.as_ref())?;
+            account_identifier(request.account_identifier.as_ref()).map_err(|e| {
+                format!(
+                    "account identifier {:?} is invalid: {e}",
+                    request.account_identifier
+                )
+            })?;
         }
 
         if request.coin_identifier.is_some() {
-            coin_identifier(request.coin_identifier.as_ref())?;
+            coin_identifier(request.coin_identifier.as_ref()).map_err(|e| {
+                format!(
+                    "coin identifier {:?} is invalid: {e}",
+                    request.coin_identifier
+                )
+            })?;
         }
 
         if request.currency.is_some() {
-            currency(request.currency.as_ref())?;
+            currency(request.currency.as_ref())
+                .map_err(|e| format!("currency {:?} is invalid: {e}", request.currency))?;
         }
 
         if request.status.is_some() {
-            self.operation_status(request.status.as_ref(), false)?;
+            self.operation_status(request.status.as_ref(), false)
+                .map_err(|e| format!("operation status {:?} is invalid: {e}", request.status))?;
         }
 
         if let Some(t) = &request.type_ {
-            self.operation_type(t.clone())?;
+            self.operation_type(t.clone())
+                .map_err(|e| format!("operation type {t:?} is invalid: {e}"))?;
         }
 
         if matches!(&request.address, Some(a) if a.is_empty()) {

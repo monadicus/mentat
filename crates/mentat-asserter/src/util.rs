@@ -6,20 +6,27 @@ use super::*;
 /// are non-empty strings and not duplicates.
 pub(crate) fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
     if values.is_empty() {
-        Err(format!("no {name} found"))?;
+        Err(format!(
+            "string array {name} is empty: {}",
+            UtilError::StringArrayEmpty
+        ))?;
     }
 
     let mut parsed = IndexSet::new();
     for value in values {
         if value.is_empty() {
-            Err(format!("{name} has an empty string"))?;
+            Err(format!(
+                "string array {name} has an empty string: {}",
+                UtilError::StringArrayEmptyString
+            ))?;
         }
 
-        if parsed.contains(value) {
-            Err(format!("{name} contains a duplicate {value}"))?;
+        if !parsed.insert(value) {
+            Err(format!(
+                "string array {name} contains a duplicate {value}: {}",
+                UtilError::StringArrayDuplicateString
+            ))?;
         }
-
-        parsed.insert(value);
     }
 
     Ok(())
@@ -29,16 +36,26 @@ pub(crate) fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
 /// are valid and not duplicates.
 pub(crate) fn account_array(arr_name: &str, arr: &[Option<AccountIdentifier>]) -> AssertResult<()> {
     if arr.is_empty() {
-        Err(format!("no {} found", arr_name))?;
+        Err(format!(
+            "account array {arr_name} is empty: {}",
+            UtilError::AccountArrayEmpty
+        ))?;
     }
 
     let mut parsed = IndexSet::new();
     for s in arr {
-        account_identifier(s.as_ref())
-            .map_err(|_e| format!("{arr_name} has an invalid account identifier"))?;
+        account_identifier(s.as_ref()).map_err(|_e| {
+            format!(
+                "account array {arr_name} has an invalid account identifier: {}",
+                UtilError::AccountArrayInvalidAccount
+            )
+        })?;
         let key = hash(s.as_ref());
         if parsed.contains(&key) {
-            Err(format!("{arr_name} contains a duplicate {s:?}"))?;
+            Err(format!(
+                "account array {arr_name} contains a duplicate account identifier {s:?}: {}",
+                UtilError::AccountArrayDuplicateAccount
+            ))?;
         }
 
         parsed.insert(key);

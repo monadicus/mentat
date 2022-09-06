@@ -26,7 +26,7 @@ pub fn amount(amount: Option<&UncheckedAmount>) -> AssertResult<()> {
     if amount.value.is_empty() {
         Err(BlockError::AmountValueMissing)?
     } else if BigInt::from_str(&amount.value).is_err() {
-        Err(format!("{}: {}", BlockError::AmountIsNotInt, amount.value))?
+        Err(BlockError::AmountIsNotInt)?
     } else {
         currency(amount.currency.as_ref())
     }
@@ -43,9 +43,9 @@ pub fn operation_identifier(
 
     if ident.index != index {
         Err(format!(
-            "{}: expected {index} but got {}",
+            "expected identifier index {index} but got {}: {}",
+            ident.index,
             BlockError::OperationIdentifierIndexOutOfOrder,
-            ident.index
         ))?
     } else if matches!(ident.network_index, Some(i) if i < 0) {
         Err(BlockError::OperationIdentifierNetworkIndexInvalid)?
@@ -103,9 +103,8 @@ impl Asserter {
             .is_none()
         {
             Err(format!(
-                "{}: {}",
+                "operation status {status} is invalid: {}",
                 BlockError::OperationStatusInvalid,
-                status
             ))?
         } else {
             Ok(())
@@ -120,7 +119,10 @@ impl Asserter {
         }
 
         if t.is_empty() || !self.operation_types.contains(&t) {
-            Err(format!("{}: {t}", BlockError::OperationTypeInvalid))?
+            Err(format!(
+                "operation type {t} is invalid: {}",
+                BlockError::OperationTypeInvalid
+            ))?
         } else {
             Ok(())
         }
@@ -140,32 +142,56 @@ impl Asserter {
 
         let operation = operation.ok_or(BlockError::OperationIsNil)?;
 
-        operation_identifier(operation.operation_identifier.as_ref(), index).map_err(|err| {
-            format!("{err}: Operation identifier is invalid in operation {index}")
+        operation_identifier(operation.operation_identifier.as_ref(), index).map_err(|e| {
+            format!(
+                "operation identifier {:?} is invalid in operation {index}: {e}",
+                operation.operation_identifier
+            )
         })?;
 
-        self.operation_type(operation.type_.clone())
-            .map_err(|err| format!("{err}: operation type is invalid in operation {index}"))?;
+        self.operation_type(operation.type_.clone()).map_err(|e| {
+            format!(
+                "operation type {:?} is invalid in operation {index}: {e}",
+                operation.type_
+            )
+        })?;
 
         self.operation_status(operation.status.as_ref(), construction)
-            .map_err(|err| format!("{err}: operation type is invalid in operation {index}"))?;
+            .map_err(|e| {
+                format!(
+                    "operation status {:?} is invalid in operation {index}: {e}",
+                    operation.status
+                )
+            })?;
 
         if operation.amount.is_none() {
             return Ok(());
         }
 
-        account_identifier(operation.account.as_ref())
-            .map_err(|err| format!("{err}: account identifier is invalid in operation {index}"))?;
+        account_identifier(operation.account.as_ref()).map_err(|e| {
+            format!(
+                "operation account identifier {:?} is invalid in operation {index}: {e}",
+                operation.account
+            )
+        })?;
 
-        amount(operation.amount.as_ref())
-            .map_err(|err| format!("{err}: amount is invalid in operation {index}"))?;
+        amount(operation.amount.as_ref()).map_err(|e| {
+            format!(
+                "operation amount {:?} is invalid in operation {index}: {e}",
+                operation.amount
+            )
+        })?;
 
         if operation.coin_change.is_none() {
             return Ok(());
         }
 
-        coin_change(operation.coin_change.as_ref())
-            .map_err(|err| format!("{err}: coin change is invalid in operation {index}"))?;
+        coin_change(operation.coin_change.as_ref()).map_err(|e| {
+            format!(
+                "operation coin change {:?} is invalid in operation {index}: {e}",
+                operation.coin_change
+            )
+        })?;
 
         Ok(())
     }
@@ -188,7 +214,8 @@ impl Asserter {
         let mut related_ops_exist = false;
 
         for (index, op) in operations.iter().enumerate() {
-            self.operation(op.as_ref(), index as isize, construction)?;
+            self.operation(op.as_ref(), index as isize, construction)
+                .map_err(|e| format!("operation {op:?} is invalid: {e}"))?;
             let op = op.as_ref().unwrap();
             if self.validations.enabled {
                 if op.type_ == self.validations.payment.name {
@@ -200,7 +227,7 @@ impl Asserter {
                 if op.type_ == self.validations.fee.name {
                     if !op.related_operations.is_empty() {
                         Err(format!(
-                            "{}: operation index {index}",
+                            "operation {op:?} is invalid with operation index {index}: {}",
                             BlockError::RelatedOperationInFeeNotAllowed
                         ))?;
                     }
@@ -210,7 +237,7 @@ impl Asserter {
 
                     if !matches!(val.sign(), Sign::Minus) {
                         Err(format!(
-                            "{}: operation index {index}",
+                            "operation {op:?} is invalid with operation index {index}: {}",
                             BlockError::FeeAmountNotNegative
                         ))?;
                     }
@@ -231,19 +258,19 @@ impl Asserter {
 
                 if related_op.index >= operation_identifier_index {
                     Err(format!(
-                        "{}: related operation index {} >= operation index {}",
-                        BlockError::RelatedOperationIndexOutOfOrder,
+                        "related operation index {} >= operation index {}: {}",
                         related_op.index,
-                        operation_identifier_index
+                        operation_identifier_index,
+                        BlockError::RelatedOperationIndexOutOfOrder,
                     ))?;
                 }
 
                 if related_indexes.contains(&related_op.index) {
                     Err(format!(
-                        "{}: related operation index {} found for operation index {}",
-                        BlockError::RelatedOperationIndexDuplicate,
+                        "related operation index {} found for operation index {}: {}",
                         related_op.index,
-                        operation_identifier_index
+                        operation_identifier_index,
+                        BlockError::RelatedOperationIndexDuplicate,
                     ))?;
                 }
 
@@ -307,22 +334,27 @@ impl Asserter {
 
         let transaction = transaction.ok_or(BlockError::TxIsNil)?;
 
-        transaction_identifier(transaction.transaction_identifier.as_ref())?;
+        transaction_identifier(transaction.transaction_identifier.as_ref()).map_err(|e| {
+            format!(
+                "transaction identifier {:?} is invalid: {e}",
+                transaction.transaction_identifier
+            )
+        })?;
         let transaction_identifier = transaction.transaction_identifier.as_ref().unwrap();
 
         self.operations(&transaction.operations, false)
-            .map_err(|err| {
+            .map_err(|e| {
                 format!(
-                    "{err} invalid operation in transaction {}",
+                    "invalid operation in transaction operations {}: {e}",
                     transaction_identifier.hash
                 )
             })?;
 
         self.related_transactions(&transaction.related_transactions)
-            .map_err(|err| {
+            .map_err(|e| {
                 format!(
-                    "{err} invalid related transaction in transaction {}",
-                    transaction_identifier.hash
+                    "invalid related transaction in related transactions {:?}: {e}",
+                    transaction.related_transactions
                 )
             })?;
 
@@ -345,23 +377,30 @@ impl Asserter {
             ))?;
         }
 
-        for (index, related) in related_transactions
+        for (i, related) in related_transactions
             .iter()
             .filter_map(|i| i.as_ref())
             .enumerate()
         {
-            network_identifier(related.network_identifier.as_ref()).map_err(|err| {
-                format!("{err} invalid network identifier in related transaction at index {index}")
-            })?;
-
-            transaction_identifier(related.transaction_identifier.as_ref()).map_err(|err| {
+            network_identifier(related.network_identifier.as_ref()).map_err(|e| {
                 format!(
-                    "{err} invalid transaction identifier in related transaction at index {index}"
+                    "network identifier {:?} is invalid in related transaction at index {i}: {e}",
+                    related.network_identifier
                 )
             })?;
 
-            self.direction(&related.direction).map_err(|err| {
-                format!("{err} invalid direction in related transaction at index {index}")
+            transaction_identifier(related.transaction_identifier.as_ref()).map_err(|e| {
+                format!(
+                    "invalid transaction identifier {:?} in related transaction at index {i}: {e}",
+                    related.transaction_identifier
+                )
+            })?;
+
+            self.direction(&related.direction).map_err(|e| {
+                format!(
+                    "invalid direction {:?} in related transaction at index {i}: {e}",
+                    related.direction
+                )
             })?;
         }
         Ok(())
@@ -385,8 +424,18 @@ impl Asserter {
             .ok_or(AsserterError::NotInitialized)?;
         let block = block.ok_or(BlockError::BlockIsNil)?;
 
-        block_identifier(block.block_identifier.as_ref())?;
-        block_identifier(block.parent_block_identifier.as_ref())?;
+        block_identifier(block.block_identifier.as_ref()).map_err(|e| {
+            format!(
+                "block identifier {:?} is invalid: {e}",
+                block.block_identifier,
+            )
+        })?;
+        block_identifier(block.parent_block_identifier.as_ref()).map_err(|e| {
+            format!(
+                "parent block identifier {:?} is invalid: {e}",
+                block.parent_block_identifier,
+            )
+        })?;
         let block_identifier = block.block_identifier.as_ref().unwrap();
         let parent_block_identifier = block.parent_block_identifier.as_ref().unwrap();
 
@@ -403,13 +452,14 @@ impl Asserter {
         // Only check for timestamp validity if timestamp start index is <=
         // the current block index.
         if asserter.timestamp_start_index as isize <= block_identifier.index {
-            timestamp(block.timestamp)?;
+            timestamp(block.timestamp)
+                .map_err(|e| format!("timestamp {} is invalid: {e}", block.timestamp))?;
         }
 
-        block
-            .transactions
-            .iter()
-            .try_for_each(|transaction| self.transaction(transaction.as_ref()))
+        block.transactions.iter().try_for_each(|transaction| {
+            self.transaction(transaction.as_ref())
+                .map_err(|e| format!("transaction {transaction:?} is invalid: {e}").into())
+        })
     }
 }
 
@@ -479,11 +529,11 @@ pub static MAX_UNIX_EPOCH: isize = 2209017600000;
 
 /// `timestamp` returns an error if the timestamp
 /// on a block is less than or equal to 0.
-pub fn timestamp(timestamp: isize) -> Result<(), String> {
+pub fn timestamp(timestamp: isize) -> Result<(), BlockError> {
     if timestamp < MIN_UNIX_EPOCH {
-        Err(format!("{}: {timestamp}", BlockError::TimestampBeforeMin))
+        Err(BlockError::TimestampBeforeMin)
     } else if timestamp > MAX_UNIX_EPOCH {
-        Err(format!("{}: {timestamp}", BlockError::TimestampAfterMax))
+        Err(BlockError::TimestampAfterMax)
     } else {
         Ok(())
     }

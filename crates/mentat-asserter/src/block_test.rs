@@ -96,7 +96,7 @@ fn test_amount() {
             criteria: Some(BlockError::AmountCurrencyIsNil.into()),
         },
         TestCase {
-            name: "invalid non number",
+            name: "invalid non-number",
             payload: Some(UncheckedAmount {
                 value: "blah".into(),
                 currency: Some(UncheckedCurrency {
@@ -106,10 +106,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            criteria: Some(AsserterError::from(format!(
-                "{}: blah",
-                BlockError::AmountIsNotInt
-            ))),
+            criteria: Some(BlockError::AmountIsNotInt.into()),
         },
         TestCase {
             name: "invalid integer format",
@@ -122,10 +119,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            criteria: Some(AsserterError::from(format!(
-                "{}: 1.0",
-                BlockError::AmountIsNotInt
-            ))),
+            criteria: Some(BlockError::AmountIsNotInt.into()),
         },
         TestCase {
             name: "invalid non-integer",
@@ -138,10 +132,7 @@ fn test_amount() {
                 }),
                 metadata: Default::default(),
             }),
-            criteria: Some(AsserterError::from(format!(
-                "{}: 1.1",
-                BlockError::AmountIsNotInt
-            ))),
+            criteria: Some(BlockError::AmountIsNotInt.into()),
         },
         TestCase {
             name: "invalid symbol",

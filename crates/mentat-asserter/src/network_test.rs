@@ -224,9 +224,7 @@ fn test_allow() {
                 operation_statuses: operation_statuses.clone(),
                 ..Default::default()
             }),
-            criteria: Some(AsserterError::from(
-                "no Allow.OperationTypes found".to_string(),
-            )),
+            criteria: Some(UtilError::StringArrayEmpty.into()),
         },
         TestCase {
             name: "duplicate call methods",
@@ -422,9 +420,15 @@ fn test_network_list_response() {
         TestCase {
             name: "invalid network",
             payload: Some(UncheckedNetworkListResponse {
-                network_identifiers: vec![network_3],
+                network_identifiers: vec![network_3.clone()],
             }),
-            criteria: Some(NetworkError::NetworkIdentifierBlockchainMissing.into()),
+            criteria: Some(
+                format!(
+                    "network identifier {network_3:?} is invalid: {}",
+                    NetworkError::NetworkIdentifierBlockchainMissing
+                )
+                .into(),
+            ),
         },
     ];
 
