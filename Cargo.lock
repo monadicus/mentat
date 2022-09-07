@@ -1034,6 +1034,8 @@ name = "mentat-utils"
 version = "0.1.0"
 dependencies = [
  "crossbeam-channel",
+ "fnv",
+ "indexmap",
  "mentat-asserter",
  "mentat-types",
  "parking_lot",

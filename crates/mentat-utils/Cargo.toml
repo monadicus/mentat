@@ -11,3 +11,5 @@ mentat-asserter = { path = "../mentat-asserter" }
 mentat-types = { path = "../mentat-types" }
 parking_lot = "0.12.1"
 crossbeam-channel = "0.5.6"
+indexmap = { version = "1.8.1", default-features = false, features = ["serde"] }
+fnv = "1.0.7"
