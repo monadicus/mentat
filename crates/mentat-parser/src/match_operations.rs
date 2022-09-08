@@ -60,7 +60,7 @@ impl AmountSign {
     }
 }
 
-/// MetadataDescription is used to check if a `IndexMap<String, Value>`
+/// MetadataDescription is used to check if a `Metadata`
 /// has certain keys and values of a certain kind.
 #[derive(Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
@@ -145,11 +145,11 @@ pub struct Descriptions {
     pub err_unmatched: bool,
 }
 
-/// metadata_match returns an error if a `IndexMap<String, Value>` does not meet
+/// metadata_match returns an error if a `Metadata` does not meet
 /// a slice of [`MetadataDescription`].
 pub fn metadata_match(
     reqs: &[Option<MetadataDescription>],
-    metadata: &IndexMap<String, Value>,
+    metadata: &Metadata,
 ) -> ParserResult<()> {
     if reqs.is_empty() {
         return Ok(());

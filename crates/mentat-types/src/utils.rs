@@ -4,7 +4,6 @@ use std::{fmt::Debug, str::FromStr};
 
 use num_bigint_dig::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use super::*;
@@ -17,7 +16,7 @@ pub trait EstimateSize {
 
 // TODO doesnt correctly track true size of json values, only the size of the
 // enum pointing to the data
-pub(crate) fn estimated_metadata_size(metadata: &IndexMap<String, Value>) -> usize {
+pub(crate) fn estimated_metadata_size(metadata: &Metadata) -> usize {
     size_of_val(&metadata)
         + metadata
             .iter()

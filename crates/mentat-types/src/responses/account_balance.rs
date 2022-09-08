@@ -24,5 +24,5 @@ pub struct UncheckedAccountBalanceResponse {
     /// include that number in the metadata. This number could be unique to the
     /// identifier or global across the account address.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }

@@ -16,3 +16,5 @@ pub use sync_status::*;
 
 mod version;
 pub use version::*;
+
+pub type Metadata = IndexMap<String, Value>;

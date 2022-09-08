@@ -16,7 +16,7 @@ pub struct UncheckedConstructionPreprocessResponse {
     /// The options that will be sent directly to `/construction/metadata` by
     /// the caller.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub options: IndexMap<String, Value>,
+    pub options: Metadata,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",

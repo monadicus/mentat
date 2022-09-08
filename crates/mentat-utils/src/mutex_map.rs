@@ -1,4 +1,5 @@
-// TODO: figure out how to do this without breaking memory rules or causing incorrect locks
+//! TODO: figure out how to do this without breaking memory rules or causing
+//! incorrect locking
 
 // use std::{
 //     ops::{Deref, DerefMut},
@@ -7,7 +8,8 @@
 // };
 
 // use indexmap::IndexMap;
-// use parking_lot::{Mutex, MutexGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
+// use parking_lot::{Mutex, MutexGuard, RwLock, RwLockReadGuard,
+// RwLockWriteGuard};
 
 // use crate::{
 //     priority_mutex::{PriorityMutex, PriorityMutexGuard},
@@ -65,8 +67,8 @@
 //     }
 
 //     // acquires an exclusive lock across an entire `MutexMap`.
-//     pub fn global_lock(&self) -> RwLockWriteGuard<ShardedMap<MutexMapEntry<T>>> {
-//         self.entries.write()
+//     pub fn global_lock(&self) ->
+// RwLockWriteGuard<ShardedMap<MutexMapEntry<T>>> {         self.entries.write()
 //     }
 
 //     /// acquires a lock for a particular identifier, as long

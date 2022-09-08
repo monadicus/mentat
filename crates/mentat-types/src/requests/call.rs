@@ -21,5 +21,5 @@ pub struct UncheckedCallRequest {
     /// the caller to determine which parameters to provide when invoking
     /// `/call`.
     #[serde(default)]
-    pub parameters: IndexMap<String, Value>,
+    pub parameters: Metadata,
 }

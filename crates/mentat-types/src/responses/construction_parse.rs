@@ -18,7 +18,7 @@ pub struct UncheckedConstructionParseResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     pub account_identifier_signers: Vec<Option<AccountIdentifier>>,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }
 
 impl Serialize for UncheckedConstructionParseResponse {
@@ -72,7 +72,7 @@ pub struct ConstructionParseResponsePre {
     )]
     pub account_identifier_signers: Vec<Option<AccountIdentifier>>,
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }
 
 impl<'de> Deserialize<'de> for UncheckedConstructionParseResponse {

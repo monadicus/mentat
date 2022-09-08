@@ -17,13 +17,14 @@ use std::{
     mem::size_of_val,
     sync::{
         atomic::{AtomicUsize, Ordering},
-        Arc, Weak,
+        Arc,
+        Weak,
     },
     thread::{sleep, spawn},
     time::Duration,
 };
-use types::*;
 
 use mentat_types::*;
 use mentat_utils::rust_utils::Context;
 use parking_lot::Mutex;
+use types::*;

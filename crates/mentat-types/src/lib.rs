@@ -7,7 +7,6 @@ use std::mem::size_of_val;
 use indexmap::IndexMap;
 use mentat_macros::Unchecked;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 mod errors;
 pub use errors::*;

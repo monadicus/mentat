@@ -6,8 +6,10 @@ use std::{
 use crossbeam_channel::{bounded, Sender};
 use parking_lot::{Mutex, MutexGuard};
 
-/// An implementation of a "scoped lock" of a mutex. When this structure is dropped (falls out of scope), the lock will be unlocked.
-/// The data protected by the mutex can be accessed through this guard via its Deref and DerefMut implementations.
+/// An implementation of a "scoped lock" of a mutex. When this structure is
+/// dropped (falls out of scope), the lock will be unlocked. The data protected
+/// by the mutex can be accessed through this guard via its Deref and DerefMut
+/// implementations.
 pub struct PriorityMutexGuard<'a, T> {
     data: MutexGuard<'a, T>,
     mutex: &'a PriorityMutex<T>,

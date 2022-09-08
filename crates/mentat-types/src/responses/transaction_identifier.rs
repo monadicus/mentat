@@ -13,5 +13,5 @@ pub struct UncheckedTransactionIdentifierResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_identifier: Option<TransactionIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }

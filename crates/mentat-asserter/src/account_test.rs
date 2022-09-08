@@ -240,7 +240,7 @@ struct AccountBalanceTest {
     request_block: Option<UncheckedPartialBlockIdentifier>,
     response_block: UncheckedBlockIdentifier,
     balances: Vec<Option<UncheckedAmount>>,
-    _metadata: IndexMap<String, Value>,
+    _metadata: Metadata,
 }
 
 impl AccountBalanceTest {

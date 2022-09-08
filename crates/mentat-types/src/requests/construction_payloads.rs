@@ -24,7 +24,7 @@ pub struct UncheckedConstructionPayloadsRequest {
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
     #[unchecked(retain)]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",

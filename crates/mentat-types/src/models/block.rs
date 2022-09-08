@@ -31,7 +31,7 @@ pub struct UncheckedBlock {
     )]
     pub transactions: Vec<Option<UncheckedTransaction>>,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }
 
 impl EstimateSize for Block {

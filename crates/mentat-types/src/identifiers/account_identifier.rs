@@ -20,7 +20,7 @@ pub struct AccountIdentifier {
     /// it would be useful to populate this object with the contract address of
     /// an ERC-20 token.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }
 
 impl From<String> for AccountIdentifier {

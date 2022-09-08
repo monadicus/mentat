@@ -15,7 +15,7 @@ pub struct UncheckedConstructionPreprocessRequest {
     pub operations: Vec<Option<UncheckedOperation>>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",
@@ -58,7 +58,7 @@ pub struct ConstructionPreprocessRequest {
     pub operations: Vec<Operation>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(
         skip_serializing_if = "Vec::is_empty",

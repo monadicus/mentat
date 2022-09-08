@@ -27,7 +27,7 @@ pub struct UncheckedTransaction {
     /// cross-shard transaction) should include the transaction_identifier of
     /// these transactions in the metadata.
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }
 
 impl EstimateSize for Transaction {

@@ -19,7 +19,7 @@ pub struct UncheckedConstructionDeriveResponse {
     #[unchecked(retain)]
     pub account_identifier: Option<AccountIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }
 
 impl Serialize for UncheckedConstructionDeriveResponse {
@@ -54,7 +54,7 @@ pub struct ConstructionDeriveResponsePre {
     pub account_identifier: Option<AccountIdentifier>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }
 
 impl<'de> Deserialize<'de> for UncheckedConstructionDeriveResponse {

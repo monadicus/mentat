@@ -14,5 +14,5 @@ pub struct UncheckedMempoolTransactionResponse {
     pub transaction: Option<UncheckedTransaction>,
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, Value>,
+    pub metadata: Metadata,
 }

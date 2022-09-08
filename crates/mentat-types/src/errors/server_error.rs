@@ -30,12 +30,12 @@ pub struct UncheckedMentatError {
     /// Any additional details for the error.
     #[serde(default)]
     #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub details: IndexMap<String, Value>,
+    pub details: Metadata,
 }
 
 impl MentatError {
     /// create an optional details field on an error
-    fn context<T: Display>(c: Option<T>, message: fn(T) -> String) -> IndexMap<String, Value> {
+    fn context<T: Display>(c: Option<T>, message: fn(T) -> String) -> Metadata {
         c.map(|c| [("context".to_string(), message(c).into())].into())
             .unwrap_or_default()
     }
