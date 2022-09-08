@@ -1,9 +1,14 @@
-//! some tools to help with multithreading in the syncer. these may be moved to
-//! a `utils` crate in the future
+//! some tools to help with multithreading
 
-use super::*;
+use std::{
+    sync::Arc,
+    thread::JoinHandle,
+    time::{Duration, Instant},
+};
 
-/// helper enum for Context so that it can throw errors on behalf of the struct
+use parking_lot::Mutex;
+
+/// helper enum for Context so that it can throw errors on behalf of the error
 /// being used
 #[derive(Clone)]
 pub enum ContextResult {
@@ -11,15 +16,6 @@ pub enum ContextResult {
     Canceled,
     /// the threads took longer than the allowed time
     DeadlineExceeded,
-}
-
-impl From<ContextResult> for SyncerError {
-    fn from(e: ContextResult) -> Self {
-        match e {
-            ContextResult::Canceled => SyncerError::Canceled,
-            ContextResult::DeadlineExceeded => SyncerError::DeadlineExceeded,
-        }
-    }
 }
 
 /// used to indicate errors and set deadlines across threads

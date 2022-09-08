@@ -8,6 +8,7 @@ rust-version = "1.62.1"
 mentat-types = { path = "../mentat-types" }
 mentat-asserter = { path = "../mentat-asserter" }
 mentat-test-utils = { path = "../mentat-test-utils" }
+mentat-utils = { path = "../mentat-utils" }
 thiserror = "1.0.31"
 tokio = { version = "1.17.0", default-features = false, features = ["macros", "time"] }
 indexmap = { version = "1.8.1", default-features = false, features = ["serde"] }

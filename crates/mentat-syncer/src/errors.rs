@@ -1,5 +1,6 @@
 //! Error types for Syncer errors
 
+use mentat_utils::rust_utils::ContextResult;
 use thiserror::Error;
 
 /// Error types for Syncer errors
@@ -50,6 +51,15 @@ impl From<String> for SyncerError {
 impl From<&str> for SyncerError {
     fn from(s: &str) -> Self {
         Self::String(s.into())
+    }
+}
+
+impl From<ContextResult> for SyncerError {
+    fn from(e: ContextResult) -> Self {
+        match e {
+            ContextResult::Canceled => SyncerError::Canceled,
+            ContextResult::DeadlineExceeded => SyncerError::DeadlineExceeded,
+        }
     }
 }
 

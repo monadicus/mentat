@@ -138,3 +138,7 @@ pub fn create_command_path(
     Ok(data_path)
 }
 
+// FetcherHelper is used by util functions to mock Fetcher
+pub trait FetcherHelper {
+    fn network_list() -> !;
+}

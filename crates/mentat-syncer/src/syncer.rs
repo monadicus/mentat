@@ -2,6 +2,7 @@
 
 use crossbeam_channel::{bounded, Receiver, Sender};
 use indexmap::IndexMap;
+use mentat_utils::{rust_utils::ThreadHandler, size::b_to_mb};
 
 use super::*;
 
@@ -360,8 +361,7 @@ where
             tracing::info!(
                 "increasing syncer concurrency to {} (projected new cache size: {} MB)\n",
                 *goal_concurrency,
-                // TODO should be b_to_mb function inside utils crate
-                max * *goal_concurrency as f64 / 1024.0 / 1024.0
+                b_to_mb(max * *goal_concurrency as f64)
             );
             true
         } else {
@@ -384,8 +384,7 @@ where
                 tracing::info!(
                     "reducing syncer concurrency to {} (projected new cache size: {} MB)\n",
                     *goal_concurrency,
-                    // TODO should be b_to_mb function inside utils crate
-                    max * *goal_concurrency as f64 / 1024.0 / 1024.0
+                    b_to_mb(max * *goal_concurrency as f64)
                 )
             }
         }

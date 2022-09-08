@@ -12,20 +12,18 @@ pub mod syncer;
 #[cfg(test)]
 pub mod syncer_test;
 pub mod types;
-use types::*;
-mod utils;
 use std::{
     collections::VecDeque,
     mem::size_of_val,
     sync::{
         atomic::{AtomicUsize, Ordering},
-        Arc,
-        Weak,
+        Arc, Weak,
     },
-    thread::{sleep, spawn, JoinHandle},
-    time::{Duration, Instant},
+    thread::{sleep, spawn},
+    time::Duration,
 };
+use types::*;
 
 use mentat_types::*;
+use mentat_utils::rust_utils::Context;
 use parking_lot::Mutex;
-use utils::*;

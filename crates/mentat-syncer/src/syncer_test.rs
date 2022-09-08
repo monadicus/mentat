@@ -6,7 +6,6 @@ use crate::{
     errors::{SyncerError, SyncerResult},
     syncer::BlockResult,
     types::{Handler, Helper, Syncer, SyncerBuilder, DEFAULT_CONCURRENCY},
-    utils::Context,
 };
 
 mock! {
@@ -531,10 +530,9 @@ fn test_process_block() {
     {
         print!("Orphan genesis: ");
         let err = process_block(&mut syncer, Some(orphan_genesis())).unwrap_err();
-        assert!(
-            err.to_string()
-                .contains(&SyncerError::CannotRemoveGenesisBlock.to_string())
-        );
+        assert!(err
+            .to_string()
+            .contains(&SyncerError::CannotRemoveGenesisBlock.to_string()));
         assert_syncer(&mut syncer, 1, &[0]);
         println!("ok!");
     }
@@ -570,10 +568,9 @@ fn test_process_block() {
     {
         print!("Out of order block: ");
         let err = process_block(&mut syncer, block_sequence_idx(5)).unwrap_err();
-        assert!(
-            err.to_string()
-                .contains("expected block index 3, but got 5")
-        );
+        assert!(err
+            .to_string()
+            .contains("expected block index 3, but got 5"));
         assert_syncer(&mut syncer, 3, &[0, 3, 2]);
         println!("ok!");
     }

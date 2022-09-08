@@ -999,6 +999,7 @@ dependencies = [
  "mentat-asserter",
  "mentat-test-utils",
  "mentat-types",
+ "mentat-utils",
  "mockall",
  "parking_lot",
  "thiserror",
