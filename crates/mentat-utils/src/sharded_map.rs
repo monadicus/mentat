@@ -1,18 +1,20 @@
-use fnv::{FnvHashMap, FnvHashSet};
-use indexmap::IndexSet;
+use std::hash::Hasher;
+
+use fnv::FnvHasher;
+use indexmap::IndexMap;
 
 use crate::priority_mutex::{PriorityMutex, PriorityMutexGuard};
 
 /// shardMapEntry governs access to the shard of
 /// the map contained at a particular index.
-type ShardedMapEntry = PriorityMutex<IndexSet<String>>;
+pub type ShardedMapEntry<T> = PriorityMutex<IndexMap<String, T>>;
 
 /// ShardedMap allows concurrent writes
 /// to a map by sharding the map into some
 /// number of independently locked subsections.
-pub struct ShardedMap(Vec<ShardedMapEntry>);
+pub struct ShardedMap<T>(Vec<ShardedMapEntry<T>>);
 
-impl ShardedMap {
+impl<T> ShardedMap<T> {
     /// the default number of shards to use in `ShardedMap`
     const DEFAULT_SHARDS: usize = 256;
 
@@ -32,22 +34,25 @@ impl ShardedMap {
         )
     }
 
-    // TODO figure out how to use the fnv crate to hash this with fnv1a. may need to store a hasher on Self
     /// shardIndex returns the index of the shard
     /// that could contain the key.
-    pub fn shard_index(&self, key: String) -> usize {
-        todo!()
+    pub fn shard_index(&self, key: &str) -> usize {
+        // TODO go code uses FNV-1a but were using FNV-1
+        let mut hasher = FnvHasher::default();
+        hasher.write(key.as_bytes());
+        hasher.finish() as usize % self.0.len()
     }
 
     /// Lock acquires the lock for a shard that could contain
     /// the key. This syntax allows the caller to perform multiple
     /// operations while holding the lock for a single shard.
-    pub fn lock(&self, key: String, priority: bool) -> PriorityMutexGuard<IndexSet<String>> {
-        todo!()
+    pub fn lock(&self, key: &str, priority: bool) -> PriorityMutexGuard<IndexMap<String, T>> {
+        let shard_index = self.shard_index(key);
+        self.0[shard_index].lock(priority)
     }
 }
 
-impl Default for ShardedMap {
+impl<T: Default> Default for ShardedMap<T> {
     fn default() -> Self {
         Self::new(Self::DEFAULT_SHARDS)
     }

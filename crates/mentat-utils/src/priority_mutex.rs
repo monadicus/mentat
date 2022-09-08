@@ -61,7 +61,7 @@ impl<T> PriorityMutex<T> {
     /// Lock attempts to acquire either a high or low
     /// priority mutex. When priority is true, a lock
     /// will be granted before other low priority callers.
-    pub fn lock(&self, priority: bool) -> PriorityMutexGuard<'_, T> {
+    pub fn lock(&self, priority: bool) -> PriorityMutexGuard<T> {
         let data = self.data.try_lock().unwrap_or_else(|| {
             let (s, r) = bounded(0);
             if priority {
