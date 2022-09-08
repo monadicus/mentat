@@ -1038,7 +1038,11 @@ dependencies = [
  "indexmap",
  "mentat-asserter",
  "mentat-types",
+ "num-bigint-dig",
  "parking_lot",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
