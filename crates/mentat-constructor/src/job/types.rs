@@ -1,5 +1,7 @@
 // pub TODO: these all need to be unchecked structs
 
+use std::fmt;
+
 use mentat_types::{
     AccountIdentifier, Amount, CoinIdentifier, Currency, CurveType, Metadata, NetworkIdentifier,
     Operation, SubAccountIdentifier,
@@ -39,6 +41,20 @@ pub enum ReservedVariable {
     /// SuggestedFee is the Vec<Amount> returned from
     /// an implementation's /construction/metadata endpoint (if implemented).
     SuggestedFee,
+}
+
+impl fmt::Display for ReservedVariable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReservedVariable::Network => write!(f, "network"),
+            ReservedVariable::Operations => write!(f, "operations"),
+            ReservedVariable::PreprocessMetadata => write!(f, "preprocess_metadata"),
+            ReservedVariable::Transaction => write!(f, "transaction"),
+            ReservedVariable::ConfirmationDepth => write!(f, "confirmation_depth"),
+            ReservedVariable::DryRun => write!(f, "dry_run"),
+            ReservedVariable::SuggestedFee => write!(f, "suggested_fee"),
+        }
+    }
 }
 
 /// ActionType is a type of Action that can be processed.
@@ -166,6 +182,17 @@ pub enum Status {
     /// Completed means that all scenarios were
     /// completed successfully.
     Completed,
+}
+
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Status::Ready => write!(f, "ready"),
+            Status::Broadcasting => write!(f, "broadcasting"),
+            Status::Failed => write!(f, "failed"),
+            Status::Completed => write!(f, "completed"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -335,7 +362,7 @@ pub struct Workflow {
     /// to process concurrent workflows of some staking operations
     /// that take days to play out.
     pub concurrency: usize,
-    pub scenarios: Vec<Option<Scenario>>,
+    pub scenarios: Vec<Scenario>,
 }
 
 /// Job is an instantiation of a Workflow.
@@ -346,7 +373,7 @@ pub struct Job {
     /// first time. When executing the first scenario
     /// in a Job, this will be empty.
     pub identifier: String,
-    pub state: String,
+    pub state: Value,
     pub index: usize,
     pub status: Status,
     /// Workflow is the name of the workflow being executed.
@@ -354,7 +381,7 @@ pub struct Job {
     /// Scenarios are copied into each context in case
     /// a configuration file changes that could corrupt
     /// in-process flows.
-    pub scenarios: Vec<Option<Scenario>>,
+    pub scenarios: Vec<Scenario>,
 }
 
 /// Broadcast contains information needed to create
@@ -363,7 +390,7 @@ pub struct Job {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Broadcast {
     pub network: Option<NetworkIdentifier>,
-    pub intent: Vec<Option<Operation>>,
+    pub intent: Vec<Operation>,
     pub metadata: Metadata,
     pub confirmation_depth: usize,
     pub dry_run: bool,
