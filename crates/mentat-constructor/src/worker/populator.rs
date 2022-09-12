@@ -18,16 +18,22 @@ pub fn populate_input(state: &Value, input: &str) -> WorkerResult<Value> {
     let input = RE.replace_all(input, |caps: &Captures| {
         // remove special characters
         let cap = caps[0].replacen("{{", "", 1).replacen("}}", "", 1);
+        let cap_segments = cap.split('.');
 
-        if let Some(v) = state.get(&cap) {
-            v.to_string()
-        } else {
-            err = Some(format!(
-                "{cap} is not present in state: {}",
-                WorkerError::VariableNotFound
-            ));
-            "".into()
+        let mut ret = state;
+        for c in cap_segments {
+            if let Some(v) = ret.get(&c) {
+                ret = v;
+            } else {
+                err = Some(format!(
+                    "{cap} is not present in state: {}",
+                    WorkerError::VariableNotFound
+                ));
+                return "".into();
+            }
         }
+
+        ret.to_string()
     });
 
     if let Some(e) = err {
