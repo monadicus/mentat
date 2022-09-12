@@ -139,6 +139,16 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Self::runner(tests, func, check_results_match::<Ok, Err>);
     }
 
+    pub fn run_ok_match_err_contains<F, Ok, Err>(tests: Vec<Self>, func: F)
+    where
+        Res: Into<Result<Ok, Err>>,
+        F: Fn(Payload) -> Res,
+        Ok: fmt::Debug + PartialEq,
+        Err: fmt::Display,
+    {
+        Self::runner(tests, func, check_ok_match_err_contains::<Ok, Err>);
+    }
+
     /// TODO
     pub fn run_async_output_match<F, Fut>(tests: Vec<Self>, func: F)
     where
@@ -298,5 +308,16 @@ where
             println!("ok!");
             true
         }
+    }
+}
+
+pub fn check_ok_match_err_contains<T, E>(crit: &Result<T, E>, res: &Result<T, E>) -> bool
+where
+    T: fmt::Debug + PartialEq,
+    E: fmt::Display,
+{
+    match crit {
+        Ok(v) => check_ok_match(&Some(v), &res.as_ref()),
+        Err(e) => check_err_match(&Some(e), &res.as_ref()),
     }
 }

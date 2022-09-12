@@ -74,7 +74,7 @@ fn test_populate_input() {
         },
     ];
 
-    TestCase::run_result_match(tests, |(state, input)| {
+    TestCase::run_ok_match_err_contains(tests, |(state, input)| {
         populate_input(&state.try_into().unwrap(), input)
     });
 }
