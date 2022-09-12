@@ -359,7 +359,7 @@ where
             *goal_concurrency += 1;
             self.last_adjustment = 0;
             tracing::info!(
-                "increasing syncer concurrency to {} (projected new cache size: {} MB)\n",
+                "increasing syncer concurrency to {} (projected new cache size: {} MB)",
                 *goal_concurrency,
                 b_to_mb(max * *goal_concurrency as f64)
             );
@@ -382,7 +382,7 @@ where
                 *goal_concurrency = new_goal_concurrency;
                 self.last_adjustment = 0;
                 tracing::info!(
-                    "reducing syncer concurrency to {} (projected new cache size: {} MB)\n",
+                    "reducing syncer concurrency to {} (projected new cache size: {} MB)",
                     *goal_concurrency,
                     b_to_mb(max * *goal_concurrency as f64)
                 )

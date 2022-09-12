@@ -938,12 +938,16 @@ dependencies = [
 name = "mentat-constructor"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
+ "mentat-test-utils",
  "mentat-types",
  "mentat-utils",
  "num-bigint-dig",
+ "regex",
  "serde",
  "serde_json",
  "thiserror",
+ "tracing",
 ]
 
 [[package]]
