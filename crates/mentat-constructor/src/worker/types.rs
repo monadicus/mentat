@@ -9,7 +9,7 @@ use super::errors::WorkerResult;
 /// Helper is used by the worker to process Jobs.
 pub trait Helper {
     /// called to persist a [`AccountIdentifier`] + [`KeyPair`].
-    fn store_key(&mut self, _: (), _: Option<&AccountIdentifier>, _: ()) -> WorkerResult<()>;
+    fn store_key(&mut self, _: (), _: &AccountIdentifier, _: ()) -> WorkerResult<()>;
 
     /// returns a slice of all known [`AccountIdentifier`].
     fn all_accounts(&self, _: ()) -> WorkerResult<&[AccountIdentifier]>;
@@ -21,22 +21,22 @@ pub trait Helper {
     fn balance(
         &self,
         _: (),
-        _: Option<&AccountIdentifier>,
-        _: Option<&Currency>,
+        _: &AccountIdentifier,
+        _: &Currency,
     ) -> WorkerResult<Option<Amount>>;
 
     /// returns all Coin owned by an address.
     fn coins(
         &self,
         _: (),
-        _: Option<&AccountIdentifier>,
-        _: Option<&Currency>,
+        _: &AccountIdentifier,
+        _: &Currency,
     ) -> WorkerResult<&[Coin]>;
 
     /// returns a new [`AccountIdentifier`] for a provided [`PublicKey`].
     fn derive(
-        _: Option<&NetworkIdentifier>,
-        _: Option<&PublicKey>,
+        _: &NetworkIdentifier,
+        _: &PublicKey,
         _: Metadata,
     ) -> WorkerResult<(Option<AccountIdentifier>, Metadata)>;
 
