@@ -1,7 +1,6 @@
-use crate::job::Action;
-use mentat_types::Metadata;
+use crate::job::{Action, Scenario};
 use serde_json::Value;
-use std::fmt::Write;
+use std::fmt;
 use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
@@ -60,61 +59,72 @@ impl From<&str> for WorkerError {
 }
 
 /// The worker module result type.
-pub type WorkerResult<T, E = WorkerError> = Result<T, E>;
+pub type WorkerResult<T> = Result<T, WorkerError>;
 
 // WorkerErrorInfo is returned by worker execution.
-pub struct WorkerErrorInfo {
-    workflow: String,
-    job: Option<String>,
-    scenario: String,
-    scenario_index: String,
-    action_index: String,
-    action: Option<Action>,
-    processed_input: String,
-    output: String,
-    state: Option<Metadata>,
-    err: WorkerError,
+#[derive(Debug)]
+pub struct VerboseWorkerError {
+    pub workflow: String,
+    pub job: Option<String>,
+    pub scenario: String,
+    pub scenario_index: usize,
+    pub action_index: usize,
+    pub action: Option<Action>,
+    pub processed_input: Option<Value>,
+    pub output: Option<Value>,
+    pub state: Option<Value>,
+    pub err: WorkerError,
 }
 
-/// Log prints the error to the console in a human readable format.
-impl WorkerErrorInfo {
-    pub fn log(&self) {
-        let mut message = format!("\x1b[33EXECUTION FAILED!\nMessage: {}\n\n", self.err);
+impl fmt::Display for VerboseWorkerError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "\x1b[33EXECUTION FAILED!\nMessage: {}\n\n", self.err)?;
 
         // job identifier is only assigned if persisted once
         if let Some(j) = &self.job {
-            writeln!(message, "Job: {j}").unwrap();
+            writeln!(f, "Job: {j}")?;
         }
 
         write!(
-            message,
-            "Workflow: {}\nScenario: {}\nScenario Index: {}\n\n",
+            f,
+            "Workflow: {:?}\nScenario: {:?}\nScenario Index: {:?}\n\n",
             self.workflow, self.scenario, self.scenario_index
-        )
-        .unwrap();
+        )?;
 
         if let Some(a) = &self.action {
-            writeln!(
-                message,
-                "Action Index: {}\nAction: {a:?}",
-                self.action_index
-            )
-            .unwrap();
+            writeln!(f, "Action Index: {}\nAction: {a:?}", self.action_index)?;
 
             write!(
-                message,
-                "Processed Input: {}\nOutput: {}\n\n",
+                f,
+                "Processed Input: {:?}\nOutput: {:?}\n\n",
                 self.processed_input, self.output
-            )
-            .unwrap();
+            )?;
         }
 
         if let Some(m) = &self.state {
-            writeln!(message, "State: {m:?}").unwrap()
+            writeln!(f, "State: {m:?}")?
         }
 
-        writeln!(message, "\x1b[0m").unwrap();
-
-        println!("{message}");
+        writeln!(f, "\x1b[0m")
     }
 }
+
+impl Default for VerboseWorkerError {
+    fn default() -> Self {
+        Self {
+            workflow: Default::default(),
+            job: Default::default(),
+            scenario: Default::default(),
+            scenario_index: Default::default(),
+            action_index: Default::default(),
+            action: Default::default(),
+            processed_input: Default::default(),
+            output: Default::default(),
+            state: Default::default(),
+            err: WorkerError::String("Default Error".into()),
+        }
+    }
+}
+
+/// The worker module result type.
+pub type VerboseWorkerResult<T> = Result<T, VerboseWorkerError>;

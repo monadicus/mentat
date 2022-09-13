@@ -46,4 +46,4 @@ impl From<&str> for JobError {
 }
 
 /// The job module result type.
-pub type JobResult<T, E = JobError> = Result<T, E>;
+pub type JobResult<T> = Result<T, JobError>;
