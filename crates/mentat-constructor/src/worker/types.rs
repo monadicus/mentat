@@ -29,7 +29,7 @@ pub trait Helper {
         _: &impl Transaction,
         _: &AccountIdentifier,
         _: &Currency,
-    ) -> WorkerResult<Option<Amount>>;
+    ) -> WorkerResult<&Amount>;
 
     /// returns all Coin owned by an address.
     fn coins(
@@ -41,14 +41,15 @@ pub trait Helper {
 
     /// returns a new [`AccountIdentifier`] for a provided [`PublicKey`].
     fn derive(
+        &self,
         _: &NetworkIdentifier,
         _: &PublicKey,
         _: Metadata,
     ) -> WorkerResult<(Option<AccountIdentifier>, Metadata)>;
 
     /// transactionally persists a key and value.
-    fn set_blob(db_tx: &impl Transaction, key: &str, value: Value) -> WorkerResult<()>;
+    fn set_blob(&self, db_tx: &impl Transaction, key: String, value: Value) -> WorkerResult<()>;
 
     /// transactionally retrieves a key and value.
-    fn get_blob(db_tx: &impl Transaction, key: &str) -> WorkerResult<(bool, Value)>;
+    fn get_blob(&self, db_tx: &impl Transaction, key: &str) -> WorkerResult<(bool, Value)>;
 }

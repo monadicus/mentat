@@ -1,13 +1,16 @@
 // pub TODO: these all need to be unchecked structs
 
-use std::fmt;
+use std::{fmt, time::Duration};
 
 use mentat_types::{
     AccountIdentifier, Amount, CoinIdentifier, Currency, CurveType, Metadata, NetworkIdentifier,
-    Operation, SubAccountIdentifier,
+    Operation, SubAccountIdentifier, UncheckedAmount, UncheckedCurrency,
 };
+use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+use crate::tmp::KeyPair;
 
 /// the expected concurrency of the create account and request funds scenario.
 pub const RESERVED_WORKFLOW_CONCURRENCY: usize = 1;
@@ -149,6 +152,15 @@ pub enum HttpMethod {
     Post,
 }
 
+impl From<HttpMethod> for Method {
+    fn from(v: HttpMethod) -> Self {
+        match v {
+            HttpMethod::Get => Method::GET,
+            HttpMethod::Post => Method::POST,
+        }
+    }
+}
+
 /// ReservedWorkflow is a Workflow reserved for special circumstances.
 /// All ReservedWorkflows must exist when running the constructor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -215,7 +227,7 @@ pub struct GenerateKeyInput {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SaveAccountInput {
     pub account_identifier: Option<AccountIdentifier>,
-    pub key_pair: Option<()>,
+    pub key_pair: Option<KeyPair>,
 }
 
 /// RandomStringInput is the input to RandomString.
@@ -225,6 +237,14 @@ pub struct RandomStringInput {
     /// Limit is the maximum number of times each star, range, or
     /// plus character could be repeated.
     pub limit: usize,
+}
+
+/// MathInput is the input to Math.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MathInput {
+    pub operation: MathOperation,
+    pub left_value: String,
+    pub right_value: String,
 }
 
 /// FindBalanceInput is the input to FindBalance.
@@ -254,7 +274,7 @@ pub struct FindBalanceInput {
     pub not_account_identifier: Vec<Option<AccountIdentifier>>,
 
     /// MinimumBalance is the minimum required balance that must be found.
-    pub minimum_balance: Option<Amount>,
+    pub minimum_balance: UncheckedAmount,
 
     /// RequireCoin indicates if a coin must be found with the minimum balance.
     /// This is useful for orchestrating transfers on UTXO-based blockchains.
@@ -262,18 +282,18 @@ pub struct FindBalanceInput {
 
     /// NotCoins indicates that certain coins should not be considered. This is useful
     /// for avoiding using the same Coin twice.
-    pub not_coins: Vec<Option<CoinIdentifier>>,
+    pub not_coins: Vec<CoinIdentifier>,
 
     /// CreateLimit is used to determine if we should create a new address using
     /// the CreateAccount Workflow. This will only occur if the
     /// total number of addresses is under some pre-defined limit.
     /// If the value is <= 0, we will not attempt to create.
-    pub create_limit: usize,
+    pub create_limit: isize,
 
     /// CreateProbability is used to determine if a new account should be
     /// created with some probability [0, 100). This will override the search
     /// for any valid accounts and instead return ErrCreateAccount.
-    pub create_probability: usize,
+    pub create_probability: u32,
 }
 
 /// FindBalanceOutput is returned by FindBalance.
@@ -302,16 +322,16 @@ pub struct RandomNumberInput {
 /// to FindCurrencyAmount.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FindCurrencyAmountInput {
-    pub currency: Option<Currency>,
-    pub amounts: Vec<Option<Amount>>,
+    pub currency: Option<UncheckedCurrency>,
+    pub amounts: Vec<Option<UncheckedAmount>>,
 }
 
 /// the input to an HTTP Request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpRequestInput {
-    pub method: String,
+    pub method: HttpMethod,
     pub url: String,
-    pub timeout: usize,
+    pub timeout: Duration,
     /// If the Method is POST, the Body
     /// can be populated with JSON.
     pub body: String,
@@ -320,16 +340,18 @@ pub struct HttpRequestInput {
 /// HTTPRequestInput is the input to
 /// HTTP Request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetBlobInput<T> {
-    pub key: T,
+pub struct SetBlobInput {
+    // TODO this may be wrong
+    pub key: String,
     pub value: Value,
 }
 
 /// GetBlobInput is the input to
 /// GetBlob.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetBlobInput<T> {
-    pub key: T,
+pub struct GetBlobInput {
+    // TODO this may be wrong
+    pub key: String,
 }
 
 /// Scenario is a collection of Actions with a specific

@@ -4,7 +4,7 @@ use super::*;
 
 /// `string_array` ensures all strings in an array
 /// are non-empty strings and not duplicates.
-pub(crate) fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
+pub fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
     if values.is_empty() {
         Err(format!(
             "string array {name} is empty: {}",
@@ -34,7 +34,7 @@ pub(crate) fn string_array(name: &str, values: &[String]) -> AssertResult<()> {
 
 /// `account_array` ensures all [`AccountIdentifier`] in an array
 /// are valid and not duplicates.
-pub(crate) fn account_array(arr_name: &str, arr: &[Option<AccountIdentifier>]) -> AssertResult<()> {
+pub fn account_array(arr_name: &str, arr: &[Option<AccountIdentifier>]) -> AssertResult<()> {
     if arr.is_empty() {
         Err(format!(
             "account array {arr_name} is empty: {}",
@@ -66,6 +66,6 @@ pub(crate) fn account_array(arr_name: &str, arr: &[Option<AccountIdentifier>]) -
 
 /// `bytes_array_zero` returns a boolean indicating if
 /// all elements in an array are 0.
-pub(crate) fn bytes_array_zero(arr: &[u8]) -> bool {
+pub fn bytes_array_zero(arr: &[u8]) -> bool {
     arr.iter().all(|b| b == &0)
 }

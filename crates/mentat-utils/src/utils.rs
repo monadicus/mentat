@@ -11,21 +11,12 @@ use std::{
 };
 
 use mentat_types::{
-    hash,
-    AccountIdentifier,
-    Amount,
-    BlockIdentifier,
-    BlockResponse,
-    Coin,
-    Currency,
-    Metadata,
-    NetworkIdentifier,
-    NetworkListResponse,
-    NetworkStatusResponse,
-    PartialBlockIdentifier,
+    hash, AccountIdentifier, Amount, BlockIdentifier, BlockResponse, Coin, Currency, Metadata,
+    NetworkIdentifier, NetworkListResponse, NetworkStatusResponse, PartialBlockIdentifier,
     Sortable,
 };
-use num_bigint_dig::BigInt;
+use num_bigint_dig::{BigInt, RandBigInt};
+use rand::{thread_rng, Rng};
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
@@ -66,12 +57,12 @@ const MIN_BLOCKS_PER_SECOND: f64 = 0.0001;
 const MAX_ENTRY_SIZE_PER_TXN: usize = 600;
 
 /// a BigInt of value 100.
-fn one_hundred_int() -> BigInt {
+pub fn one_hundred_int() -> BigInt {
     BigInt::from(100)
 }
 
 /// a BigInt of value 0.
-fn zero_int() -> BigInt {
+pub fn zero_int() -> BigInt {
     BigInt::default()
 }
 
@@ -316,6 +307,15 @@ pub fn big_pow_10(e: usize) -> f64 {
 /// Zero returns a float with 256 bit precision.
 pub fn zero() -> f64 {
     todo!()
+}
+
+// RandomNumber returns some number in the range [minimum, maximum).
+pub fn random_number(min: &BigInt, max: &BigInt) -> Result<BigInt, String> {
+    if min <= max {
+        Ok(thread_rng().gen_bigint_range(min, max))
+    } else {
+        Err(format!("maximum value {max} < minimum value {min}"))
+    }
 }
 
 /// PrettyAmount returns a currency amount in native format with

@@ -1,7 +1,7 @@
 //! contains types from database and keypair that haven't been implemented yet
 // TODO: remove when types are implemented elsewhere
 
-use mentat_types::PublicKey;
+use mentat_types::{CurveType, PublicKey};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -50,4 +50,9 @@ impl KeyPair {
     fn deserialize_json(&self, v: &Value) -> Result<(), String> {
         todo!()
     }
+}
+
+// GenerateKeypair returns a Keypair of a specified CurveType
+pub fn generate_key_pair(curve: &CurveType) -> Result<KeyPair, String> {
+    todo!()
 }
