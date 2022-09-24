@@ -3,6 +3,8 @@ mod populator;
 #[cfg(test)]
 mod populator_test;
 mod types;
+#[cfg(test)]
+mod worker_test;
 
 use indexmap::IndexSet;
 use mentat_asserter::{
