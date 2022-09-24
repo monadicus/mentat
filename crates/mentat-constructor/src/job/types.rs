@@ -3,8 +3,8 @@
 use std::{fmt, time::Duration};
 
 use mentat_types::{
-    AccountIdentifier, Amount, CoinIdentifier, Currency, CurveType, Metadata, NetworkIdentifier,
-    Operation, SubAccountIdentifier, UncheckedAmount, UncheckedCurrency,
+    AccountIdentifier, Amount, CoinIdentifier, CurveType, Metadata, NetworkIdentifier, Operation,
+    SubAccountIdentifier, UncheckedAmount, UncheckedCurrency,
 };
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -236,7 +236,7 @@ pub struct RandomStringInput {
     pub regex: String,
     /// Limit is the maximum number of times each star, range, or
     /// plus character could be repeated.
-    pub limit: usize,
+    pub limit: u32,
 }
 
 /// MathInput is the input to Math.

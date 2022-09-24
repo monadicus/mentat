@@ -1,4 +1,4 @@
-use crate::job::{Action, Scenario};
+use crate::job::Action;
 use serde_json::Value;
 use std::fmt;
 use thiserror::Error;

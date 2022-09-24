@@ -7,16 +7,16 @@ mod types;
 use indexmap::IndexSet;
 use mentat_asserter::{
     account_array, account_identifier, amount, assert_unique_amounts, currency, public_key,
-    Asserter,
 };
 use mentat_types::{
     add_values, big_int, divide_values, hash, multiply_values, sub_values, AccountIdentifier,
-    ConstructionDeriveRequest, ConstructionDeriveResponse, UncheckedConstructionDeriveRequest,
+    ConstructionDeriveResponse, UncheckedConstructionDeriveRequest,
 };
-use mentat_utils::utils::{one_hundred_int, random_number, zero, zero_int};
+use mentat_utils::utils::random_number;
 use num_bigint_dig::{BigInt, Sign};
 use rand::{thread_rng, Rng};
-use reqwest::{header::HeaderValue, Client, Method, Request, StatusCode};
+use rand_regex::Regex;
+use reqwest::{header::HeaderValue, Client, Request, StatusCode};
 use serde_json::{json, Value};
 use types::Helper;
 use url::Url;
@@ -45,10 +45,6 @@ impl<T: Helper> Worker<T> {
     /// returns a new Worker.
     pub fn new(helper: T) -> Self {
         Self(helper)
-    }
-
-    fn serialize_string(value: &str) -> String {
-        format!("\"{value}\"")
     }
 
     async fn invoke_worker(
@@ -250,9 +246,12 @@ impl<T: Helper> Worker<T> {
         let input = Job::deserialize_value::<RandomStringInput>(raw_input.clone())
             .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
 
-        let output = todo!("reggen.generate");
+        let reg = Regex::compile(&input.regex, input.limit).map_err(|e| {
+            format!("failed to generate a string with the provided regex input: {e}")
+        })?;
+        let output: String = thread_rng().sample(&reg);
 
-        // Ok(output.into())
+        Ok(Value::String(output))
     }
 
     /// MathWorker performs some MathOperation on 2 numbers.
@@ -268,7 +267,7 @@ impl<T: Helper> Worker<T> {
         }
         .map_err(|e| format!("failed to perform math operation: {e}"))?;
 
-        Ok(result.into())
+        Ok(Value::String(result))
     }
 
     /// RandomNumberWorker generates a random number in the range
@@ -285,7 +284,7 @@ impl<T: Helper> Worker<T> {
         let rand_num = random_number(&min, &max)
             .map_err(|e| format!("failed to return random number in [{min}-{max}]: {e}"))?;
 
-        Ok(json!(rand_num))
+        Ok(Value::String(rand_num.to_string()))
     }
 
     /// balanceMessage prints out a log message while waiting
