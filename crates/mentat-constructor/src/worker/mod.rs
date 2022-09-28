@@ -24,6 +24,7 @@ use types::Helper;
 use url::Url;
 
 use crate::{
+    helpers::set_json,
     job::{
         Action, ActionType, Broadcast, FindBalanceInput, FindBalanceOutput,
         FindCurrencyAmountInput, GenerateKeyInput, GetBlobInput, HttpMethod, HttpRequestInput, Job,
@@ -35,10 +36,10 @@ use crate::{
 
 use self::{
     errors::{VerboseWorkerError, VerboseWorkerResult, WorkerError, WorkerResult},
-    populator::{populate_input, set_json},
+    populator::populate_input,
 };
 
-use std::{env, fmt::Write, str::FromStr};
+use std::{env, fmt::Write, str::FromStr, time::Duration};
 
 /// Worker processes jobs.
 pub struct Worker<T: Helper>(T);
@@ -74,6 +75,7 @@ impl<T: Helper> Worker<T> {
             ActionType::HttpRequest => Self::http_request_worker(input).await.map(Some),
             ActionType::SetBlob => self.set_blob_worker(db_tx, input).map(|_| None),
             ActionType::GetBlob => self.get_blob_worker(db_tx, input).map(Some),
+            ActionType::Unknown => Err(WorkerError::InvalidActionType),
         }
     }
 
@@ -109,16 +111,19 @@ impl<T: Helper> Worker<T> {
 
             // Update state at the specified output path if there is an output.
             let old_state = state.clone();
-            set_json(&mut state, &action.output_path, output.clone()).map_err(|e| {
-                VerboseWorkerError {
-                    action_index: i,
-                    action: Some(action.clone()),
-                    processed_input: Some(processed_input),
-                    output: Some(output),
-                    state: Some(old_state),
-                    err: format!("unable to update state: {e}").into(),
-                    ..Default::default()
-                }
+            set_json(
+                &mut state,
+                action.output_path.as_ref().unwrap(),
+                output.clone(),
+            )
+            .map_err(|e| VerboseWorkerError {
+                action_index: i,
+                action: Some(action.clone()),
+                processed_input: Some(processed_input),
+                output: Some(output),
+                state: Some(old_state),
+                err: format!("unable to update state: {e}").into(),
+                ..Default::default()
             })?;
         }
 
@@ -266,6 +271,14 @@ impl<T: Helper> Worker<T> {
             MathOperation::Subtraction => sub_values(&input.left_value, &input.right_value),
             MathOperation::Multiplication => multiply_values(&input.left_value, &input.right_value),
             MathOperation::Division => divide_values(&input.left_value, &input.right_value),
+            MathOperation::Unknown => {
+                // TODO: fallback enum variant doesnt retain the invalid text
+                return Err(format!(
+                    "math operation UNKNOWN is invalid: {}",
+                    WorkerError::InputOperationIsNotSupported
+                )
+                .into());
+            }
         }
         .map_err(|e| format!("failed to perform math operation: {e}"))?;
 
@@ -331,15 +344,16 @@ impl<T: Helper> Worker<T> {
         input: &FindBalanceInput,
         account: &AccountIdentifier,
     ) -> WorkerResult<Option<Value>> {
+        let minimum_balance = input.minimum_balance.as_ref().unwrap();
         let coins = self
             .0
             .coins(
                 db_tx,
                 account,
-                &input.minimum_balance.currency.clone().unwrap().into(),
+                &minimum_balance.currency.clone().unwrap().into(),
             )
             .map_err(|e| {
-                format!("failed to return coins of account identifier {account:?} in currency {:?}: {e}", input.minimum_balance.currency)
+                format!("failed to return coins of account identifier {account:?} in currency {:?}: {e}", minimum_balance.currency)
             })?;
 
         for coin in coins {
@@ -348,13 +362,12 @@ impl<T: Helper> Worker<T> {
             }
 
             // TODO all the logic below this could just be a normal comparison
-            let diff =
-                sub_values(&coin.amount.value, &input.minimum_balance.value).map_err(|e| {
-                    format!(
-                        "failed to subtract values {} - {}: {e}",
-                        coin.amount.value, input.minimum_balance.value
-                    )
-                })?;
+            let diff = sub_values(&coin.amount.value, &minimum_balance.value).map_err(|e| {
+                format!(
+                    "failed to subtract values {} - {}: {e}",
+                    coin.amount.value, minimum_balance.value
+                )
+            })?;
 
             let big_int_dif = BigInt::from_str(&diff)
                 .map_err(|e| format!("failed to convert string {diff} to big int: {e}"))?;
@@ -379,21 +392,22 @@ impl<T: Helper> Worker<T> {
         input: &FindBalanceInput,
         account: &AccountIdentifier,
     ) -> WorkerResult<Option<Value>> {
+        let minimum_balance = input.minimum_balance.as_ref().unwrap();
         let amount = self
             .0
-            .balance(db_tx, account, &input.minimum_balance.currency.clone().unwrap().into())
+            .balance(db_tx, account, &minimum_balance.currency.clone().unwrap().into())
             .map_err(|e| {
                 format!(
-                    "failed to return balance of account identifier {account:?} in currency {:?}: {e}", input.minimum_balance.currency
+                    "failed to return balance of account identifier {account:?} in currency {:?}: {e}", minimum_balance.currency
                 )
             })?;
 
         // TODO all the logic below this could just be a normal comparison
         // look for amounts > min
-        let diff = sub_values(&amount.value, &input.minimum_balance.value).map_err(|e| {
+        let diff = sub_values(&amount.value, &minimum_balance.value).map_err(|e| {
             format!(
                 "failed to subtract values {} - {}: {e}",
-                amount.value, input.minimum_balance.value
+                amount.value, minimum_balance.value
             )
         })?;
 
@@ -401,7 +415,7 @@ impl<T: Helper> Worker<T> {
             .map_err(|e| format!("failed to convert string {diff} to big int: {e}"))?;
 
         if big_int_dif.sign() == Sign::Minus {
-            println!("check_account_balance: Account ({}) has balance ({}), less than the minimum balance ({})", account.address, amount.value, input.minimum_balance.value);
+            println!("check_account_balance: Account ({}) has balance ({}), less than the minimum balance ({})", account.address, amount.value, minimum_balance.value);
             return Ok(None);
         }
 
@@ -445,7 +459,7 @@ impl<T: Helper> Worker<T> {
     }
 
     fn should_create_random_account(input: &FindBalanceInput, account_count: usize) -> bool {
-        !(input.minimum_balance.value != "0"
+        !(input.minimum_balance.as_ref().unwrap().value != "0"
             || input.create_limit <= 0
             || account_count >= input.create_limit as usize)
             && thread_rng().gen_ratio(input.create_probability, 100)
@@ -454,7 +468,7 @@ impl<T: Helper> Worker<T> {
     /// findBalanceWorkerInputValidation ensures the input to FindBalanceWorker
     /// is valid.
     pub fn find_balance_worker_input_validation(input: &FindBalanceInput) -> WorkerResult<()> {
-        amount(Some(&input.minimum_balance)).map_err(|e| {
+        amount(input.minimum_balance.as_ref()).map_err(|e| {
             format!(
                 "minimum balance {:?} is invalid: {e}",
                 input.minimum_balance
@@ -560,7 +574,7 @@ impl<T: Helper> Worker<T> {
             )
         }
 
-        if input.minimum_balance.value != "0" {
+        if input.minimum_balance.as_ref().unwrap().value != "0" {
             // If we can't do anything, we should return with ErrUnsatisfiable.
             Err(WorkerError::Unsatisfiable)
         } else if input.create_limit > 0 && accounts.len() < input.create_limit as usize {
@@ -641,14 +655,25 @@ impl<T: Helper> Worker<T> {
         let url = Url::parse(&input.url)
             .map_err(|e| format!("failed to parse request URI {}: {e}", input.url))?;
 
-        let client = Client::builder().timeout(input.timeout).build().unwrap();
+        let client = Client::builder()
+            .timeout(Duration::from_secs(input.timeout.try_into().map_err(
+                |_| {
+                    format!(
+                        "{} is not a valid timeout: {}",
+                        input.timeout,
+                        WorkerError::InvalidInput
+                    )
+                },
+            )?))
+            .build()
+            .unwrap();
 
         let mut request = Request::new(input.method.into(), url);
         request
             .headers_mut()
             .append("Accept", HeaderValue::from_static("application/json"));
         if input.method == HttpMethod::Post {
-            *request.body_mut() = Some(input.body.into());
+            *request.body_mut() = Some(input.body.to_string().into());
             request
                 .headers_mut()
                 .insert("Content-Type", HeaderValue::from_static("application/json"));

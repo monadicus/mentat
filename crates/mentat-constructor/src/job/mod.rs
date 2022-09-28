@@ -7,6 +7,8 @@ use mentat_types::{Amount, Metadata, Operation, Transaction};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
+use crate::helpers::get_json;
+
 impl Job {
     /// creates a new Job.
     pub fn new(workflow: Workflow) -> Self {
@@ -108,10 +110,8 @@ impl Job {
         scenario_name: &str,
         reserved_variable: ReservedVariable,
     ) -> JobResult<usize> {
-        let v = self
-            .state
-            .get(scenario_name)
-            .and_then(|v| v.get(reserved_variable.to_string()))
+        let v = get_json(&self.state, scenario_name)
+            .and_then(|v| get_json(&v, &reserved_variable.to_string()))
             .ok_or(JobError::VariableNotFound)?;
         v.as_u64()
             .map(|v| v as usize)
@@ -123,10 +123,8 @@ impl Job {
         scenario_name: &str,
         reserved_variable: ReservedVariable,
     ) -> JobResult<bool> {
-        let v = self
-            .state
-            .get(scenario_name)
-            .and_then(|v| v.get(reserved_variable.to_string()))
+        let v = get_json(&self.state, scenario_name)
+            .and_then(|v| get_json(&v, &reserved_variable.to_string()))
             .ok_or(JobError::VariableNotFound)?;
         // TODO they never return an error here if its not a bool?
         v.as_bool().ok_or(JobError::VariableIncorrectFormat)
@@ -137,10 +135,8 @@ impl Job {
         scenario_name: &str,
         reserved_variable: ReservedVariable,
     ) -> JobResult<T> {
-        let v = self
-            .state
-            .get(scenario_name)
-            .and_then(|v| v.get(reserved_variable.to_string()))
+        let v = get_json(&self.state, scenario_name)
+            .and_then(|v| get_json(&v, &reserved_variable.to_string()))
             .ok_or(JobError::VariableNotFound)?
             .clone();
         Self::deserialize_value(v)

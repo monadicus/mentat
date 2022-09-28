@@ -3,7 +3,7 @@
 use thiserror::Error;
 
 /// Account Balance Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum AccountBalanceError {
     #[error("currency is used multiple times")]
@@ -15,7 +15,7 @@ pub enum AccountBalanceError {
 }
 
 /// Block Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum BlockError {
     #[error("Amount.Value is missing")]
@@ -103,7 +103,7 @@ pub enum BlockError {
 }
 
 // Coin Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum CoinError {
     #[error("coin cannot be nil")]
@@ -121,7 +121,7 @@ pub enum CoinError {
 }
 
 /// Construction Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum ConstructionError {
     #[error("ConstructionPreprocessResponse cannot be nil")]
@@ -179,7 +179,7 @@ pub enum ConstructionError {
 }
 
 /// Network Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum NetworkError {
     #[error("NetworkIdentifier is nil")]
@@ -237,7 +237,7 @@ pub enum NetworkError {
 }
 
 /// Server Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum ServerError {
     #[error("no supported networks")]
@@ -315,7 +315,7 @@ pub enum ServerError {
 }
 
 /// Event Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum EventError {
     #[error("max sequence invalid")]
@@ -329,7 +329,7 @@ pub enum EventError {
 }
 
 /// Search Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum SearchError {
     #[error("next offset invalid")]
@@ -339,7 +339,7 @@ pub enum SearchError {
 }
 
 /// Error Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum ErrorError {
     #[error("Error is nil")]
@@ -359,7 +359,7 @@ pub enum ErrorError {
 }
 
 /// Util errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum UtilError {
     #[error("string array is empty")]
@@ -377,7 +377,7 @@ pub enum UtilError {
 }
 
 /// Asserter Errors
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Debug, Error, Eq, PartialEq, Clone)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub enum AsserterError {
     // AsserterNotInitialized is returned when some call in the asserter

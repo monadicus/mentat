@@ -1,4 +1,9 @@
 use crate::job::Action;
+use mentat_asserter::{
+    AccountBalanceError, AsserterError, BlockError, CoinError, ConstructionError, ErrorError,
+    EventError, NetworkError, SearchError, ServerError, UtilError,
+};
+use mentat_utils::utils::AccountBalance;
 use serde_json::Value;
 use std::fmt;
 use thiserror::Error;
@@ -42,6 +47,9 @@ pub enum WorkerError {
     #[error("the input operation is not supported")]
     InputOperationIsNotSupported,
 
+    #[error("asserter error: {0}")]
+    AsserterError(AsserterError),
+
     #[error("{0}")]
     String(String),
 }
@@ -57,6 +65,33 @@ impl From<&str> for WorkerError {
         Self::String(s.into())
     }
 }
+
+impl From<AsserterError> for WorkerError {
+    fn from(v: AsserterError) -> Self {
+        Self::AsserterError(v)
+    }
+}
+
+// cant use generic Into<AsserterError> impl because it interferes with the from string impls above
+macro_rules! from_asserter_error {
+    ($e:ident) => {
+        impl From<$e> for WorkerError {
+            fn from(v: $e) -> Self {
+                Self::AsserterError(v.into())
+            }
+        }
+    };
+}
+from_asserter_error!(AccountBalanceError);
+from_asserter_error!(BlockError);
+from_asserter_error!(CoinError);
+from_asserter_error!(ConstructionError);
+from_asserter_error!(NetworkError);
+from_asserter_error!(ServerError);
+from_asserter_error!(EventError);
+from_asserter_error!(SearchError);
+from_asserter_error!(ErrorError);
+from_asserter_error!(UtilError);
 
 /// The worker module result type.
 pub type WorkerResult<T> = Result<T, WorkerError>;

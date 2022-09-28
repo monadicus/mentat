@@ -44,6 +44,9 @@ pub enum ReservedVariable {
     /// SuggestedFee is the Vec<Amount> returned from
     /// an implementation's /construction/metadata endpoint (if implemented).
     SuggestedFee,
+    /// fallback for when deserializing fails
+    #[serde(other)]
+    Unknown,
 }
 
 impl fmt::Display for ReservedVariable {
@@ -56,6 +59,7 @@ impl fmt::Display for ReservedVariable {
             ReservedVariable::ConfirmationDepth => write!(f, "confirmation_depth"),
             ReservedVariable::DryRun => write!(f, "dry_run"),
             ReservedVariable::SuggestedFee => write!(f, "suggested_fee"),
+            ReservedVariable::Unknown => write!(f, "UNKNOWN"),
         }
     }
 }
@@ -128,6 +132,9 @@ pub enum ActionType {
     /// GetBlob attempts to retrieve some previously saved blob.
     /// If the blob is not accessible, it will return an error.
     GetBlob,
+    /// fallback for when deserializing fails
+    #[serde(other)]
+    Unknown,
 }
 
 /// MathOperation is some mathematical operation that
@@ -142,6 +149,9 @@ pub enum MathOperation {
     Multiplication,
     /// Division is LeftValue / RightValue.
     Division,
+    /// fallback for when deserializing fails
+    #[serde(other)]
+    Unknown,
 }
 
 /// HttpMethod is a type representing
@@ -150,6 +160,9 @@ pub enum MathOperation {
 pub enum HttpMethod {
     Get,
     Post,
+    /// fallback for when deserializing fails
+    #[serde(other)]
+    Unknown,
 }
 
 impl From<HttpMethod> for Method {
@@ -157,6 +170,7 @@ impl From<HttpMethod> for Method {
         match v {
             HttpMethod::Get => Method::GET,
             HttpMethod::Post => Method::POST,
+            HttpMethod::Unknown => panic!("cant convert unknown Method type to HttpMethod"),
         }
     }
 }
@@ -179,6 +193,9 @@ pub enum ReservedWorkflow {
     /// returned to a single address (like a faucet). This
     /// is useful for CI testing.
     ReturnFunds,
+    /// fallback for when deserializing fails
+    #[serde(other)]
+    Unknown,
 }
 
 /// Status is status of a Job.
@@ -194,6 +211,9 @@ pub enum Status {
     /// Completed means that all scenarios were
     /// completed successfully.
     Completed,
+    /// fallback for when deserializing fails
+    #[serde(other)]
+    Unknown,
 }
 
 impl fmt::Display for Status {
@@ -203,6 +223,7 @@ impl fmt::Display for Status {
             Status::Broadcasting => write!(f, "broadcasting"),
             Status::Failed => write!(f, "failed"),
             Status::Completed => write!(f, "completed"),
+            Status::Unknown => write!(f, "UNKNOWN"),
         }
     }
 }
@@ -213,7 +234,7 @@ impl fmt::Display for Status {
 pub struct Action {
     pub input: String,
     pub type_: ActionType,
-    pub output_path: String,
+    pub output_path: Option<String>,
 }
 
 /// GenerateKeyInput is the input for GenerateKey.
@@ -248,7 +269,7 @@ pub struct MathInput {
 }
 
 /// FindBalanceInput is the input to FindBalance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FindBalanceInput {
     /// AccountIdentifier can be optionally provided to ensure the balance returned
     /// is for a particular address (this is used when fetching the balance
@@ -274,7 +295,7 @@ pub struct FindBalanceInput {
     pub not_account_identifier: Vec<Option<AccountIdentifier>>,
 
     /// MinimumBalance is the minimum required balance that must be found.
-    pub minimum_balance: UncheckedAmount,
+    pub minimum_balance: Option<UncheckedAmount>,
 
     /// RequireCoin indicates if a coin must be found with the minimum balance.
     /// This is useful for orchestrating transfers on UTXO-based blockchains.
@@ -331,10 +352,10 @@ pub struct FindCurrencyAmountInput {
 pub struct HttpRequestInput {
     pub method: HttpMethod,
     pub url: String,
-    pub timeout: Duration,
+    pub timeout: isize,
     /// If the Method is POST, the Body
     /// can be populated with JSON.
-    pub body: String,
+    pub body: Value,
 }
 
 /// HTTPRequestInput is the input to
