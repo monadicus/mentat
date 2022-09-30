@@ -29,6 +29,7 @@ impl Parser {
         }
     }
 
+    #[track_caller]
     fn dec_indent(&mut self) {
         self.indent -= 1;
     }

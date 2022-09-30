@@ -1,5 +1,7 @@
 //! TODO doc
 
+use std::any::TypeId;
+
 use num_bigint_dig::{BigInt, Sign};
 use num_traits::{sign::Signed, Zero};
 use serde_json::Value;
@@ -63,11 +65,12 @@ impl AmountSign {
 
 /// MetadataDescription is used to check if a `IndexMap<String, Value>`
 /// has certain keys and values of a certain kind.
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
-    pub value_kind: Value,
+    // TODO this shouldn't be the value, but the type of the value?
+    pub value_kind: TypeId,
 }
 
 /// AccountDescription is used to describe a [`AccountIdentifier`].
@@ -165,19 +168,14 @@ pub fn metadata_match(
             MatchOperationsError::MetadataMatchKeyNotFound,
         ))?;
 
-        match (val, &req.value_kind) {
-            (Value::Null, Value::Null)
-            | (Value::Bool(_), Value::Bool(_))
-            | (Value::Number(_), Value::Number(_))
-            | (Value::String(_), Value::String(_))
-            | (Value::Array(_), Value::Array(_))
-            | (Value::Object(_), Value::Object(_)) => {}
-            _ => Err(format!(
-                "value of {} is not of type {}: {}",
+        // TODO Not sure this is right
+        if TypeId::of::<Value>() != req.value_kind {
+            Err(format!(
+                "value of {} is not of type {:?}: {}",
                 req.key,
                 req.value_kind,
                 MatchOperationsError::MetadataMatchKeyValueMismatch,
-            ))?,
+            ))?
         }
     }
 
