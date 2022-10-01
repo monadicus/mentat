@@ -69,7 +69,6 @@ impl AmountSign {
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
-    // TODO this shouldn't be the value, but the type of the value?
     pub value_kind: TypeId,
 }
 
