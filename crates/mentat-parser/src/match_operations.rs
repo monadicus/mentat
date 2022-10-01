@@ -1,11 +1,14 @@
 //! TODO doc
 
+use std::any::TypeId;
+
 use num_bigint_dig::{BigInt, Sign};
 use num_traits::{sign::Signed, Zero};
 use serde_json::Value;
 
 use super::*;
 
+// TODO can this be an enum?
 /// AmountSign is used to represent possible signedness
 /// of an amount.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -62,11 +65,12 @@ impl AmountSign {
 
 /// MetadataDescription is used to check if a `IndexMap<String, Value>`
 /// has certain keys and values of a certain kind.
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
-    pub value_kind: Value,
+    // TODO this shouldn't be the value, but the type of the value?
+    pub value_kind: TypeId,
 }
 
 /// AccountDescription is used to describe a [`AccountIdentifier`].
@@ -164,19 +168,22 @@ pub fn metadata_match(
             MatchOperationsError::MetadataMatchKeyNotFound,
         ))?;
 
-        match (val, &req.value_kind) {
-            (Value::Null, Value::Null)
-            | (Value::Bool(_), Value::Bool(_))
-            | (Value::Number(_), Value::Number(_))
-            | (Value::String(_), Value::String(_))
-            | (Value::Array(_), Value::Array(_))
-            | (Value::Object(_), Value::Object(_)) => {}
-            _ => Err(format!(
-                "value of {} is not of type {}: {}",
+        let val_typeid = match val {
+            Value::Null => TypeId::of::<()>(),
+            Value::Bool(_) => TypeId::of::<bool>(),
+            Value::Number(_) => todo!("How to match to correct type of int"),
+            Value::String(_) => TypeId::of::<String>(),
+            Value::Array(_) => todo!("how to handle this?"),
+            Value::Object(_) => todo!("or this"),
+        };
+
+        if val_typeid != req.value_kind {
+            Err(format!(
+                "value of {} is not of type {:?}: {}",
                 req.key,
                 req.value_kind,
                 MatchOperationsError::MetadataMatchKeyValueMismatch,
-            ))?,
+            ))?
         }
     }
 
@@ -345,8 +352,8 @@ pub fn operation_match(
     for (i, des) in descriptions.iter().enumerate() {
         // TODO: coinbase never checks for null here
         let des = des.as_ref().unwrap();
-        if (matches[i].is_some() && !des.allow_repeats)
-            || (!des.type_.is_empty() && des.type_ != operation.type_)
+        if matches[i].is_some() && !des.allow_repeats
+            || !des.type_.is_empty() && des.type_ != operation.type_
             || account_match(des.account.as_ref(), operation.account.as_ref()).is_err()
             || amount_match(des.amount.as_ref(), operation.amount.as_ref()).is_err()
             || metadata_match(&des.metadata, &operation.metadata).is_err()
@@ -674,7 +681,6 @@ pub fn match_operations(
             ))?;
         }
     }
-
     // Error if any OperationDescription is not matched
     for (i, m) in matches.iter().enumerate() {
         // TODO coinbase never checks nil
