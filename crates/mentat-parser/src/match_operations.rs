@@ -168,8 +168,16 @@ pub fn metadata_match(
             MatchOperationsError::MetadataMatchKeyNotFound,
         ))?;
 
-        // TODO Not sure this is right
-        if TypeId::of::<Value>() != req.value_kind {
+        let val_typeid = match val {
+            Value::Null => TypeId::of::<()>(),
+            Value::Bool(_) => TypeId::of::<bool>(),
+            Value::Number(_) => todo!("How to match to correct type of int"),
+            Value::String(_) => TypeId::of::<String>(),
+            Value::Array(_) => todo!("how to handle this?"),
+            Value::Object(_) => todo!("or this"),
+        };
+
+        if val_typeid != req.value_kind {
             Err(format!(
                 "value of {} is not of type {:?}: {}",
                 req.key,
@@ -344,8 +352,8 @@ pub fn operation_match(
     for (i, des) in descriptions.iter().enumerate() {
         // TODO: coinbase never checks for null here
         let des = des.as_ref().unwrap();
-        if (matches[i].is_some() && !des.allow_repeats)
-            || (!des.type_.is_empty() && des.type_ != operation.type_)
+        if matches[i].is_some() && !des.allow_repeats
+            || !des.type_.is_empty() && des.type_ != operation.type_
             || account_match(des.account.as_ref(), operation.account.as_ref()).is_err()
             || amount_match(des.amount.as_ref(), operation.amount.as_ref()).is_err()
             || metadata_match(&des.metadata, &operation.metadata).is_err()
@@ -673,7 +681,6 @@ pub fn match_operations(
             ))?;
         }
     }
-
     // Error if any OperationDescription is not matched
     for (i, m) in matches.iter().enumerate() {
         // TODO coinbase never checks nil

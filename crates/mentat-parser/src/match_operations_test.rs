@@ -1246,7 +1246,7 @@ fn test_match_operations() {
                                 sub_account_exists: true,
                                 sub_account_address: "sub".into(),
                                 sub_account_metadata_keys: vec![Some(MetadataDescription {
-                                    key: "sub".into(),
+                                    key: "validator".into(),
                                     value_kind: TypeId::of::<String>(),
                                 })],
                                 ..<_>::default()
@@ -1321,7 +1321,7 @@ fn test_match_operations() {
                                 sub_account_exists: true,
                                 sub_account_address: "sub".into(),
                                 sub_account_metadata_keys: vec![Some(MetadataDescription {
-                                    key: "sub".into(),
+                                    key: "validator".into(),
                                     value_kind: TypeId::of::<String>(),
                                 })],
                                 ..<_>::default()
@@ -1424,7 +1424,7 @@ fn test_match_operations() {
                                 sub_account_exists: true,
                                 sub_account_address: "sub".into(),
                                 sub_account_metadata_keys: vec![Some(MetadataDescription {
-                                    key: "sub".into(),
+                                    key: "validator".into(),
                                     value_kind: TypeId::of::<String>(),
                                 })],
                                 ..<_>::default()
