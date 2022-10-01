@@ -1,0 +1,11 @@
+[package]
+name = "mentat-tokenizer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+colored = "2.0.0"
+error-stack = "0.1.1"
+indexmap = "1.9.1"
+scoped-tls = "1.0.0"
+thiserror = "1.0.32"
