@@ -1,10 +1,14 @@
 //! TODO doc
 
-use std::any::TypeId;
+use std::{
+    any::{Any, TypeId},
+    fmt,
+};
 
 use num_bigint_dig::{BigInt, Sign};
 use num_traits::{sign::Signed, Zero};
-use serde_json::Value;
+use serde::de::DeserializeOwned;
+use serde_json::{Number, Value};
 
 use super::*;
 
@@ -63,13 +67,57 @@ impl AmountSign {
     }
 }
 
+// TODO add `type name` method to get a string of the name of the type
+/// a trait used to aid in type reflection
+pub trait Reflect {
+    /// a method to check if the value matches the type contained by self
+    fn is_same(&self, value: Value) -> bool;
+}
+
+impl<T: DeserializeOwned + 'static> Reflect for T {
+    fn is_same(&self, value: Value) -> bool {
+        serde_json::from_value::<Self>(value)
+            .map(|v| Box::new(v) as Box<dyn Reflect>)
+            .is_ok()
+    }
+}
+
 /// MetadataDescription is used to check if a `IndexMap<String, Value>`
 /// has certain keys and values of a certain kind.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Default)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
-    pub value_kind: TypeId,
+    // TODO unwrap will cause a panic if the type was created using `default`
+    value_kind: Option<Box<dyn Reflect>>,
+}
+
+impl MetadataDescription {
+    /// creates a new instance that contains type T
+    pub fn new<T: Default + Reflect + 'static>(key: String) -> Self {
+        Self {
+            key,
+            value_kind: Some(Box::new(T::default())),
+        }
+    }
+}
+
+impl PartialEq for MetadataDescription {
+    fn eq(&self, other: &Self) -> bool {
+        self.key == other.key && self.value_kind.type_id() == other.value_kind.type_id()
+    }
+}
+
+impl Eq for MetadataDescription {}
+
+impl fmt::Debug for MetadataDescription {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("MetadataDescription")
+            .field("key", &self.key)
+            // TODO: only prints type id
+            .field("value_kind", &self.value_kind.type_id())
+            .finish()
+    }
 }
 
 /// AccountDescription is used to describe a [`AccountIdentifier`].
@@ -167,20 +215,13 @@ pub fn metadata_match(
             MatchOperationsError::MetadataMatchKeyNotFound,
         ))?;
 
-        let val_typeid = match val {
-            Value::Null => TypeId::of::<()>(),
-            Value::Bool(_) => TypeId::of::<bool>(),
-            Value::Number(_) => todo!("How to match to correct type of int"),
-            Value::String(_) => TypeId::of::<String>(),
-            Value::Array(_) => todo!("how to handle this?"),
-            Value::Object(_) => todo!("or this"),
-        };
-
-        if val_typeid != req.value_kind {
+        // TODO the unwrap here will cause a panic if the type was created using `default`
+        if !req.value_kind.as_ref().unwrap().is_same(val.clone()) {
             Err(format!(
                 "value of {} is not of type {:?}: {}",
                 req.key,
-                req.value_kind,
+                // TODO: only prints type id
+                req.value_kind.type_id(),
                 MatchOperationsError::MetadataMatchKeyValueMismatch,
             ))?
         }
