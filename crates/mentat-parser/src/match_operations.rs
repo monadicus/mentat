@@ -251,7 +251,7 @@ pub fn verify_sub_account_address(
     sub_account: Option<&SubAccountIdentifier>,
 ) -> ParserResult<()> {
     // TODO coinbase never checks nil here
-    if sub_account_address.is_empty() && sub_account.unwrap().address != sub_account_address {
+    if !sub_account_address.is_empty() && sub_account.unwrap().address != sub_account_address {
         Err(format!(
             "expected sub account address {} but got {}: {}",
             sub_account_address,
