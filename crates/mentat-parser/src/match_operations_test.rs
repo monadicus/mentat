@@ -21,26 +21,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -49,29 +49,29 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -79,13 +79,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(-100))],
                     }),
@@ -93,13 +93,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -112,26 +112,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -140,29 +140,29 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE_OR_ZERO,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE_OR_ZERO,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -170,13 +170,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(-100))],
                     }),
@@ -184,13 +184,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -203,26 +203,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "0".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "0".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -231,29 +231,29 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::ANY,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::ANY,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -261,13 +261,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "0".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(0))],
                     }),
@@ -275,13 +275,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "0".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(0))],
                     }),
@@ -294,26 +294,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -322,29 +322,29 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -356,20 +356,20 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -379,29 +379,29 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: false,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -413,28 +413,28 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "output".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "input".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -443,21 +443,21 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 type_: "input".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 type_: "output".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -465,14 +465,14 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "input".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(-100))],
                     }),
@@ -480,14 +480,14 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "output".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -500,26 +500,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -529,29 +529,29 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -563,26 +563,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -591,29 +591,29 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -625,26 +625,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -653,27 +653,27 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -681,13 +681,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -695,13 +695,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -714,40 +714,40 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
                                 currency: Currency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             coin_change: Some(CoinChange {
                                 coin_action: CoinAction::CoinSpent,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -756,7 +756,7 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -764,15 +764,15 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -780,14 +780,14 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
                                 coin_action: CoinAction::CoinSpent,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -795,18 +795,18 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(-100))],
                     }),
@@ -814,22 +814,22 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
                                 currency: Currency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             coin_change: Some(CoinChange {
                                 coin_action: CoinAction::CoinSpent,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -842,36 +842,36 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
                                 currency: Currency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -880,7 +880,7 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -888,15 +888,15 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -904,14 +904,14 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
                                 coin_action: CoinAction::CoinSpent,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -923,40 +923,40 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
                                 currency: Currency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             coin_change: Some(CoinChange {
                                 coin_action: CoinAction::CoinCreated,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -965,7 +965,7 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -973,15 +973,15 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -989,14 +989,14 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
                                 coin_action: CoinAction::CoinSpent,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1008,36 +1008,36 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
                                 currency: Currency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1046,7 +1046,7 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -1054,15 +1054,15 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -1070,13 +1070,13 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -1084,18 +1084,18 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(-100))],
                     }),
@@ -1103,18 +1103,18 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
                                 currency: Currency {
                                     symbol: "BTC".into(),
                                     decimals: 8,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -1127,36 +1127,36 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
                                 currency: Currency {
                                     symbol: "ETH".into(),
                                     decimals: 18,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 },
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1165,7 +1165,7 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -1173,15 +1173,15 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
@@ -1189,13 +1189,13 @@ fn test_match_operations() {
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
-                                        ..<_>::default()
+                                        ..Default::default()
                                     }),
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1207,13 +1207,13 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
@@ -1226,13 +1226,13 @@ fn test_match_operations() {
                                         "validator".to_string() => json!("10"),
                                     },
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1247,29 +1247,29 @@ fn test_match_operations() {
                                     sub_account_metadata_keys: vec![Some(
                                         MetadataDescription::new::<String>("validator".into()),
                                     )],
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1281,13 +1281,13 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
@@ -1300,13 +1300,13 @@ fn test_match_operations() {
                                         "validator".to_string() => json!("10"),
                                     },
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1321,29 +1321,29 @@ fn test_match_operations() {
                                     sub_account_metadata_keys: vec![Some(
                                         MetadataDescription::new::<String>("validator".into()),
                                     )],
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -1357,13 +1357,13 @@ fn test_match_operations() {
                                         "validator".to_string() => json!("10"),
                                     },
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(-100))],
                     }),
@@ -1371,13 +1371,13 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -1390,26 +1390,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1423,29 +1423,29 @@ fn test_match_operations() {
                                     sub_account_metadata_keys: vec![Some(
                                         MetadataDescription::new::<String>("validator".into()),
                                     )],
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1459,27 +1459,27 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             // allowed because no amount requirement provided
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1489,21 +1489,21 @@ fn test_match_operations() {
                                     exists: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -1513,15 +1513,15 @@ fn test_match_operations() {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(100))],
                     }),
@@ -1531,11 +1531,11 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![None],
                     }),
@@ -1550,23 +1550,23 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(<_>::default()),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1576,25 +1576,25 @@ fn test_match_operations() {
                                     exists: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: false,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1612,20 +1612,20 @@ fn test_match_operations() {
                                         "validator".into() => json!(-1000),
                                     },
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1635,9 +1635,9 @@ fn test_match_operations() {
                                     exists: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
@@ -1646,12 +1646,12 @@ fn test_match_operations() {
                                     sub_account_metadata_keys: vec![Some(
                                         MetadataDescription::new::<i32>("validator".into()),
                                     )],
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -1661,11 +1661,11 @@ fn test_match_operations() {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![None],
                     }),
@@ -1679,9 +1679,9 @@ fn test_match_operations() {
                                         "validator".into() => json!(-1000),
                                     },
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![None],
                     }),
@@ -1696,22 +1696,22 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 3".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1721,21 +1721,21 @@ fn test_match_operations() {
                                     exists: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1749,18 +1749,18 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1771,9 +1771,9 @@ fn test_match_operations() {
                                     sub_account_optional: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
@@ -1781,12 +1781,12 @@ fn test_match_operations() {
                                     sub_account_optional: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -1796,11 +1796,11 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![None],
                     }),
@@ -1808,9 +1808,9 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![None],
                     }),
@@ -1825,18 +1825,18 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -1847,9 +1847,9 @@ fn test_match_operations() {
                                     sub_account_optional: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 3".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
@@ -1857,12 +1857,12 @@ fn test_match_operations() {
                                     sub_account_optional: true,
                                     sub_account_exists: true,
                                     sub_account_address: "sub 1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1876,22 +1876,22 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 3".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: <_>::default(),
@@ -1907,27 +1907,27 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 3".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
                         operation_descriptions: vec![Some(<_>::default()), Some(<_>::default())],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -1937,11 +1937,11 @@ fn test_match_operations() {
                                 address: "addr1".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 3".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![None],
                     }),
@@ -1951,11 +1951,11 @@ fn test_match_operations() {
                                 address: "addr2".into(),
                                 sub_account: Some(SubAccountIdentifier {
                                     address: "sub 2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![None],
                     }),
@@ -1967,7 +1967,7 @@ fn test_match_operations() {
                     operations: vec![],
                     descriptions: Descriptions {
                         operation_descriptions: vec![Some(<_>::default()), Some(<_>::default())],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -1979,43 +1979,43 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
                         operation_descriptions: vec![Some(OperationDescription {
                             account: Some(AccountDescription {
                                 exists: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(AmountDescription {
                                 exists: true,
                                 sign: AmountSign::POSITIVE,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             allow_repeats: true,
-                            ..<_>::default()
+                            ..Default::default()
                         })],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![Some(Match {
@@ -2023,24 +2023,24 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     amounts: vec![Some(BigInt::from(200)), Some(BigInt::from(100))],
@@ -2053,44 +2053,44 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
                         operation_descriptions: vec![Some(OperationDescription {
                             account: Some(AccountDescription {
                                 exists: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(AmountDescription {
                                 exists: true,
                                 sign: AmountSign::POSITIVE,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             allow_repeats: true,
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         err_unmatched: true,
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -2102,26 +2102,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -2129,17 +2129,17 @@ fn test_match_operations() {
                         operation_descriptions: vec![Some(OperationDescription {
                             account: Some(AccountDescription {
                                 exists: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(AmountDescription {
                                 exists: true,
                                 sign: AmountSign::POSITIVE,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             allow_repeats: true,
-                            ..<_>::default()
+                            ..Default::default()
                         })],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -2151,26 +2151,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -2178,32 +2178,32 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             // will never be possible to meet this description
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -2215,62 +2215,62 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "output".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr3".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "output".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "input".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr4".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "input".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr5".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-1000".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "runoff".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -2279,46 +2279,46 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
                                 type_: "output".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
                                 type_: "input".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -2327,26 +2327,26 @@ fn test_match_operations() {
                             Some(Operation {
                                 account: Some(AccountIdentifier {
                                     address: "addr2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(Amount {
                                     value: "200".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 type_: "output".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(Operation {
                                 account: Some(AccountIdentifier {
                                     address: "addr3".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(Amount {
                                     value: "200".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 type_: "output".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
                         amounts: vec![Some(BigInt::from(200)), Some(BigInt::from(200))],
@@ -2356,26 +2356,26 @@ fn test_match_operations() {
                             Some(Operation {
                                 account: Some(AccountIdentifier {
                                     address: "addr1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(Amount {
                                     value: "-200".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 type_: "input".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(Operation {
                                 account: Some(AccountIdentifier {
                                     address: "addr4".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(Amount {
                                     value: "-200".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 type_: "input".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
                         amounts: vec![Some(BigInt::from(-200)), Some(BigInt::from(-200))],
@@ -2384,14 +2384,14 @@ fn test_match_operations() {
                         operations: vec![Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr5".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "-1000".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             type_: "runoff".into(),
-                            ..<_>::default()
+                            ..Default::default()
                         })],
                         amounts: vec![Some(BigInt::from(-1000))],
                     }),
@@ -2404,26 +2404,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -2431,31 +2431,31 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 optional: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: Some(vec![
@@ -2464,24 +2464,24 @@ fn test_match_operations() {
                             Some(Operation {
                                 account: Some(AccountIdentifier {
                                     address: "addr2".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(Amount {
                                     value: "200".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(Operation {
                                 account: Some(AccountIdentifier {
                                     address: "addr1".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(Amount {
                                     value: "100".into(),
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
                         amounts: vec![Some(BigInt::from(200)), Some(BigInt::from(100))],
@@ -2496,26 +2496,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -2524,31 +2524,31 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 optional: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -2560,26 +2560,26 @@ fn test_match_operations() {
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr2".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "200".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                         // extra op ignored
                         Some(<_>::default()),
                         Some(Operation {
                             account: Some(AccountIdentifier {
                                 address: "addr1".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             amount: Some(Amount {
                                 value: "100".into(),
-                                ..<_>::default()
+                                ..Default::default()
                             }),
-                            ..<_>::default()
+                            ..Default::default()
                         }),
                     ],
                     descriptions: Descriptions {
@@ -2588,31 +2588,31 @@ fn test_match_operations() {
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::POSITIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 allow_repeats: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                             Some(OperationDescription {
                                 account: Some(AccountDescription {
                                     exists: true,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
                                     sign: AmountSign::NEGATIVE,
-                                    ..<_>::default()
+                                    ..Default::default()
                                 }),
                                 optional: true,
-                                ..<_>::default()
+                                ..Default::default()
                             }),
                         ],
-                        ..<_>::default()
+                        ..Default::default()
                     },
                 },
                 criteria: None,
@@ -2660,7 +2660,7 @@ fn test_match() {
                         index: 1,
                         network_index: None,
                     },
-                    ..<_>::default()
+                    ..Default::default()
                 })],
                 amounts: vec![Some(BigInt::from(100))],
             }),
@@ -2670,7 +2670,7 @@ fn test_match() {
                         index: 1,
                         network_index: None,
                     },
-                    ..<_>::default()
+                    ..Default::default()
                 }),
                 amt: Some(BigInt::from(100)),
             },
@@ -2684,14 +2684,14 @@ fn test_match() {
                             index: 1,
                             network_index: None,
                         },
-                        ..<_>::default()
+                        ..Default::default()
                     }),
                     Some(Operation {
                         operation_identifier: OperationIdentifier {
                             index: 2,
                             network_index: None,
                         },
-                        ..<_>::default()
+                        ..Default::default()
                     }),
                 ],
                 amounts: vec![Some(BigInt::from(100)), Some(BigInt::from(200))],
@@ -2702,7 +2702,7 @@ fn test_match() {
                         index: 1,
                         network_index: None,
                     },
-                    ..<_>::default()
+                    ..Default::default()
                 }),
                 amt: Some(BigInt::from(100)),
             },
@@ -2715,7 +2715,7 @@ fn test_match() {
                         index: 1,
                         network_index: None,
                     },
-                    ..<_>::default()
+                    ..Default::default()
                 })],
                 amounts: vec![None],
             }),
@@ -2725,7 +2725,7 @@ fn test_match() {
                         index: 1,
                         network_index: None,
                     },
-                    ..<_>::default()
+                    ..Default::default()
                 }),
                 amt: None,
             },
