@@ -67,19 +67,21 @@ impl AmountSign {
     }
 }
 
-/// a trait used to aid in type reflection
-pub trait Reflect {
-    /// checks if the value matches the type of self by deserializing it
+/// a trait used to aid in json type assertion
+pub trait JsonType {
+    /// checks if the value matches the type of self by deserializing it.
+    /// returns false if error occurred during deserialization
     fn is_same(&self, value: Value) -> bool;
-    /// generates the string representation of the type used by self to help provide info in error messages.
-    /// no guarantees that the paths used by the string will always be the same!
+    /// generates the string representation of the type used by self to help
+    /// provide info in error messages. no guarantees that the paths used by
+    /// the string will always be the same!
     fn display(&self) -> &str;
 }
 
-impl<T: DeserializeOwned + 'static> Reflect for T {
+impl<T: DeserializeOwned + 'static> JsonType for T {
     fn is_same(&self, value: Value) -> bool {
         serde_json::from_value::<Self>(value)
-            .map(|v| Box::new(v) as Box<dyn Reflect>)
+            .map(|v| Box::new(v) as Box<dyn JsonType>)
             .is_ok()
     }
 
@@ -93,13 +95,14 @@ impl<T: DeserializeOwned + 'static> Reflect for T {
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
-    /// a default instance of the type that the metadata's value should be serialized into
-    pub value_kind: Box<dyn Reflect>,
+    /// a default instance of the type that the metadata's value should be
+    /// serialized into
+    pub value_kind: Box<dyn JsonType>,
 }
 
 impl MetadataDescription {
     /// creates a new instance that contains type T
-    pub fn new<T: Default + Reflect + 'static>(key: String) -> Self {
+    pub fn new<T: Default + JsonType + 'static>(key: String) -> Self {
         Self {
             key,
             value_kind: Box::new(T::default()),

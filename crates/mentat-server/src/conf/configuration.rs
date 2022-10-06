@@ -168,7 +168,7 @@ where
     /// Generates a configuration file and writes it to the supplied path.
     pub fn create_template(path: &Path) {
         if let Some(p) = path.parent() {
-            fs::create_dir_all(&p)
+            fs::create_dir_all(p)
                 .unwrap_or_else(|e| panic!("failed to create path `{}`: {}", p.display(), e));
         }
 
@@ -180,7 +180,7 @@ where
             )
         });
 
-        fs::write(&path, content).unwrap_or_else(|e| {
+        fs::write(path, content).unwrap_or_else(|e| {
             panic!(
                 "failed to write to default config `{}`: {}",
                 path.display(),
