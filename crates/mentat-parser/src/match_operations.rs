@@ -1,7 +1,13 @@
-//! TODO doc
+//! logic to assert that operations match the expected behavior
+
+use std::{
+    any::{type_name, Any},
+    fmt,
+};
 
 use num_bigint_dig::{BigInt, Sign};
 use num_traits::{sign::Signed, Zero};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 use super::*;
@@ -9,27 +15,29 @@ use super::*;
 /// AmountSign is used to represent possible signedness
 /// of an amount.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct AmountSign(pub usize);
+pub enum AmountSign {
+    #[default]
+    /// `ANY` is a positive or negative amount.
+    Any = 0,
+    /// `NEGATIVE` is a negative amount.
+    Negative = 1,
+    /// `POSITIVE` is a positive amount.
+    Positive = 2,
+    /// `POSITIVE_OR_ZERO` is a positive or zero amount.
+    PositiveOrZero = 3,
+    /// `NEGATIVE_OR_ZERO` is a positive or zero amount.
+    NegativeOrZero = 4,
+}
 
 impl AmountSign {
-    /// `ANY` is a positive or negative amount.
-    pub(crate) const ANY: AmountSign = AmountSign(0);
-    /// `NEGATIVE` is a negative amount.
-    pub(crate) const NEGATIVE: AmountSign = AmountSign(1);
-    /// `NEGATIVE_OR_ZERO` is a positive or zero amount.
-    pub(crate) const NEGATIVE_OR_ZERO: AmountSign = AmountSign(4);
     /// OPPOSITES_LENGTH is the only allowed number of
     /// operations to compare as opposites.
     pub(crate) const OPPOSITES_LENGTH: usize = 2;
-    /// `POSITIVE` is a positive amount.
-    pub(crate) const POSITIVE: AmountSign = AmountSign(2);
-    /// `POSITIVE_OR_ZERO` is a positive or zero amount.
-    pub(crate) const POSITIVE_OR_ZERO: AmountSign = AmountSign(3);
 
     /// match_ returns a boolean indicating if an [`Amount`]
     /// has an [`AmountSign`].
     pub fn match_(self, amount: Option<&Amount>) -> bool {
-        if self == Self::ANY {
+        if self == Self::Any {
             return true;
         }
 
@@ -39,34 +47,85 @@ impl AmountSign {
             return false;
         };
 
-        (self == Self::NEGATIVE && numeric.sign() == Sign::Minus)
-            || (self == Self::POSITIVE && numeric.sign() == Sign::Plus)
-            || (self == Self::POSITIVE_OR_ZERO
+        (self == Self::Negative && numeric.sign() == Sign::Minus)
+            || (self == Self::Positive && numeric.sign() == Sign::Plus)
+            || (self == Self::PositiveOrZero
                 && (numeric.sign() == Sign::Plus || numeric.bits() == 0))
-            || (self == Self::NEGATIVE_OR_ZERO
+            || (self == Self::NegativeOrZero
                 && (numeric.sign() == Sign::Minus || numeric.bits() == 0))
     }
+}
 
-    /// string returns a description of an [`AmountSign`].
-    pub fn string(self) -> &'static str {
+impl fmt::Display for AmountSign {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ANY => "any",
-            Self::NEGATIVE => "negative",
-            Self::POSITIVE => "positive",
-            Self::POSITIVE_OR_ZERO => "positive or zero",
-            Self::NEGATIVE_OR_ZERO => "negative or zero",
-            _ => "invalid",
+            Self::Any => write!(f, "any"),
+            Self::Negative => write!(f, "negative"),
+            Self::Positive => write!(f, "positive"),
+            Self::PositiveOrZero => write!(f, "positive or zero"),
+            Self::NegativeOrZero => write!(f, "negative or zero"),
         }
     }
 }
 
-/// MetadataDescription is used to check if a `Metadata`
+/// a trait used to aid in json type assertion
+pub trait JsonType {
+    /// checks if the value matches the type of self by deserializing it.
+    /// returns false if error occurred during deserialization
+    fn is_same(&self, value: Value) -> bool;
+    /// generates the string representation of the type used by self to help
+    /// provide info in error messages. no guarantees that the paths used by
+    /// the string will always be the same!
+    fn display(&self) -> &str;
+}
+
+impl<T: DeserializeOwned + 'static> JsonType for T {
+    fn is_same(&self, value: Value) -> bool {
+        serde_json::from_value::<Self>(value)
+            .map(|v| Box::new(v) as Box<dyn JsonType>)
+            .is_ok()
+    }
+
+    fn display(&self) -> &str {
+        type_name::<T>()
+    }
+}
+
+/// MetadataDescription is used to check if a `IndexMap<String, Value>`
 /// has certain keys and values of a certain kind.
-#[derive(Debug, Default, PartialEq, Eq)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
-    pub value_kind: Value,
+    /// a default instance of the type that the metadata's value should be
+    /// serialized into
+    pub value_kind: Box<dyn JsonType>,
+}
+
+impl MetadataDescription {
+    /// creates a new instance that contains type T
+    pub fn new<T: Default + JsonType + 'static>(key: String) -> Self {
+        Self {
+            key,
+            value_kind: Box::new(T::default()),
+        }
+    }
+}
+
+impl PartialEq for MetadataDescription {
+    fn eq(&self, other: &Self) -> bool {
+        self.key == other.key && self.value_kind.type_id() == other.value_kind.type_id()
+    }
+}
+
+impl Eq for MetadataDescription {}
+
+impl fmt::Debug for MetadataDescription {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("MetadataDescription")
+            .field("key", &self.key)
+            .field("value_kind", &self.value_kind.display())
+            .finish()
+    }
 }
 
 /// AccountDescription is used to describe a [`AccountIdentifier`].
@@ -164,19 +223,13 @@ pub fn metadata_match(
             MatchOperationsError::MetadataMatchKeyNotFound,
         ))?;
 
-        match (val, &req.value_kind) {
-            (Value::Null, Value::Null)
-            | (Value::Bool(_), Value::Bool(_))
-            | (Value::Number(_), Value::Number(_))
-            | (Value::String(_), Value::String(_))
-            | (Value::Array(_), Value::Array(_))
-            | (Value::Object(_), Value::Object(_)) => {}
-            _ => Err(format!(
-                "value of {} is not of type {}: {}",
+        if !req.value_kind.is_same(val.clone()) {
+            Err(format!(
+                "value of {} is not of type {:?}: {}",
                 req.key,
-                req.value_kind,
+                req.value_kind.display(),
                 MatchOperationsError::MetadataMatchKeyValueMismatch,
-            ))?,
+            ))?
         }
     }
 
@@ -245,7 +298,7 @@ pub fn verify_sub_account_address(
     sub_account: Option<&SubAccountIdentifier>,
 ) -> ParserResult<()> {
     // TODO coinbase never checks nil here
-    if sub_account_address.is_empty() && sub_account.unwrap().address != sub_account_address {
+    if !sub_account_address.is_empty() && sub_account.unwrap().address != sub_account_address {
         Err(format!(
             "expected sub account address {} but got {}: {}",
             sub_account_address,
@@ -281,7 +334,7 @@ pub fn amount_match(req: Option<&AmountDescription>, amount: Option<&Amount>) ->
     if !req.sign.match_(amount) {
         Err(format!(
             "expected amount sign of amount {amount:?} is {}: {}",
-            req.sign.string(),
+            req.sign,
             MatchOperationsError::AmountMatchUnexpectedSign,
         ))?
     }
@@ -345,8 +398,8 @@ pub fn operation_match(
     for (i, des) in descriptions.iter().enumerate() {
         // TODO: coinbase never checks for null here
         let des = des.as_ref().unwrap();
-        if (matches[i].is_some() && !des.allow_repeats)
-            || (!des.type_.is_empty() && des.type_ != operation.type_)
+        if matches[i].is_some() && !des.allow_repeats
+            || !des.type_.is_empty() && des.type_ != operation.type_
             || account_match(des.account.as_ref(), operation.account.as_ref()).is_err()
             || amount_match(des.amount.as_ref(), operation.amount.as_ref()).is_err()
             || metadata_match(&des.metadata, &operation.metadata).is_err()
@@ -674,7 +727,6 @@ pub fn match_operations(
             ))?;
         }
     }
-
     // Error if any OperationDescription is not matched
     for (i, m) in matches.iter().enumerate() {
         // TODO coinbase never checks nil

@@ -1,4 +1,4 @@
-//! TODO
+//! asserts intent of operations
 
 use std::fmt::Write;
 
