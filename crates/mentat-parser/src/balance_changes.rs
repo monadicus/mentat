@@ -32,23 +32,15 @@ impl Parser {
             .operation_successful(op)
             .map_err(|e| format!("failed to check the status of operation {op:?}: {e}"))?;
 
-        if !successful {
-            return Ok(true);
+        if !successful || op.account.is_none() || op.amount.is_none() {
+            Ok(true)
+        } else {
+            Ok(self
+                .exempt_func
+                .as_ref()
+                .map(|ef| ef(op))
+                .unwrap_or_default())
         }
-
-        if op.account.is_none() {
-            return Ok(true);
-        }
-
-        if op.amount.is_none() {
-            return Ok(true);
-        }
-
-        Ok(self
-            .exempt_func
-            .as_ref()
-            .map(|ef| ef(op))
-            .unwrap_or_default())
     }
 
     /// `balance_changes` returns all balance changes for
@@ -79,19 +71,19 @@ impl Parser {
                 // here to ensure we don't accidentally overwrite
                 // the value of op.Amount.
                 // Safe to unwrap here otherwise we would have skipped.
-                let mut amount_value = op.amount.clone().unwrap().value;
-                let block_ident = block.block_identifier.clone();
 
-                if block_removed {
-                    let negated_value = negate_value(&amount_value)
-                        .map_err(|e| format!("failed to flip the sign of {amount_value:?}: {e}"))?;
-                    amount_value = negated_value;
-                }
+                let amount_value = if block_removed {
+                    let value = &op.amount.as_ref().unwrap().value;
+                    negate_value(value)
+                        .map_err(|e| format!("failed to flip the sign of {value:?}: {e}"))?
+                } else {
+                    op.amount.clone().unwrap().value
+                };
 
                 let key = format!(
                     "{}/{}",
                     hash(op.account.as_ref()),
-                    hash(op.amount.as_ref().map(|amt| amt.currency.clone()).as_ref()),
+                    hash(op.amount.as_ref().map(|amt| &amt.currency)),
                 );
 
                 let val = balance_changes.get_mut(&key);
@@ -101,19 +93,18 @@ impl Parser {
                         BalanceChange {
                             account: op.account.clone(),
                             currency: op.amount.as_ref().map(|amt| amt.currency.clone()),
-                            block: block_ident,
+                            block: block.block_identifier.clone(),
                             difference: amount_value,
                         },
                     );
-                    // Continue the inner loop.
-                    continue;
+                } else {
+                    let mut val = val.unwrap();
+                    let new_diff =
+                        add_values(val.difference.as_ref(), &amount_value).map_err(|e| {
+                            format!("failed to add {} and {amount_value:?}: {e}", val.difference)
+                        })?;
+                    val.difference = new_diff;
                 }
-
-                let mut val = val.unwrap();
-                let new_diff = add_values(val.difference.as_ref(), &amount_value).map_err(|e| {
-                    format!("failed to add {} and {amount_value:?}: {e}", val.difference)
-                })?;
-                val.difference = new_diff;
             }
         }
 
