@@ -1,14 +1,14 @@
 //! TODO doc
 
 use std::{
-    any::{Any, TypeId},
+    any::{type_name, Any},
     fmt,
 };
 
 use num_bigint_dig::{BigInt, Sign};
 use num_traits::{sign::Signed, Zero};
 use serde::de::DeserializeOwned;
-use serde_json::{Number, Value};
+use serde_json::Value;
 
 use super::*;
 
@@ -67,11 +67,13 @@ impl AmountSign {
     }
 }
 
-// TODO add `type name` method to get a string of the name of the type
 /// a trait used to aid in type reflection
 pub trait Reflect {
-    /// a method to check if the value matches the type contained by self
+    /// checks if the value matches the type of self by deserializing it
     fn is_same(&self, value: Value) -> bool;
+    /// generates the string representation of the type used by self to help provide info in error messages.
+    /// no guarantees that the paths used by the string will always be the same!
+    fn display(&self) -> &str;
 }
 
 impl<T: DeserializeOwned + 'static> Reflect for T {
@@ -80,16 +82,19 @@ impl<T: DeserializeOwned + 'static> Reflect for T {
             .map(|v| Box::new(v) as Box<dyn Reflect>)
             .is_ok()
     }
+
+    fn display(&self) -> &str {
+        type_name::<T>()
+    }
 }
 
 /// MetadataDescription is used to check if a `IndexMap<String, Value>`
 /// has certain keys and values of a certain kind.
-#[derive(Default)]
 #[allow(clippy::missing_docs_in_private_items)]
 pub struct MetadataDescription {
     pub key: String,
-    // TODO unwrap will cause a panic if the type was created using `default`
-    value_kind: Option<Box<dyn Reflect>>,
+    /// a default instance of the type that the metadata's value should be serialized into
+    pub value_kind: Box<dyn Reflect>,
 }
 
 impl MetadataDescription {
@@ -97,7 +102,7 @@ impl MetadataDescription {
     pub fn new<T: Default + Reflect + 'static>(key: String) -> Self {
         Self {
             key,
-            value_kind: Some(Box::new(T::default())),
+            value_kind: Box::new(T::default()),
         }
     }
 }
@@ -114,8 +119,7 @@ impl fmt::Debug for MetadataDescription {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("MetadataDescription")
             .field("key", &self.key)
-            // TODO: only prints type id
-            .field("value_kind", &self.value_kind.type_id())
+            .field("value_kind", &self.value_kind.display())
             .finish()
     }
 }
@@ -215,13 +219,11 @@ pub fn metadata_match(
             MatchOperationsError::MetadataMatchKeyNotFound,
         ))?;
 
-        // TODO the unwrap here will cause a panic if the type was created using `default`
-        if !req.value_kind.as_ref().unwrap().is_same(val.clone()) {
+        if !req.value_kind.is_same(val.clone()) {
             Err(format!(
                 "value of {} is not of type {:?}: {}",
                 req.key,
-                // TODO: only prints type id
-                req.value_kind.type_id(),
+                req.value_kind.display(),
                 MatchOperationsError::MetadataMatchKeyValueMismatch,
             ))?
         }
