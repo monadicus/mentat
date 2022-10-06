@@ -53,7 +53,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -65,7 +65,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -144,7 +144,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE_OR_ZERO,
+                                    sign: AmountSign::NegativeOrZero,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -156,7 +156,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE_OR_ZERO,
+                                    sign: AmountSign::PositiveOrZero,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -235,7 +235,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::ANY,
+                                    sign: AmountSign::Any,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -247,7 +247,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::ANY,
+                                    sign: AmountSign::Any,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -326,7 +326,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -338,7 +338,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -383,7 +383,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -395,7 +395,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -533,7 +533,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -545,7 +545,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -595,7 +595,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -607,7 +607,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -760,7 +760,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
@@ -776,7 +776,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
@@ -884,7 +884,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
@@ -900,7 +900,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
@@ -969,7 +969,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
@@ -985,7 +985,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
@@ -1050,7 +1050,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
@@ -1066,7 +1066,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
@@ -1169,7 +1169,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     currency: Some(Currency {
                                         symbol: "ETH".into(),
                                         decimals: 18,
@@ -1185,7 +1185,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     currency: Some(Currency {
                                         symbol: "BTC".into(),
                                         decimals: 8,
@@ -1251,7 +1251,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -1263,7 +1263,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -1325,7 +1325,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -1337,7 +1337,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -1427,7 +1427,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -1439,7 +1439,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 ..Default::default()
@@ -2009,7 +2009,7 @@ fn test_match_operations() {
                             }),
                             amount: Some(AmountDescription {
                                 exists: true,
-                                sign: AmountSign::POSITIVE,
+                                sign: AmountSign::Positive,
                                 ..Default::default()
                             }),
                             allow_repeats: true,
@@ -2083,7 +2083,7 @@ fn test_match_operations() {
                             }),
                             amount: Some(AmountDescription {
                                 exists: true,
-                                sign: AmountSign::POSITIVE,
+                                sign: AmountSign::Positive,
                                 ..Default::default()
                             }),
                             allow_repeats: true,
@@ -2133,7 +2133,7 @@ fn test_match_operations() {
                             }),
                             amount: Some(AmountDescription {
                                 exists: true,
-                                sign: AmountSign::POSITIVE,
+                                sign: AmountSign::Positive,
                                 ..Default::default()
                             }),
                             allow_repeats: true,
@@ -2182,7 +2182,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2196,7 +2196,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2283,7 +2283,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2297,7 +2297,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2311,7 +2311,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2435,7 +2435,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2448,7 +2448,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 optional: true,
@@ -2528,7 +2528,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2541,7 +2541,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 optional: true,
@@ -2592,7 +2592,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::POSITIVE,
+                                    sign: AmountSign::Positive,
                                     ..Default::default()
                                 }),
                                 allow_repeats: true,
@@ -2605,7 +2605,7 @@ fn test_match_operations() {
                                 }),
                                 amount: Some(AmountDescription {
                                     exists: true,
-                                    sign: AmountSign::NEGATIVE,
+                                    sign: AmountSign::Negative,
                                     ..Default::default()
                                 }),
                                 optional: true,

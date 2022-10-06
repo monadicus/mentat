@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// TODO
+/// a closure that determines if an operation should be skipped
 pub type ExemptionFunc = Box<dyn Fn(&Operation) -> bool>;
 
 /// `Parser` provides support for parsing Rosetta blocks.

@@ -1,4 +1,4 @@
-//! TODO doc
+//! logic to assert that operations match the expected behavior
 
 use std::{
     any::{type_name, Any},
@@ -12,31 +12,32 @@ use serde_json::Value;
 
 use super::*;
 
-// TODO can this be an enum?
 /// AmountSign is used to represent possible signedness
 /// of an amount.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct AmountSign(pub usize);
+pub enum AmountSign {
+    #[default]
+    /// `ANY` is a positive or negative amount.
+    Any = 0,
+    /// `NEGATIVE` is a negative amount.
+    Negative = 1,
+    /// `POSITIVE` is a positive amount.
+    Positive = 2,
+    /// `POSITIVE_OR_ZERO` is a positive or zero amount.
+    PositiveOrZero = 3,
+    /// `NEGATIVE_OR_ZERO` is a positive or zero amount.
+    NegativeOrZero = 4,
+}
 
 impl AmountSign {
-    /// `ANY` is a positive or negative amount.
-    pub(crate) const ANY: AmountSign = AmountSign(0);
-    /// `NEGATIVE` is a negative amount.
-    pub(crate) const NEGATIVE: AmountSign = AmountSign(1);
-    /// `NEGATIVE_OR_ZERO` is a positive or zero amount.
-    pub(crate) const NEGATIVE_OR_ZERO: AmountSign = AmountSign(4);
     /// OPPOSITES_LENGTH is the only allowed number of
     /// operations to compare as opposites.
     pub(crate) const OPPOSITES_LENGTH: usize = 2;
-    /// `POSITIVE` is a positive amount.
-    pub(crate) const POSITIVE: AmountSign = AmountSign(2);
-    /// `POSITIVE_OR_ZERO` is a positive or zero amount.
-    pub(crate) const POSITIVE_OR_ZERO: AmountSign = AmountSign(3);
 
     /// match_ returns a boolean indicating if an [`Amount`]
     /// has an [`AmountSign`].
     pub fn match_(self, amount: Option<&Amount>) -> bool {
-        if self == Self::ANY {
+        if self == Self::Any {
             return true;
         }
 
@@ -46,23 +47,23 @@ impl AmountSign {
             return false;
         };
 
-        (self == Self::NEGATIVE && numeric.sign() == Sign::Minus)
-            || (self == Self::POSITIVE && numeric.sign() == Sign::Plus)
-            || (self == Self::POSITIVE_OR_ZERO
+        (self == Self::Negative && numeric.sign() == Sign::Minus)
+            || (self == Self::Positive && numeric.sign() == Sign::Plus)
+            || (self == Self::PositiveOrZero
                 && (numeric.sign() == Sign::Plus || numeric.bits() == 0))
-            || (self == Self::NEGATIVE_OR_ZERO
+            || (self == Self::NegativeOrZero
                 && (numeric.sign() == Sign::Minus || numeric.bits() == 0))
     }
+}
 
-    /// string returns a description of an [`AmountSign`].
-    pub fn string(self) -> &'static str {
+impl fmt::Display for AmountSign {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ANY => "any",
-            Self::NEGATIVE => "negative",
-            Self::POSITIVE => "positive",
-            Self::POSITIVE_OR_ZERO => "positive or zero",
-            Self::NEGATIVE_OR_ZERO => "negative or zero",
-            _ => "invalid",
+            Self::Any => write!(f, "any"),
+            Self::Negative => write!(f, "negative"),
+            Self::Positive => write!(f, "positive"),
+            Self::PositiveOrZero => write!(f, "positive or zero"),
+            Self::NegativeOrZero => write!(f, "negative or zero"),
         }
     }
 }
@@ -333,7 +334,7 @@ pub fn amount_match(req: Option<&AmountDescription>, amount: Option<&Amount>) ->
     if !req.sign.match_(amount) {
         Err(format!(
             "expected amount sign of amount {amount:?} is {}: {}",
-            req.sign.string(),
+            req.sign,
             MatchOperationsError::AmountMatchUnexpectedSign,
         ))?
     }

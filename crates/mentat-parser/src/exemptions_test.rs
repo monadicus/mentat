@@ -230,6 +230,9 @@ fn test_find_exemptions() {
     TestCase::run_output_match(tests, |t| {
         t.caller
             .find_exemptions(&t.payload.account, t.payload.currency.as_ref())
+            .into_iter()
+            .cloned()
+            .collect()
     });
 }
 
@@ -594,6 +597,6 @@ fn test_match_balance_exemption() {
         let exemptions = t
             .caller
             .find_exemptions(&t.payload.account, t.payload.currency.as_ref());
-        match_balance_exemption(exemptions, &t.payload.difference)
+        match_balance_exemption(&exemptions, &t.payload.difference).cloned()
     });
 }
