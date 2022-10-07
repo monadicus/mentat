@@ -3,7 +3,6 @@ use mentat_asserter::{
     AccountBalanceError, AsserterError, BlockError, CoinError, ConstructionError, ErrorError,
     EventError, NetworkError, SearchError, ServerError, UtilError,
 };
-use mentat_utils::utils::AccountBalance;
 use serde_json::Value;
 use std::fmt;
 use thiserror::Error;

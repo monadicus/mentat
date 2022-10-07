@@ -111,7 +111,7 @@ impl Job {
         reserved_variable: ReservedVariable,
     ) -> JobResult<usize> {
         let v = get_json(&self.state, scenario_name)
-            .and_then(|v| get_json(&v, &reserved_variable.to_string()))
+            .and_then(|v| get_json(v, &reserved_variable.to_string()))
             .ok_or(JobError::VariableNotFound)?;
         v.as_u64()
             .map(|v| v as usize)
@@ -124,7 +124,7 @@ impl Job {
         reserved_variable: ReservedVariable,
     ) -> JobResult<bool> {
         let v = get_json(&self.state, scenario_name)
-            .and_then(|v| get_json(&v, &reserved_variable.to_string()))
+            .and_then(|v| get_json(v, &reserved_variable.to_string()))
             .ok_or(JobError::VariableNotFound)?;
         // TODO they never return an error here if its not a bool?
         v.as_bool().ok_or(JobError::VariableIncorrectFormat)
@@ -136,7 +136,7 @@ impl Job {
         reserved_variable: ReservedVariable,
     ) -> JobResult<T> {
         let v = get_json(&self.state, scenario_name)
-            .and_then(|v| get_json(&v, &reserved_variable.to_string()))
+            .and_then(|v| get_json(v, &reserved_variable.to_string()))
             .ok_or(JobError::VariableNotFound)?
             .clone();
         Self::deserialize_value(v)

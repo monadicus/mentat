@@ -139,6 +139,27 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Self::runner(tests, func, check_results_match::<Ok, Err>);
     }
 
+    /// Runs all tests with the given async function and asserts the output exactly
+    /// matches `self.criteria`. Requires `self.criteria` to be a `Result`
+    /// type with the same type's as the output of the given test function.
+    /// Will panic if any tests fail to match the expected criteria.
+    /// If you want to match something other that a `Result` or don't care about
+    /// having a detailed error message then try [`TestCase::run_async_output_match`].
+    pub fn run_async_result_match<F, Fut, Ok, Err>(tests: Vec<Self>, func: F)
+    where
+        Res: Into<Result<Ok, Err>>,
+        F: Fn(Payload) -> Fut,
+        Fut: Future<Output = Res>,
+        Ok: fmt::Debug + PartialEq,
+        Err: fmt::Debug + PartialEq,
+    {
+        futures::executor::block_on(Self::async_runner(
+            tests,
+            func,
+            check_results_match::<Ok, Err>,
+        ));
+    }
+
     pub fn run_ok_match_err_contains<F, Ok, Err>(tests: Vec<Self>, func: F)
     where
         Res: Into<Result<Ok, Err>>,
@@ -149,7 +170,12 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Self::runner(tests, func, check_ok_match_err_contains::<Ok, Err>);
     }
 
-    /// TODO
+    /// Runs all tests with the given async function and asserts the output exactly
+    /// matches `self.criteria`. Requires `self.criteria` to be the same
+    /// type as the output of the given test function. Will panic if any
+    /// tests fail to match the expected criteria. If you're matching a
+    /// `Result` and want a more detailed error message, then try
+    /// [`TestCase::async_run_result_match`]
     pub fn run_async_output_match<F, Fut>(tests: Vec<Self>, func: F)
     where
         Res: PartialEq + fmt::Debug,

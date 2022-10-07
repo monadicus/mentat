@@ -1,6 +1,6 @@
 // pub TODO: these all need to be unchecked structs
 
-use std::{fmt, time::Duration};
+use std::fmt;
 
 use mentat_types::{
     AccountIdentifier, Amount, CoinIdentifier, CurveType, Metadata, NetworkIdentifier, Operation,
@@ -156,11 +156,12 @@ pub enum MathOperation {
 
 /// HttpMethod is a type representing
 /// allowed HTTP methods.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum HttpMethod {
     Get,
     Post,
     /// fallback for when deserializing fails
+    #[default]
     #[serde(other)]
     Unknown,
 }
@@ -317,6 +318,55 @@ pub struct FindBalanceInput {
     pub create_probability: u32,
 }
 
+impl fmt::Display for FindBalanceInput {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "looking for {} {}",
+            if self.require_coin { "coin" } else { "balance" },
+            serde_json::to_string(&self.minimum_balance).unwrap()
+        )?;
+
+        if let Some(id) = &self.account_identifier {
+            write!(f, " on account {}", serde_json::to_string(&id).unwrap())?;
+        }
+
+        if let Some(id) = &self.sub_account_identifier {
+            write!(
+                f,
+                " with sub_account {}",
+                serde_json::to_string(&id).unwrap()
+            )?;
+        }
+
+        if !self.not_address.is_empty() {
+            write!(
+                f,
+                " != to addresses {}",
+                serde_json::to_string(&self.not_address).unwrap()
+            )?;
+        }
+
+        if !self.not_account_identifier.is_empty() {
+            write!(
+                f,
+                " != to accounts {}",
+                serde_json::to_string(&self.not_account_identifier).unwrap()
+            )?;
+        }
+
+        if !self.not_coins.is_empty() {
+            write!(
+                f,
+                " != to coins {}",
+                serde_json::to_string(&self.not_coins).unwrap()
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
 /// FindBalanceOutput is returned by FindBalance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FindBalanceOutput {
@@ -348,7 +398,7 @@ pub struct FindCurrencyAmountInput {
 }
 
 /// the input to an HTTP Request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HttpRequestInput {
     pub method: HttpMethod,
     pub url: String,

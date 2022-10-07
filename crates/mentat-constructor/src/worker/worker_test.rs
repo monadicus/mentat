@@ -1,3 +1,10 @@
+use httptest::{
+    bytes::Bytes,
+    http::Request,
+    matchers::{ExecutionContext, Matcher},
+    responders::status_code,
+    Expectation, Server,
+};
 use indexmap::{indexmap, IndexMap};
 use mentat_asserter::{AccountBalanceError, BlockError, ConstructionError};
 use mentat_test_utils::TestCase;
@@ -5,10 +12,14 @@ use mentat_types::{
     AccountIdentifier, Amount, CoinIdentifier, Currency, SubAccountIdentifier, UncheckedAmount,
     UncheckedCurrency,
 };
-use reqwest::StatusCode;
+use reqwest::{Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
-use std::fmt::Debug;
+use std::{
+    fmt::{self, Debug},
+    thread::sleep,
+    time::Duration,
+};
 
 use crate::{
     helpers::get_json,
@@ -16,7 +27,10 @@ use crate::{
     job::{Action, ActionType, FindBalanceInput, FindBalanceOutput, HttpMethod, HttpRequestInput},
 };
 
-use super::errors::{VerboseWorkerError, WorkerError};
+use super::{
+    errors::{VerboseWorkerError, WorkerError},
+    http_request_worker, Worker,
+};
 
 fn unchecked_currency() -> Option<UncheckedCurrency> {
     Some(UncheckedCurrency {
@@ -66,7 +80,8 @@ fn test_balance_message() {
                 minimum_balance: unchecked_amount_100(),
                 ..Default::default()
             },
-            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals"#,
+            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}}"#
+                .to_string(),
         },
         TestCase {
             name: "message with account",
@@ -78,7 +93,7 @@ fn test_balance_message() {
                 minimum_balance: unchecked_amount_100(),
                 ..Default::default()
             },
-            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} on account {"address":"hello"}"#,
+            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} on account {"address":"hello"}"#.into(),
         },
         TestCase {
             name: "message with only subaccount",
@@ -90,7 +105,7 @@ fn test_balance_message() {
                 minimum_balance: unchecked_amount_100(),
                 ..Default::default()
             },
-            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} with sub_account {"address":"sub hello"}"#,
+            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} with sub_account {"address":"sub hello"}"#.into(),
         },
         TestCase {
             name: "message with not address",
@@ -99,7 +114,7 @@ fn test_balance_message() {
                 minimum_balance: unchecked_amount_100(),
                 ..Default::default()
             },
-            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} != to addresses ["good","bye"]"#,
+            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} != to addresses ["good","bye"]"#.into(),
         },
         TestCase {
             name: "message with not account",
@@ -118,7 +133,7 @@ fn test_balance_message() {
 
                 ..Default::default()
             },
-            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} != to accounts [{"address":"good"},{"address":"bye"}]"#,
+            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} != to accounts [{"address":"good"},{"address":"bye"}]"#.into(),
         },
         TestCase {
             name: "message with account and not coins",
@@ -133,11 +148,11 @@ fn test_balance_message() {
                 }],
                 ..Default::default()
             },
-            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} on account {"address":"hello"} != to coins [{"identifier":"coin1"}]"#,
+            criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} on account {"address":"hello"} != to coins [{"identifier":"coin1"}]"#.into(),
         },
     ];
 
-    todo!()
+    TestCase::run_output_match(tests, |test| test.to_string());
 }
 
 #[derive(Debug, Clone)]
@@ -1011,36 +1026,29 @@ fn test_job_failures() {
     todo!()
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 struct TestHttpRequestWorkerPayload {
     input: HttpRequestInput,
     dont_prepend_url: bool,
-}
-
-#[derive(Debug, Clone)]
-struct TestHttpRequestWorkerCriteria {
     expected_path: &'static str,
-    expected_latency: usize,
-    expected_method: HttpMethod,
+    expected_latency: Duration,
+    expected_method: Method,
     expected_body: Value,
     response: Value,
     content_type: &'static str,
     status_code: StatusCode,
-    output: Result<Value, WorkerError>,
 }
 
-impl Default for TestHttpRequestWorkerCriteria {
-    fn default() -> Self {
-        Self {
-            expected_path: Default::default(),
-            expected_latency: Default::default(),
-            expected_method: HttpMethod::Get,
-            expected_body: Default::default(),
-            response: Default::default(),
-            content_type: Default::default(),
-            status_code: Default::default(),
-            output: Ok(Value::default()),
-        }
+impl Matcher<Request<Bytes>> for TestHttpRequestWorkerPayload {
+    fn matches(&mut self, input: &Request<Bytes>, _: &mut ExecutionContext) -> bool {
+        sleep(self.expected_latency);
+        input.method() == self.expected_method
+            && input.uri() == self.expected_path
+            && matches!(serde_json::to_value(input.body().as_ref()), Ok(b) if b == self.expected_body)
+    }
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 
@@ -1057,17 +1065,15 @@ fn test_http_request_worker() {
                     body: Default::default(),
                 },
                 dont_prepend_url: false,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
                 expected_path: "/faucet?test=123",
-                expected_latency: 1,
-                expected_method: HttpMethod::Get,
+                expected_latency: Duration::from_millis(1),
+                expected_method: HttpMethod::Get.into(),
                 expected_body: json!(""),
                 response: json!({"money":100}),
                 content_type: "application/json; charset=UTF-8",
                 status_code: StatusCode::OK,
-                output: Ok(json!({"money":100})),
             },
+            criteria: Ok(json!({"money":100})),
         },
         TestCase {
             name: "simple post",
@@ -1079,17 +1085,15 @@ fn test_http_request_worker() {
                     body: json!({"address":"123"}),
                 },
                 dont_prepend_url: false,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
                 expected_path: "/faucet",
-                expected_latency: 1,
-                expected_method: HttpMethod::Post,
+                expected_latency: Duration::from_millis(1),
+                expected_method: HttpMethod::Post.into(),
                 expected_body: json!({"address":"123"}),
                 response: json!({"money":100}),
                 content_type: "application/json; charset=UTF-8",
                 status_code: StatusCode::OK,
-                output: Ok(json!({"money":100})),
             },
+            criteria: Ok(json!({"money":100})),
         },
         TestCase {
             name: "invalid method",
@@ -1102,11 +1106,9 @@ fn test_http_request_worker() {
                     body: json!({"address":"123"}),
                 },
                 dont_prepend_url: false,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
-                output: Err(WorkerError::InvalidInput),
                 ..Default::default()
             },
+            criteria: Err(WorkerError::InvalidInput),
         },
         TestCase {
             name: "invalid timeout",
@@ -1118,11 +1120,9 @@ fn test_http_request_worker() {
                     body: json!({"address":"123"}),
                 },
                 dont_prepend_url: false,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
-                output: Err(WorkerError::InvalidInput),
                 ..Default::default()
             },
+            criteria: Err(WorkerError::InvalidInput),
         },
         TestCase {
             name: "no url",
@@ -1134,11 +1134,9 @@ fn test_http_request_worker() {
                     body: json!({"address":"123"}),
                 },
                 dont_prepend_url: true,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
-                output: Err(WorkerError::String("empty url".into())),
                 ..Default::default()
             },
+            criteria: Err(WorkerError::String("empty url".into())),
         },
         TestCase {
             name: "invalid url",
@@ -1150,11 +1148,9 @@ fn test_http_request_worker() {
                     body: json!({"address":"123"}),
                 },
                 dont_prepend_url: true,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
-                output: Err(WorkerError::String("invalid URI for request".into())),
                 ..Default::default()
             },
+            criteria: Err(WorkerError::String("invalid URI for request".into())),
         },
         TestCase {
             name: "timeout",
@@ -1166,20 +1162,17 @@ fn test_http_request_worker() {
                     body: Default::default(),
                 },
                 dont_prepend_url: false,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
                 expected_path: "/faucet?test=123",
-                expected_latency: 1200,
-                expected_method: HttpMethod::Get,
+                expected_latency: Duration::from_millis(1200),
+                expected_method: HttpMethod::Get.into(),
                 expected_body: json!(""),
                 response: json!({"money":100}),
                 content_type: "application/json; charset=UTF-8",
                 status_code: StatusCode::OK,
-                output: Err(WorkerError::String(
-                    "context deadline exceeded (Client.Timeout exceeded while awaiting headers)"
-                        .into(),
-                )),
             },
+            criteria: Err(WorkerError::String(
+                "context deadline exceeded (Client.Timeout exceeded while awaiting headers)".into(),
+            )),
         },
         TestCase {
             name: "error",
@@ -1191,17 +1184,15 @@ fn test_http_request_worker() {
                     body: Default::default(),
                 },
                 dont_prepend_url: false,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
                 expected_path: "/faucet?test=123",
-                expected_latency: 1,
-                expected_method: HttpMethod::Get,
+                expected_latency: Duration::from_millis(1),
+                expected_method: HttpMethod::Get.into(),
                 expected_body: json!(""),
                 response: json!({"money":100}),
                 content_type: "application/json; charset=UTF-8",
                 status_code: StatusCode::INTERNAL_SERVER_ERROR,
-                output: Err(WorkerError::ActionFailed),
             },
+            criteria: Err(WorkerError::ActionFailed),
         },
         // we don't throw an error
         TestCase {
@@ -1214,20 +1205,35 @@ fn test_http_request_worker() {
                     body: Default::default(),
                 },
                 dont_prepend_url: false,
-            },
-            criteria: TestHttpRequestWorkerCriteria {
                 expected_path: "/faucet?test=123",
-                expected_latency: 1,
-                expected_method: HttpMethod::Get,
+                expected_latency: Duration::from_millis(1),
+                expected_method: HttpMethod::Get.into(),
                 expected_body: json!(""),
                 response: json!({"money":100}),
                 content_type: "text/plain",
                 status_code: StatusCode::OK,
-                output: Ok(json!({"money":100})),
             },
+            criteria: Ok(json!({"money":100})),
         },
     ];
-    todo!()
+
+    TestCase::run_async_result_match(tests, |mut test| async move {
+        let ts = Server::run();
+        ts.expect(
+            Expectation::matching(test.clone()).respond_with(
+                status_code(test.status_code.into())
+                    .append_header("Content-Type", test.content_type)
+                    .body(test.response.to_string()),
+            ),
+        );
+
+        if !test.dont_prepend_url {
+            test.input.url = ts.url_str(&test.input.url)
+        }
+
+        let value = serde_json::to_value(test.input).unwrap();
+        http_request_worker(value).await
+    });
 }
 
 #[derive(Debug, Clone)]

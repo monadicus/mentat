@@ -28,3 +28,4 @@ rand_regex = "0.15.1"
 
 [dev-dependencies]
 mentat-test-utils = { path = "../mentat-test-utils" }
+httptest = "0.15.4"

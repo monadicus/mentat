@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::worker::errors::WorkerError;
 
 use super::errors::WorkerResult;

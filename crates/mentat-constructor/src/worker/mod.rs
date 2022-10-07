@@ -39,7 +39,7 @@ use self::{
     populator::populate_input,
 };
 
-use std::{env, fmt::Write, str::FromStr, time::Duration};
+use std::{env, str::FromStr, time::Duration};
 
 /// Worker processes jobs.
 pub struct Worker<T: Helper>(T);
@@ -54,25 +54,25 @@ impl<T: Helper> Worker<T> {
         &mut self,
         db_tx: &impl Transaction,
         action: ActionType,
-        input: &Value,
+        input: Value,
     ) -> WorkerResult<Option<Value>> {
         match action {
-            ActionType::SetVariable => Ok(Some(input.clone())),
-            ActionType::GenerateKey => Self::generate_key_worker(input).map(Some),
+            ActionType::SetVariable => Ok(Some(input)),
+            ActionType::GenerateKey => generate_key_worker(input).map(Some),
             ActionType::Derive => self.derive_worker(input).map(Some),
             ActionType::SaveAccount => self.save_account_worker(db_tx, input).map(|_| None),
             ActionType::PrintMessage => {
-                Self::print_message_worker(input);
+                print_message_worker(&input);
                 Ok(None)
             }
-            ActionType::RandomString => Self::random_string_worker(input).map(Some),
-            ActionType::Math => Self::math_worker(input).map(Some),
+            ActionType::RandomString => random_string_worker(input).map(Some),
+            ActionType::Math => math_worker(input).map(Some),
             ActionType::FindBalance => self.find_balance_worker(db_tx, input).map(Some),
-            ActionType::RandomNumber => Self::random_number_worker(input).map(Some),
-            ActionType::Assert => Self::assert_worker(input).map(|_| None),
-            ActionType::FindCurrencyAmount => Self::find_currency_amount_worker(input).map(Some),
-            ActionType::LoadEnv => Self::load_env_worker(input),
-            ActionType::HttpRequest => Self::http_request_worker(input).await.map(Some),
+            ActionType::RandomNumber => random_number_worker(input).map(Some),
+            ActionType::Assert => assert_worker(input).map(|_| None),
+            ActionType::FindCurrencyAmount => find_currency_amount_worker(input).map(Some),
+            ActionType::LoadEnv => load_env_worker(input),
+            ActionType::HttpRequest => http_request_worker(input).await.map(Some),
             ActionType::SetBlob => self.set_blob_worker(db_tx, input).map(|_| None),
             ActionType::GetBlob => self.get_blob_worker(db_tx, input).map(Some),
             ActionType::Unknown => Err(WorkerError::InvalidActionType),
@@ -96,7 +96,7 @@ impl<T: Helper> Worker<T> {
                 })?;
 
             let output = self
-                .invoke_worker(db_tx, action.type_, &processed_input)
+                .invoke_worker(db_tx, action.type_, processed_input.clone())
                 .await
                 .map_err(|e| VerboseWorkerError {
                     action_index: i,
@@ -184,9 +184,9 @@ impl<T: Helper> Worker<T> {
 
     /// DeriveWorker attempts to derive an account given a
     /// *types.ConstructionDeriveRequest input.
-    pub fn derive_worker(&self, raw_input: &Value) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<UncheckedConstructionDeriveRequest>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
+    pub fn derive_worker(&self, raw_input: Value) -> WorkerResult<Value> {
+        let input = Job::deserialize_value::<UncheckedConstructionDeriveRequest>(raw_input)
+            .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
         public_key(input.public_key.as_ref())
             .map_err(|e| format!("public key {:?} is invalid: {e}", input.public_key))?;
@@ -207,25 +207,15 @@ impl<T: Helper> Worker<T> {
         }))
     }
 
-    /// GenerateKeyWorker attempts to generate a key given a
-    /// *GenerateKeyInput input.
-    pub fn generate_key_worker(raw_input: &Value) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<GenerateKeyInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input: {e}"))?;
-        let kp = generate_key_pair(&input.curve_type)
-            .map_err(|e| format!("failed to generate key pair: {e}"))?;
-        Ok(json!(kp))
-    }
-
     /// SaveAccountWorker saves a *types.AccountIdentifier and associated KeyPair
     /// in KeyStorage.
     pub fn save_account_worker(
         &mut self,
         db_tx: &impl Transaction,
-        raw_input: &Value,
+        raw_input: Value,
     ) -> WorkerResult<()> {
-        let input = Job::deserialize_value::<SaveAccountInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
+        let input = Job::deserialize_value::<SaveAccountInput>(raw_input)
+            .map_err(|e| format!("failed to deserialize input {e}"))?;
         account_identifier(input.account_identifier.as_ref()).map_err(|e| {
             format!(
                 "account identifier {:?} is invalid: {e}",
@@ -240,102 +230,6 @@ impl<T: Helper> Worker<T> {
                 input.key_pair.as_ref().unwrap(),
             )
             .map_err(|e| format!("failed to store key: {e}").into())
-    }
-
-    /// PrintMessageWorker logs some message to stdout.
-    pub fn print_message_worker(message: &Value) {
-        println!("Message: {message}")
-    }
-
-    /// RandomStringWorker generates a string that complies
-    /// with the provided regex input.
-    pub fn random_string_worker(raw_input: &Value) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<RandomStringInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
-
-        let reg = Regex::compile(&input.regex, input.limit).map_err(|e| {
-            format!("failed to generate a string with the provided regex input: {e}")
-        })?;
-        let output: String = thread_rng().sample(&reg);
-
-        Ok(Value::String(output))
-    }
-
-    /// MathWorker performs some MathOperation on 2 numbers.
-    pub fn math_worker(raw_input: &Value) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<MathInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input: {e}"))?;
-
-        let result = match input.operation {
-            MathOperation::Addition => add_values(&input.left_value, &input.right_value),
-            MathOperation::Subtraction => sub_values(&input.left_value, &input.right_value),
-            MathOperation::Multiplication => multiply_values(&input.left_value, &input.right_value),
-            MathOperation::Division => divide_values(&input.left_value, &input.right_value),
-            MathOperation::Unknown => {
-                // TODO: fallback enum variant doesnt retain the invalid text
-                return Err(format!(
-                    "math operation UNKNOWN is invalid: {}",
-                    WorkerError::InputOperationIsNotSupported
-                )
-                .into());
-            }
-        }
-        .map_err(|e| format!("failed to perform math operation: {e}"))?;
-
-        Ok(Value::String(result))
-    }
-
-    /// RandomNumberWorker generates a random number in the range
-    /// [minimum,maximum).
-    pub fn random_number_worker(raw_input: &Value) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<RandomNumberInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
-
-        let min = big_int(&input.minimum)
-            .map_err(|e| format!("failed to convert string {} to big int: {e}", input.minimum))?;
-        let max = big_int(&input.maximum)
-            .map_err(|e| format!("failed to convert string {} to big int: {e}", input.maximum))?;
-
-        let rand_num = random_number(&min, &max)
-            .map_err(|e| format!("failed to return random number in [{min}-{max}]: {e}"))?;
-
-        Ok(Value::String(rand_num.to_string()))
-    }
-
-    /// balanceMessage prints out a log message while waiting
-    /// that reflects the *FindBalanceInput.
-    pub fn balance_message(input: &FindBalanceInput) -> String {
-        let mut message = format!(
-            "looking for {} {:?}",
-            if input.require_coin {
-                "coin"
-            } else {
-                "balance"
-            },
-            input.minimum_balance
-        );
-
-        if let Some(id) = &input.account_identifier {
-            write!(message, "on account {id:?}").unwrap();
-        }
-
-        if let Some(id) = &input.sub_account_identifier {
-            write!(message, "with sub_account {id:?}").unwrap();
-        }
-
-        if !input.not_address.is_empty() {
-            write!(message, "!= to addresses {:?}", input.not_address).unwrap();
-        }
-
-        if !input.not_account_identifier.is_empty() {
-            write!(message, "!= to accounts {:?}", input.not_account_identifier).unwrap();
-        }
-
-        if !input.not_coins.is_empty() {
-            write!(message, "!= to coins {:?}", input.not_coins).unwrap();
-        }
-
-        message
     }
 
     fn check_account_coins(
@@ -458,82 +352,21 @@ impl<T: Helper> Worker<T> {
         Ok((accounts, unlocked_accounts))
     }
 
-    fn should_create_random_account(input: &FindBalanceInput, account_count: usize) -> bool {
-        !(input.minimum_balance.as_ref().unwrap().value != "0"
-            || input.create_limit <= 0
-            || account_count >= input.create_limit as usize)
-            && thread_rng().gen_ratio(input.create_probability, 100)
-    }
-
-    /// findBalanceWorkerInputValidation ensures the input to FindBalanceWorker
-    /// is valid.
-    pub fn find_balance_worker_input_validation(input: &FindBalanceInput) -> WorkerResult<()> {
-        amount(input.minimum_balance.as_ref()).map_err(|e| {
-            format!(
-                "minimum balance {:?} is invalid: {e}",
-                input.minimum_balance
-            )
-        })?;
-
-        if let Some(id) = &input.account_identifier {
-            account_identifier(Some(id))
-                .map_err(|e| format!("account identifier {id:?} is invalid: {e}"))?;
-            if input.sub_account_identifier.is_some() {
-                Err("cannot populate both account and sub account")?;
-            } else if input.not_account_identifier.is_empty() {
-                Err("cannot populate both account and not accounts")?;
-            } else if input.not_address.is_empty() {
-                Err("cannot populate both account and not addresses")?;
-            }
-        }
-
-        if !input.not_account_identifier.is_empty() {
-            account_array("not account identifier", &input.not_account_identifier).map_err(
-                |e| {
-                    format!(
-                        "account identifiers of not account identifier {:?} are invalid: {e}",
-                        input.not_account_identifier
-                    )
-                },
-            )?;
-        }
-
-        Ok(())
-    }
-
-    fn skip_account(input: &FindBalanceInput, account: &AccountIdentifier) -> bool {
-        // TODO: cloning shouldnt be needed here
-        // If we require an account and that account
-        // is not equal to the account we are considering,
-        // we should continue.
-        matches!(&input.account_identifier, Some(id) if id != account)
-        	// If we specify not to use certain addresses and we are considering
-	        // one of them, we should continue.
-            || input.not_address.contains(&account.address)
-            // If we specify that we do not use certain accounts
-            // and the account we are considering is one of them,
-            // we should continue.
-            || input.not_account_identifier.contains(&Some(account.clone()))
-	        // If we require a particular SubAccountIdentifier, we skip
-	        // if the account we are examining does not have it.
-            || matches!(&input.sub_account_identifier, Some(id) if account.sub_account.is_none() || account.sub_account == Some(id.clone()))
-    }
-
     /// FindBalanceWorker attempts to find an account (and coin) with some minimum
     /// balance in a particular currency.
     pub fn find_balance_worker(
         &self,
         db_tx: &impl Transaction,
-        raw_input: &Value,
+        raw_input: Value,
     ) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<FindBalanceInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
+        let input = Job::deserialize_value::<FindBalanceInput>(raw_input)
+            .map_err(|e| format!("failed to deserialize input {e}"))?;
 
         // Validate that input is properly formatted
-        Self::find_balance_worker_input_validation(&input)
+        find_balance_worker_input_validation(&input)
             .map_err(|e| format!("failed to validate the input of find balance worker: {e}"))?;
 
-        println!("{}", Self::balance_message(&input));
+        println!("{input}");
 
         let (accounts, available_accounts) = self
             .available_accounts(db_tx)
@@ -541,14 +374,14 @@ impl<T: Helper> Worker<T> {
 
         // Randomly, we choose to generate a new account. If we didn't do this,
         // we would never grow past 2 accounts for mocking transfers.
-        if Self::should_create_random_account(&input, accounts.len()) {
+        if should_create_random_account(&input, accounts.len()) {
             Err(WorkerError::CreateAccount)?;
         }
 
         let mut unmatched_accounts = Vec::new();
         // Consider each available account as a potential account.
         for account in &available_accounts {
-            if Self::skip_account(&input, account) {
+            if skip_account(&input, account) {
                 continue;
             }
 
@@ -588,126 +421,11 @@ impl<T: Helper> Worker<T> {
         }
     }
 
-    /// AssertWorker checks if an input is < 0.
-    pub fn assert_worker(raw_input: &Value) -> WorkerResult<()> {
-        // todo: is this needed??
-        // We deserialize the input here to handle string
-        // unwrapping automatically.
-        let input = Job::deserialize_value::<String>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
-
-        let val = BigInt::from_str(&input)
-            .map_err(|e| format!("failed to convert the string {input} to big int: {e}"))?;
-
-        if val.sign() == Sign::Minus {
-            Err(format!("{val} < 0: {}", WorkerError::ActionFailed).into())
-        } else {
-            Ok(())
-        }
-    }
-
-    /// FindCurrencyAmountWorker finds a *types.Amount with a specific
-    /// *types.Currency in a []*types.Amount.
-    pub fn find_currency_amount_worker(raw_input: &Value) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<FindCurrencyAmountInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
-
-        currency(input.currency.as_ref())
-            .map_err(|e| format!("currency {:?} is invalid: {e}", input.currency))?;
-
-        assert_unique_amounts(&input.amounts)
-            .map_err(|e| format!("amount {:?} is invalid: {e}", input.amounts))?;
-
-        input
-            .amounts
-            .iter()
-            .flatten()
-            .find(|amount| amount.currency == input.currency)
-            .map(|a| json!(a))
-            .ok_or_else(|| {
-                format!(
-                    "unable to find currency {:?}: {}",
-                    input.currency,
-                    WorkerError::ActionFailed
-                )
-                .into()
-            })
-    }
-
-    /// LoadEnvWorker loads an environment variable and stores
-    /// it in state. This is useful for algorithmic fauceting.
-    pub fn load_env_worker(raw_input: &Value) -> WorkerResult<Option<Value>> {
-        // todo: is this needed??
-        // We deserialize the input here to handle string
-        // unwrapping automatically.
-        let input = Job::deserialize_value::<String>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
-
-        Ok(env::var(input).ok().map(|v| json!(v)))
-    }
-
-    /// HTTPRequestWorker makes an HTTP request and returns the response to
-    /// store in a variable. This is useful for algorithmic fauceting.
-    pub async fn http_request_worker(raw_input: &Value) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<HttpRequestInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
-
-        let url = Url::parse(&input.url)
-            .map_err(|e| format!("failed to parse request URI {}: {e}", input.url))?;
-
-        let client = Client::builder()
-            .timeout(Duration::from_secs(input.timeout.try_into().map_err(
-                |_| {
-                    format!(
-                        "{} is not a valid timeout: {}",
-                        input.timeout,
-                        WorkerError::InvalidInput
-                    )
-                },
-            )?))
-            .build()
-            .unwrap();
-
-        let mut request = Request::new(input.method.into(), url);
-        request
-            .headers_mut()
-            .append("Accept", HeaderValue::from_static("application/json"));
-        if input.method == HttpMethod::Post {
-            *request.body_mut() = Some(input.body.to_string().into());
-            request
-                .headers_mut()
-                .insert("Content-Type", HeaderValue::from_static("application/json"));
-        }
-
-        let resp = client
-            .execute(request)
-            .await
-            .map_err(|e| format!("failed to send request: {e}"))?;
-
-        let status = resp.status();
-        let body = resp
-            .json::<Value>()
-            .await
-            .map_err(|e| format!("failed to read response: {e}"))?;
-
-        if status != StatusCode::OK {
-            Err(format!(
-                "status code  {} with body {}: {}",
-                status,
-                body,
-                WorkerError::ActionFailed
-            )
-            .into())
-        } else {
-            Ok(body)
-        }
-    }
-
     /// SetBlobWorker transactionally saves a key and value for use
     /// across workflows.
-    pub fn set_blob_worker(&self, db_tx: &impl Transaction, raw_input: &Value) -> WorkerResult<()> {
-        let input = Job::deserialize_value::<SetBlobInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
+    pub fn set_blob_worker(&self, db_tx: &impl Transaction, raw_input: Value) -> WorkerResult<()> {
+        let input = Job::deserialize_value::<SetBlobInput>(raw_input)
+            .map_err(|e| format!("failed to deserialize input {e}"))?;
 
         // TODO may be doing this wrong
         // By using Value for key, we can ensure that JSON
@@ -723,10 +441,10 @@ impl<T: Helper> Worker<T> {
     pub fn get_blob_worker(
         &self,
         db_tx: &impl Transaction,
-        raw_input: &Value,
+        raw_input: Value,
     ) -> WorkerResult<Value> {
-        let input = Job::deserialize_value::<GetBlobInput>(raw_input.clone())
-            .map_err(|e| format!("failed to deserialize input {raw_input}: {e}"))?;
+        let input = Job::deserialize_value::<GetBlobInput>(raw_input)
+            .map_err(|e| format!("failed to deserialize input {e}"))?;
 
         // TODO may be doing this wrong
         // By using Value for key, we can ensure that JSON
@@ -747,5 +465,248 @@ impl<T: Helper> Worker<T> {
         } else {
             Ok(val)
         }
+    }
+}
+
+/// GenerateKeyWorker attempts to generate a key given a
+/// *GenerateKeyInput input.
+pub fn generate_key_worker(raw_input: Value) -> WorkerResult<Value> {
+    let input = Job::deserialize_value::<GenerateKeyInput>(raw_input)
+        .map_err(|e| format!("failed to deserialize input: {e}"))?;
+    let kp = generate_key_pair(&input.curve_type)
+        .map_err(|e| format!("failed to generate key pair: {e}"))?;
+    Ok(json!(kp))
+}
+
+/// PrintMessageWorker logs some message to stdout.
+pub fn print_message_worker(message: &Value) {
+    println!("Message: {message}")
+}
+
+/// RandomStringWorker generates a string that complies
+/// with the provided regex input.
+pub fn random_string_worker(raw_input: Value) -> WorkerResult<Value> {
+    let input = Job::deserialize_value::<RandomStringInput>(raw_input)
+        .map_err(|e| format!("failed to deserialize input {e}"))?;
+
+    let reg = Regex::compile(&input.regex, input.limit)
+        .map_err(|e| format!("failed to generate a string with the provided regex input: {e}"))?;
+    let output: String = thread_rng().sample(&reg);
+
+    Ok(Value::String(output))
+}
+
+/// MathWorker performs some MathOperation on 2 numbers.
+pub fn math_worker(raw_input: Value) -> WorkerResult<Value> {
+    let input = Job::deserialize_value::<MathInput>(raw_input)
+        .map_err(|e| format!("failed to deserialize input: {e}"))?;
+
+    let result = match input.operation {
+        MathOperation::Addition => add_values(&input.left_value, &input.right_value),
+        MathOperation::Subtraction => sub_values(&input.left_value, &input.right_value),
+        MathOperation::Multiplication => multiply_values(&input.left_value, &input.right_value),
+        MathOperation::Division => divide_values(&input.left_value, &input.right_value),
+        MathOperation::Unknown => {
+            // TODO: fallback enum variant doesnt retain the invalid text
+            return Err(format!(
+                "math operation UNKNOWN is invalid: {}",
+                WorkerError::InputOperationIsNotSupported
+            )
+            .into());
+        }
+    }
+    .map_err(|e| format!("failed to perform math operation: {e}"))?;
+
+    Ok(Value::String(result))
+}
+
+/// RandomNumberWorker generates a random number in the range
+/// [minimum,maximum).
+pub fn random_number_worker(raw_input: Value) -> WorkerResult<Value> {
+    let input = Job::deserialize_value::<RandomNumberInput>(raw_input)
+        .map_err(|e| format!("failed to deserialize input {e}"))?;
+
+    let min = big_int(&input.minimum)
+        .map_err(|e| format!("failed to convert string {} to big int: {e}", input.minimum))?;
+    let max = big_int(&input.maximum)
+        .map_err(|e| format!("failed to convert string {} to big int: {e}", input.maximum))?;
+
+    let rand_num = random_number(&min, &max)
+        .map_err(|e| format!("failed to return random number in [{min}-{max}]: {e}"))?;
+
+    Ok(Value::String(rand_num.to_string()))
+}
+
+/// FindCurrencyAmountWorker finds a *types.Amount with a specific
+/// *types.Currency in a []*types.Amount.
+pub fn find_currency_amount_worker(raw_input: Value) -> WorkerResult<Value> {
+    let input = Job::deserialize_value::<FindCurrencyAmountInput>(raw_input)
+        .map_err(|e| format!("failed to deserialize input {e}"))?;
+
+    currency(input.currency.as_ref())
+        .map_err(|e| format!("currency {:?} is invalid: {e}", input.currency))?;
+
+    assert_unique_amounts(&input.amounts)
+        .map_err(|e| format!("amount {:?} is invalid: {e}", input.amounts))?;
+
+    input
+        .amounts
+        .iter()
+        .flatten()
+        .find(|amount| amount.currency == input.currency)
+        .map(|a| json!(a))
+        .ok_or_else(|| {
+            format!(
+                "unable to find currency {:?}: {}",
+                input.currency,
+                WorkerError::ActionFailed
+            )
+            .into()
+        })
+}
+
+/// LoadEnvWorker loads an environment variable and stores
+/// it in state. This is useful for algorithmic fauceting.
+pub fn load_env_worker(raw_input: Value) -> WorkerResult<Option<Value>> {
+    // todo: is this needed??
+    // We deserialize the input here to handle string
+    // unwrapping automatically.
+    let input = Job::deserialize_value::<String>(raw_input)
+        .map_err(|e| format!("failed to deserialize input {e}"))?;
+
+    Ok(env::var(input).ok().map(|v| json!(v)))
+}
+
+/// HTTPRequestWorker makes an HTTP request and returns the response to
+/// store in a variable. This is useful for algorithmic fauceting.
+pub async fn http_request_worker(raw_input: Value) -> WorkerResult<Value> {
+    let input = Job::deserialize_value::<HttpRequestInput>(raw_input)
+        .map_err(|e| format!("failed to deserialize input {e}"))?;
+
+    let url = Url::parse(&input.url)
+        .map_err(|e| format!("failed to parse request URI {}: {e}", input.url))?;
+
+    let client = Client::builder()
+        .timeout(Duration::from_secs(input.timeout.try_into().map_err(
+            |_| {
+                format!(
+                    "{} is not a valid timeout: {}",
+                    input.timeout,
+                    WorkerError::InvalidInput
+                )
+            },
+        )?))
+        .build()
+        .unwrap();
+
+    let mut request = Request::new(input.method.into(), url);
+    request
+        .headers_mut()
+        .append("Accept", HeaderValue::from_static("application/json"));
+    if input.method == HttpMethod::Post {
+        *request.body_mut() = Some(input.body.to_string().into());
+        request
+            .headers_mut()
+            .insert("Content-Type", HeaderValue::from_static("application/json"));
+    }
+
+    let resp = client
+        .execute(request)
+        .await
+        .map_err(|e| format!("failed to send request: {e}"))?;
+
+    let status = resp.status();
+    let body = resp
+        .json::<Value>()
+        .await
+        .map_err(|e| format!("failed to read response: {e}"))?;
+
+    if status != StatusCode::OK {
+        Err(format!(
+            "status code  {} with body {}: {}",
+            status,
+            body,
+            WorkerError::ActionFailed
+        )
+        .into())
+    } else {
+        Ok(body)
+    }
+}
+
+fn should_create_random_account(input: &FindBalanceInput, account_count: usize) -> bool {
+    !(input.minimum_balance.as_ref().unwrap().value != "0"
+        || input.create_limit <= 0
+        || account_count >= input.create_limit as usize)
+        && thread_rng().gen_ratio(input.create_probability, 100)
+}
+
+/// findBalanceWorkerInputValidation ensures the input to FindBalanceWorker
+/// is valid.
+pub fn find_balance_worker_input_validation(input: &FindBalanceInput) -> WorkerResult<()> {
+    amount(input.minimum_balance.as_ref()).map_err(|e| {
+        format!(
+            "minimum balance {:?} is invalid: {e}",
+            input.minimum_balance
+        )
+    })?;
+
+    if let Some(id) = &input.account_identifier {
+        account_identifier(Some(id))
+            .map_err(|e| format!("account identifier {id:?} is invalid: {e}"))?;
+        if input.sub_account_identifier.is_some() {
+            Err("cannot populate both account and sub account")?;
+        } else if input.not_account_identifier.is_empty() {
+            Err("cannot populate both account and not accounts")?;
+        } else if input.not_address.is_empty() {
+            Err("cannot populate both account and not addresses")?;
+        }
+    }
+
+    if !input.not_account_identifier.is_empty() {
+        account_array("not account identifier", &input.not_account_identifier).map_err(|e| {
+            format!(
+                "account identifiers of not account identifier {:?} are invalid: {e}",
+                input.not_account_identifier
+            )
+        })?;
+    }
+
+    Ok(())
+}
+
+fn skip_account(input: &FindBalanceInput, account: &AccountIdentifier) -> bool {
+    // TODO: cloning shouldnt be needed here
+    // If we require an account and that account
+    // is not equal to the account we are considering,
+    // we should continue.
+    matches!(&input.account_identifier, Some(id) if id != account)
+        // If we specify not to use certain addresses and we are considering
+        // one of them, we should continue.
+        || input.not_address.contains(&account.address)
+        // If we specify that we do not use certain accounts
+        // and the account we are considering is one of them,
+        // we should continue.
+        || input.not_account_identifier.contains(&Some(account.clone()))
+        // If we require a particular SubAccountIdentifier, we skip
+        // if the account we are examining does not have it.
+        || matches!(&input.sub_account_identifier, Some(id) if account.sub_account.is_none() || account.sub_account == Some(id.clone()))
+}
+
+/// AssertWorker checks if an input is < 0.
+pub fn assert_worker(raw_input: Value) -> WorkerResult<()> {
+    // todo: is this needed??
+    // We deserialize the input here to handle string
+    // unwrapping automatically.
+    let input = Job::deserialize_value::<String>(raw_input)
+        .map_err(|e| format!("failed to deserialize input {e}"))?;
+
+    let val = BigInt::from_str(&input)
+        .map_err(|e| format!("failed to convert the string {input} to big int: {e}"))?;
+
+    if val.sign() == Sign::Minus {
+        Err(format!("{val} < 0: {}", WorkerError::ActionFailed).into())
+    } else {
+        Ok(())
     }
 }
