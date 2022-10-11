@@ -28,6 +28,12 @@ impl From<String> for SubAccountIdentifier {
     }
 }
 
+impl From<&str> for SubAccountIdentifier {
+    fn from(s: &str) -> Self {
+        s.to_string().into()
+    }
+}
+
 impl Sortable for SubAccountIdentifier {
     fn sort(&self) -> Self {
         let mut new = self.clone();

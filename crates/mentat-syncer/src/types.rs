@@ -93,6 +93,7 @@ pub trait Helper {
         network_identifier: &NetworkIdentifier,
     ) -> SyncerResult<NetworkStatusResponse>;
 
+    // TODO this should probably return a reference?
     #[cfg(not(test))]
     fn block(
         &self,

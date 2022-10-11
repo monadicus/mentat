@@ -1,4 +1,4 @@
-use crate::job::Action;
+use crate::job::{Action, ReservedWorkflow};
 use mentat_asserter::{
     AccountBalanceError, AsserterError, BlockError, CoinError, ConstructionError, ErrorError,
     EventError, NetworkError, SearchError, ServerError, UtilError,
@@ -98,7 +98,7 @@ pub type WorkerResult<T> = Result<T, WorkerError>;
 // WorkerErrorInfo is returned by worker execution.
 #[derive(Debug)]
 pub struct VerboseWorkerError {
-    pub workflow: String,
+    pub workflow: ReservedWorkflow,
     pub job: Option<String>,
     pub scenario: String,
     pub scenario_index: usize,

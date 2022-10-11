@@ -9,13 +9,15 @@ use indexmap::{indexmap, IndexMap};
 use mentat_asserter::{AccountBalanceError, BlockError, ConstructionError};
 use mentat_test_utils::TestCase;
 use mentat_types::{
-    AccountIdentifier, Amount, CoinIdentifier, Currency, SubAccountIdentifier, UncheckedAmount,
-    UncheckedCurrency,
+    hash, AccountIdentifier, Amount, Coin, Currency, Metadata, NetworkIdentifier, PublicKey,
+    UncheckedAmount, UncheckedCurrency,
 };
+use mockall::mock;
 use reqwest::{Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
 use std::{
+    env,
     fmt::{self, Debug},
     thread::sleep,
     time::Duration,
@@ -24,13 +26,102 @@ use std::{
 use crate::{
     helpers::get_json,
     job::Scenario,
-    job::{Action, ActionType, FindBalanceInput, FindBalanceOutput, HttpMethod, HttpRequestInput},
+    job::{
+        Action, ActionType, FindBalanceInput, FindBalanceOutput, HttpMethod, HttpRequestInput, Job,
+        ReservedWorkflow, Workflow,
+    },
+    tmp::{KeyPair, Transaction},
 };
 
 use super::{
-    errors::{VerboseWorkerError, WorkerError},
-    http_request_worker, Worker,
+    errors::{VerboseWorkerError, WorkerError, WorkerResult},
+    http_request_worker,
+    types::Helper,
+    Worker,
 };
+
+// TODO not how this should be done
+struct MockTransaction;
+
+impl Transaction for MockTransaction {
+    fn set(&mut self, _: Value, _: Value, _: bool) -> Result<(), ()> {
+        todo!()
+    }
+
+    fn get(&self, _: &Value) -> Result<(Value, bool), ()> {
+        todo!()
+    }
+
+    fn delete(&mut self, _: &Value) -> Result<(), ()> {
+        todo!()
+    }
+
+    fn scan(
+        &self,
+        // prefix restriction
+        _: &Value,
+        // seek start
+        _: &Value,
+        _: fn(&Value, &Value) -> Result<(), ()>,
+        // log entries
+        _: bool,
+        // reverse == true means greatest to least
+        _: bool,
+    ) -> Result<usize, ()> {
+        todo!()
+    }
+
+    fn commit(&mut self) -> Result<(), ()> {
+        todo!()
+    }
+
+    fn discard(&mut self) {
+        todo!()
+    }
+}
+
+mock! {
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub Helper {}
+
+    impl Helper for Helper {
+        fn store_key<T: 'static + Transaction>(
+            &mut self,
+            db_tx: T,
+            id: &AccountIdentifier,
+            key_pair: &KeyPair,
+        ) -> WorkerResult<()>;
+
+        fn all_accounts<T: 'static + Transaction>(&self, db_tx: T) -> WorkerResult<&'static [AccountIdentifier]>;
+
+        fn locked_accounts<T: 'static + Transaction>(&self, db_tx: T) -> WorkerResult<&'static [AccountIdentifier]>;
+
+        fn balance<T: 'static + Transaction>(
+            &self,
+            db_tx: T,
+            id: &AccountIdentifier,
+            currency: &Currency,
+        ) -> WorkerResult<&'static Amount>;
+
+        fn coins<T: 'static + Transaction>(
+            &self,
+            db_tx: T,
+            id: &AccountIdentifier,
+            currency: &Currency,
+        ) -> WorkerResult<&'static [Coin]>;
+
+        fn derive(
+            &self,
+            id: &NetworkIdentifier,
+            key: &PublicKey,
+            meta: Metadata,
+        ) -> WorkerResult<(Option<AccountIdentifier>, Metadata)>;
+
+        fn set_blob<T: 'static + Transaction>(&self, db_tx: T, key: String, value: Value) -> WorkerResult<()>;
+
+        fn get_blob<T: 'static + Transaction>(&self, db_tx: T, key: &str) -> WorkerResult<Option<Value>>;
+    }
+}
 
 fn unchecked_currency() -> Option<UncheckedCurrency> {
     Some(UncheckedCurrency {
@@ -64,13 +155,6 @@ fn amount_100() -> Option<Amount> {
     })
 }
 
-fn addr4() -> Option<AccountIdentifier> {
-    Some(AccountIdentifier {
-        address: "addr4".into(),
-        ..Default::default()
-    })
-}
-
 #[test]
 fn test_balance_message() {
     let tests = vec![
@@ -86,10 +170,7 @@ fn test_balance_message() {
         TestCase {
             name: "message with account",
             payload: FindBalanceInput {
-                account_identifier: Some(AccountIdentifier {
-                    address: "hello".into(),
-                    ..Default::default()
-                }),
+                account_identifier: Some("hello".into()),
                 minimum_balance: unchecked_amount_100(),
                 ..Default::default()
             },
@@ -98,10 +179,7 @@ fn test_balance_message() {
         TestCase {
             name: "message with only subaccount",
             payload: FindBalanceInput {
-                sub_account_identifier: Some(SubAccountIdentifier {
-                    address: "sub hello".into(),
-                    ..Default::default()
-                }),
+                sub_account_identifier: Some("sub hello".into()),
                 minimum_balance: unchecked_amount_100(),
                 ..Default::default()
             },
@@ -120,14 +198,8 @@ fn test_balance_message() {
             name: "message with not account",
             payload: FindBalanceInput {
                 not_account_identifier: vec![
-                    Some(AccountIdentifier {
-                        address: "good".into(),
-                        ..Default::default()
-                    }),
-                    Some(AccountIdentifier {
-                        address: "bye".into(),
-                        ..Default::default()
-                    }),
+                    Some("good".into()),
+                    Some("bye".into()),
                 ],
                 minimum_balance: unchecked_amount_100(),
 
@@ -138,14 +210,9 @@ fn test_balance_message() {
         TestCase {
             name: "message with account and not coins",
             payload: FindBalanceInput {
-                account_identifier: Some(AccountIdentifier {
-                    address: "hello".into(),
-                    ..Default::default()
-                }),
+                account_identifier: Some("hello".into()),
                 minimum_balance: unchecked_amount_100(),
-                not_coins: vec![CoinIdentifier {
-                    identifier: "coin1".into(),
-                }],
+                not_coins: vec!["coin1".into()],
                 ..Default::default()
             },
             criteria: r#"looking for balance {"value":"100","currency":{"symbol":"BTC","decimals":8}} on account {"address":"hello"} != to coins [{"identifier":"coin1"}]"#.into(),
@@ -155,28 +222,110 @@ fn test_balance_message() {
     TestCase::run_output_match(tests, |test| test.to_string());
 }
 
-#[derive(Debug, Clone)]
 struct TestFindBalanceWorker {
     input: FindBalanceInput,
-    // TODO
-    helper: (),
+    helper: MockHelper,
+}
+
+impl fmt::Debug for TestFindBalanceWorker {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TestFindBalanceWorker")
+            .field("input", &self.input)
+            .finish()
+    }
 }
 
 #[test]
 fn test_find_balance_worker() {
+    let expect_all_accounts_2_1_3_4 = |helper: &mut MockHelper| {
+        helper
+            .expect_all_accounts::<MockTransaction>()
+            .return_const(Ok(Box::leak(Box::new([
+                "addr2".into(),
+                "addr1".into(),
+                "addr3".into(),
+                "addr4".into(),
+            ]))
+            .as_slice()))
+            .once();
+    };
+
+    let expect_locked_accounts_2 = |helper: &mut MockHelper| {
+        helper
+            .expect_locked_accounts::<MockTransaction>()
+            .return_const(Ok(Box::leak(Box::new(["addr2".into()])).as_slice()))
+            .once();
+    };
+
+    let expect_balance =
+        |helper: &mut MockHelper, addr: AccountIdentifier, amount: &'static str| {
+            helper
+                .expect_balance::<MockTransaction>()
+                .withf(move |_, id, cur| *id == addr && *cur == currency())
+                .return_const(Ok(&*Box::leak(Box::new(Amount {
+                    value: amount.into(),
+                    currency: currency(),
+                    ..Default::default()
+                }))))
+                .once();
+        };
+
+    let expect_coins = |helper: &mut MockHelper, addr: AccountIdentifier, coins: Vec<Coin>| {
+        helper
+            .expect_coins::<MockTransaction>()
+            .withf(move |_, id, cur| *id == addr && *cur == currency())
+            .return_const(Ok(Box::leak(Box::new(coins)).as_slice()));
+    };
+
+    let could_not_find_coin_helper = || -> MockHelper {
+        let mut helper = MockHelper::new();
+        expect_all_accounts_2_1_3_4(&mut helper);
+        expect_locked_accounts_2(&mut helper);
+        expect_coins(
+            &mut helper,
+            "addr1".into(),
+            vec![
+                Coin {
+                    amount: Amount {
+                        value: "20000".into(),
+                        currency: currency(),
+                        ..Default::default()
+                    },
+                    coin_identifier: "coin1".into(),
+                },
+                Coin {
+                    amount: Amount {
+                        value: "99".into(),
+                        currency: currency(),
+                        ..Default::default()
+                    },
+                    coin_identifier: "coin2".into(),
+                },
+            ],
+        );
+        expect_coins(&mut helper, "addr3".into(), vec![]);
+        helper
+    };
+
     let tests = vec![
         TestCase {
             name: "simple find balance (satisfiable)",
             payload: TestFindBalanceWorker {
                 input: FindBalanceInput {
-                    not_account_identifier: vec![addr4()],
+                    not_account_identifier: vec![Some("addr4".into())],
                     minimum_balance: unchecked_amount_100(),
                     ..Default::default()
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    expect_all_accounts_2_1_3_4(&mut helper);
+                    expect_locked_accounts_2(&mut helper);
+                    expect_balance(&mut helper, "addr1".into(), "100");
+                    helper
+                },
             },
             criteria: Ok(FindBalanceOutput {
-                account_identifier: addr4(),
+                account_identifier: Some("addr4".into()),
                 balance: amount_100(),
                 coin: None,
             }),
@@ -185,7 +334,7 @@ fn test_find_balance_worker() {
             name: "simple find balance (random create)",
             payload: TestFindBalanceWorker {
                 input: FindBalanceInput {
-                    not_account_identifier: vec![addr4()],
+                    not_account_identifier: vec![Some("addr4".into())],
                     minimum_balance: Some(UncheckedAmount {
                         value: "0".into(),
                         currency: unchecked_currency(),
@@ -195,7 +344,12 @@ fn test_find_balance_worker() {
                     create_probability: 100,
                     ..Default::default()
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    expect_all_accounts_2_1_3_4(&mut helper);
+                    expect_locked_accounts_2(&mut helper);
+                    helper
+                },
             },
             criteria: Err(WorkerError::CreateAccount),
         },
@@ -203,13 +357,20 @@ fn test_find_balance_worker() {
             name: "simple find balance (can't random create)",
             payload: TestFindBalanceWorker {
                 input: FindBalanceInput {
-                    not_account_identifier: vec![addr4()],
+                    not_account_identifier: vec![Some("addr4".into())],
                     minimum_balance: unchecked_amount_100(),
                     create_limit: 100,
                     create_probability: 100,
                     ..Default::default()
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    expect_all_accounts_2_1_3_4(&mut helper);
+                    expect_locked_accounts_2(&mut helper);
+                    expect_balance(&mut helper, "addr1".into(), "10");
+                    expect_balance(&mut helper, "addr3".into(), "15");
+                    helper
+                },
             },
             criteria: Err(WorkerError::Unsatisfiable),
         },
@@ -217,11 +378,18 @@ fn test_find_balance_worker() {
             name: "simple find balance (no create and unsatisfiable)",
             payload: TestFindBalanceWorker {
                 input: FindBalanceInput {
-                    not_account_identifier: vec![addr4()],
+                    not_account_identifier: vec![Some("addr4".into())],
                     minimum_balance: unchecked_amount_100(),
                     ..Default::default()
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    expect_all_accounts_2_1_3_4(&mut helper);
+                    expect_locked_accounts_2(&mut helper);
+                    expect_balance(&mut helper, "addr1".into(), "99");
+                    expect_balance(&mut helper, "addr3".into(), "0");
+                    helper
+                },
             },
             criteria: Err(WorkerError::Unsatisfiable),
         },
@@ -229,7 +397,7 @@ fn test_find_balance_worker() {
             name: "simple find balance and create",
             payload: TestFindBalanceWorker {
                 input: FindBalanceInput {
-                    not_account_identifier: vec![addr4()],
+                    not_account_identifier: vec![Some("addr4".into())],
                     minimum_balance: Some(UncheckedAmount {
                         value: "0".into(),
                         currency: unchecked_currency(),
@@ -238,7 +406,21 @@ fn test_find_balance_worker() {
                     create_limit: 100,
                     ..Default::default()
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    expect_all_accounts_2_1_3_4(&mut helper);
+                    helper
+                        .expect_locked_accounts::<MockTransaction>()
+                        .return_const(Ok(Box::leak(Box::new([
+                            "addr1".into(),
+                            "addr2".into(),
+                            "addr3".into(),
+                            "addr4".into(),
+                        ]))
+                        .as_slice()))
+                        .once();
+                    helper
+                },
             },
             criteria: Err(WorkerError::CreateAccount),
         },
@@ -246,25 +428,30 @@ fn test_find_balance_worker() {
             name: "simple find balance with subaccount",
             payload: TestFindBalanceWorker {
                 input: FindBalanceInput {
-                    sub_account_identifier: Some(SubAccountIdentifier {
-                        address: "sub1".into(),
-                        ..Default::default()
-                    }),
+                    sub_account_identifier: Some("sub1".into()),
                     not_address: vec!["addr4".into()],
                     minimum_balance: unchecked_amount_100(),
                     ..Default::default()
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    helper
+                        .expect_all_accounts::<MockTransaction>()
+                        .return_const(Ok(Box::leak(Box::new([
+                            "addr2".into(),
+                            ("addr1", "sub1").into(),
+                            "addr3".into(),
+                            "addr4".into(),
+                        ]))
+                        .as_slice()))
+                        .once();
+                    expect_locked_accounts_2(&mut helper);
+                    expect_balance(&mut helper, ("addr1", "sub1").into(), "100");
+                    helper
+                },
             },
             criteria: Ok(FindBalanceOutput {
-                account_identifier: Some(AccountIdentifier {
-                    address: "addr1".into(),
-                    sub_account: Some(SubAccountIdentifier {
-                        address: "sub1".into(),
-                        ..Default::default()
-                    }),
-                    ..Default::default()
-                }),
+                account_identifier: Some(("addr1", "sub1").into()),
                 balance: amount_100(),
                 coin: None,
             }),
@@ -276,22 +463,38 @@ fn test_find_balance_worker() {
                     not_address: vec!["addr4".into()],
                     minimum_balance: unchecked_amount_100(),
                     require_coin: true,
-                    not_coins: vec![CoinIdentifier {
-                        identifier: "coin1".into(),
-                    }],
+                    not_coins: vec!["coin1".into()],
                     ..Default::default()
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    expect_all_accounts_2_1_3_4(&mut helper);
+                    expect_locked_accounts_2(&mut helper);
+                    expect_coins(
+                        &mut helper,
+                        "addr1".into(),
+                        vec![
+                            Coin {
+                                amount: Amount {
+                                    value: "20000".into(),
+                                    currency: currency(),
+                                    ..Default::default()
+                                },
+                                coin_identifier: "coin1".into(),
+                            },
+                            Coin {
+                                amount: amount_100().unwrap(),
+                                coin_identifier: "coin2".into(),
+                            },
+                        ],
+                    );
+                    helper
+                },
             },
             criteria: Ok(FindBalanceOutput {
-                account_identifier: Some(AccountIdentifier {
-                    address: "addr1".into(),
-                    ..Default::default()
-                }),
+                account_identifier: Some("addr1".into()),
                 balance: amount_100(),
-                coin: Some(CoinIdentifier {
-                    identifier: "coin2".into(),
-                }),
+                coin: Some("coin2".into()),
             }),
         },
         TestCase {
@@ -301,13 +504,11 @@ fn test_find_balance_worker() {
                     not_address: vec!["addr4".into()],
                     minimum_balance: unchecked_amount_100(),
                     require_coin: true,
-                    not_coins: vec![CoinIdentifier {
-                        identifier: "coin1".into(),
-                    }],
+                    not_coins: vec!["coin1".into()],
                     create_limit: -1,
                     ..Default::default()
                 },
-                helper: (),
+                helper: could_not_find_coin_helper(),
             },
             criteria: Err(WorkerError::Unsatisfiable),
         },
@@ -318,13 +519,11 @@ fn test_find_balance_worker() {
                     not_address: vec!["addr4".into()],
                     minimum_balance: unchecked_amount_100(),
                     require_coin: true,
-                    not_coins: vec![CoinIdentifier {
-                        identifier: "coin1".into(),
-                    }],
+                    not_coins: vec!["coin1".into()],
                     create_limit: 10,
                     ..Default::default()
                 },
-                helper: (),
+                helper: could_not_find_coin_helper(),
             },
             criteria: Err(WorkerError::Unsatisfiable),
         },
@@ -335,13 +534,11 @@ fn test_find_balance_worker() {
                     not_address: vec!["addr4".into()],
                     minimum_balance: unchecked_amount_100(),
                     require_coin: true,
-                    not_coins: vec![CoinIdentifier {
-                        identifier: "coin1".into(),
-                    }],
+                    not_coins: vec!["coin1".into()],
                     create_limit: 2,
                     ..Default::default()
                 },
-                helper: (),
+                helper: could_not_find_coin_helper(),
             },
             criteria: Err(WorkerError::Unsatisfiable),
         },
@@ -356,13 +553,11 @@ fn test_find_balance_worker() {
                         ..Default::default()
                     }),
                     require_coin: true,
-                    not_coins: vec![CoinIdentifier {
-                        identifier: "coin1".into(),
-                    }],
+                    not_coins: vec!["coin1".into()],
                     create_limit: 2,
                     ..Default::default()
                 },
-                helper: (),
+                helper: MockHelper::new(),
             },
             criteria: Err(BlockError::AmountValueMissing.into()),
         },
@@ -381,18 +576,17 @@ fn test_find_balance_worker() {
                         ..Default::default()
                     }),
                     require_coin: true,
-                    not_coins: vec![CoinIdentifier {
-                        identifier: "coin1".into(),
-                    }],
+                    not_coins: vec!["coin1".into()],
                     create_limit: 2,
                     ..Default::default()
                 },
-                helper: (),
+                helper: MockHelper::new(),
             },
             criteria: Err(BlockError::AmountCurrencySymbolEmpty.into()),
         },
     ];
-    todo!()
+
+    TestCase::run_result_match(tests, |_| todo!("requires storage/database!"))
 }
 
 fn assert_variable_equality<T: DeserializeOwned + PartialEq + Debug>(
@@ -407,7 +601,7 @@ fn assert_variable_equality<T: DeserializeOwned + PartialEq + Debug>(
 
 #[test]
 fn test_job_complicated_transfer() {
-    let s = Scenario {
+    let s1 = Scenario {
         name: "create_address".into(),
         actions: vec![
             Action {
@@ -536,7 +730,20 @@ fn test_job_complicated_transfer() {
         ],
     };
 
-    todo!()
+    env::set_var("valA", "\"10\"");
+    let workflow = Workflow {
+        // TODO should actually be "random" but our enums can't store arbitrary strings with serde yet
+        name: ReservedWorkflow::Unknown,
+        concurrency: 0,
+        scenarios: vec![s1, s2],
+    };
+
+    let _j = Job::new(workflow);
+
+    let _helper = MockHelper::new();
+
+    // Setup DB
+    todo!("requires storage/database!")
 }
 
 #[derive(Debug, Clone)]
@@ -565,7 +772,8 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                // TODO should be "random" but we dont have the ability to store arbitrary strings with the current enum setup
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"network":"Testnet3", "blockchain":"Bitcoin"}"#.into(),
@@ -593,7 +801,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: "\"hello\"".into(),
@@ -620,7 +828,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: "\"-1\"".into(),
@@ -647,7 +855,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"currency":{"decimals":8}}"#.into(),
@@ -674,7 +882,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"currency":{"symbol":"BTC", "decimals":8},"amounts":[{"value":"100","currency":{"symbol":"BTC", "decimals":8}},{"value":"100","currency":{"symbol":"BTC", "decimals":8}}]}"#.into(),
@@ -712,7 +920,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action_index: 2,
                 action: Some(Action {
@@ -739,7 +947,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#""network":"Testnet3", "blockchain":"Bitcoin"}"#.into(),
@@ -765,7 +973,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"network":{{var}}, "blockchain":"Bitcoin"}"#.into(),
@@ -790,7 +998,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "random_number".into(),
                 action: Some(Action {
                     input: r#"{"minimum":"-100", "maximum":"-200"}"#.into(),
@@ -817,7 +1025,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"curve_typ": "secp256k1"}"#.into(),
@@ -844,7 +1052,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"public_key": {}}"#.into(),
@@ -871,7 +1079,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: "{}".into(),
@@ -898,7 +1106,7 @@ fn test_job_failures() {
                 complete: Default::default(),
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"operation":"addition", "left_value":"1", "right_value":"B"}"#.into(),
@@ -925,7 +1133,7 @@ fn test_job_failures() {
                 complete: true,
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
                 state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","statsbf":""}]}})),
                 err: WorkerError::String("failed to unmarshal operations of scenario create_send".into()),
@@ -947,7 +1155,7 @@ fn test_job_failures() {
                 complete: true,
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
                 state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}]}})),
                 processed_input: Some(json!({"currency":{"decimals":8}})),
@@ -976,7 +1184,7 @@ fn test_job_failures() {
                 complete: true,
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
                 state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}],"confirmation_depth":"10"}})),
                 err: WorkerError::String("failed to unmarshal network of scenario create_send".into()),
@@ -1015,7 +1223,7 @@ fn test_job_failures() {
                 complete: true,
             },
             criteria: VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
                 state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}],"confirmation_depth":"10","network":{"network":"Testnet3", "blockchain":"Bitcoin"},"preprocess_metadata":"hello"}})),
                 err: WorkerError::String("failed to unmarshal preprocess metadata of scenario create_send".into()),
@@ -1023,7 +1231,21 @@ fn test_job_failures() {
             }
         },
     ];
-    todo!()
+
+    // TODO remove explicit return type once function is complete
+    TestCase::run_err_match(tests, |test| -> Result<(), VerboseWorkerError> {
+        let workflow = Workflow {
+            // TODO should be "random"
+            name: ReservedWorkflow::Unknown,
+            concurrency: 0,
+            scenarios: vec![test.scenario],
+        };
+        let _j = Job::new(workflow);
+        let _worker = Worker::new(MockHelper::new());
+
+        // Setup DB
+        todo!("requires storage/database!")
+    });
 }
 
 #[derive(Debug, Clone, Default)]
@@ -1218,6 +1440,7 @@ fn test_http_request_worker() {
     ];
 
     TestCase::run_async_result_match(tests, |mut test| async move {
+        // TODO attempting to execute the server inside the worker function causes a tokio error
         let ts = Server::run();
         ts.expect(
             Expectation::matching(test.clone()).respond_with(
@@ -1236,11 +1459,9 @@ fn test_http_request_worker() {
     });
 }
 
-#[derive(Debug, Clone)]
 struct TestBlobWorkers {
     scenario: Scenario,
-    // TODO
-    helper: (),
+    helper: MockHelper,
     asserter_state: IndexMap<String, String>,
 }
 
@@ -1265,7 +1486,18 @@ fn test_blob_workers() {
                         },
                     ],
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    helper.expect_set_blob::<MockTransaction>()
+                        .withf(|_, key, value| key == "Testnet3" && value == "Bitcoin")
+                        .return_const(Ok(()))
+                        .once();
+                    helper.expect_get_blob::<MockTransaction>()
+                        .withf(|_, key| key == "Testnet3")
+                        .return_const(Ok(Some("Bitcoin".into())))
+                        .once();
+                    helper
+                },
                 asserter_state: indexmap! {"k".into() => "Bitcoin".into()},
             },
             criteria: None,
@@ -1281,11 +1513,18 @@ fn test_blob_workers() {
                         output_path: Some("k".into()),
                     }],
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    helper.expect_get_blob::<MockTransaction>()
+                        .withf(|_, key| key == "Testnet3")
+                        .return_const(Ok(None))
+                        .once();
+                    helper
+                },
                 asserter_state: Default::default(),
             },
             criteria: Some(VerboseWorkerError {
-                workflow: "random".into(),
+                workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
                     input: r#"{"key":"Testnet3"}"#.into(),
@@ -1319,7 +1558,22 @@ fn test_blob_workers() {
                         output_path: Some("k".into()),
                     }],
                 },
-                helper: (),
+                helper: {
+                    let mut helper = MockHelper::new();
+                    helper.expect_set_blob::<MockTransaction>()
+                        .withf(|_, key, value| *key == hash(Some(&AccountIdentifier::from(("hello", "neat")))) && *value == json!({"stuff":"neat"}))
+                        .return_const(Ok(()))
+                        .once();
+                        helper.expect_set_blob::<MockTransaction>()
+                        .withf(|_, key, value| *key == hash(Some(&AccountIdentifier::from(("hello", "neat2")))) && *value == "add2")
+                        .return_const(Ok(()))
+                        .once();
+                    helper.expect_get_blob::<MockTransaction>()
+                        .withf(|_, key| *key == hash(Some(&AccountIdentifier::from(("hello", "neat")))))
+                        .return_const(Ok(Some(json!({"stuff":"neat"}))))
+                        .once();
+                    helper
+                },
                 asserter_state: indexmap!{
                     "k".into() => json!({
                         "stuff": "neat"
@@ -1329,5 +1583,19 @@ fn test_blob_workers() {
             criteria: None,
         },
     ];
-    todo!()
+
+    // TODO remove explicit return type once db implemented
+    TestCase::run_err_match(tests, |test| -> Result<(), VerboseWorkerError> {
+        let workflow = Workflow {
+            // TODO should be "random"
+            name: ReservedWorkflow::Unknown,
+            concurrency: 0,
+            scenarios: vec![test.scenario],
+        };
+        let _j = Job::new(workflow);
+        let _worker = Worker::new(test.helper);
+
+        // Setup DB
+        todo!("requires storage/database!")
+    })
 }

@@ -178,7 +178,7 @@ impl From<HttpMethod> for Method {
 
 /// ReservedWorkflow is a Workflow reserved for special circumstances.
 /// All ReservedWorkflows must exist when running the constructor.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ReservedWorkflow {
     /// CreateAccount is where another account (already with funds)
     /// creates a new account. It is possible to configure how many
@@ -196,6 +196,7 @@ pub enum ReservedWorkflow {
     ReturnFunds,
     /// fallback for when deserializing fails
     #[serde(other)]
+    #[default]
     Unknown,
 }
 
@@ -368,7 +369,7 @@ impl fmt::Display for FindBalanceInput {
 }
 
 /// FindBalanceOutput is returned by FindBalance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FindBalanceOutput {
     /// AccountIdentifier is the account associated with the balance
     /// (and coin).
@@ -449,7 +450,7 @@ pub struct Scenario {
 /// transactions to broadcast) with some shared state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Workflow {
-    pub name: String,
+    pub name: ReservedWorkflow,
     /// Concurrency is the number of workflows of a particular
     /// kind to execute at once. For example, you may not want
     /// to process concurrent workflows of some staking operations
@@ -470,7 +471,7 @@ pub struct Job {
     pub index: usize,
     pub status: Status,
     /// Workflow is the name of the workflow being executed.
-    pub workflow: String,
+    pub workflow: ReservedWorkflow,
     /// Scenarios are copied into each context in case
     /// a configuration file changes that could corrupt
     /// in-process flows.

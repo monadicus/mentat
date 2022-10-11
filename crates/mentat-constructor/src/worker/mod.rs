@@ -52,7 +52,8 @@ impl<T: Helper> Worker<T> {
 
     async fn invoke_worker(
         &mut self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         action: ActionType,
         input: Value,
     ) -> WorkerResult<Option<Value>> {
@@ -81,7 +82,8 @@ impl<T: Helper> Worker<T> {
 
     async fn actions(
         &mut self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         mut state: Value,
         actions: &[Action],
     ) -> VerboseWorkerResult<Value> {
@@ -134,7 +136,8 @@ impl<T: Helper> Worker<T> {
     /// scenario.
     pub async fn process_next_scenario(
         &mut self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         j: &mut Job,
     ) -> VerboseWorkerResult<()> {
         let scenario = &j.scenarios[j.index];
@@ -143,7 +146,7 @@ impl<T: Helper> Worker<T> {
             .await
             .map_err(|mut e| {
                 // Set additional context not available within actions.
-                e.workflow = j.workflow.clone();
+                e.workflow = j.workflow;
                 e.job = Some(j.identifier.clone());
                 e.scenario = scenario.name.clone();
                 e.scenario_index = j.index;
@@ -160,7 +163,8 @@ impl<T: Helper> Worker<T> {
     /// are remaining, this will return an error.
     pub async fn process(
         &mut self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         j: &mut Job,
     ) -> VerboseWorkerResult<Option<Broadcast>> {
         if j.check_complete() {
@@ -173,7 +177,7 @@ impl<T: Helper> Worker<T> {
         self.process_next_scenario(db_tx, j).await?;
 
         j.create_broadcast().map_err(|e| VerboseWorkerError {
-            workflow: j.workflow.clone(),
+            workflow: j.workflow,
             job: Some(j.identifier.clone()),
             scenario: j.scenarios[j.index - 1].name.clone(),
             scenario_index: j.index - 1,
@@ -211,7 +215,8 @@ impl<T: Helper> Worker<T> {
     /// in KeyStorage.
     pub fn save_account_worker(
         &mut self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         raw_input: Value,
     ) -> WorkerResult<()> {
         let input = Job::deserialize_value::<SaveAccountInput>(raw_input)
@@ -224,7 +229,10 @@ impl<T: Helper> Worker<T> {
         })?;
         self.0
             .store_key(
+                #[cfg(not(test))]
                 db_tx,
+                #[cfg(test)]
+                db_tx.clone(),
                 &input.account_identifier.unwrap(),
                 // TODO no check nil
                 input.key_pair.as_ref().unwrap(),
@@ -234,7 +242,8 @@ impl<T: Helper> Worker<T> {
 
     fn check_account_coins(
         &self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         input: &FindBalanceInput,
         account: &AccountIdentifier,
     ) -> WorkerResult<Option<Value>> {
@@ -242,7 +251,10 @@ impl<T: Helper> Worker<T> {
         let coins = self
             .0
             .coins(
+                #[cfg(not(test))]
                 db_tx,
+                #[cfg(test)]
+                db_tx.clone(),
                 account,
                 &minimum_balance.currency.clone().unwrap().into(),
             )
@@ -282,14 +294,22 @@ impl<T: Helper> Worker<T> {
 
     fn check_account_balance(
         &self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         input: &FindBalanceInput,
         account: &AccountIdentifier,
     ) -> WorkerResult<Option<Value>> {
         let minimum_balance = input.minimum_balance.as_ref().unwrap();
         let amount = self
             .0
-            .balance(db_tx, account, &minimum_balance.currency.clone().unwrap().into())
+            .balance(
+                #[cfg(not(test))]
+                db_tx,
+                #[cfg(test)]
+                db_tx.clone(),
+                account,
+                &minimum_balance.currency.clone().unwrap().into()
+            )
             .map_err(|e| {
                 format!(
                     "failed to return balance of account identifier {account:?} in currency {:?}: {e}", minimum_balance.currency
@@ -322,11 +342,17 @@ impl<T: Helper> Worker<T> {
 
     fn available_accounts(
         &self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
     ) -> WorkerResult<(&[AccountIdentifier], Vec<&AccountIdentifier>)> {
         let accounts = self
             .0
-            .all_accounts(db_tx)
+            .all_accounts(
+                #[cfg(not(test))]
+                db_tx,
+                #[cfg(test)]
+                db_tx.clone(),
+            )
             .map_err(|e| format!("unable to get all accounts: {e}"))?;
 
         // If there are no accounts, we should create one.
@@ -338,7 +364,12 @@ impl<T: Helper> Worker<T> {
         // We consider an account "locked" if it is actively involved in a broadcast.
         let locked_accounts = self
             .0
-            .locked_accounts(db_tx)
+            .locked_accounts(
+                #[cfg(not(test))]
+                db_tx,
+                #[cfg(test)]
+                db_tx.clone(),
+            )
             .map_err(|e| format!("unable to get locked accounts: {e}"))?;
 
         // Convert to a map so can do fast lookups
@@ -356,7 +387,8 @@ impl<T: Helper> Worker<T> {
     /// balance in a particular currency.
     pub fn find_balance_worker(
         &self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         raw_input: Value,
     ) -> WorkerResult<Value> {
         let input = Job::deserialize_value::<FindBalanceInput>(raw_input)
@@ -423,7 +455,12 @@ impl<T: Helper> Worker<T> {
 
     /// SetBlobWorker transactionally saves a key and value for use
     /// across workflows.
-    pub fn set_blob_worker(&self, db_tx: &impl Transaction, raw_input: Value) -> WorkerResult<()> {
+    pub fn set_blob_worker(
+        &self,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
+        raw_input: Value,
+    ) -> WorkerResult<()> {
         let input = Job::deserialize_value::<SetBlobInput>(raw_input)
             .map_err(|e| format!("failed to deserialize input {e}"))?;
 
@@ -432,7 +469,14 @@ impl<T: Helper> Worker<T> {
         // objects with the same keys but in a different order are
         // treated as equal.
         self.0
-            .set_blob(db_tx, input.key, input.value)
+            .set_blob(
+                #[cfg(not(test))]
+                db_tx,
+                #[cfg(test)]
+                db_tx.clone(),
+                input.key,
+                input.value,
+            )
             .map_err(|e| format!("failed to set blob: {}", e).into())
     }
 
@@ -440,7 +484,8 @@ impl<T: Helper> Worker<T> {
     /// a key, if it exists.
     pub fn get_blob_worker(
         &self,
-        db_tx: &impl Transaction,
+        #[cfg(not(test))] db_tx: &impl Transaction,
+        #[cfg(test)] db_tx: &(impl Transaction + Clone + 'static),
         raw_input: Value,
     ) -> WorkerResult<Value> {
         let input = Job::deserialize_value::<GetBlobInput>(raw_input)
@@ -450,21 +495,23 @@ impl<T: Helper> Worker<T> {
         // By using Value for key, we can ensure that JSON
         // objects with the same keys but in a different order are
         // treated as equal.
-        let (exists, val) = self
-            .0
-            .get_blob(db_tx, &input.key)
-            .map_err(|e| format!("failed to get blob: {e}"))?;
-
-        if !exists {
-            Err(format!(
-                "key {} does not exist: {}",
-                input.key,
-                WorkerError::ActionFailed
+        self.0
+            .get_blob(
+                #[cfg(not(test))]
+                db_tx,
+                #[cfg(test)]
+                db_tx.clone(),
+                &input.key,
             )
-            .into())
-        } else {
-            Ok(val)
-        }
+            .map_err(|e| format!("failed to get blob: {e}"))?
+            .ok_or_else(|| {
+                format!(
+                    "key {} does not exist: {}",
+                    input.key,
+                    WorkerError::ActionFailed
+                )
+                .into()
+            })
     }
 }
 

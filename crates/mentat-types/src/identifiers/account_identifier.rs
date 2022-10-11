@@ -32,6 +32,12 @@ impl From<String> for AccountIdentifier {
     }
 }
 
+impl From<&str> for AccountIdentifier {
+    fn from(s: &str) -> Self {
+        s.to_string().into()
+    }
+}
+
 impl From<(String, String)> for AccountIdentifier {
     fn from((address, subaccount): (String, String)) -> Self {
         Self {
@@ -39,6 +45,12 @@ impl From<(String, String)> for AccountIdentifier {
             sub_account: Some(subaccount.into()),
             ..Default::default()
         }
+    }
+}
+
+impl From<(&str, &str)> for AccountIdentifier {
+    fn from((address, subaccount): (&str, &str)) -> Self {
+        (address.to_string(), subaccount.to_string()).into()
     }
 }
 

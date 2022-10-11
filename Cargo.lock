@@ -970,6 +970,7 @@ dependencies = [
  "mentat-test-utils",
  "mentat-types",
  "mentat-utils",
+ "mockall",
  "num-bigint-dig",
  "rand",
  "rand_regex",
