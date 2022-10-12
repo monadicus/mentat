@@ -967,6 +967,7 @@ dependencies = [
  "indexmap",
  "lazy_static",
  "mentat-asserter",
+ "mentat-storage",
  "mentat-test-utils",
  "mentat-types",
  "mentat-utils",
@@ -1035,6 +1036,16 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-subscriber",
  "tracing-tree",
+]
+
+[[package]]
+name = "mentat-storage"
+version = "0.1.0"
+dependencies = [
+ "mentat-test-utils",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

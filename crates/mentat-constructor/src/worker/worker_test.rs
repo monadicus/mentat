@@ -7,6 +7,7 @@ use httptest::{
 };
 use indexmap::{indexmap, IndexMap};
 use mentat_asserter::{AccountBalanceError, BlockError, ConstructionError};
+use mentat_storage::{database::Transaction, errors::StorageResult};
 use mentat_test_utils::TestCase;
 use mentat_types::{
     hash, AccountIdentifier, Amount, Coin, Currency, Metadata, NetworkIdentifier, PublicKey,
@@ -30,7 +31,7 @@ use crate::{
         Action, ActionType, FindBalanceInput, FindBalanceOutput, HttpMethod, HttpRequestInput, Job,
         ReservedWorkflow, Workflow,
     },
-    tmp::{KeyPair, Transaction},
+    tmp::KeyPair,
 };
 
 use super::{
@@ -44,15 +45,15 @@ use super::{
 struct MockTransaction;
 
 impl Transaction for MockTransaction {
-    fn set(&mut self, _: Value, _: Value, _: bool) -> Result<(), ()> {
+    fn set(&mut self, _: Value, _: Value, _: bool) -> StorageResult<()> {
         todo!()
     }
 
-    fn get(&self, _: &Value) -> Result<(Value, bool), ()> {
+    fn get(&self, _: &Value) -> StorageResult<(Value, bool)> {
         todo!()
     }
 
-    fn delete(&mut self, _: &Value) -> Result<(), ()> {
+    fn delete(&mut self, _: &Value) -> StorageResult<()> {
         todo!()
     }
 
@@ -62,16 +63,16 @@ impl Transaction for MockTransaction {
         _: &Value,
         // seek start
         _: &Value,
-        _: fn(&Value, &Value) -> Result<(), ()>,
+        _: fn(&Value, &Value) -> StorageResult<()>,
         // log entries
         _: bool,
         // reverse == true means greatest to least
         _: bool,
-    ) -> Result<usize, ()> {
+    ) -> StorageResult<usize> {
         todo!()
     }
 
-    fn commit(&mut self) -> Result<(), ()> {
+    fn commit(&mut self) -> StorageResult<()> {
         todo!()
     }
 

@@ -1,3 +1,4 @@
+use mentat_storage::database::Transaction;
 use mentat_types::{
     AccountIdentifier, Amount, Coin, Currency, Metadata, NetworkIdentifier, PublicKey,
 };
@@ -5,7 +6,7 @@ use serde_json::Value;
 
 use super::errors::WorkerResult;
 
-use crate::tmp::{KeyPair, Transaction};
+use crate::tmp::KeyPair;
 
 #[cfg(not(test))]
 /// Helper is used by the worker to process Jobs.
