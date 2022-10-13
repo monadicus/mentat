@@ -1,9 +1,11 @@
-mod badger_database;
-mod badger_database_configuration;
+mod sled_database;
+pub use sled_database::*;
+mod sled_database_configuration;
+pub use sled_database_configuration::*;
 #[cfg(test)]
-mod badger_database_test;
+mod sled_database_test;
 
-use crate::errors::StorageResult;
+use crate::{encoder::Encoder, errors::StorageResult};
 use serde_json::Value;
 
 /// Database is an interface that provides transactional
@@ -16,26 +18,26 @@ pub trait Database {
     /// will block until the returned DatabaseTransaction is committed or
     /// discarded. This is useful for making changes across
     /// multiple prefixes but incurs a large performance overhead.
-    fn transaction() -> Self::Tx;
+    fn transaction(&self) -> Self::Tx;
 
     /// ReadTransaction allows for consistent, read-only access
     /// to the database. This does not acquire any lock
     /// on the database.
-    fn read_transaction() -> Self::Tx;
+    fn read_transaction(&self) -> Self::Tx;
 
     /// WriteTransaction acquires a granular write lock for a particular
     /// identifier. All subsequent calls to WriteTransaction with the same
     /// identifier will block until the DatabaseTransaction returned is either
     /// committed or discarded.
-    fn write_transaction(identifier: String, priority: bool) -> Self::Tx;
+    fn write_transaction(&self, identifier: String, priority: bool) -> Self::Tx;
 
     /// Close shuts down the database.
-    fn close() -> StorageResult<()>;
+    fn close(self) -> StorageResult<()>;
 
-    /// Encoder returns the *Encoder used to store/read data
+    /// Encoder returns the Encoder used to store/read data
     /// in the database. This *Encoder often performs some
     /// form of compression on data.
-    fn encoder() -> StorageResult<()>;
+    fn encoder(&self) -> StorageResult<Encoder>;
 }
 
 /// Transaction is an interface that provides
@@ -70,4 +72,4 @@ pub trait Transaction {
 /// CommitWorker is returned by a module to be called after
 /// changes have been committed. It is common to put logging activities
 /// in here (that shouldn't be printed until the block is committed).
-pub type CommitWorker = fn() -> ();
+pub type CommitWorker = fn() -> StorageResult<()>;

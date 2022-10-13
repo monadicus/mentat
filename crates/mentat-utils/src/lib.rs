@@ -1,3 +1,5 @@
+#![warn(clippy::todo, clippy::use_debug)]
+
 pub mod bst;
 #[cfg(test)]
 pub mod bst_test;
