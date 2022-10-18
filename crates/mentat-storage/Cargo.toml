@@ -25,3 +25,6 @@ tracing = { version = "0.1.36", default-features = false, features = [
 
 [dev-dependencies]
 mentat-test-utils = { path = "../mentat-test-utils" }
+
+[features]
+incomplete = []

@@ -1,6 +1,13 @@
 #![warn(clippy::todo, clippy::use_debug)]
 
-pub mod database;
-pub mod encoder;
-pub mod errors;
-pub mod modules;
+// TODO gated everything behind test macro because this is NOT a proper implementation of storage
+
+mod database;
+mod encoder;
+mod errors;
+mod modules;
+
+pub use database::Transaction;
+
+#[cfg(feature = "incomplete")]
+pub use database::*;

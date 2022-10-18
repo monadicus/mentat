@@ -10,7 +10,7 @@ use indexmap::IndexSet;
 use mentat_asserter::{
     account_array, account_identifier, amount, assert_unique_amounts, currency, public_key,
 };
-use mentat_storage::database::Transaction;
+use mentat_storage::Transaction;
 use mentat_types::{
     add_values, big_int, divide_values, hash, multiply_values, sub_values, AccountIdentifier,
     ConstructionDeriveResponse, UncheckedConstructionDeriveRequest,

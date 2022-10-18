@@ -7,7 +7,7 @@ use httptest::{
 };
 use indexmap::{indexmap, IndexMap};
 use mentat_asserter::{AccountBalanceError, BlockError, ConstructionError};
-use mentat_storage::database::{Config, Database, SledDatabase, SledTransaction, Transaction};
+use mentat_storage::{Config, Database, SledDatabase, SledTransaction, Transaction};
 use mentat_test_utils::TestCase;
 use mentat_types::{
     hash, AccountIdentifier, Amount, Coin, Currency, CurveType, Metadata, NetworkIdentifier,
@@ -565,7 +565,7 @@ fn test_find_balance_worker() {
         let db_tx = db.transaction();
         let mut worker = Worker::new(test.helper);
         let output = worker.find_balance_worker(&db_tx, serde_json::to_value(&test.input).unwrap());
-        
+
         worker.0.checkpoint();
         output
     })

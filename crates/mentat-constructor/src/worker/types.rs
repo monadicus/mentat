@@ -1,4 +1,4 @@
-use mentat_storage::database::Transaction;
+use mentat_storage::Transaction;
 use mentat_types::{
     AccountIdentifier, Amount, Coin, Currency, Metadata, NetworkIdentifier, PublicKey,
 };
