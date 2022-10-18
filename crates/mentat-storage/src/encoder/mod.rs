@@ -45,7 +45,7 @@ impl Encoder {
     /// provided should contain k:v of namespace:zstd dict.
     pub fn new(
         entries: &[CompressorEntry],
-        pool: Option<BufferPool>,
+        pool: &BufferPool,
         compress: bool,
     ) -> StorageResult<Option<Self>> {
         todo!()

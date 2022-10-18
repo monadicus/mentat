@@ -1,10 +1,10 @@
-use std::path::{Path, PathBuf};
-
-use crossbeam_channel::unbounded;
-use mentat_utils::sharded_map::DEFAULT_SHARDS;
+use mentat_utils::{mutex_map::MutexMap, sharded_map::DEFAULT_SHARDS};
 use sled::Config;
 
-use crate::encoder::{BufferPool, CompressorEntry};
+use crate::{
+    encoder::{BufferPool, CompressorEntry, Encoder},
+    errors::StorageResult,
+};
 
 use super::SledDatabase;
 
@@ -17,13 +17,6 @@ pub struct SledBuilder {
 }
 
 impl SledBuilder {
-    pub fn new(sled_options: Config) -> Self {
-        Self {
-            sled_options,
-            ..Default::default()
-        }
-    }
-
     /// Provides zstd dictionaries
     /// for given namespaces.
     pub fn with_compressor_entries(mut self, entries: Vec<CompressorEntry>) -> Self {
@@ -49,16 +42,27 @@ impl SledBuilder {
         self
     }
 
-    pub fn build(mut self) -> SledDatabase {
-        let b = SledDatabase {
+    // Creates a new SledDatabase from the given builder
+    pub fn build(self) -> StorageResult<SledDatabase> {
+        let writer_shards = self.writer_shards.unwrap_or(DEFAULT_SHARDS);
+        let compressor_entries = self.compressor_entries.unwrap_or_default();
+        let compress = self.compress.unwrap_or_default();
+        let pool = BufferPool::new();
+        Ok(SledDatabase {
+            encoder: Encoder::new(&compressor_entries, &pool, compress)
+                .map_err(|e| format!("unable to load compressor: {e}"))?,
+            db: self
+                .sled_options
+                .open()
+                .map_err(|e| format!("unable to open database: {e}"))?,
             sled_options: self.sled_options,
-            compressor_entries: self.compressor_entries.unwrap_or_default(),
-            pool: BufferPool::new(),
-            compress: true,
-            writer: todo!(),
-            writer_shards: self.writer_shards.unwrap_or(DEFAULT_SHARDS),
-            closed: unbounded(),
-        };
-        todo!()
+            compressor_entries,
+            pool: Some(pool),
+            compress,
+            // Initialize utis.MutexMap used to track granular
+            // write transactions.
+            writer: Some(MutexMap::new(writer_shards)),
+            writer_shards,
+        })
     }
 }

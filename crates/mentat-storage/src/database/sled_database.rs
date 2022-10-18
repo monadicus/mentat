@@ -1,7 +1,6 @@
 use std::{path::Path, sync::atomic::AtomicBool, time::Duration};
 
-use crossbeam_channel::{unbounded, Receiver, Sender};
-use mentat_utils::sharded_map::DEFAULT_SHARDS;
+use mentat_utils::mutex_map::MutexMap;
 use sled::{Config, Db};
 
 use crate::{
@@ -9,70 +8,68 @@ use crate::{
     errors::StorageResult,
 };
 
-use super::{Database, Transaction};
-
-/// DefaultBlockCacheSize is 0 MB.
-const DEFAULT_BLOCK_CACHE_SIZE: usize = 0;
-
-/// DefaultIndexCacheSize is 2 GB.
-const DEFAULT_INDEX_CACHE_SIZE: usize = 2000 << 20;
-
-/// TinyIndexCacheSize is 10 MB.
-const TINY_INDEX_CACHE_SIZE: usize = 10 << 20;
-
-/// DefaultMaxTableSize is 256 MB. The larger
-/// this value is, the larger database transactions
-/// storage can handle (~15% of the max table size
-/// == max commit size).
-const DEFAULT_MAX_TABLE_SIZE: usize = 256 << 20;
-
-/// DefaultLogValueSize is 64 MB.
-const DEFAULT_LOG_VALUE_SIZE: usize = 64 << 20;
-
-/// PerformanceMaxTableSize is 3072 MB. The larger
-/// this value is, the larger database transactions
-/// storage can handle (~15% of the max table size
-/// == max commit size).
-const PERFORMANCE_MAX_TABLE_SIZE: usize = 3072 << 20;
-
-/// PerformanceLogValueSize is 256 MB.
-const PERFORMANCE_LOG_VALUE_SIZE: usize = 256 << 20;
-
-/// AllInMemoryTableSize is 2048 MB.
-const ALL_IN_MEMORY_TABLE_SIZE: usize = 2048 << 20;
-
-/// PerformanceLogValueSize is 512 MB.
-const ALL_IN_MEMORY_LOG_VALUE_SIZE: usize = 512 << 20;
-
-/// DefaultCompressionMode is the default block
-/// compression setting.
-const DEFAULT_COMPRESSION_MODE: Option<i32> = None;
-
-/// logModulo determines how often we should print
-/// logs while scanning data.
-const LOG_MODULO: usize = 5000;
-
-/// Default GC settings for reclaiming
-/// space in value logs.
-const DEFAULT_GCINTERVAL: Duration = Duration::from_secs(60);
-const DEFAULT_GCDISCARD_RATIO: f64 = 0.1;
-const DEFAULT_GCSLEEP: Duration = Duration::from_secs(10);
+use super::{Database, SledBuilder, Transaction};
 
 /// A wrapper around Sled DB that implements the Database interface.
 pub struct SledDatabase {
     pub(crate) sled_options: Config,
     pub(crate) compressor_entries: Vec<CompressorEntry>,
-    pub(crate) pool: BufferPool,
+    pub(crate) pool: Option<BufferPool>,
+    pub(crate) db: Db,
+    pub(crate) encoder: Option<Encoder>,
     pub(crate) compress: bool,
-    pub(crate) writer: (), // TODO requires MutexMap in utils
+    pub(crate) writer: Option<MutexMap<()>>,
     pub(crate) writer_shards: usize,
-    // TODO might not be needed
-    /// Track the closed status to ensure we exit garbage
-    /// collection when the db closes.
-    pub(crate) closed: (Sender<()>, Receiver<()>),
 }
 
 impl SledDatabase {
+    /// DefaultBlockCacheSize is 0 MB.
+    pub const DEFAULT_BLOCK_CACHE_SIZE: usize = 0;
+
+    /// DefaultIndexCacheSize is 2 GB.
+    pub const DEFAULT_INDEX_CACHE_SIZE: usize = 2000 << 20;
+
+    /// TinyIndexCacheSize is 10 MB.
+    pub const TINY_INDEX_CACHE_SIZE: usize = 10 << 20;
+
+    /// DefaultMaxTableSize is 256 MB. The larger
+    /// this value is, the larger database transactions
+    /// storage can handle (~15% of the max table size
+    /// == max commit size).
+    pub const DEFAULT_MAX_TABLE_SIZE: usize = 256 << 20;
+
+    /// DefaultLogValueSize is 64 MB.
+    pub const DEFAULT_LOG_VALUE_SIZE: usize = 64 << 20;
+
+    /// PerformanceMaxTableSize is 3072 MB. The larger
+    /// this value is, the larger database transactions
+    /// storage can handle (~15% of the max table size
+    /// == max commit size).
+    pub const PERFORMANCE_MAX_TABLE_SIZE: usize = 3072 << 20;
+
+    /// PerformanceLogValueSize is 256 MB.
+    pub const PERFORMANCE_LOG_VALUE_SIZE: usize = 256 << 20;
+
+    /// AllInMemoryTableSize is 2048 MB.
+    pub const ALL_IN_MEMORY_TABLE_SIZE: usize = 2048 << 20;
+
+    /// PerformanceLogValueSize is 512 MB.
+    pub const ALL_IN_MEMORY_LOG_VALUE_SIZE: usize = 512 << 20;
+
+    /// DefaultCompressionMode is the default block
+    /// compression setting.
+    pub const DEFAULT_COMPRESSION_MODE: Option<i32> = None;
+
+    /// logModulo determines how often we should print
+    /// logs while scanning data.
+    pub const LOG_MODULO: usize = 5000;
+
+    /// Default GC settings for reclaiming
+    /// space in value logs.
+    pub const DEFAULT_GCINTERVAL: Duration = Duration::from_secs(60);
+    pub const DEFAULT_GCDISCARD_RATIO: f64 = 0.1;
+    pub const DEFAULT_GCSLEEP: Duration = Duration::from_secs(10);
+
     // TODO this doc was for badger. see how much of it applies to sled
     /// The default options used to initialized
     /// a new Sled DB. These settings override many of the default Sled DB
@@ -105,29 +102,12 @@ impl SledDatabase {
         todo!()
     }
 
-    /// Creates a new Sled Database.
-    pub fn new(dir: &Path, storage_options: ()) -> StorageResult<Self> {
-        let b = SledDatabase {
-            sled_options: Self::default_sled_config(dir),
-            compressor_entries: Vec::new(),
-            pool: BufferPool::new(),
-            compress: true,
-            writer: todo!(),
-            writer_shards: DEFAULT_SHARDS,
-            closed: unbounded(),
-        };
-
-        todo!()
-    }
-
-    // TODO probably not needed since we have no GC
-    /// periodicGC attempts to reclaim storage every
-    /// defaultGCInterval.
-    ///
-    /// Inspired by:
-    /// https://github.com/ipfs/go-ds-badger/blob/a69f1020ba3954680900097e0c9d0181b88930ad/datastore.go#L173-L199
-    pub fn periodic_gc(&self) {
-        todo!()
+    /// Creates a builder for a new Sled Database.
+    pub fn builder(sled_options: Config) -> SledBuilder {
+        SledBuilder {
+            sled_options,
+            ..Default::default()
+        }
     }
 }
 
