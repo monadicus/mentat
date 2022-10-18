@@ -287,7 +287,7 @@ fn test_find_balance_worker() {
                 },
             },
             criteria: Ok(serde_json::to_value(FindBalanceOutput {
-                account_identifier: Some("addr4".into()),
+                account_identifier: Some("addr1".into()),
                 balance: amount_100(),
                 coin: None,
             })
@@ -565,7 +565,7 @@ fn test_find_balance_worker() {
         let db_tx = db.transaction();
         let mut worker = Worker::new(test.helper);
         let output = worker.find_balance_worker(&db_tx, serde_json::to_value(&test.input).unwrap());
-
+        
         worker.0.checkpoint();
         output
     })

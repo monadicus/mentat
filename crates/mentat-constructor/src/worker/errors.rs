@@ -46,7 +46,7 @@ pub enum WorkerError {
     #[error("the input operation is not supported")]
     InputOperationIsNotSupported,
 
-    #[error("asserter error: {0}")]
+    #[error("{0}")]
     AsserterError(AsserterError),
 
     #[error("{0}")]

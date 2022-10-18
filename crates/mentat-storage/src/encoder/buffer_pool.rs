@@ -1,33 +1,42 @@
-// TODO 0rphon: i may already have some code from a personal project that does basically the same thing as this
-/// BufferPool contains a sync.Pool
-/// of *bytes.Buffer.
-pub struct BufferPool {
-    // TODO sync.Pool
-    pool: (),
+use std::ops::{Deref, DerefMut};
+
+pub struct Buffer<T>(Vec<T>);
+
+impl<T> Buffer<T> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_capacity(size: usize) -> Self {
+        Self(Vec::with_capacity(size))
+    }
+
+    pub fn flushed(&mut self) -> &mut Vec<T> {
+        self.0.clear();
+        &mut self.0
+    }
+
+    pub fn swap(&mut self, buf: &mut Vec<T>) {
+        std::mem::swap(&mut self.0, buf);
+    }
 }
 
-impl BufferPool {
-    /// Returns a new *BufferPool.
-    pub fn new() -> Self {
-        todo!()
+impl<T> Default for Buffer<T> {
+    fn default() -> Self {
+        Self(Vec::new())
     }
+}
 
-    // TODO bytes.Buffer
-    /// Resets the provided *bytes.Buffer and stores
-    /// it in the pool for reuse.
-    pub fn put(&self, bytes: ()) {
-        todo!()
+impl<T> Deref for Buffer<T> {
+    type Target = [T];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
+}
 
-    /// Creates a *bytes.Buffer from the provided
-    /// []byte and stores it in the pool for reuse.
-    pub fn put_byte_slice(&self, buffer: Vec<u8>) {
-        todo!()
-    }
-
-    // TODO bytes.Buffer
-    /// Returns a new or reused *bytes.Buffer.
-    pub fn get(&self) -> () {
-        todo!()
+impl<T> DerefMut for Buffer<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }

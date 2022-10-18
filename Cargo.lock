@@ -1080,6 +1080,7 @@ dependencies = [
  "serde_json",
  "sled",
  "thiserror",
+ "tracing",
 ]
 
 [[package]]

@@ -330,7 +330,7 @@ impl<T: Helper> Worker<T> {
             .map_err(|e| format!("failed to convert string {diff} to big int: {e}"))?;
 
         if big_int_dif.sign() == Sign::Minus {
-            println!("check_account_balance: Account ({}) has balance ({}), less than the minimum balance ({})", account.address, amount.value, minimum_balance.value);
+            tracing::info!("check_account_balance: Account ({}) has balance ({}), less than the minimum balance ({})", account.address, amount.value, minimum_balance.value);
             return Ok(None);
         }
 
@@ -399,7 +399,7 @@ impl<T: Helper> Worker<T> {
         find_balance_worker_input_validation(&input)
             .map_err(|e| format!("failed to validate the input of find balance worker: {e}"))?;
 
-        println!("{input}");
+        tracing::info!("{input}");
 
         let (accounts, available_accounts) = self
             .available_accounts(db_tx)
@@ -434,7 +434,7 @@ impl<T: Helper> Worker<T> {
         }
 
         if !unmatched_accounts.is_empty() {
-            println!(
+            tracing::info!(
                 "{}: account(s) insufficiently funded. Please fund the address {unmatched_accounts:?}",
                 unmatched_accounts.len(),
             )
@@ -528,7 +528,7 @@ pub fn generate_key_worker(raw_input: Value) -> WorkerResult<Value> {
 
 /// PrintMessageWorker logs some message to stdout.
 pub fn print_message_worker(message: &Value) {
-    println!("Message: {message}")
+    tracing::info!("Message: {message}")
 }
 
 /// RandomStringWorker generates a string that complies
@@ -738,7 +738,7 @@ fn skip_account(input: &FindBalanceInput, account: &AccountIdentifier) -> bool {
         || input.not_account_identifier.contains(&Some(account.clone()))
         // If we require a particular SubAccountIdentifier, we skip
         // if the account we are examining does not have it.
-        || matches!(&input.sub_account_identifier, Some(id) if account.sub_account.is_none() || account.sub_account == Some(id.clone()))
+        || matches!(&input.sub_account_identifier, Some(id) if account.sub_account.is_none() || account.sub_account.as_ref() != Some(id))
 }
 
 /// AssertWorker checks if an input is < 0.

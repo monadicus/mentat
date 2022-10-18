@@ -134,7 +134,7 @@ impl<Payload, Res> TestCase<Payload, Res> {
         Res: Into<Result<Ok, Err>>,
         F: Fn(Payload) -> Res,
         Ok: fmt::Debug + PartialEq,
-        Err: fmt::Debug + PartialEq,
+        Err: fmt::Debug + PartialEq + fmt::Display,
     {
         Self::runner(tests, func, check_results_match::<Ok, Err>);
     }
@@ -151,7 +151,7 @@ impl<Payload, Res> TestCase<Payload, Res> {
         F: Fn(Payload) -> Fut,
         Fut: Future<Output = Res>,
         Ok: fmt::Debug + PartialEq,
-        Err: fmt::Debug + PartialEq,
+        Err: fmt::Debug + PartialEq + fmt::Display,
     {
         futures::executor::block_on(Self::async_runner(
             tests,
@@ -253,12 +253,12 @@ where
 }
 
 /// checks if `res == expected` then prints the corresponding status message
-pub fn check_results_match<T, E>(expected: &Result<T, E>, res: &Result<T, E>) -> bool
+pub fn check_results_match<T, E>(expected: &Result<T, E>, result: &Result<T, E>) -> bool
 where
     T: fmt::Debug + PartialEq,
-    E: fmt::Debug + PartialEq,
+    E: fmt::Debug + PartialEq + fmt::Display,
 {
-    match (expected, res) {
+    match (expected, result) {
         (Err(_), Ok(res)) => {
             println!("test passed when it shouldn't have. returned value: `{res:?}`");
             false
@@ -268,11 +268,11 @@ where
             false
         }
         (Ok(exp), Ok(res)) if exp != res => {
-            println!("test returned wrong value: `{expected:?}` != `{res:?}`");
+            println!("test returned wrong value: `{exp:?}` != `{res:?}`");
             false
         }
-        (Err(exp), Err(res)) if exp != res => {
-            println!("test returned wrong value: `{expected:?}` != `{res:?}`");
+        (Err(exp), Err(res)) if !res.to_string().contains(&exp.to_string()) => {
+            println!("test returned wrong value: `{exp}` != `{res}`");
             false
         }
         _ => {

@@ -1,15 +1,15 @@
 use std::{
     path::Path,
-    sync::{atomic::AtomicBool, Arc, Mutex},
+    sync::{atomic::AtomicBool, Arc, Mutex, RwLockWriteGuard},
     time::Duration,
 };
 
-use mentat_utils::mutex_map::MutexMap;
+use mentat_utils::{mutex_map::MutexMap, priority_mutex::PriorityMutex, sharded_map::ShardedMap};
 pub use sled::Config;
 use sled::Db;
 
 use crate::{
-    encoder::{BufferPool, CompressorEntry, Encoder},
+    encoder::{Buffer, CompressorEntry, Encoder},
     errors::StorageResult,
 };
 
@@ -19,11 +19,11 @@ use super::{Database, SledBuilder, Transaction};
 pub struct SledDatabase {
     pub(crate) sled_options: Config,
     pub(crate) compressor_entries: Vec<CompressorEntry>,
-    pub(crate) pool: Option<BufferPool>,
+    pub(crate) pool: Option<Buffer<u8>>,
     pub(crate) db: Db,
-    pub(crate) encoder: Option<Encoder>,
+    pub(crate) encoder: Encoder,
     pub(crate) compress: bool,
-    pub(crate) writer: Option<MutexMap<()>>,
+    pub(crate) writer: MutexMap<()>,
     pub(crate) writer_shards: usize,
 }
 
@@ -121,7 +121,16 @@ impl Database for SledDatabase {
 
     /// Creates a new exclusive write SledTransaction.
     fn transaction(&self) -> Self::Tx {
-        todo!()
+        // TODO IMPORTANT: RW lock not held! should be stored inside the transaction but cant have a lifetime on the associated type
+        let lock = self.writer.global_lock();
+
+        SledTransaction {
+            db: (),
+            txn: Some(()),
+            hold_global: true,
+            rw_lock: Default::default(),
+            identifier: Default::default(),
+        }
     }
 
     /// Creates a new read SledTransaction.
@@ -153,7 +162,8 @@ impl Database for SledDatabase {
 /// interface.
 #[derive(Clone)]
 pub struct SledTransaction {
-    db: Option<Db>,
+    // TODO should be `&'a Db`
+    db: (),
     // TODO figure out how a db transaction should be stored in sled
     txn: Option<()>,
     // TODO figure out what this is locking
@@ -161,21 +171,19 @@ pub struct SledTransaction {
 
     hold_global: bool,
     pub identifier: String,
-
-    /// We MUST wait to reclaim any memory until after
-    /// the transaction is committed or discarded.
-    /// Source: https://godoc.org/github.com/dgraph-io/badger#Txn.Set
-    ///
-    /// It is also CRITICALLY IMPORTANT that the same
-    /// buffer is not added to the BufferPool multiple
-    /// times. This will almost certainly lead to a panic.
-    // TODO requires some bytes.Buffer type
-    buffers_to_reclaim: Arc<Mutex<Vec<()>>>,
 }
 
 impl SledTransaction {
-    fn release_locks(&self) {
-        todo!()
+    fn release_locks(&mut self) {
+        if self.hold_global {
+            self.hold_global = false;
+            // TODO IMPORTANT should drop db lock here, but lock isn't stored yet
+        }
+
+        if !self.identifier.is_empty() {
+            // TODO should unlock tx lock here
+            self.identifier.clear();
+        }
     }
 }
 
@@ -221,7 +229,9 @@ impl Transaction for SledTransaction {
     /// Discard discards an open transaction. All transactions
     /// must be either discarded or committed.
     fn discard(&mut self) {
-        todo!()
+        // TODO
+        // self.txn.discard();
+        self.release_locks();
     }
 }
 

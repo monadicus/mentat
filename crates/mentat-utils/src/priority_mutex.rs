@@ -35,6 +35,7 @@ impl<'a, T> Drop for PriorityMutexGuard<'a, T> {
     }
 }
 
+// TODO as elegant as this solution is, the mutex_map upstream is such a weird way of doing mutexes that i dont think the standard rust approach will work here. will need to switch to atomic bools instead of the normal mutex pattern where a value is stored in the lock
 /// PriorityMutex is a special type of mutex
 /// that allows callers to request priority
 /// over other callers. This can be useful

@@ -4,6 +4,7 @@ pub use buffer_pool::*;
 mod encoder_test;
 
 use std::{
+    fs::read_to_string,
     io::{Read, Write},
     path::PathBuf,
 };
@@ -33,8 +34,8 @@ pub struct CompressorEntry {
 /// to decode previously encoded data. For many users, providing
 /// no dicts is sufficient!
 pub struct Encoder {
-    compression_dicts: IndexMap<String, Value>,
-    pool: Option<BufferPool>,
+    compression_dicts: IndexMap<String, String>,
+    pool: Buffer<u8>,
     compress: bool,
 }
 
@@ -43,12 +44,26 @@ impl Encoder {
 
     /// Returns a new Encoder. The dicts
     /// provided should contain k:v of namespace:zstd dict.
-    pub fn new(
-        entries: &[CompressorEntry],
-        pool: &BufferPool,
-        compress: bool,
-    ) -> StorageResult<Option<Self>> {
-        todo!()
+    pub fn new(entries: &[CompressorEntry], compress: bool) -> StorageResult<Self> {
+        let mut dicts = IndexMap::new();
+        for entry in entries {
+            let b = read_to_string(&entry.dictionary_path).map_err(|e| {
+                format!(
+                    "unable to load dictionary {}: {}",
+                    entry.dictionary_path.display(),
+                    e
+                )
+            })?;
+
+            tracing::info!("loaded zstd dictionary for {}\n", entry.namespace);
+            dicts.insert(entry.namespace.clone(), b);
+        }
+
+        Ok(Self {
+            compression_dicts: dicts,
+            pool: Buffer::new(),
+            compress,
+        })
     }
 
     /// Attempts to compress the object and will use a dict if

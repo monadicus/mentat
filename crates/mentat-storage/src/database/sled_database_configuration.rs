@@ -2,7 +2,7 @@ use mentat_utils::{mutex_map::MutexMap, sharded_map::DEFAULT_SHARDS};
 use sled::Config;
 
 use crate::{
-    encoder::{BufferPool, CompressorEntry, Encoder},
+    encoder::{Buffer, CompressorEntry, Encoder},
     errors::StorageResult,
 };
 
@@ -47,9 +47,9 @@ impl SledBuilder {
         let writer_shards = self.writer_shards.unwrap_or(DEFAULT_SHARDS);
         let compressor_entries = self.compressor_entries.unwrap_or_default();
         let compress = self.compress.unwrap_or_default();
-        let pool = BufferPool::new();
+        let pool = Buffer::new();
         Ok(SledDatabase {
-            encoder: Encoder::new(&compressor_entries, &pool, compress)
+            encoder: Encoder::new(&compressor_entries, compress)
                 .map_err(|e| format!("unable to load compressor: {e}"))?,
             db: self
                 .sled_options
@@ -61,7 +61,7 @@ impl SledBuilder {
             compress,
             // Initialize utis.MutexMap used to track granular
             // write transactions.
-            writer: Some(MutexMap::new(writer_shards)),
+            writer: MutexMap::new(writer_shards),
             writer_shards,
         })
     }
