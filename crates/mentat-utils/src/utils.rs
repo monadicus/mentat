@@ -24,37 +24,37 @@ use crate::rust_utils::Context;
 
 /// specifies that the user can
 /// read and write the file.
-const DEFAULT_FILE_PERMISSIONS: usize = 0o600;
+pub const DEFAULT_FILE_PERMISSIONS: usize = 0o600;
 
 /// specifies anyone can do anything
 /// to the file.
-const ALL_FILE_PERMISSIONS: usize = 0o777;
+pub const ALL_FILE_PERMISSIONS: usize = 0o777;
 
-const BASE_10: usize = 10;
+pub const BASE_10: usize = 10;
 
-const BIG_BLOAT_PRECISION: usize = 512;
+pub const BIG_BLOAT_PRECISION: usize = 512;
 
 /// the number
 /// of nanoseconds in a millisecond.
-const NANOSECONDS_IN_MILLISECOND: usize = 1000000;
+pub const NANOSECONDS_IN_MILLISECOND: usize = 1000000;
 
 /// the number
 /// of milliseconds in a second.
-const MILLISECOND_IN_SECOND: usize = 1000;
+pub const MILLISECOND_IN_SECOND: usize = 1000;
 
 /// the number 100.
-const ONE_HUNDRED: usize = 100;
+pub const ONE_HUNDRED: usize = 100;
 
 /// the minimum blocks per second
 /// to consider when estimating time to tip if the provided
 /// estimate is 0.
-const MIN_BLOCKS_PER_SECOND: f64 = 0.0001;
+pub const MIN_BLOCKS_PER_SECOND: f64 = 0.0001;
 
 /// the maximum number of entries
 /// in one transaction object. This is used for bootstrap
 /// balances process to avoid TxnTooBig error when memory_limit_disabled=false
 /// as well as reduce the running time.
-const MAX_ENTRY_SIZE_PER_TXN: usize = 600;
+pub const MAX_ENTRY_SIZE_PER_TXN: usize = 600;
 
 /// a BigInt of value 100.
 pub fn one_hundred_int() -> BigInt {

@@ -9,16 +9,16 @@ use crate::priority_mutex::{PriorityMutex, PriorityMutexGuard};
 /// the map contained at a particular index.
 pub type ShardedMapEntry<T> = PriorityMutex<IndexMap<String, T>>;
 
+/// the default number of shards to use in `ShardedMap`
+pub const DEFAULT_SHARDS: usize = 256;
+
 /// ShardedMap allows concurrent writes
 /// to a map by sharding the map into some
 /// number of independently locked subsections.
 pub struct ShardedMap<T>(Vec<ShardedMapEntry<T>>);
 
 impl<T> ShardedMap<T> {
-    /// the default number of shards to use in `ShardedMap`
-    const DEFAULT_SHARDS: usize = 256;
-
-    /// NewShardedMap creates a new *ShardedMap
+    /// Creates a new ShardedMap
     /// with some number of shards. The larger the
     /// number provided for shards, the less lock
     /// contention there will be.
@@ -34,7 +34,7 @@ impl<T> ShardedMap<T> {
         )
     }
 
-    /// shardIndex returns the index of the shard
+    /// Returns the index of the shard
     /// that could contain the key.
     pub fn shard_index(&self, key: &str) -> usize {
         // TODO go code uses FNV-1a but were using FNV-1
@@ -43,7 +43,7 @@ impl<T> ShardedMap<T> {
         hasher.finish() as usize % self.0.len()
     }
 
-    /// Lock acquires the lock for a shard that could contain
+    /// Acquires the lock for a shard that could contain
     /// the key. This syntax allows the caller to perform multiple
     /// operations while holding the lock for a single shard.
     pub fn lock(&self, key: &str, priority: bool) -> PriorityMutexGuard<IndexMap<String, T>> {
@@ -54,6 +54,6 @@ impl<T> ShardedMap<T> {
 
 impl<T: Default> Default for ShardedMap<T> {
     fn default() -> Self {
-        Self::new(Self::DEFAULT_SHARDS)
+        Self::new(DEFAULT_SHARDS)
     }
 }
