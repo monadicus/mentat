@@ -96,7 +96,7 @@ from_asserter_error!(UtilError);
 pub type WorkerResult<T> = Result<T, WorkerError>;
 
 // WorkerErrorInfo is returned by worker execution.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct VerboseWorkerError {
     pub workflow: ReservedWorkflow,
     pub job: Option<String>,

@@ -230,7 +230,7 @@ impl fmt::Display for Status {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 /// Action is a step of computation that
 /// where the result is saved to OutputPath.
 pub struct Action {
@@ -481,7 +481,7 @@ pub struct Job {
 /// Broadcast contains information needed to create
 /// and broadcast a transaction. Broadcast is returned
 /// from Job processing only IF a broadcast is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Broadcast {
     pub network: Option<NetworkIdentifier>,
     pub intent: Vec<Operation>,

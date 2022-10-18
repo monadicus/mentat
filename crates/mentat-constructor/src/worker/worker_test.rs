@@ -7,18 +7,19 @@ use httptest::{
 };
 use indexmap::{indexmap, IndexMap};
 use mentat_asserter::{AccountBalanceError, BlockError, ConstructionError};
-use mentat_storage::{database::Transaction, errors::StorageResult};
+use mentat_storage::database::{Config, Database, SledDatabase, SledTransaction, Transaction};
 use mentat_test_utils::TestCase;
 use mentat_types::{
-    hash, AccountIdentifier, Amount, Coin, Currency, Metadata, NetworkIdentifier, PublicKey,
-    UncheckedAmount, UncheckedCurrency,
+    hash, AccountIdentifier, Amount, Coin, Currency, CurveType, Metadata, NetworkIdentifier,
+    Operation, OperationIdentifier, PublicKey, UncheckedAmount, UncheckedCurrency,
 };
 use mockall::mock;
+use regex::Regex;
 use reqwest::{Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
 use std::{
-    env,
+    env::{self, temp_dir},
     fmt::{self, Debug},
     thread::sleep,
     time::Duration,
@@ -28,8 +29,8 @@ use crate::{
     helpers::get_json,
     job::Scenario,
     job::{
-        Action, ActionType, FindBalanceInput, FindBalanceOutput, HttpMethod, HttpRequestInput, Job,
-        ReservedWorkflow, Workflow,
+        Action, ActionType, Broadcast, FindBalanceInput, FindBalanceOutput, HttpMethod,
+        HttpRequestInput, Job, ReservedWorkflow, Workflow,
     },
     tmp::KeyPair,
 };
@@ -40,46 +41,6 @@ use super::{
     types::Helper,
     Worker,
 };
-
-// TODO not how this should be done
-struct MockTransaction;
-
-impl Transaction for MockTransaction {
-    fn set(&mut self, _: Value, _: Value, _: bool) -> StorageResult<()> {
-        todo!()
-    }
-
-    fn get(&self, _: &Value) -> StorageResult<(Value, bool)> {
-        todo!()
-    }
-
-    fn delete(&mut self, _: &Value) -> StorageResult<()> {
-        todo!()
-    }
-
-    fn scan(
-        &self,
-        // prefix restriction
-        _: &Value,
-        // seek start
-        _: &Value,
-        _: fn(&Value, &Value) -> StorageResult<()>,
-        // log entries
-        _: bool,
-        // reverse == true means greatest to least
-        _: bool,
-    ) -> StorageResult<usize> {
-        todo!()
-    }
-
-    fn commit(&mut self) -> StorageResult<()> {
-        todo!()
-    }
-
-    fn discard(&mut self) {
-        todo!()
-    }
-}
 
 mock! {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -240,7 +201,7 @@ impl fmt::Debug for TestFindBalanceWorker {
 fn test_find_balance_worker() {
     let expect_all_accounts_2_1_3_4 = |helper: &mut MockHelper| {
         helper
-            .expect_all_accounts::<MockTransaction>()
+            .expect_all_accounts::<SledTransaction>()
             .return_const(Ok(Box::leak(Box::new([
                 "addr2".into(),
                 "addr1".into(),
@@ -253,7 +214,7 @@ fn test_find_balance_worker() {
 
     let expect_locked_accounts_2 = |helper: &mut MockHelper| {
         helper
-            .expect_locked_accounts::<MockTransaction>()
+            .expect_locked_accounts::<SledTransaction>()
             .return_const(Ok(Box::leak(Box::new(["addr2".into()])).as_slice()))
             .once();
     };
@@ -261,7 +222,7 @@ fn test_find_balance_worker() {
     let expect_balance =
         |helper: &mut MockHelper, addr: AccountIdentifier, amount: &'static str| {
             helper
-                .expect_balance::<MockTransaction>()
+                .expect_balance::<SledTransaction>()
                 .withf(move |_, id, cur| *id == addr && *cur == currency())
                 .return_const(Ok(&*Box::leak(Box::new(Amount {
                     value: amount.into(),
@@ -273,7 +234,7 @@ fn test_find_balance_worker() {
 
     let expect_coins = |helper: &mut MockHelper, addr: AccountIdentifier, coins: Vec<Coin>| {
         helper
-            .expect_coins::<MockTransaction>()
+            .expect_coins::<SledTransaction>()
             .withf(move |_, id, cur| *id == addr && *cur == currency())
             .return_const(Ok(Box::leak(Box::new(coins)).as_slice()));
     };
@@ -325,11 +286,12 @@ fn test_find_balance_worker() {
                     helper
                 },
             },
-            criteria: Ok(FindBalanceOutput {
+            criteria: Ok(serde_json::to_value(FindBalanceOutput {
                 account_identifier: Some("addr4".into()),
                 balance: amount_100(),
                 coin: None,
-            }),
+            })
+            .unwrap()),
         },
         TestCase {
             name: "simple find balance (random create)",
@@ -411,7 +373,7 @@ fn test_find_balance_worker() {
                     let mut helper = MockHelper::new();
                     expect_all_accounts_2_1_3_4(&mut helper);
                     helper
-                        .expect_locked_accounts::<MockTransaction>()
+                        .expect_locked_accounts::<SledTransaction>()
                         .return_const(Ok(Box::leak(Box::new([
                             "addr1".into(),
                             "addr2".into(),
@@ -437,7 +399,7 @@ fn test_find_balance_worker() {
                 helper: {
                     let mut helper = MockHelper::new();
                     helper
-                        .expect_all_accounts::<MockTransaction>()
+                        .expect_all_accounts::<SledTransaction>()
                         .return_const(Ok(Box::leak(Box::new([
                             "addr2".into(),
                             ("addr1", "sub1").into(),
@@ -451,11 +413,12 @@ fn test_find_balance_worker() {
                     helper
                 },
             },
-            criteria: Ok(FindBalanceOutput {
+            criteria: Ok(serde_json::to_value(FindBalanceOutput {
                 account_identifier: Some(("addr1", "sub1").into()),
                 balance: amount_100(),
                 coin: None,
-            }),
+            })
+            .unwrap()),
         },
         TestCase {
             name: "simple find coin",
@@ -492,11 +455,12 @@ fn test_find_balance_worker() {
                     helper
                 },
             },
-            criteria: Ok(FindBalanceOutput {
+            criteria: Ok(serde_json::to_value(FindBalanceOutput {
                 account_identifier: Some("addr1".into()),
                 balance: amount_100(),
                 coin: Some("coin2".into()),
-            }),
+            })
+            .unwrap()),
         },
         TestCase {
             name: "could not find coin (no create)",
@@ -587,7 +551,24 @@ fn test_find_balance_worker() {
         },
     ];
 
-    TestCase::run_result_match(tests, |_| todo!("requires storage/database!"))
+    TestCase::run_result_match(tests, |test| {
+        // Setup DB
+        let dir = temp_dir();
+        let db = SledDatabase::builder(
+            Config::new()
+                .path(dir)
+                .cache_capacity(SledDatabase::TINY_INDEX_CACHE_SIZE),
+        )
+        .build()
+        .unwrap();
+
+        let db_tx = db.transaction();
+        let mut worker = Worker::new(test.helper);
+        let output = worker.find_balance_worker(&db_tx, serde_json::to_value(&test.input).unwrap());
+
+        worker.0.checkpoint();
+        output
+    })
 }
 
 fn assert_variable_equality<T: DeserializeOwned + PartialEq + Debug>(
@@ -739,12 +720,113 @@ fn test_job_complicated_transfer() {
         scenarios: vec![s1, s2],
     };
 
-    let _j = Job::new(workflow);
+    let mut j = Job::new(workflow);
 
-    let _helper = MockHelper::new();
+    let mut helper = MockHelper::new();
 
     // Setup DB
-    todo!("requires storage/database!")
+    let dir = temp_dir();
+    let db = SledDatabase::builder(
+        Config::new()
+            .path(dir)
+            .cache_capacity(SledDatabase::TINY_INDEX_CACHE_SIZE),
+    )
+    .build()
+    .unwrap();
+
+    let db_tx = db.transaction();
+
+    let network = NetworkIdentifier {
+        blockchain: "Bitcoin".into(),
+        network: "Testnet3".into(),
+        sub_network_identifier: None,
+    };
+    let account = AccountIdentifier {
+        address: "test".into(),
+        ..Default::default()
+    };
+
+    let tmp_network = network.clone();
+    helper
+        .expect_derive()
+        .withf(move |n, _, m| *n == tmp_network && *m == IndexMap::<String, Value>::new())
+        .return_const(Ok((Some(account.clone()), Default::default())))
+        .once();
+    let id = db_tx.identifier.clone();
+    let tmp_account = account.clone();
+    helper
+        .expect_store_key()
+        .withf(move |d: &SledTransaction, a, _| d.identifier == id && *a == tmp_account)
+        .return_const(Ok(()))
+        .once();
+    let mut worker = Worker::new(helper);
+
+    assert!(!j.check_complete());
+
+    let b = futures::executor::block_on(worker.process(&db_tx, &mut j)).unwrap();
+
+    let random_address = j.state.get("random_address").unwrap();
+    let re: Regex = Regex::new(r"[a-z]+").unwrap();
+    let matched = re.is_match(&random_address.to_string());
+    assert!(matched);
+
+    assert_eq!(
+        Broadcast {
+            network: Some(network.clone()),
+            intent: vec!(
+                Operation {
+                    operation_identifier: OperationIdentifier {
+                        index: 0,
+                        ..Default::default()
+                    },
+                    account: Some(account.clone()),
+                    amount: Some(Amount {
+                        value: "-90".into(),
+                        currency: Currency {
+                            symbol: "BTC".into(),
+                            decimals: 8,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                },
+                Operation {
+                    operation_identifier: OperationIdentifier {
+                        index: 1,
+                        ..Default::default()
+                    },
+                    account: Some(AccountIdentifier {
+                        address: random_address.to_string(),
+                        ..Default::default()
+                    }),
+                    amount: Some(Amount {
+                        value: "100".into(),
+                        currency: Currency {
+                            symbol: "BTC".into(),
+                            decimals: 8,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }
+            ),
+            metadata: Default::default(),
+            confirmation_depth: 2,
+            dry_run: Default::default()
+        },
+        b.unwrap()
+    );
+
+    assert!(j.check_complete());
+    assert_eq!(j.index, 2);
+
+    assert_variable_equality(&j.state, "network", &network);
+    assert_variable_equality(&j.state, "key.public_key.curve_type", &CurveType::Secp256k1);
+    assert_variable_equality(&j.state, "account.account_identifier", &account);
+
+    worker.0.checkpoint();
 }
 
 #[derive(Debug, Clone)]
@@ -1233,20 +1315,42 @@ fn test_job_failures() {
         },
     ];
 
-    // TODO remove explicit return type once function is complete
-    TestCase::run_err_match(tests, |test| -> Result<(), VerboseWorkerError> {
+    for test in tests {
+        let payload = test.payload;
+
         let workflow = Workflow {
             // TODO should be "random"
             name: ReservedWorkflow::Unknown,
             concurrency: 0,
-            scenarios: vec![test.scenario],
+            scenarios: vec![payload.scenario],
         };
-        let _j = Job::new(workflow);
-        let _worker = Worker::new(MockHelper::new());
+        let mut j = Job::new(workflow);
+        let mut worker = Worker::new(MockHelper::new());
 
         // Setup DB
-        todo!("requires storage/database!")
-    });
+        let dir = temp_dir();
+        let db = SledDatabase::builder(
+            Config::new()
+                .path(dir)
+                .cache_capacity(SledDatabase::TINY_INDEX_CACHE_SIZE),
+        )
+        .build()
+        .unwrap();
+
+        let db_tx = db.transaction();
+
+        assert!(!j.check_complete());
+
+        let mut e = futures::executor::block_on(worker.process(&db_tx, &mut j)).unwrap_err();
+        assert!(e.err.to_string().contains(&test.criteria.err.to_string()));
+        e.err = test.criteria.err.clone();
+        assert_eq!(e, test.criteria);
+
+        assert_eq!(payload.complete, j.check_complete());
+        assert_eq!(payload.new_index, j.index);
+
+        worker.0.checkpoint();
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -1489,11 +1593,11 @@ fn test_blob_workers() {
                 },
                 helper: {
                     let mut helper = MockHelper::new();
-                    helper.expect_set_blob::<MockTransaction>()
+                    helper.expect_set_blob::<SledTransaction>()
                         .withf(|_, key, value| key == "Testnet3" && value == "Bitcoin")
                         .return_const(Ok(()))
                         .once();
-                    helper.expect_get_blob::<MockTransaction>()
+                    helper.expect_get_blob::<SledTransaction>()
                         .withf(|_, key| key == "Testnet3")
                         .return_const(Ok(Some("Bitcoin".into())))
                         .once();
@@ -1516,7 +1620,7 @@ fn test_blob_workers() {
                 },
                 helper: {
                     let mut helper = MockHelper::new();
-                    helper.expect_get_blob::<MockTransaction>()
+                    helper.expect_get_blob::<SledTransaction>()
                         .withf(|_, key| key == "Testnet3")
                         .return_const(Ok(None))
                         .once();
@@ -1561,15 +1665,15 @@ fn test_blob_workers() {
                 },
                 helper: {
                     let mut helper = MockHelper::new();
-                    helper.expect_set_blob::<MockTransaction>()
+                    helper.expect_set_blob::<SledTransaction>()
                         .withf(|_, key, value| *key == hash(Some(&AccountIdentifier::from(("hello", "neat")))) && *value == json!({"stuff":"neat"}))
                         .return_const(Ok(()))
                         .once();
-                        helper.expect_set_blob::<MockTransaction>()
+                        helper.expect_set_blob::<SledTransaction>()
                         .withf(|_, key, value| *key == hash(Some(&AccountIdentifier::from(("hello", "neat2")))) && *value == "add2")
                         .return_const(Ok(()))
                         .once();
-                    helper.expect_get_blob::<MockTransaction>()
+                    helper.expect_get_blob::<SledTransaction>()
                         .withf(|_, key| *key == hash(Some(&AccountIdentifier::from(("hello", "neat")))))
                         .return_const(Ok(Some(json!({"stuff":"neat"}))))
                         .once();
@@ -1586,17 +1690,48 @@ fn test_blob_workers() {
     ];
 
     // TODO remove explicit return type once db implemented
-    TestCase::run_err_match(tests, |test| -> Result<(), VerboseWorkerError> {
+    for test in tests {
+        let payload = test.payload;
+
         let workflow = Workflow {
             // TODO should be "random"
             name: ReservedWorkflow::Unknown,
             concurrency: 0,
-            scenarios: vec![test.scenario],
+            scenarios: vec![payload.scenario],
         };
-        let _j = Job::new(workflow);
-        let _worker = Worker::new(test.helper);
+        let mut j = Job::new(workflow);
+        let mut worker = Worker::new(payload.helper);
 
         // Setup DB
-        todo!("requires storage/database!")
-    })
+        let dir = temp_dir();
+        let db = SledDatabase::builder(
+            Config::new()
+                .path(dir)
+                .cache_capacity(SledDatabase::TINY_INDEX_CACHE_SIZE),
+        )
+        .build()
+        .unwrap();
+
+        let db_tx = db.transaction();
+
+        assert!(!j.check_complete());
+
+        let r = futures::executor::block_on(worker.process(&db_tx, &mut j));
+
+        if let Some(criteria) = test.criteria {
+            let mut e = r.unwrap_err();
+            assert!(e.err.to_string().contains(&criteria.err.to_string()));
+            e.err = criteria.err.clone();
+            assert_eq!(e, criteria);
+        } else {
+            assert!(r.unwrap().is_none());
+
+            for (k, v) in payload.asserter_state {
+                let value = get_json(&j.state, &k).unwrap();
+                assert_eq!(value.to_string(), v)
+            }
+        }
+
+        assert!(!j.check_complete());
+    }
 }

@@ -65,7 +65,8 @@ pub trait Transaction {
         _: bool,
     ) -> StorageResult<usize>;
 
-    fn commit(&mut self) -> StorageResult<()>;
+    fn commit(self) -> StorageResult<()>;
+    // TODO could impl this as a drop?
     fn discard(&mut self);
 }
 

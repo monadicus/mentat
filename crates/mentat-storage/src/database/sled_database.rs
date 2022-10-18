@@ -1,7 +1,12 @@
-use std::{path::Path, sync::atomic::AtomicBool, time::Duration};
+use std::{
+    path::Path,
+    sync::{atomic::AtomicBool, Arc, Mutex},
+    time::Duration,
+};
 
 use mentat_utils::mutex_map::MutexMap;
-use sled::{Config, Db};
+pub use sled::Config;
+use sled::Db;
 
 use crate::{
     encoder::{BufferPool, CompressorEntry, Encoder},
@@ -27,10 +32,10 @@ impl SledDatabase {
     pub const DEFAULT_BLOCK_CACHE_SIZE: usize = 0;
 
     /// DefaultIndexCacheSize is 2 GB.
-    pub const DEFAULT_INDEX_CACHE_SIZE: usize = 2000 << 20;
+    pub const DEFAULT_INDEX_CACHE_SIZE: u64 = 2000 << 20;
 
     /// TinyIndexCacheSize is 10 MB.
-    pub const TINY_INDEX_CACHE_SIZE: usize = 10 << 20;
+    pub const TINY_INDEX_CACHE_SIZE: u64 = 10 << 20;
 
     /// DefaultMaxTableSize is 256 MB. The larger
     /// this value is, the larger database transactions
@@ -146,17 +151,17 @@ impl Database for SledDatabase {
 /// A wrapper around a Sled
 /// DB transaction that implements the DatabaseTransaction
 /// interface.
+#[derive(Clone)]
 pub struct SledTransaction {
     db: Option<Db>,
     // TODO figure out how a db transaction should be stored in sled
     txn: Option<()>,
     // TODO figure out what this is locking
-    rw_lock: AtomicBool,
+    rw_lock: Arc<AtomicBool>,
 
     hold_global: bool,
-    identifier: String,
+    pub identifier: String,
 
-    // TODO can combine the lock with the vec
     /// We MUST wait to reclaim any memory until after
     /// the transaction is committed or discarded.
     /// Source: https://godoc.org/github.com/dgraph-io/badger#Txn.Set
@@ -164,9 +169,8 @@ pub struct SledTransaction {
     /// It is also CRITICALLY IMPORTANT that the same
     /// buffer is not added to the BufferPool multiple
     /// times. This will almost certainly lead to a panic.
-    reclaim_lock: AtomicBool,
     // TODO requires some bytes.Buffer type
-    buffers_to_reclaim: Vec<()>,
+    buffers_to_reclaim: Arc<Mutex<Vec<()>>>,
 }
 
 impl SledTransaction {
@@ -210,7 +214,7 @@ impl Transaction for SledTransaction {
     }
 
     /// Commit attempts to commit and discard the transaction.
-    fn commit(&mut self) -> StorageResult<()> {
+    fn commit(self) -> StorageResult<()> {
         todo!()
     }
 
@@ -218,6 +222,13 @@ impl Transaction for SledTransaction {
     /// must be either discarded or committed.
     fn discard(&mut self) {
         todo!()
+    }
+}
+
+// TODO figure out good way to apply this to all types that impl transaction. macro was clunky, adding `Drop` bounds to trait generates a clippy warning
+impl Drop for SledTransaction {
+    fn drop(&mut self) {
+        self.discard()
     }
 }
 

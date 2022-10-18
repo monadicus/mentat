@@ -31,6 +31,7 @@ impl<T> MutexMap<T> {
     }
 
     /// acquires an exclusive lock across an entire `MutexMap`.
+    /// 
     /// NOTE: the behavior of this differs from the official go SDK.
     /// parking_lot uses a "fair" model for RWLocks where readers will block when a writer is trying to acquire a lock even if the read lock is free and the read lock was queued before the write lock.
     /// meanwhile go uses a greedy model, where readers will always be given priority over writers.
@@ -38,6 +39,7 @@ impl<T> MutexMap<T> {
         self.entries.write()
     }
 
+    // TODO this holds a lock on all of data during the closure, defeating the purpose of the two layers of mutexes. perhaps could use a RWLock to read only the outer then write lock the inner?
     /// acquires a lock for a particular identifier, as long
     /// as no other caller has the global mutex or a lock
     /// by the same identifier.

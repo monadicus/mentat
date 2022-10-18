@@ -31,3 +31,4 @@ rand_regex = "0.15.1"
 mentat-test-utils = { path = "../mentat-test-utils" }
 httptest = "0.15.4"
 mockall = "0.11.2"
+futures = "0.3.24"

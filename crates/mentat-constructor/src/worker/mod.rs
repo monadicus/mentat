@@ -43,7 +43,7 @@ use self::{
 use std::{env, str::FromStr, time::Duration};
 
 /// Worker processes jobs.
-pub struct Worker<T: Helper>(T);
+pub struct Worker<T: Helper>(pub T);
 
 impl<T: Helper> Worker<T> {
     /// returns a new Worker.
