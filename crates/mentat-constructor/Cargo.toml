@@ -26,6 +26,9 @@ rand = "0.8.5"
 url = "2.3.1"
 reqwest = { version = "0.11.10", default-features = false, features = ["json"] }
 rand_regex = "0.15.1"
+# TODO remove once keys crate is finished
+secp256k1 = { version = "0.24.0", features = ["bitcoin_hashes", "rand-std"] }
+
 
 [dev-dependencies]
 mentat-test-utils = { path = "../mentat-test-utils" }

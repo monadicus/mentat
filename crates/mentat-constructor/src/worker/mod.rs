@@ -235,8 +235,7 @@ impl<T: Helper> Worker<T> {
                 #[cfg(test)]
                 db_tx.clone(),
                 &input.account_identifier.unwrap(),
-                // TODO no check nil
-                input.key_pair.as_ref().unwrap(),
+                input.key_pair,
             )
             .map_err(|e| format!("failed to store key: {e}").into())
     }
@@ -521,7 +520,7 @@ impl<T: Helper> Worker<T> {
 pub fn generate_key_worker(raw_input: Value) -> WorkerResult<Value> {
     let input = Job::deserialize_value::<GenerateKeyInput>(raw_input)
         .map_err(|e| format!("failed to deserialize input: {e}"))?;
-    let kp = generate_key_pair(&input.curve_type)
+    let kp = generate_key_pair(input.curve_type)
         .map_err(|e| format!("failed to generate key pair: {e}"))?;
     Ok(json!(kp))
 }

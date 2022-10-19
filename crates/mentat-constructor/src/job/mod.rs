@@ -14,7 +14,7 @@ impl Job {
     pub fn new(workflow: Workflow) -> Self {
         Self {
             identifier: Default::default(),
-            state: Default::default(),
+            state: Value::Object(Default::default()),
             index: Default::default(),
             status: Status::Ready,
             workflow: workflow.name,
@@ -182,10 +182,11 @@ impl Job {
             .ok_or_else(|| "failed to set a raw json value".to_string())?
             .insert(key.to_string(), obj);
 
-        self.status = self
-            .check_complete()
-            .then_some(Status::Completed)
-            .unwrap_or(Status::Ready);
+        self.status = if self.check_complete() {
+            Status::Completed
+        } else {
+            Status::Ready
+        };
 
         Ok(())
     }

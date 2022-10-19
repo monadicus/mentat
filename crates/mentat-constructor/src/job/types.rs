@@ -15,6 +15,7 @@ use crate::tmp::KeyPair;
 /// the expected concurrency of the create account and request funds scenario.
 pub const RESERVED_WORKFLOW_CONCURRENCY: usize = 1;
 
+// TODO make case-insensitive
 /// ReservedVariable is a reserved variable
 /// field in a Job's state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -64,6 +65,7 @@ impl fmt::Display for ReservedVariable {
     }
 }
 
+// TODO make case-insensitive
 /// ActionType is a type of Action that can be processed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ActionType {
@@ -137,6 +139,7 @@ pub enum ActionType {
     Unknown,
 }
 
+// TODO make case-insensitive
 /// MathOperation is some mathematical operation that
 /// can be performed on 2 numbers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -176,6 +179,7 @@ impl From<HttpMethod> for Method {
     }
 }
 
+// TODO make case-insensitive
 /// ReservedWorkflow is a Workflow reserved for special circumstances.
 /// All ReservedWorkflows must exist when running the constructor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -200,6 +204,7 @@ pub enum ReservedWorkflow {
     Unknown,
 }
 
+// TODO make case-insensitive
 /// Status is status of a Job.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Status {

@@ -51,7 +51,7 @@ mock! {
             &mut self,
             db_tx: T,
             id: &AccountIdentifier,
-            key_pair: &KeyPair,
+            key_pair: Option<KeyPair>,
         ) -> WorkerResult<()>;
 
         fn all_accounts<T: 'static + Transaction>(&self, db_tx: T) -> WorkerResult<&'static [AccountIdentifier]>;
@@ -628,7 +628,7 @@ fn test_job_complicated_transfer() {
                 output_path: Some("random_address".into()),
             },
             Action {
-                input: r#"[{"operation_identifier":{"index":0},"type":"","account":{{account.account_identifier}},"amount":{"value":"-90","currency":{{default_curr}}}},{"operation_identifier":{"index":1},"type":"","account":{"address":{{random_address}}},"amount":{"value":"100","currency":{{default_curr}}}}]`, // noli"#.into(),
+                input: r#"[{"operation_identifier":{"index":0},"type":"","account":{{account.account_identifier}},"amount":{"value":"-90","currency":{{default_curr}}}},{"operation_identifier":{"index":1},"type":"","account":{"address":{{random_address}}},"amount":{"value":"100","currency":{{default_curr}}}}]"#.into(),
                 type_: ActionType::SetVariable,
                 output_path: Some("create_send.operations".into()),
             },
@@ -663,7 +663,7 @@ fn test_job_complicated_transfer() {
                 output_path: Some("eth_amount".into()),
             },
             Action {
-                input: r#"{"operation":"subtraction", "left_value":{{eth_amount.value}}, "right_value":"200"}"#.into(),
+                input: r#"{"operation":"Subtraction", "left_value":{{eth_amount.value}}, "right_value":"200"}"#.into(),
                 type_: ActionType::Math,
                 output_path: Some("eth_check".into()),
             },
@@ -678,41 +678,41 @@ fn test_job_complicated_transfer() {
                 output_path: None,
             },
             Action {
-                input: r#""valA""#.into(),
+                input: "\"valA\"".into(),
                 type_: ActionType::LoadEnv,
                 output_path: Some("valA".into()),
             },
             Action {
-                input: r#""16""#.into(),
+                input: "\"16\"".into(),
                 type_: ActionType::SetVariable,
                 output_path: Some("valB".into()),
             },
             Action {
-                input: r#"{"operation":"addition", "left_value":{{valA}}, "right_value":{{valB}}}"#.into(),
+                input: r#"{"operation":"Addition", "left_value":{{valA}}, "right_value":{{valB}}}"#.into(),
                 type_: ActionType::Math,
                 output_path: Some("create_send.confirmation_depth".into()),
             },
             // Attempt to overwrite confirmation depth
             Action {
-                input: r#"{"operation":"subtraction", "left_value":"100", "right_value":{{create_send.confirmation_depth}}}"#.into(),
+                input: r#"{"operation":"Subtraction", "left_value":"100", "right_value":{{create_send.confirmation_depth}}}"#.into(),
                 type_: ActionType::Math,
                 output_path: Some("create_send.confirmation_depth".into()),
             },
             // Test multiplication / division
             Action {
-                input: r#"{"operation":"multiplication", "left_value":"2", "right_value":{{create_send.confirmation_depth}}}"#.into(),
+                input: r#"{"operation":"Multiplication", "left_value":"2", "right_value":{{create_send.confirmation_depth}}}"#.into(),
                 type_: ActionType::Math,
                 output_path: Some("create_send.confirmation_depth".into()),
             },
             Action {
-                input: r#"{"operation":"division", "left_value":"296", "right_value":{{create_send.confirmation_depth}}}"#.into(),
+                input: r#"{"operation":"Division", "left_value":"296", "right_value":{{create_send.confirmation_depth}}}"#.into(),
                 type_: ActionType::Math,
                 output_path: Some("create_send.confirmation_depth".into()),
             },
         ],
     };
 
-    env::set_var("valA", "\"10\"");
+    env::set_var("valA", "10");
     let workflow = Workflow {
         // TODO should actually be "random" but our enums can't store arbitrary strings with serde yet
         name: ReservedWorkflow::Unknown,
@@ -737,8 +737,8 @@ fn test_job_complicated_transfer() {
     let db_tx = db.transaction();
 
     let network = NetworkIdentifier {
-        blockchain: "Bitcoin".into(),
-        network: "Testnet3".into(),
+        blockchain: "BITCOIN".into(),
+        network: "TESTNET3".into(),
         sub_network_identifier: None,
     };
     let account = AccountIdentifier {
@@ -762,6 +762,17 @@ fn test_job_complicated_transfer() {
     let mut worker = Worker::new(helper);
 
     assert!(!j.check_complete());
+
+    assert!(futures::executor::block_on(worker.process(&db_tx, &mut j))
+        .unwrap()
+        .is_none());
+
+    assert!(!j.check_complete());
+    assert_eq!(j.index, 1);
+
+    assert_variable_equality(&j.state, "network", &network);
+    assert_variable_equality(&j.state, "key.public_key.curve_type", &CurveType::Secp256k1);
+    assert_variable_equality(&j.state, "account.account_identifier", &account);
 
     let b = futures::executor::block_on(worker.process(&db_tx, &mut j)).unwrap();
 

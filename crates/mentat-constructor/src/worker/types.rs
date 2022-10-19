@@ -16,7 +16,7 @@ pub trait Helper {
         &mut self,
         _: &impl Transaction,
         _: &AccountIdentifier,
-        _: &KeyPair,
+        _: Option<KeyPair>,
     ) -> WorkerResult<()>;
 
     /// returns a slice of all known [`AccountIdentifier`].
@@ -64,7 +64,7 @@ pub trait Helper {
         &mut self,
         _: T,
         _: &AccountIdentifier,
-        _: &KeyPair,
+        _: Option<KeyPair>,
     ) -> WorkerResult<()>;
 
     /// returns a slice of all known [`AccountIdentifier`].
