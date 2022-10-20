@@ -222,7 +222,7 @@ impl<T: Helper> Worker<T> {
         raw_input: Value,
     ) -> WorkerResult<()> {
         let input = Job::deserialize_value::<SaveAccountInput>(raw_input)
-            .map_err(|e| format!("failed to deserialize input {e}"))?;
+            .map_err(|e| format!("failed to deserialize input: {e}"))?;
         account_identifier(input.account_identifier.as_ref()).map_err(|e| {
             format!(
                 "account identifier {:?} is invalid: {e}",
@@ -393,7 +393,7 @@ impl<T: Helper> Worker<T> {
         raw_input: Value,
     ) -> WorkerResult<Value> {
         let input = Job::deserialize_value::<FindBalanceInput>(raw_input)
-            .map_err(|e| format!("failed to deserialize input {e}"))?;
+            .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
         // Validate that input is properly formatted
         find_balance_worker_input_validation(&input)
@@ -463,7 +463,7 @@ impl<T: Helper> Worker<T> {
         raw_input: Value,
     ) -> WorkerResult<()> {
         let input = Job::deserialize_value::<SetBlobInput>(raw_input)
-            .map_err(|e| format!("failed to deserialize input {e}"))?;
+            .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
         // TODO may be doing this wrong
         // By using Value for key, we can ensure that JSON
@@ -490,7 +490,7 @@ impl<T: Helper> Worker<T> {
         raw_input: Value,
     ) -> WorkerResult<Value> {
         let input = Job::deserialize_value::<GetBlobInput>(raw_input)
-            .map_err(|e| format!("failed to deserialize input {e}"))?;
+            .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
         // By using Value for key, we can ensure that JSON
         // objects with the same keys but in a different order are
@@ -534,7 +534,7 @@ pub fn print_message_worker(message: &Value) {
 /// with the provided regex input.
 pub fn random_string_worker(raw_input: Value) -> WorkerResult<Value> {
     let input = Job::deserialize_value::<RandomStringInput>(raw_input)
-        .map_err(|e| format!("failed to deserialize input {e}"))?;
+        .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
     let reg = Regex::compile(&input.regex, input.limit)
         .map_err(|e| format!("failed to generate a string with the provided regex input: {e}"))?;
@@ -571,7 +571,7 @@ pub fn math_worker(raw_input: Value) -> WorkerResult<Value> {
 /// [minimum,maximum).
 pub fn random_number_worker(raw_input: Value) -> WorkerResult<Value> {
     let input = Job::deserialize_value::<RandomNumberInput>(raw_input)
-        .map_err(|e| format!("failed to deserialize input {e}"))?;
+        .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
     let min = big_int(&input.minimum)
         .map_err(|e| format!("failed to convert string {} to big int: {e}", input.minimum))?;
@@ -588,7 +588,7 @@ pub fn random_number_worker(raw_input: Value) -> WorkerResult<Value> {
 /// *types.Currency in a []*types.Amount.
 pub fn find_currency_amount_worker(raw_input: Value) -> WorkerResult<Value> {
     let input = Job::deserialize_value::<FindCurrencyAmountInput>(raw_input)
-        .map_err(|e| format!("failed to deserialize input {e}"))?;
+        .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
     currency(input.currency.as_ref())
         .map_err(|e| format!("currency {:?} is invalid: {e}", input.currency))?;
@@ -627,7 +627,7 @@ pub fn load_env_worker(raw_input: Value) -> WorkerResult<Option<Value>> {
 /// store in a variable. This is useful for algorithmic fauceting.
 pub async fn http_request_worker(raw_input: Value) -> WorkerResult<Value> {
     let input = Job::deserialize_value::<HttpRequestInput>(raw_input)
-        .map_err(|e| format!("failed to deserialize input {e}"))?;
+        .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
     let url = Url::parse(&input.url)
         .map_err(|e| format!("failed to parse request URI {}: {e}", input.url))?;
@@ -743,7 +743,7 @@ fn skip_account(input: &FindBalanceInput, account: &AccountIdentifier) -> bool {
 pub fn assert_worker(raw_input: Value) -> WorkerResult<()> {
     // We deserialize the input here so we can return the correct error
     let input = Job::deserialize_value::<String>(raw_input)
-        .map_err(|e| format!("failed to deserialize input {e}"))?;
+        .map_err(|e| format!("failed to deserialize input: {e}"))?;
 
     let val = big_int(&input)
         .map_err(|e| format!("failed to convert the string {input} to big int: {e}"))?;

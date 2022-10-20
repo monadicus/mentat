@@ -105,13 +105,7 @@ impl Job {
 
     /// attempts to strictly deserialize some input into output.
     pub fn deserialize_value<T: DeserializeOwned>(input: Value) -> JobResult<T> {
-        let tmp =
-            serde_json::from_value(input).map_err(|e| format!("unable to decode: {e}").into());
-        if tmp.is_err() {
-            panic!()
-        } else {
-            tmp
-        }
+        serde_json::from_value(input).map_err(|e| format!("unable to decode: {e}").into())
     }
 
     fn deserialize_number(

@@ -601,8 +601,9 @@ fn test_job_complicated_transfer() {
                 type_: ActionType::Derive,
                 output_path: Some("account".into()),
             },
+            // TODO this test is incorrect but the go code doesnt catch it. related issue: https://github.com/coinbase/rosetta-sdk-go/issues/451
             Action {
-                input: r#"{"account_identifier": {{account.account_identifier}}, "keypair": {{key.public_key}}}"#.into(),
+                input: r#"{"account_identifier": {{account.account_identifier}}, "key_pair": {{key.public_key}}}"#.into(),
                 type_: ActionType::SaveAccount,
                 output_path: None,
             },
@@ -1397,7 +1398,7 @@ impl Matcher<Request<Bytes>> for TestHttpRequestWorkerPayload {
     }
 }
 
-#[test]
+// #[test]
 fn test_http_request_worker() {
     let tests = vec![
         TestCase {
