@@ -11,7 +11,7 @@ use super::*;
 /// desired [`PublicKey`]s. If it is not necessary to retrieve any
 /// [`PublicKey`]s for construction, `required_public_keys` should be omitted.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionPreprocessResponse {
     /// The options that will be sent directly to `/construction/metadata` by
     /// the caller.

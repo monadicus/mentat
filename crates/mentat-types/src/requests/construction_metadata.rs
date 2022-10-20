@@ -11,6 +11,7 @@ use super::*;
 /// #[serde(default)]Identifier`]s
 /// returned in [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionMetadataRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

@@ -8,7 +8,7 @@ use super::*;
 /// the request because some blockchains allow for multiple address types (i.e.
 /// different address for validators vs normal accounts).
 #[derive(Debug, Deserialize, Serialize, Default, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionDeriveRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

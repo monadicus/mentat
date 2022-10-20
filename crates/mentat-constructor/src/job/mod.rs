@@ -54,17 +54,19 @@ impl Job {
             }
         };
 
-        let confirmation_depth = self
-            .deserialize_number(scenario_name, ReservedVariable::ConfirmationDepth)
-            .map_err(|e| {
-                format!("failed to unmarshal confirmation depth of scenario {scenario_name}: {e}",)
-            })?;
+        let confirmation_depth =
+            self.deserialize_number(scenario_name, ReservedVariable::ConfirmationDepth)
+                .map_err(|e| {
+                    format!(
+                        "failed to deserialize confirmation depth of scenario {scenario_name}: {e}",
+                    )
+                })?;
 
         let network = self
             .deserialize_struct(scenario_name, ReservedVariable::Network)
-            .map_err(
-                |e| format!("failed to unmarshal network of scenario {scenario_name}: {e}",),
-            )?;
+            .map_err(|e| {
+                format!("failed to deserialize network of scenario {scenario_name}: {e}",)
+            })?;
 
         let metadata = match self
             .deserialize_struct::<Metadata>(scenario_name, ReservedVariable::PreprocessMetadata)
@@ -73,7 +75,7 @@ impl Job {
             Err(JobError::VariableNotFound) => Default::default(),
             Err(e) => {
                 return Err(format!(
-                    "failed to unmarshal preprocess metadata of scenario {scenario_name}: {e}",
+                    "failed to deserialize preprocess metadata of scenario {scenario_name}: {e}",
                 )
                 .into())
             }
@@ -83,9 +85,10 @@ impl Job {
             Ok(v) => v,
             Err(JobError::VariableNotFound) => Default::default(),
             Err(e) => {
-                return Err(
-                    format!("failed to unmarshal dry run of scenario {scenario_name}: {e}",).into(),
+                return Err(format!(
+                    "failed to deserialize dry run of scenario {scenario_name}: {e}",
                 )
+                .into())
             }
         };
 
@@ -102,7 +105,13 @@ impl Job {
 
     /// attempts to strictly deserialize some input into output.
     pub fn deserialize_value<T: DeserializeOwned>(input: Value) -> JobResult<T> {
-        serde_json::from_value(input).map_err(|e| format!("unable to decode: {e}").into())
+        let tmp =
+            serde_json::from_value(input).map_err(|e| format!("unable to decode: {e}").into());
+        if tmp.is_err() {
+            panic!()
+        } else {
+            tmp
+        }
     }
 
     fn deserialize_number(

@@ -5,7 +5,7 @@ use super::*;
 /// Amount is some Value of a [`Currency`]. It is considered invalid to specify
 /// a Value without a [`Currency`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAmount {
     /// Value of the transaction in atomic units represented as an
     /// arbitrary-sized signed integer. For example, 1 BTC would be represented

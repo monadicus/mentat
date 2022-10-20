@@ -8,7 +8,7 @@ use super::*;
 /// request must be made with each [`AccountIdentifier`]. The coins field was
 /// removed and replaced by by `/account/coins` in v1.4.7.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAccountBalanceResponse {
     /// The `block_identifier` uniquely identifies a block in a particular
     /// network.

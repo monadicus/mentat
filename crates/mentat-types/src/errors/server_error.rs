@@ -12,6 +12,7 @@ use super::*;
 
 /// The Error type for any mentat responses.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedMentatError {
     /// The http status code.
     #[serde(skip)]

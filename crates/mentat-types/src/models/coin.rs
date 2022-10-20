@@ -4,7 +4,7 @@ use super::*;
 
 /// [`Coin`] contains its unique identifier and the amount it represents.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedCoin {
     /// [`Amount`] is some Value of a [`Currency`]. It is considered invalid to
     /// specify a Value without a [`Currency`].

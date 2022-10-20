@@ -59,7 +59,7 @@ pub enum BlockEventType {
 
 impl From<UncheckedBlockEventType> for BlockEventType {
     fn from(other: UncheckedBlockEventType) -> Self {
-        match other.0.as_ref() {
+        match other.0.to_ascii_lowercase().as_ref() {
             UncheckedBlockEventType::BLOCK_ADDED => Self::BlockAdded,
             UncheckedBlockEventType::BLOCK_REMOVED => Self::BlockRemoved,
             i => panic!("unsupported BlockEventType: {i}"),

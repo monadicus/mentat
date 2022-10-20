@@ -4,7 +4,7 @@ use super::*;
 
 /// `AccountCoin` contains an [`AccountIdentifier`] and a [`Coin`] that it owns.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAccountCoin {
     /// the `AccountIdentifier` that owns the [`Coin`]
     #[serde(skip_serializing_if = "Option::is_none")]

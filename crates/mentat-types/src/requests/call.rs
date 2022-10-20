@@ -4,7 +4,7 @@ use super::*;
 
 /// `CallRequest` is the input to the `/call` endpoint.
 #[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedCallRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

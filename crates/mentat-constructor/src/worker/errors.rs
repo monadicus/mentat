@@ -106,7 +106,7 @@ pub struct VerboseWorkerError {
     pub action: Option<Action>,
     pub processed_input: Option<Value>,
     pub output: Option<Value>,
-    pub state: Option<Value>,
+    pub state: Value,
     pub err: WorkerError,
 }
 
@@ -135,8 +135,8 @@ impl fmt::Display for VerboseWorkerError {
             )?;
         }
 
-        if let Some(m) = &self.state {
-            writeln!(f, "State: {m:?}")?
+        if self.state != Value::Object(Default::default()) {
+            writeln!(f, "State: {:?}", self.state)?
         }
 
         writeln!(f, "\x1b[0m")
@@ -154,7 +154,7 @@ impl Default for VerboseWorkerError {
             action: Default::default(),
             processed_input: Default::default(),
             output: Default::default(),
-            state: Default::default(),
+            state: Value::Object(Default::default()),
             err: WorkerError::String("Default Error".into()),
         }
     }

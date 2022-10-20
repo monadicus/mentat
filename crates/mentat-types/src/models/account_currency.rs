@@ -6,7 +6,7 @@ use super::*;
 /// an [`AccountIdentifier`] and [`Currency`]. This can
 /// be useful for looking up balances.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAccountCurrency {
     /// the identifier for the [`Account`]
     #[serde(skip_serializing_if = "Option::is_none")]

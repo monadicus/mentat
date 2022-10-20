@@ -53,7 +53,7 @@ impl Serialize for UncheckedSigningPayload {
 }
 
 #[derive(Default, Deserialize)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 #[allow(clippy::missing_docs_in_private_items)]
 struct SigningPayloadPre {
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -9,7 +9,7 @@ use super::*;
 /// [`AccountIdentifier`]s returned in
 /// [`crate::responses::ConstructionPreprocessResponse`].
 #[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionPayloadsRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

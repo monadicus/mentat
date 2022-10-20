@@ -6,7 +6,7 @@ use super::*;
 /// transaction. It may not be possible to know the full impact of a transaction
 /// in the mempool (ex: fee paid).
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedMempoolTransactionResponse {
     /// [`Transaction`]s contain an array of [`Operation`]s that are
     /// attributable to the same [`TransactionIdentifier`].

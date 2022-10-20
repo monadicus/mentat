@@ -6,7 +6,7 @@ use super::*;
 /// endpoint. It allows the caller to parse either an unsigned or signed
 /// transaction.
 #[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionParseRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

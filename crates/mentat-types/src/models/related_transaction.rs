@@ -6,7 +6,7 @@ use super::*;
 /// transactions. An unpopulated network identifier indicates that the related
 /// transaction is on the same network.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedRelatedTransaction {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

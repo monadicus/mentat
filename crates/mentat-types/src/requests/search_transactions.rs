@@ -5,7 +5,7 @@ use super::*;
 /// [`SearchTransactionsRequest`] is used to search for transactions matching a
 /// set of provided conditions in canonical blocks.
 #[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedSearchTransactionsRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

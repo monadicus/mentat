@@ -7,7 +7,7 @@ use super::*;
 /// construct the a network transaction from a collection of signatures) and an
 /// array of payloads that must be signed by the caller.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionPayloadsResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     pub unsigned_transaction: String,

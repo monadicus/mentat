@@ -78,7 +78,7 @@ pub enum ExemptionType {
 
 impl From<UncheckedExemptionType> for ExemptionType {
     fn from(other: UncheckedExemptionType) -> Self {
-        match other.0.as_ref() {
+        match other.0.to_ascii_lowercase().as_ref() {
             UncheckedExemptionType::DYNAMIC => Self::Dynamic,
             UncheckedExemptionType::GREATER_OR_EQUAL => Self::GreaterOrEqual,
             UncheckedExemptionType::LESS_OR_EQUAL => Self::LessOrEqual,

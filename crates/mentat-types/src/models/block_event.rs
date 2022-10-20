@@ -5,7 +5,7 @@ use super::*;
 /// from storage. Streaming `BlockEvent`s allows lightweight clients to update
 /// their own state without needing to implement their own syncing logic.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedBlockEvent {
     /// Sequence is the unique identifier of a BlockEvent within the context of
     /// a [`NetworkIdentifier`].

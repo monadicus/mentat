@@ -5,7 +5,7 @@ use super::*;
 /// The [`OperationIdentifier`] uniquely identifies an operation within a
 /// transaction.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedOperationIdentifier {
     /// The operation index is used to ensure each operation has a unique
     /// identifier within a transaction. This index is only relative to the

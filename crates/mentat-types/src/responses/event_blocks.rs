@@ -5,7 +5,7 @@ use super::*;
 /// `EventsBlocksResponse` contains an ordered collection of [`BlockEvent`]s and
 /// the max retrievable sequence.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedEventsBlocksResponse {
     /// `max_sequence` is the maximum available sequence number to fetch.
     #[unchecked(usize)]

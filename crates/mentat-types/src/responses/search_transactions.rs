@@ -7,7 +7,7 @@ use super::*;
 /// [`crate::requests::SearchTransactionsRequest`]. These [`BlockTransaction`]s
 /// are sorted from most recent block to oldest block.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedSearchTransactionsResponse {
     /// transactions is an array of [`BlockTransaction`]s sorted by most recent
     /// [`BlockIdentifier`] (meaning that transactions in recent blocks appear

@@ -50,10 +50,10 @@ pub trait Helper {
     ) -> WorkerResult<(Option<AccountIdentifier>, Metadata)>;
 
     /// transactionally persists a key and value.
-    fn set_blob(&self, db_tx: &impl Transaction, key: String, value: Value) -> WorkerResult<()>;
+    fn set_blob(&self, db_tx: &impl Transaction, key: Value, value: Value) -> WorkerResult<()>;
 
     /// transactionally retrieves a key and value.
-    fn get_blob(&self, db_tx: &impl Transaction, key: &str) -> WorkerResult<Option<Value>>;
+    fn get_blob(&self, db_tx: &impl Transaction, key: &Value) -> WorkerResult<Option<Value>>;
 }
 
 #[cfg(test)]
@@ -107,7 +107,7 @@ pub trait Helper {
     fn set_blob<T: 'static + Transaction>(
         &self,
         db_tx: T,
-        key: String,
+        key: Value,
         value: Value,
     ) -> WorkerResult<()>;
 
@@ -115,6 +115,6 @@ pub trait Helper {
     fn get_blob<T: 'static + Transaction>(
         &self,
         db_tx: T,
-        key: &str,
+        key: &Value,
     ) -> WorkerResult<Option<Value>>;
 }

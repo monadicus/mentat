@@ -8,7 +8,7 @@ use super::*;
 /// specify the index or hash. If neither property is specified, it is assumed
 /// that the client is making a request at the current block.
 #[derive(Clone, Debug, Default, Deserialize, FromTuple, Serialize, PartialEq, Eq, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedPartialBlockIdentifier {
     /// This is also known as the block height.
     #[serde(skip_serializing_if = "Option::is_none")]

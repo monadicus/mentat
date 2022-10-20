@@ -6,7 +6,7 @@ use super::*;
 /// `/account/balance` endpoint. If the `block_identifier` is populated, a
 /// historical balance query should be performed.
 #[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAccountBalanceRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

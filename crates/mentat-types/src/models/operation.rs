@@ -9,7 +9,7 @@ use super::*;
 /// transactions (Construction API), creating a standard interface for reading
 /// and writing to blockchains.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedOperation {
     /// The [`OperationIdentifier`] uniquely identifies an operation within a
     /// transaction.

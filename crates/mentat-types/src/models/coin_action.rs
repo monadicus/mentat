@@ -70,7 +70,7 @@ impl Default for CoinAction {
 
 impl From<UncheckedCoinAction> for CoinAction {
     fn from(other: UncheckedCoinAction) -> Self {
-        match other.0.as_ref() {
+        match other.0.to_ascii_lowercase().as_ref() {
             UncheckedCoinAction::COIN_CREATED => Self::CoinCreated,
             UncheckedCoinAction::COIN_SPENT => Self::CoinSpent,
             i => panic!("unsupported CoinAction: {i}"),

@@ -54,7 +54,7 @@ pub enum Operator {
 
 impl From<UncheckedOperator> for Operator {
     fn from(other: UncheckedOperator) -> Self {
-        match other.0.as_ref() {
+        match other.0.to_ascii_lowercase().as_ref() {
             UncheckedOperator::AND => Self::And,
             UncheckedOperator::OR => Self::Or,
             i => panic!("unsupported Operator: {i}"),

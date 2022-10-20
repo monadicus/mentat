@@ -5,7 +5,7 @@ use super::*;
 /// The [`NetworkIdentifier`] specifies which network a particular object is
 /// associated with.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct NetworkIdentifier {
     /// The name of the blockchain.
     #[serde(

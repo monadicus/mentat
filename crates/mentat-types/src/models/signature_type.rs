@@ -77,7 +77,7 @@ pub enum SignatureType {
 
 impl From<UncheckedSignatureType> for SignatureType {
     fn from(other: UncheckedSignatureType) -> Self {
-        match other.0.as_ref() {
+        match other.0.to_ascii_lowercase().as_ref() {
             UncheckedSignatureType::ECDSA => Self::Ecdsa,
             UncheckedSignatureType::ECDSA_RECOVERY => Self::EcdsaRecovery,
             UncheckedSignatureType::ED25519 => Self::Ed25519,

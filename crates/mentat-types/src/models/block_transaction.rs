@@ -5,7 +5,7 @@ use super::*;
 /// [`BlockTransaction`] contains a populated [`Transaction`] and the
 /// [`BlockIdentifier`] that contains it.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedBlockTransaction {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.

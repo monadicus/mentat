@@ -7,7 +7,7 @@ use super::*;
 /// `/construction/payloads` and all required signatures to create a network
 /// transaction.
 #[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionCombineRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

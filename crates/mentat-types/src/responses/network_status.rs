@@ -14,7 +14,7 @@ use super::*;
 /// healthiness. Without this field, it may appear that the implementation is
 /// stuck syncing and needs to be terminated.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked, PartialEq, Eq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedNetworkStatusResponse {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.

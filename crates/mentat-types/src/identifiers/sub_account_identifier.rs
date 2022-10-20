@@ -6,7 +6,7 @@ use super::*;
 /// and/or a stake (delegated balance). The `sub_account_identifier` should
 /// specify which state (if applicable) an account instantiation refers to.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct SubAccountIdentifier {
     /// The `SubAccount` address may be a cryptographic value or some other
     /// identifier (ex: bonded) that uniquely specifies a `SubAccount`.

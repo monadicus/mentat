@@ -15,7 +15,7 @@ use super::*;
 /// you MUST implement historical balance lookup (the ability to query an
 /// account balance at any [`BlockIdentifier`]).
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedBalanceExemption {
     /// SubAccountAddress is the [`SubAccountIdentifier`]. Address that the
     /// BalanceExemption applies to (regardless of the value of

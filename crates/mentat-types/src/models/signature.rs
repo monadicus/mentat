@@ -8,7 +8,7 @@ use super::*;
 /// construction of the signing payloads but may be needed to combine signatures
 /// properly.
 #[derive(Debug, Deserialize, Serialize, Default, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedSignature {
     /// [`SigningPayload`] is signed by the client with the keypair associated
     /// with an AccountIdentifier using the specified [`SignatureType`].

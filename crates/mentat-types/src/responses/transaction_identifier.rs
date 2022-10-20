@@ -6,7 +6,7 @@ use super::*;
 /// transaction that was submitted to either `/construction/hash` or
 /// `/construction/submit`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedTransactionIdentifierResponse {
     /// The [`TransactionIdentifier`] uniquely identifies a transaction in a
     /// particular network and block or in the mempool.

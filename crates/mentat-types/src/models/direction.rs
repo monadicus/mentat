@@ -63,7 +63,7 @@ pub enum Direction {
 
 impl From<UncheckedDirection> for Direction {
     fn from(other: UncheckedDirection) -> Self {
-        match other.0.as_ref() {
+        match other.0.to_ascii_lowercase().as_ref() {
             UncheckedDirection::BACKWARD => Self::Backward,
             UncheckedDirection::FORWARD => Self::Forward,
             i => panic!("unsupported Direction: {i}"),

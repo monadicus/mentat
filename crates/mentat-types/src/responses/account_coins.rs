@@ -5,7 +5,7 @@ use super::*;
 /// `AccountCoinsResponse` is returned on the `/account/coins` endpoint and
 /// includes all unspent [`Coin`]s owned by an [`AccountIdentifier`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAccountCoinsResponse {
     /// The `block_identifier` uniquely identifies a block in a particular
     /// network.

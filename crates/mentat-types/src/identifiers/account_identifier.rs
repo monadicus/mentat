@@ -6,7 +6,7 @@ use super::*;
 /// All fields in the `account_identifier` are utilized to determine this
 /// uniqueness (including the metadata field, if populated).
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct AccountIdentifier {
     /// The address may be a cryptographic public key (or some encoding of it)
     /// or a provided username.

@@ -9,7 +9,7 @@ use super::*;
 /// UTXO-based transfers on the same blockchain (when a transfer is
 /// account-based, don't populate this model).
 #[derive(Clone, Debug, Deserialize, Serialize, Default, PartialEq, Eq, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedCoinChange {
     /// [`CoinIdentifier`] uniquely identifies a Coin.
     #[serde(skip_serializing_if = "Option::is_none")]

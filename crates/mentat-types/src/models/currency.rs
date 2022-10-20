@@ -6,7 +6,7 @@ use super::*;
 /// value is used to convert an Amount.Value from atomic units (Satoshis) to
 /// standard units (Bitcoins).
 #[derive(Clone, Debug, Default, Eq, Deserialize, PartialEq, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedCurrency {
     /// Canonical symbol associated with a currency.
     pub symbol: String,

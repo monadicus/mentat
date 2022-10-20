@@ -9,7 +9,7 @@ use super::*;
 /// all future calls for that same [`BlockIdentifier`] must return the same
 /// block contents.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedBlock {
     /// The [`BlockIdentifier`] uniquely identifies a block in a particular
     /// network.

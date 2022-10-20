@@ -5,7 +5,7 @@ use super::*;
 /// `AccountCoinsRequest` is utilized to make a request on the `/account/coins`
 /// endpoint.
 #[derive(Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAccountCoinsRequest {
     /// The `NetworkIdentifier` specifies which network a particular object is
     /// associated with.

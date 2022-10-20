@@ -54,7 +54,7 @@ impl Serialize for UncheckedConstructionParseResponse {
 
 #[derive(Default, Deserialize)]
 #[allow(clippy::missing_docs_in_private_items)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct ConstructionParseResponsePre {
     #[serde(
         skip_serializing_if = "Vec::is_empty",

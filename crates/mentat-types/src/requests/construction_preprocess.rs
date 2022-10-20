@@ -3,7 +3,7 @@
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionPreprocessRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network_identifier: Option<NetworkIdentifier>,
@@ -45,7 +45,7 @@ pub struct UncheckedConstructionPreprocessRequest {
 /// both a max fee and a suggested fee multiplier, the max fee will set an upper
 /// bound on the suggested fee (regardless of the multiplier provided).
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct ConstructionPreprocessRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

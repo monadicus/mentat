@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 /// contains local and global chain tips
 #[allow(clippy::missing_docs_in_private_items)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Synced {
     pub local_tip: usize,
     pub global_tip: usize,

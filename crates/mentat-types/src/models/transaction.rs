@@ -5,7 +5,7 @@ use super::*;
 /// [`Transaction`]s contain an array of [`Operation`]s that are attributable to
 /// the same [`TransactionIdentifier`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedTransaction {
     /// The [`TransactionIdentifier`] uniquely identifies a transaction in a
     /// particular network and block or in the mempool.

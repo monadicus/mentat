@@ -6,7 +6,7 @@ use super::*;
 /// encoded in hex. Note that there is no `PrivateKey` struct as this is NEVER
 /// the concern of an implementation.
 #[derive(Clone, Debug, Deserialize, Serialize, Default, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedPublicKey {
     /// Hex-encoded public key bytes in the format specified by the
     /// [`CurveType`].

@@ -10,7 +10,7 @@ use super::*;
 /// phase completes or cannot be determined by comparing the timestamp of the
 /// most recent block with the current time.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedSyncStatus {
     /// `CurrentIndex` is the index of the last synced block in the current
     /// stage. This is a separate field from `current_block_identifier` in

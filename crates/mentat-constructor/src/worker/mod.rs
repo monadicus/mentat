@@ -16,7 +16,7 @@ use mentat_types::{
     ConstructionDeriveResponse, UncheckedConstructionDeriveRequest,
 };
 use mentat_utils::utils::random_number;
-use num_bigint_dig::{BigInt, Sign};
+use num_bigint_dig::Sign;
 use rand::{thread_rng, Rng};
 use rand_regex::Regex;
 use reqwest::{header::HeaderValue, Client, Request, StatusCode};
@@ -40,7 +40,7 @@ use self::{
     populator::populate_input,
 };
 
-use std::{env, str::FromStr, time::Duration};
+use std::{env, time::Duration};
 
 /// Worker processes jobs.
 pub struct Worker<T: Helper>(pub T);
@@ -93,7 +93,7 @@ impl<T: Helper> Worker<T> {
                 populate_input(&state, &action.input).map_err(|e| VerboseWorkerError {
                     action_index: i,
                     action: Some(action.clone()),
-                    state: Some(state.clone()),
+                    state: state.clone(),
                     err: format!("unable to populate variables: {e}").into(),
                     ..Default::default()
                 })?;
@@ -105,7 +105,7 @@ impl<T: Helper> Worker<T> {
                     action_index: i,
                     action: Some(action.clone()),
                     processed_input: Some(processed_input.clone()),
-                    state: Some(state.clone()),
+                    state: state.clone(),
                     err: format!("unable ot process action: {e}").into(),
                     ..Default::default()
                 })?;
@@ -124,7 +124,7 @@ impl<T: Helper> Worker<T> {
                 action: Some(action.clone()),
                 processed_input: Some(processed_input),
                 output: Some(output),
-                state: Some(old_state),
+                state: old_state,
                 err: format!("unable to update state: {e}").into(),
                 ..Default::default()
             })?;
@@ -148,7 +148,7 @@ impl<T: Helper> Worker<T> {
             .map_err(|mut e| {
                 // Set additional context not available within actions.
                 e.workflow = j.workflow;
-                e.job = Some(j.identifier.clone());
+                e.job = (!j.identifier.is_empty()).then_some(j.identifier.clone());
                 e.scenario = scenario.name.clone();
                 e.scenario_index = j.index;
                 e
@@ -179,9 +179,10 @@ impl<T: Helper> Worker<T> {
 
         j.create_broadcast().map_err(|e| VerboseWorkerError {
             workflow: j.workflow,
-            job: Some(j.identifier.clone()),
+            job: (!j.identifier.is_empty()).then_some(j.identifier.clone()),
             scenario: j.scenarios[j.index - 1].name.clone(),
             scenario_index: j.index - 1,
+            state: j.state.clone(),
             err: format!("unable to create broadcast: {e}").into(),
             ..Default::default()
         })
@@ -275,7 +276,7 @@ impl<T: Helper> Worker<T> {
                 )
             })?;
 
-            let big_int_dif = BigInt::from_str(&diff)
+            let big_int_dif = big_int(&diff)
                 .map_err(|e| format!("failed to convert string {diff} to big int: {e}"))?;
 
             if big_int_dif.sign() == Sign::Minus {
@@ -325,7 +326,7 @@ impl<T: Helper> Worker<T> {
             )
         })?;
 
-        let big_int_dif = BigInt::from_str(&diff)
+        let big_int_dif = big_int(&diff)
             .map_err(|e| format!("failed to convert string {diff} to big int: {e}"))?;
 
         if big_int_dif.sign() == Sign::Minus {
@@ -491,7 +492,6 @@ impl<T: Helper> Worker<T> {
         let input = Job::deserialize_value::<GetBlobInput>(raw_input)
             .map_err(|e| format!("failed to deserialize input {e}"))?;
 
-        // TODO may be doing this wrong
         // By using Value for key, we can ensure that JSON
         // objects with the same keys but in a different order are
         // treated as equal.
@@ -741,13 +741,11 @@ fn skip_account(input: &FindBalanceInput, account: &AccountIdentifier) -> bool {
 
 /// AssertWorker checks if an input is < 0.
 pub fn assert_worker(raw_input: Value) -> WorkerResult<()> {
-    // todo: is this needed??
-    // We deserialize the input here to handle string
-    // unwrapping automatically.
+    // We deserialize the input here so we can return the correct error
     let input = Job::deserialize_value::<String>(raw_input)
         .map_err(|e| format!("failed to deserialize input {e}"))?;
 
-    let val = BigInt::from_str(&input)
+    let val = big_int(&input)
         .map_err(|e| format!("failed to convert the string {input} to big int: {e}"))?;
 
     if val.sign() == Sign::Minus {

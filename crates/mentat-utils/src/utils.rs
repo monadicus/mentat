@@ -78,7 +78,7 @@ pub enum UtilsError {
     WriteError(io::Error, PathBuf),
     #[error("{0}: unable to load file {1}")]
     ReadError(io::Error, PathBuf),
-    #[error("{0}: unable to unmarshal")]
+    #[error("{0}: unable to deserialize")]
     DeserializeError(serde_json::Error),
     #[error("{0}: cannot populate path")]
     CannotPopulatePath(Box<UtilsError>),
@@ -129,7 +129,7 @@ pub fn serialize_and_write(path: &Path, object: &impl Serialize) -> Result<(), U
 }
 
 /// reads the file at the provided path
-/// and attempts to unmarshal it into output.
+/// and attempts to deserialize it into output.
 pub fn load_and_parse<T: DeserializeOwned>(path: &Path) -> Result<T, UtilsError> {
     let b = fs::read_to_string(path).map_err(|e| UtilsError::ReadError(e, path.to_path_buf()))?;
     serde_json::from_str(&b).map_err(UtilsError::DeserializeError)

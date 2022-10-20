@@ -72,7 +72,7 @@ pub enum CurveType {
 
 impl From<UncheckedCurveType> for CurveType {
     fn from(other: UncheckedCurveType) -> Self {
-        match other.0.as_ref() {
+        match other.0.to_ascii_lowercase().as_ref() {
             UncheckedCurveType::EDWARDS25519 => Self::Edwards25519,
             UncheckedCurveType::SECP256K1 => Self::Secp256k1,
             UncheckedCurveType::SECP256R1 => Self::Secp256r1,

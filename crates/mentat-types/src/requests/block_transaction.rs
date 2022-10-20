@@ -7,7 +7,7 @@ use super::*;
 /// A [`BlockRequest`] is utilized to make a block request on the `/block`
 /// endpoint.
 #[derive(Debug, Default, Deserialize, FromTuple, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedBlockTransactionRequest {
     /// The [`NetworkIdentifier`] specifies which network a particular object is
     /// associated with.

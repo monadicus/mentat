@@ -5,7 +5,7 @@ use super::*;
 /// A [`MempoolResponse`] contains all transaction identifiers in the mempool
 /// for a particular `network_identifier`.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedMempoolResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(

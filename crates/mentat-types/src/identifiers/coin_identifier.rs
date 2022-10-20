@@ -4,7 +4,7 @@ use super::*;
 
 /// [`CoinIdentifier`] uniquely identifies a Coin.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct CoinIdentifier {
     /// Identifier should be populated with a globally unique identifier of a
     /// Coin. In Bitcoin, this identifier would be transaction_hash:index.

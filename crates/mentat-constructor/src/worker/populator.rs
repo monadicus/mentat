@@ -36,10 +36,10 @@ pub fn populate_input(state: &Value, input: &str) -> WorkerResult<Value> {
 
     if let Some(e) = err {
         Err(format!("{e}: unable to insert variables").into())
-    } else if let Ok(v) = serde_json::from_str::<Value>(&input) {
-        Ok(v)
     } else {
-        tracing::error!("invalid json: {input}");
-        Err(WorkerError::InvalidJSON)
+        serde_json::from_str::<Value>(&input).map_err(|_| {
+            tracing::error!("invalid json: {input}");
+            WorkerError::InvalidJSON
+        })
     }
 }

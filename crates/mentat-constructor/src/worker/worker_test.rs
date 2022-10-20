@@ -10,8 +10,8 @@ use mentat_asserter::{AccountBalanceError, BlockError, ConstructionError};
 use mentat_storage::{Config, Database, SledDatabase, SledTransaction, Transaction};
 use mentat_test_utils::TestCase;
 use mentat_types::{
-    hash, AccountIdentifier, Amount, Coin, Currency, CurveType, Metadata, NetworkIdentifier,
-    Operation, OperationIdentifier, PublicKey, UncheckedAmount, UncheckedCurrency,
+    AccountIdentifier, Amount, Coin, Currency, CurveType, Metadata, NetworkIdentifier, Operation,
+    OperationIdentifier, PublicKey, UncheckedAmount, UncheckedCurrency,
 };
 use mockall::mock;
 use regex::Regex;
@@ -79,9 +79,9 @@ mock! {
             meta: Metadata,
         ) -> WorkerResult<(Option<AccountIdentifier>, Metadata)>;
 
-        fn set_blob<T: 'static + Transaction>(&self, db_tx: T, key: String, value: Value) -> WorkerResult<()>;
+        fn set_blob<T: 'static + Transaction>(&self, db_tx: T, key: Value, value: Value) -> WorkerResult<()>;
 
-        fn get_blob<T: 'static + Transaction>(&self, db_tx: T, key: &str) -> WorkerResult<Option<Value>>;
+        fn get_blob<T: 'static + Transaction>(&self, db_tx: T, key: &Value) -> WorkerResult<Option<Value>>;
     }
 }
 
@@ -929,7 +929,7 @@ fn test_job_failures() {
                     type_: ActionType::Assert,
                     output_path: Default::default(),
                 }),
-                processed_input: Some(json!(-1)),
+                processed_input: Some(json!("-1")),
                 err: WorkerError::ActionFailed,
                 ..Default::default()
             },
@@ -1023,7 +1023,7 @@ fn test_job_failures() {
                     output_path: Default::default(),
                 }),
                 processed_input: Some(json!({"currency":{"symbol":"BTC", "decimals":8}})),
-                state: Some(json!({"symbol":"BTC"})),
+                state: json!({"symbol":"BTC"}),
                 err: WorkerError::ActionFailed,
                 ..Default::default()
             },
@@ -1110,7 +1110,7 @@ fn test_job_failures() {
                 scenario: Scenario {
                     name: "create_address".into(),
                     actions: vec![Action {
-                        input: r#"{"curve_typ": "secp256k1"}}"#.into(),
+                        input: r#"{"curve_typ": "secp256k1"}"#.into(),
                         type_: ActionType::GenerateKey,
                         output_path: Some("key".into()),
                     }],
@@ -1127,7 +1127,7 @@ fn test_job_failures() {
                     output_path: Some("key".into()),
                 }),
                 processed_input: Some(json!({"curve_typ": "secp256k1"})),
-                err: WorkerError::String("unknown field \"curve_typ\"".into()),
+                err: WorkerError::String("unknown field `curve_typ`".into()),
                 ..Default::default()
             }
         },
@@ -1191,7 +1191,7 @@ fn test_job_failures() {
                 scenario: Scenario {
                     name: "create_address".into(),
                     actions: vec![Action {
-                        input: r#"{"operation":"addition", "left_value":"1", "right_value":"B"}"#.into(),
+                        input: r#"{"operation":"Addition", "left_value":"1", "right_value":"B"}"#.into(),
                         type_: ActionType::Math,
                         output_path: Default::default(),
                     }],
@@ -1203,11 +1203,11 @@ fn test_job_failures() {
                 workflow: ReservedWorkflow::Unknown,
                 scenario: "create_address".into(),
                 action: Some(Action {
-                    input: r#"{"operation":"addition", "left_value":"1", "right_value":"B"}"#.into(),
+                    input: r#"{"operation":"Addition", "left_value":"1", "right_value":"B"}"#.into(),
                     type_: ActionType::Math,
                     output_path: Default::default(),
                 }),
-                processed_input: Some(json!({"operation":"addition", "left_value":"1", "right_value":"B"})),
+                processed_input: Some(json!({"operation":"Addition", "left_value":"1", "right_value":"B"})),
                 err: WorkerError::String("B is not an integer".into()),
                 ..Default::default()
             }
@@ -1216,7 +1216,7 @@ fn test_job_failures() {
             name: "invalid broadcast: invalid operations",
             payload: TestJobFailures {
                 scenario: Scenario {
-                    name: "create_address".into(),
+                    name: "create_send".into(),
                     actions: vec![Action {
                         input: r#"[{"operation_identifier":{"index":0},"type":"","statsbf":""}]"#.into(),
                         type_: ActionType::SetVariable,
@@ -1229,8 +1229,8 @@ fn test_job_failures() {
             criteria: VerboseWorkerError {
                 workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
-                state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","statsbf":""}]}})),
-                err: WorkerError::String("failed to unmarshal operations of scenario create_send".into()),
+                state: json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","statsbf":""}]}}),
+                err: WorkerError::String("failed to deserialize operations of scenario create_send".into()),
                 ..Default::default()
             }
         },
@@ -1242,7 +1242,7 @@ fn test_job_failures() {
                     actions: vec![Action {
                         input: r#"[{"operation_identifier":{"index":0},"type":"","status":""}]"#.into(),
                         type_: ActionType::SetVariable,
-                        output_path: Default::default(),
+                        output_path: Some("create_send.operations".into()),
                     }],
                 },
                 new_index: 1,
@@ -1251,9 +1251,8 @@ fn test_job_failures() {
             criteria: VerboseWorkerError {
                 workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
-                state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}]}})),
-                processed_input: Some(json!({"currency":{"decimals":8}})),
-                err: WorkerError::String("failed to unmarshal confirmation depth of scenario create_send".into()),
+                state: json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}]}}),
+                err: WorkerError::String("failed to deserialize confirmation depth of scenario create_send".into()),
                 ..Default::default()
             }
         },
@@ -1264,7 +1263,7 @@ fn test_job_failures() {
                     name: "create_send".into(),
                     actions: vec![
                         Action {
-                        input: r#"`[{"operation_identifier":{"index":0},"type":"","status":""}]"#.into(),
+                        input: r#"[{"operation_identifier":{"index":0},"type":"","status":""}]"#.into(),
                         type_: ActionType::SetVariable,
                         output_path: Some("create_send.operations".into()),
                     },
@@ -1280,8 +1279,8 @@ fn test_job_failures() {
             criteria: VerboseWorkerError {
                 workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
-                state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}],"confirmation_depth":"10"}})),
-                err: WorkerError::String("failed to unmarshal network of scenario create_send".into()),
+                state: json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}],"confirmation_depth":"10"}}),
+                err: WorkerError::String("failed to deserialize network of scenario create_send".into()),
                 ..Default::default()
             }
         },
@@ -1319,14 +1318,15 @@ fn test_job_failures() {
             criteria: VerboseWorkerError {
                 workflow: ReservedWorkflow::Unknown,
                 scenario: "create_send".into(),
-                state: Some(json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}],"confirmation_depth":"10","network":{"network":"Testnet3", "blockchain":"Bitcoin"},"preprocess_metadata":"hello"}})),
-                err: WorkerError::String("failed to unmarshal preprocess metadata of scenario create_send".into()),
+                state: json!({"create_send":{"operations":[{"operation_identifier":{"index":0},"type":"","status":""}],"confirmation_depth":"10","network":{"network":"Testnet3", "blockchain":"Bitcoin"},"preprocess_metadata":"hello"}}),
+                err: WorkerError::String("failed to deserialize preprocess metadata of scenario create_send".into()),
                 ..Default::default()
             }
         },
     ];
 
     for test in tests {
+        print!("test {:?}: ", test.name);
         let payload = test.payload;
 
         let workflow = Workflow {
@@ -1353,7 +1353,12 @@ fn test_job_failures() {
         assert!(!j.check_complete());
 
         let mut e = futures::executor::block_on(worker.process(&db_tx, &mut j)).unwrap_err();
-        assert!(e.err.to_string().contains(&test.criteria.err.to_string()));
+        assert!(
+            e.err.to_string().contains(&test.criteria.err.to_string()),
+            "{:?} does not contain {:?}",
+            e.err.to_string(),
+            test.criteria.err.to_string()
+        );
         e.err = test.criteria.err.clone();
         assert_eq!(e, test.criteria);
 
@@ -1361,6 +1366,8 @@ fn test_job_failures() {
         assert_eq!(payload.new_index, j.index);
 
         worker.0.checkpoint();
+
+        println!("ok!");
     }
 }
 
@@ -1578,7 +1585,7 @@ fn test_http_request_worker() {
 struct TestBlobWorkers {
     scenario: Scenario,
     helper: MockHelper,
-    asserter_state: IndexMap<String, String>,
+    asserter_state: IndexMap<String, Value>,
 }
 
 #[test]
@@ -1677,15 +1684,15 @@ fn test_blob_workers() {
                 helper: {
                     let mut helper = MockHelper::new();
                     helper.expect_set_blob::<SledTransaction>()
-                        .withf(|_, key, value| *key == hash(Some(&AccountIdentifier::from(("hello", "neat")))) && *value == json!({"stuff":"neat"}))
+                        .withf(|_, key, value| *key == serde_json::to_value(&AccountIdentifier::from(("hello", "neat"))).unwrap() && *value == json!({"stuff":"neat"}))
                         .return_const(Ok(()))
                         .once();
                         helper.expect_set_blob::<SledTransaction>()
-                        .withf(|_, key, value| *key == hash(Some(&AccountIdentifier::from(("hello", "neat2")))) && *value == "add2")
+                        .withf(|_, key, value| *key == serde_json::to_value(&AccountIdentifier::from(("hello", "neat2"))).unwrap() && *value == "addr2")
                         .return_const(Ok(()))
                         .once();
                     helper.expect_get_blob::<SledTransaction>()
-                        .withf(|_, key| *key == hash(Some(&AccountIdentifier::from(("hello", "neat")))))
+                        .withf(|_, key| *key == serde_json::to_value(&AccountIdentifier::from(("hello", "neat"))).unwrap())
                         .return_const(Ok(Some(json!({"stuff":"neat"}))))
                         .once();
                     helper
@@ -1694,7 +1701,7 @@ fn test_blob_workers() {
                 asserter_state: indexmap!{
                     "k".into() => json!({
                         "stuff": "neat"
-                    }).to_string()
+                    })
                 },
             },
             criteria: None,
@@ -1703,6 +1710,7 @@ fn test_blob_workers() {
 
     // TODO remove explicit return type once db implemented
     for test in tests {
+        print!("test {:?}: ", test.name);
         let payload = test.payload;
 
         let workflow = Workflow {
@@ -1741,10 +1749,11 @@ fn test_blob_workers() {
             for (k, v) in payload.asserter_state {
                 let value = get_json(&j.state, &k).unwrap();
                 // TODO watch for double quotes from `to_string`
-                assert_eq!(value.to_string(), v)
+                assert_eq!(*value, v)
             }
         }
 
-        assert!(!j.check_complete());
+        worker.0.checkpoint();
+        println!("ok!");
     }
 }

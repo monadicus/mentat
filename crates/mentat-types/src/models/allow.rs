@@ -8,7 +8,7 @@ use super::*;
 /// that these clients will error if they receive some response that contains
 /// any of the above information that is not specified here.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedAllow {
     /// All `OperationStatus` this implementation supports. Any status that is
     /// returned during parsing that is not listed here will cause client

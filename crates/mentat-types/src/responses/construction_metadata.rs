@@ -10,7 +10,7 @@ use super::*;
 /// Suggested fee is an array in case fee payment must occur in multiple
 /// currencies.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedConstructionMetadataResponse {
     #[allow(clippy::missing_docs_in_private_items)]
     #[serde(skip_serializing_if = "Option::is_none")]

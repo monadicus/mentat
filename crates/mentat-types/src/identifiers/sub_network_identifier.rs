@@ -6,7 +6,7 @@ use super::*;
 /// query some object on a specific shard. This identifier is optional for all
 /// non-sharded blockchains.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct SubNetworkIdentifier {
     /// The network string
     #[serde(

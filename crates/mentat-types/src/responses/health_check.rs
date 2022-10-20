@@ -2,8 +2,9 @@
 
 use super::*;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
 /// The `Usage` struct tracks usage of a Process.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Usage {
     /// Total CPU usage could go over 100% as it includes all cores.
     pub total_cpu_usage: f32,
@@ -19,8 +20,9 @@ pub struct Usage {
     pub run_time: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
 /// Tracks the number of connections a Node has if it is online mode.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum NodeConnections {
     /// Represents Rosetta offline mode where no outbound connections should
     /// exist.
@@ -36,8 +38,9 @@ pub enum NodeConnections {
     },
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
 /// Tracks the amount of data sent and received by the node.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum NodeNetwork {
     /// Represents Rosetta offline mode where no traffic should be received or
     /// sent.
@@ -51,8 +54,9 @@ pub enum NodeNetwork {
     },
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
 /// The node information for a health check operation.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct NodeInformation {
     /// The usage of the node.
     pub usage: Usage,
@@ -67,8 +71,9 @@ pub struct NodeInformation {
     pub net_usage: Option<NodeNetwork>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
 /// The `HealthCheckResponse` type.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct HealthCheckResponse {
     /// Who called the endpoint.
     pub caller: Caller,

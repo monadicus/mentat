@@ -238,6 +238,7 @@ impl fmt::Display for Status {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 /// Action is a step of computation that
 /// where the result is saved to OutputPath.
+#[serde(deny_unknown_fields)]
 pub struct Action {
     pub input: String,
     pub type_: ActionType,
@@ -246,13 +247,15 @@ pub struct Action {
 
 /// GenerateKeyInput is the input for GenerateKey.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GenerateKeyInput {
     pub curve_type: CurveType,
 }
 
 // pub TODO: add KeyPair from keys
 /// SaveAccountInput is the input for SaveAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default, deny_unknown_fields)]
 pub struct SaveAccountInput {
     pub account_identifier: Option<AccountIdentifier>,
     pub key_pair: Option<KeyPair>,
@@ -260,6 +263,7 @@ pub struct SaveAccountInput {
 
 /// RandomStringInput is the input to RandomString.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RandomStringInput {
     pub regex: String,
     /// Limit is the maximum number of times each star, range, or
@@ -269,6 +273,7 @@ pub struct RandomStringInput {
 
 /// MathInput is the input to Math.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MathInput {
     pub operation: MathOperation,
     pub left_value: String,
@@ -277,6 +282,7 @@ pub struct MathInput {
 
 /// FindBalanceInput is the input to FindBalance.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct FindBalanceInput {
     /// AccountIdentifier can be optionally provided to ensure the balance returned
     /// is for a particular address (this is used when fetching the balance
@@ -375,6 +381,7 @@ impl fmt::Display for FindBalanceInput {
 
 /// FindBalanceOutput is returned by FindBalance.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct FindBalanceOutput {
     /// AccountIdentifier is the account associated with the balance
     /// (and coin).
@@ -390,6 +397,7 @@ pub struct FindBalanceOutput {
 /// RandomNumberInput is used to generate a random
 /// number in the range [minimum, maximum).
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RandomNumberInput {
     pub minimum: String,
     pub maximum: String,
@@ -397,7 +405,8 @@ pub struct RandomNumberInput {
 
 /// FindCurrencyAmountInput is the input
 /// to FindCurrencyAmount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default, deny_unknown_fields)]
 pub struct FindCurrencyAmountInput {
     pub currency: Option<UncheckedCurrency>,
     pub amounts: Vec<Option<UncheckedAmount>>,
@@ -405,6 +414,7 @@ pub struct FindCurrencyAmountInput {
 
 /// the input to an HTTP Request.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct HttpRequestInput {
     pub method: HttpMethod,
     pub url: String,
@@ -417,18 +427,20 @@ pub struct HttpRequestInput {
 /// HTTPRequestInput is the input to
 /// HTTP Request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SetBlobInput {
     // TODO this may be wrong
-    pub key: String,
+    pub key: Value,
     pub value: Value,
 }
 
 /// GetBlobInput is the input to
 /// GetBlob.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GetBlobInput {
     // TODO this may be wrong
-    pub key: String,
+    pub key: Value,
 }
 
 /// Scenario is a collection of Actions with a specific
@@ -446,6 +458,7 @@ pub struct GetBlobInput {
 /// variable called "transaction". This can be used
 /// in scenarios following the execution of this one.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Scenario {
     pub name: String,
     pub actions: Vec<Action>,
@@ -454,6 +467,7 @@ pub struct Scenario {
 /// Workflow is a collection of scenarios to run (i.e.
 /// transactions to broadcast) with some shared state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Workflow {
     pub name: ReservedWorkflow,
     /// Concurrency is the number of workflows of a particular
@@ -466,6 +480,7 @@ pub struct Workflow {
 
 /// Job is an instantiation of a Workflow.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Job {
     /// Identifier is a UUID that is generated
     /// when a Job is stored in JobStorage for the
@@ -487,6 +502,7 @@ pub struct Job {
 /// and broadcast a transaction. Broadcast is returned
 /// from Job processing only IF a broadcast is required.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct Broadcast {
     pub network: Option<NetworkIdentifier>,
     pub intent: Vec<Operation>,

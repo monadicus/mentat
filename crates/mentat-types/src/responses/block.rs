@@ -12,7 +12,7 @@ use super::*;
 /// a unique index. In other words, the [`PartialBlockIdentifier`] of a block
 /// after an omitted block should reference the last non-omitted block.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, Unchecked)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct UncheckedBlockResponse {
     /// `Block`s contain an array of [`Transaction`]s that occurred at a
     /// particular [`BlockIdentifier`]. A hard requirement for blocks
