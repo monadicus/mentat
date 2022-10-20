@@ -159,7 +159,9 @@ pub fn multiply_values(a: &str, b: &str) -> Result<String, String> {
 pub fn divide_values(a: &str, b: &str) -> Result<String, String> {
     let a_val = BigInt::from_str(a).map_err(|_| format!("{a} is not an integer"))?;
     let b_val = BigInt::from_str(b).map_err(|_| format!("{b} is not an integer"))?;
-    let new_val = a_val % b_val;
+    let new_val = a_val
+        .checked_div(&b_val)
+        .ok_or(format!("failed to perform {a_val} / {b_val}"))?;
     Ok(new_val.to_string())
 }
 

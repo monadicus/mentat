@@ -776,9 +776,9 @@ fn test_job_complicated_transfer() {
 
     let b = futures::executor::block_on(worker.process(&db_tx, &mut j)).unwrap();
 
-    let random_address = j.state.get("random_address").unwrap();
+    let random_address = j.state.get("random_address").unwrap().as_str().unwrap();
     let re: Regex = Regex::new(r"[a-z]+").unwrap();
-    let matched = re.is_match(&random_address.to_string());
+    let matched = re.is_match(random_address);
     assert!(matched);
 
     assert_eq!(
@@ -1690,6 +1690,7 @@ fn test_blob_workers() {
                         .once();
                     helper
                 },
+                // TODO watch for double quotes from `to_string`
                 asserter_state: indexmap!{
                     "k".into() => json!({
                         "stuff": "neat"
@@ -1739,6 +1740,7 @@ fn test_blob_workers() {
 
             for (k, v) in payload.asserter_state {
                 let value = get_json(&j.state, &k).unwrap();
+                // TODO watch for double quotes from `to_string`
                 assert_eq!(value.to_string(), v)
             }
         }

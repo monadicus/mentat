@@ -113,9 +113,10 @@ impl Job {
         let v = get_json(&self.state, scenario_name)
             .and_then(|v| get_json(v, &reserved_variable.to_string()))
             .ok_or(JobError::VariableNotFound)?;
-        v.as_u64()
-            .map(|v| v as usize)
-            .ok_or(JobError::VariableIncorrectFormat)
+        v.as_str()
+            .ok_or(JobError::VariableIncorrectFormat)?
+            .parse()
+            .map_err(|_| JobError::VariableIncorrectFormat)
     }
 
     fn deserialize_boolean(

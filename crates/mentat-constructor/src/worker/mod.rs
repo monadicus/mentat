@@ -618,10 +618,9 @@ pub fn load_env_worker(raw_input: Value) -> WorkerResult<Option<Value>> {
     // todo: is this needed??
     // We deserialize the input here to handle string
     // unwrapping automatically.
-    let input = Job::deserialize_value::<String>(raw_input)
-        .map_err(|e| format!("failed to deserialize input {e}"))?;
+    let input = raw_input.as_str().ok_or("failed to deserialize input")?;
 
-    Ok(env::var(input).ok().map(|v| json!(v)))
+    Ok(env::var(input).ok().map(|v| v.into()))
 }
 
 /// HTTPRequestWorker makes an HTTP request and returns the response to
