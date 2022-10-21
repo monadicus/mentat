@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use super::*;
 
+// TODO: they have a test to allow unknown fields here...yet they have tests to deny unknown fields in mentat-constructor.
+// i dont understand how were suppose to satisfy both cases unless we turn it on and off for arbitrary types
+
 #[derive(Deserialize, Serialize)]
 struct HexBytesTester {
     hex_bytes: String,
