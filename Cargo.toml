@@ -17,9 +17,10 @@ members = [
 
 [workspace.dependencies]
 anyhow = { version = "1.0" }
-axum = { version = "0.5", default-features = false, features = [
+axum = { version = "0.6", default-features = false, features = [
         "http1",
         "json",
+        "tokio",
 ] }
 color-backtrace = { version = "0.5", default-features = false }
 const_format = "0.2"
@@ -34,13 +35,14 @@ mentat-asserter = { path = "./crates/mentat-asserter" }
 mentat-macros = { path = "./mentat-macros" }
 mentat-types = { path = "./crates/mentat-types" }
 mentat-test-utils = { path = "./crates/mentat-test-utils" }
+mockall = "0.11"
 num-bigint-dig = { version = "0.8" }
-num_cpus = { version = "1.13", default-features = false }
+num_cpus = { version = "1.15", default-features = false }
 num-traits = "0.2"
-opentelemetry = { version = "0.17", default-features = true, features = [
+opentelemetry = { version = "0.18", default-features = true, features = [
         "rt-tokio",
 ] }
-opentelemetry-jaeger = { version = "0.16", default-features = true, features = [
+opentelemetry-jaeger = { version = "0.17", default-features = true, features = [
         "collector_client",
         "isahc_collector_client",
         "rt-tokio",
@@ -50,13 +52,13 @@ reqwest = { version = "0.11", default-features = false, features = ["json"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", default-features = false }
 sha2 = { version = "0.10" }
-sysinfo = { version = "0.23", default-features = false }
+sysinfo = { version = "0.27", default-features = false }
 thiserror = "1.0"
-tokio = { version = "1.17", default-features = false, features = [
+tokio = { version = "1.23", default-features = false, features = [
         "macros",
         "rt-multi-thread",
 ] }
-tokio-test = "0.4.2"
+tokio-test = "0.4"
 toml = { version = "0.5", default-features = false }
 tower = { version = "0.4", default-features = false }
 tower-http = { version = "0.3", features = ["cors"] }
@@ -64,6 +66,6 @@ tracing = { version = "0.1", default-features = false, features = [
         "attributes",
 ] }
 tracing-error = { version = "0.2", default-features = false }
-tracing-opentelemetry = { version = "0.17", default-features = false }
+tracing-opentelemetry = { version = "0.18", default-features = false }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "smallvec"] }
 tracing-tree = { version = "0.2", default-features = false }
