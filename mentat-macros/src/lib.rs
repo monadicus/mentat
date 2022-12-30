@@ -96,10 +96,10 @@ fn gen_derive(server_def: &ItemStruct) -> TokenStream2 {
 /// Generates the main function for the given mentat implementation.
 fn gen_main(
     server_call: &TokenStream2,
-    server_type: &Ident,
-    cache_type: Option<&Ident>,
+    _server_type: &Ident,
+    _cache_type: Option<&Ident>,
 ) -> TokenStream2 {
-    let routes = route_builder::build_routes(server_type, cache_type);
+    // let routes = route_builder::build_routes(server_type, cache_type);
 
     quote!(
         use ::mentat_server::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
@@ -107,9 +107,11 @@ fn gen_main(
         async fn main() {
             use ::mentat_server::macro_exports::*;
             let server = #server_call;
-            let mut app = Router::new();
-            #routes
-            server.serve(app).await
+            // let routes = |mut app: Router<Arc<AppState<<#server_type as ServerType>::CustomConfig>>>| {
+            //     #routes
+            //     app
+            // };
+            server.serve().await
         }
     )
 }

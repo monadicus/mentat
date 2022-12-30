@@ -18,8 +18,13 @@ use super::*;
 
 /// A wrapper type around a Pid.
 /// So we can write our functionality around it.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct NodePid(pub Pid);
+
+/// A wrapper type around a Pid.
+/// So we can write our functionality around it.
+#[derive(Clone, Copy, Debug)]
+pub struct ServerPid(pub Pid);
 
 /// Custom configuration settings for running a node.
 ///

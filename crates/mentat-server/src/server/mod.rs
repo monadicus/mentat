@@ -4,9 +4,9 @@ use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 pub mod middleware;
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
-use axum::{extract::Extension, Router};
+use axum::{extract::FromRef, Router};
 use mentat_types::MentatError;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 use tracing_tree::HierarchicalLayer;
@@ -21,23 +21,23 @@ use crate::{api::*, conf::*, server::middleware::content_type_middleware};
 /// preferred.
 pub trait ServerType: Sized + 'static {
     /// The blockchain's `AccountApi` Rosetta implementation.
-    type AccountApi: AccountApiRouter;
+    type AccountApi: AccountApiRouter<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `BlockApi` Rosetta implementation.
-    type BlockApi: BlockApiRouter;
+    type BlockApi: BlockApiRouter<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `CallApi` Rosetta implementation.
-    type CallApi: CallApiRouter;
+    type CallApi: CallApiRouter<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `ConstructionApi` Rosetta implementation.
-    type ConstructionApi: ConstructionApiRouter;
+    type ConstructionApi: ConstructionApiRouter<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `Events` Rosetta implementation.
-    type EventsApi: EventsApiRouter;
+    type EventsApi: EventsApiRouter<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `MempoolApi` Rosetta implementation.
-    type MempoolsApi: MempoolApiRouter;
+    type MempoolsApi: MempoolApiRouter<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `NetworkApi` Rosetta implementation.
-    type NetworkApi: NetworkApiRouter;
+    type NetworkApi: NetworkApiRouter<NodeCaller = Self::NodeCaller>;
     /// Any optional endpoints for the Mentat implementation.
-    type OptionalApi: OptionalApiRouter;
+    type OptionalApi: OptionalApiRouter<NodeCaller = Self::NodeCaller> + Send + Sync;
     /// The blockchain's `SearchApi` Rosetta implementation.
-    type SearchApi: SearchApiRouter;
+    type SearchApi: SearchApiRouter<NodeCaller = Self::NodeCaller>;
     /// The Caller used to interact with the node.
     type NodeCaller: From<Configuration<Self::CustomConfig>> + Send + Sync + Clone;
     /// The nodes's `NodeConf` implementation.
@@ -61,6 +61,7 @@ pub trait ServerType: Sized + 'static {
 
         opentelemetry::global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
         let tracer = opentelemetry_jaeger::new_collector_pipeline()
+            .with_hyper()
             .with_endpoint(format!("http://localhost:{collector_port}/api/traces"))
             // .with_endpoint(format!("0.0.0.0:{agent_port}"))
             .with_service_name(env!("CARGO_PKG_NAME"))
@@ -282,28 +283,63 @@ impl<Types: ServerType> Default for Server<Types> {
     }
 }
 
+/// The AppState
+#[derive(Clone)]
+pub struct AppState<CustomConfig: NodeConf> {
+    /// foo
+    config: Configuration<CustomConfig>,
+    /// foo
+    node_pid: NodePid,
+    /// foo
+    server_pid: ServerPid,
+}
+
+impl<CustomConfig: NodeConf> FromRef<Arc<AppState<CustomConfig>>> for Configuration<CustomConfig> {
+    fn from_ref(state: &Arc<AppState<CustomConfig>>) -> Self {
+        state.config.clone()
+    }
+}
+
+impl<CustomConfig: NodeConf> FromRef<Arc<AppState<CustomConfig>>> for NodePid {
+    fn from_ref(state: &Arc<AppState<CustomConfig>>) -> Self {
+        state.node_pid
+    }
+}
+
+impl<CustomConfig: NodeConf> FromRef<Arc<AppState<CustomConfig>>> for ServerPid {
+    fn from_ref(state: &Arc<AppState<CustomConfig>>) -> Self {
+        state.server_pid
+    }
+}
+
 impl<Types: ServerType> Server<Types> {
     /// WARNING: Do not use this method outside of Mentat! Use the `mentat` or
     /// `main` macros instead
     #[doc(hidden)]
-    pub async fn serve(self, mut app: Router) {
+    pub async fn serve(self) {
         color_backtrace::install();
+        Types::setup_logging();
 
         let node_pid = Types::CustomConfig::start_node(&self.configuration);
-        let server_pid = Pid::from_u32(std::process::id());
-
+        let server_pid = ServerPid(Pid::from_u32(std::process::id()));
         let addr = SocketAddr::from((self.configuration.address, self.configuration.port));
 
-        Types::middleware(&self.configuration, &mut app);
-        app = app
-            .route_layer(axum::middleware::from_fn(content_type_middleware))
+        let state: Arc<AppState<<Types as ServerType>::CustomConfig>> = Arc::new(AppState {
+            config: self.configuration.clone(),
+            node_pid,
+            server_pid,
+        });
+
+        // let routes = routes(Router::new());
+        let app = Router::new()
+            .nest("/optional", self.optional_api.to_router(self.node_caller))
             .layer(
                 tower::ServiceBuilder::new()
-                    .layer(Extension(self.configuration))
-                    .layer(Extension(node_pid))
-                    .layer(Extension(server_pid)),
+                    .layer(axum::middleware::from_fn(content_type_middleware)),
             )
-            .fallback(MentatError::not_found);
+            .fallback(MentatError::not_found)
+            .with_state(state);
+        // Types::middleware(&self.configuration, &mut app);
 
         // TODO this currently writes mentat-server
         // This will be fixed when non basic generic const types stabilize.

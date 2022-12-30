@@ -44,7 +44,7 @@ opentelemetry = { version = "0.18", default-features = true, features = [
 ] }
 opentelemetry-jaeger = { version = "0.17", default-features = true, features = [
         "collector_client",
-        "isahc_collector_client",
+        "hyper_collector_client",
         "rt-tokio",
 ] }
 parking_lot = "0.12"

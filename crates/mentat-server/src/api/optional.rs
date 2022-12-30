@@ -2,16 +2,18 @@
 //! These traits are easily overridable for custom
 //! implementations.
 
+use axum::extract::{ConnectInfo, State};
 use sysinfo::{Pid, ProcessExt, System, SystemExt};
+use tracing::Instrument;
 
 use super::*;
-use crate::conf::NodePid;
+use crate::conf::{Configuration, NodePid, ServerPid};
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
 pub trait OptionalApi: Clone + Default {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Send + Sync + 'static;
 
     /// returns local and global chain tips
     async fn synced(&self, _node_caller: &Self::NodeCaller) -> Result<Synced> {
@@ -24,7 +26,7 @@ pub trait OptionalApi: Clone + Default {
         caller: Caller,
         mode: &Mode,
         node_caller: &Self::NodeCaller,
-        server_pid: Pid,
+        server_pid: ServerPid,
         node_pid: NodePid,
     ) -> Result<HealthCheckResponse> {
         tracing::debug!("health check!");
@@ -32,7 +34,7 @@ pub trait OptionalApi: Clone + Default {
         Ok(HealthCheckResponse {
             caller,
             msg: "Healthy!".to_string(),
-            usage: self.usage("server", &system, server_pid).await?,
+            usage: self.usage("server", &system, server_pid.0).await?,
             node: NodeInformation {
                 usage: self.usage("node", &system, node_pid.0).await?,
                 address: self.node_address(node_caller).await?,
@@ -99,7 +101,7 @@ pub trait OptionalApiRouter: OptionalApi + Clone + Default {
         _caller: Caller,
         _mode: &Mode,
         _node_caller: &Self::NodeCaller,
-        _server_pid: Pid,
+        _server_pid: ServerPid,
         _node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
         MentatError::not_implemented()
@@ -111,7 +113,7 @@ pub trait OptionalApiRouter: OptionalApi + Clone + Default {
         _caller: Caller,
         mode: &Mode,
         node_caller: &Self::NodeCaller,
-        _server_pid: Pid,
+        _server_pid: ServerPid,
         _node_pid: NodePid,
     ) -> MentatResponse<Synced> {
         if mode.is_offline() {
@@ -119,5 +121,45 @@ pub trait OptionalApiRouter: OptionalApi + Clone + Default {
         } else {
             Ok(Json(self.synced(node_caller).await?))
         }
+    }
+}
+
+impl<T: OptionalApiRouter + Send + Sync + 'static> ToRouter for T {
+    type NodeCaller = T::NodeCaller;
+
+    fn to_router<CustomConfig: NodeConf>(
+        &self,
+        node_caller: Self::NodeCaller,
+    ) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        let health_self = self.clone();
+        let health_node_caller = node_caller;
+        let health = move |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                           State(server_pid): State<ServerPid>,
+                           State(node_pid): State<NodePid>,
+                           State(conf): State<Configuration<CustomConfig>>| {
+            {
+                Box::pin(async move {
+                    let caller = Caller { ip };
+                    tracing::info!("{caller:?}");
+                    let resp = health_self
+                        .call_health(
+                            caller,
+                            &conf.mode,
+                            &health_node_caller,
+                            server_pid,
+                            node_pid,
+                        )
+                        .await;
+
+                    #[cfg(debug_assertions)]
+                    tracing::debug!("response /optional/health {resp:?}");
+                    resp
+                })
+            }
+            .instrument(tracing::info_span!(stringify!("health")))
+        };
+
+        // let health_caller = node_caller.clone();
+        axum::Router::new().route("/health", axum::routing::get(health))
     }
 }
