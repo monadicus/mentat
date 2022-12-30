@@ -5,13 +5,13 @@ edition = "2021"
 rust-version = "1.62.1"
 
 [dependencies]
-indexmap = { version = "1.8.1", default-features = false, features = ["serde"] }
-mentat-types = { path = "../mentat-types" }
-num-bigint-dig = { version = "0.8.1" }
-serde = { version = "1.0.136", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.79", default-features = false }
-include_dir = "0.7.2"
-thiserror = "1.0.31"
+indexmap = { workspace = true }
+mentat-types = { workspace = true }
+num-bigint-dig = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+include_dir = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
-mentat-test-utils = { path = "../mentat-test-utils" }
+mentat-test-utils = { workspace = true }
