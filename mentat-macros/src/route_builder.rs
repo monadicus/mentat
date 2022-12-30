@@ -5,26 +5,26 @@ use quote::quote;
 
 /// mentat routes
 const ROUTES: &[RouteGroup] = &[
-    // RouteGroup {
-    //     field: "optional_api",
-    //     route_base: "/optional",
-    //     routes: &[
-    //         Route {
-    //             path: "/health",
-    //             method: "call_health",
-    //             req_data: None,
-    //             req_method: "get",
-    //             never_cache: true,
-    //         },
-    //         Route {
-    //             path: "/synced",
-    //             method: "call_synced",
-    //             req_data: None,
-    //             req_method: "get",
-    //             never_cache: true,
-    //         },
-    //     ],
-    // },
+    RouteGroup {
+        field: "optional_api",
+        route_base: "/optional",
+        routes: &[
+            Route {
+                path: "/health",
+                method: "call_health",
+                req_data: None,
+                req_method: "get",
+                never_cache: true,
+            },
+            Route {
+                path: "/synced",
+                method: "call_synced",
+                req_data: None,
+                req_method: "get",
+                never_cache: true,
+            },
+        ],
+    },
     // RouteGroup {
     //     field: "call_api",
     //     route_base: "/call",

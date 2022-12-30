@@ -159,7 +159,6 @@ impl<T: OptionalApiRouter + Send + Sync + 'static> ToRouter for T {
             .instrument(tracing::info_span!(stringify!("health")))
         };
 
-        // let health_caller = node_caller.clone();
         axum::Router::new().route("/health", axum::routing::get(health))
     }
 }

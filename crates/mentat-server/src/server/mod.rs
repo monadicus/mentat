@@ -49,7 +49,12 @@ pub trait ServerType: Sized + 'static {
     /// an optional function to add middleware to the axum server. by default
     /// this does nothing. look at the provided functions in [`middleware`]
     /// for help with constructing middleware layers
-    fn middleware(_config: &Configuration<Self::CustomConfig>, _router: &mut Router) {}
+    fn middleware(
+        _config: &Configuration<Self::CustomConfig>,
+        router: Router<Arc<AppState<Self::CustomConfig>>>,
+    ) -> Router<Arc<AppState<Self::CustomConfig>>> {
+        router
+    }
 
     /// Sets up a tracing subscriber dispatch
     fn setup_logging() {
@@ -330,16 +335,16 @@ impl<Types: ServerType> Server<Types> {
             server_pid,
         });
 
-        // let routes = routes(Router::new());
-        let app = Router::new()
+        let mut app = Router::new();
+        app = Types::middleware(&self.configuration, app)
             .nest("/optional", self.optional_api.to_router(self.node_caller))
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(axum::middleware::from_fn(content_type_middleware)),
             )
-            .fallback(MentatError::not_found)
-            .with_state(state);
-        // Types::middleware(&self.configuration, &mut app);
+            .fallback(MentatError::not_found);
+        let app = app.with_state(state);
+        // Types::middleware(&self.configuration, app);
 
         // TODO this currently writes mentat-server
         // This will be fixed when non basic generic const types stabilize.
