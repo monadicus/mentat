@@ -35,7 +35,7 @@ pub trait ServerType: Sized + 'static {
     /// The blockchain's `NetworkApi` Rosetta implementation.
     type NetworkApi: NetworkApiRouter<NodeCaller = Self::NodeCaller>;
     /// Any optional endpoints for the Mentat implementation.
-    type OptionalApi: OptionalApiRouter<NodeCaller = Self::NodeCaller> + Send + Sync;
+    type OptionalApi: OptionalApi<NodeCaller = Self::NodeCaller> + Send + Sync;
     /// The blockchain's `SearchApi` Rosetta implementation.
     type SearchApi: SearchApiRouter<NodeCaller = Self::NodeCaller>;
     /// The Caller used to interact with the node.
@@ -116,7 +116,7 @@ pub struct ServerBuilder<Types: ServerType> {
     /// The search API endpoints.
     search_api: Option<Types::SearchApi>,
     /// The Optional API endpoints.
-    optional_api: Option<Types::OptionalApi>,
+    optional_api: Option<(Types::OptionalApi, bool)>,
     /// The Caller used to interact with the node
     node_caller: Option<Types::NodeCaller>,
     /// The optional configuration details.
@@ -147,6 +147,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
         let configuration = self
             .configuration
             .expect("You did not set the custom configuration.");
+        let node_caller = self.node_caller.expect("You did not set the node caller");
         Server {
             account_api: self.account_api.expect("You did not set the call api."),
             block_api: self.block_api.expect("You did not set the call api."),
@@ -159,9 +160,14 @@ impl<Types: ServerType> ServerBuilder<Types> {
             network_api: self.network_api.expect("You did not set the call api."),
             optional_api: self
                 .optional_api
+                .map(|(api, enabled)| OptionalApiRouter {
+                    api,
+                    enabled,
+                    node_caller: node_caller.clone(),
+                })
                 .expect("You did not set the additional api."),
             search_api: self.search_api.expect("You did not set the call api."),
-            node_caller: self.node_caller.expect("You did not set the rpc caller"),
+            node_caller,
             asserters: Types::init_asserters(&configuration),
             configuration,
         }
@@ -210,8 +216,8 @@ impl<Types: ServerType> ServerBuilder<Types> {
     }
 
     /// Sets the optional API on the builder.
-    pub fn optional_api(mut self, a: Types::OptionalApi) -> Self {
-        self.optional_api = Some(a);
+    pub fn optional_api(mut self, a: Types::OptionalApi, enabled: bool) -> Self {
+        self.optional_api = Some((a, enabled));
         self
     }
 
@@ -233,9 +239,12 @@ impl<Types: ServerType> ServerBuilder<Types> {
         self.custom_configuration(&path)
     }
 
-    /// Sets the custom configuration on the builder from a path.
+    /// Sets the custom configuration on the builder from a path and then sets
+    /// the node caller generated from the config.
     pub fn custom_configuration(mut self, path: &std::path::Path) -> Self {
-        self.configuration = Some(Configuration::load(path));
+        let config = Configuration::load(path);
+        self.node_caller = Some(config.clone().into());
+        self.configuration = Some(config);
         self
     }
 }
@@ -259,7 +268,7 @@ pub struct Server<Types: ServerType> {
     /// The search API endpoints.
     pub search_api: Types::SearchApi,
     /// The Optional API endpoints.
-    pub optional_api: Types::OptionalApi,
+    pub optional_api: OptionalApiRouter<Types::OptionalApi>,
     /// The caller used to interact with the node
     pub node_caller: Types::NodeCaller,
     /// The optional configuration details.
@@ -268,25 +277,25 @@ pub struct Server<Types: ServerType> {
     pub asserters: AsserterTable,
 }
 
-impl<Types: ServerType> Default for Server<Types> {
-    fn default() -> Self {
-        let configuration = Types::CustomConfig::load_config();
-        Self {
-            account_api: Default::default(),
-            block_api: Default::default(),
-            call_api: Default::default(),
-            construction_api: Default::default(),
-            events_api: Default::default(),
-            mempool_api: Default::default(),
-            network_api: Default::default(),
-            search_api: Default::default(),
-            optional_api: Default::default(),
-            node_caller: Types::NodeCaller::from(configuration.clone()),
-            asserters: Types::init_asserters(&configuration),
-            configuration,
-        }
-    }
-}
+// impl<Types: ServerType> Default for Server<Types> {
+//     fn default() -> Self {
+//         let configuration = Types::CustomConfig::load_config();
+//         Self {
+//             account_api: Default::default(),
+//             block_api: Default::default(),
+//             call_api: Default::default(),
+//             construction_api: Default::default(),
+//             events_api: Default::default(),
+//             mempool_api: Default::default(),
+//             network_api: Default::default(),
+//             search_api: Default::default(),
+//             optional_api: Default::default(),
+//             node_caller: Types::NodeCaller::from(configuration.clone()),
+//             asserters: Types::init_asserters(&configuration),
+//             configuration,
+//         }
+//     }
+// }
 
 /// The AppState
 #[derive(Clone)]
@@ -337,7 +346,7 @@ impl<Types: ServerType> Server<Types> {
 
         let mut app = Router::new();
         app = Types::middleware(&self.configuration, app)
-            .nest("/optional", self.optional_api.to_router(self.node_caller))
+            .nest("/optional", self.optional_api.to_router())
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(axum::middleware::from_fn(content_type_middleware)),

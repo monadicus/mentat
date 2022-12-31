@@ -31,11 +31,11 @@ use crate::{
 
 /// ToRouter
 pub trait ToRouter {
-    /// caller
-    type NodeCaller: Clone + Send + Sync + 'static;
+    // /// caller
+    // type NodeCaller: Clone + Send + Sync + 'static;
     /// to router
     fn to_router<CustomConfig: NodeConf>(
-        &self,
-        node_caller: Self::NodeCaller,
+        self,
+        // node_caller: Self::NodeCaller,
     ) -> axum::Router<Arc<AppState<CustomConfig>>>;
 }
