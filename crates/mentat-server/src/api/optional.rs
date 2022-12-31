@@ -12,7 +12,7 @@ use crate::conf::{Configuration, NodePid, ServerPid};
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
-pub trait OptionalApi: Clone + Default + Debug {
+pub trait OptionalApi: Clone + Debug + Send + Sync {
     /// the caller used to interact with the underlying node
     type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
@@ -94,8 +94,8 @@ pub trait OptionalApi: Clone + Default + Debug {
 /// Struct to wrap the `OptionalApi`.
 /// This struct helps to define default behavior for running the endpoints
 /// on different modes.
-#[derive(Clone, Debug, Default)]
-pub struct OptionalApiRouter<Api: OptionalApi + Debug> {
+#[derive(Clone, Debug)]
+pub struct OptionalApiRouter<Api: OptionalApi> {
     /// api
     pub api: Api,
     /// if health is enabled
@@ -104,7 +104,7 @@ pub struct OptionalApiRouter<Api: OptionalApi + Debug> {
     pub node_caller: Api::NodeCaller,
 }
 
-impl<Api: OptionalApi + Debug + Send + Sync> OptionalApiRouter<Api> {
+impl<Api: OptionalApi> OptionalApiRouter<Api> {
     /// For performing a health check on the server.
     #[tracing::instrument(name = "health")]
     pub async fn call_health(
@@ -126,7 +126,7 @@ impl<Api: OptionalApi + Debug + Send + Sync> OptionalApiRouter<Api> {
     }
 
     /// This endpoint only runs in online mode.
-    #[tracing::instrument(name = "health")]
+    #[tracing::instrument(name = "synced")]
     async fn call_synced(&self, mode: &Mode) -> MentatResponse<Synced> {
         if !self.enabled {
             MentatError::not_implemented()
@@ -138,7 +138,7 @@ impl<Api: OptionalApi + Debug + Send + Sync> OptionalApiRouter<Api> {
     }
 }
 
-impl<Api: OptionalApi + Debug + Send + Sync + 'static> ToRouter for OptionalApiRouter<Api> {
+impl<Api: OptionalApi + 'static> ToRouter for OptionalApiRouter<Api> {
     fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
         let health = self.clone();
         axum::Router::new()

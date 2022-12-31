@@ -21,7 +21,7 @@ use crate::{api::*, conf::*, server::middleware::content_type_middleware};
 /// preferred.
 pub trait ServerType: Sized + 'static {
     /// The blockchain's `AccountApi` Rosetta implementation.
-    type AccountApi: AccountApiRouter<NodeCaller = Self::NodeCaller>;
+    type AccountApi: AccountApi<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `BlockApi` Rosetta implementation.
     type BlockApi: BlockApiRouter<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `CallApi` Rosetta implementation.
@@ -147,9 +147,17 @@ impl<Types: ServerType> ServerBuilder<Types> {
         let configuration = self
             .configuration
             .expect("You did not set the custom configuration.");
+        let asserters = Types::init_asserters(&configuration);
         let node_caller = self.node_caller.expect("You did not set the node caller");
         Server {
-            account_api: self.account_api.expect("You did not set the call api."),
+            account_api: self
+                .account_api
+                .map(|api| AccountApiRouter {
+                    api,
+                    asserter: asserters.account_api,
+                    node_caller: node_caller.clone(),
+                })
+                .expect("You did not set the call api."),
             block_api: self.block_api.expect("You did not set the call api."),
             call_api: self.call_api.expect("You did not set the call api."),
             construction_api: self
@@ -163,12 +171,11 @@ impl<Types: ServerType> ServerBuilder<Types> {
                 .map(|(api, enabled)| OptionalApiRouter {
                     api,
                     enabled,
-                    node_caller: node_caller.clone(),
+                    node_caller,
                 })
                 .expect("You did not set the additional api."),
             search_api: self.search_api.expect("You did not set the call api."),
-            node_caller,
-            asserters: Types::init_asserters(&configuration),
+
             configuration,
         }
     }
@@ -252,7 +259,7 @@ impl<Types: ServerType> ServerBuilder<Types> {
 /// The server struct for running the Rosetta server.
 pub struct Server<Types: ServerType> {
     /// The Account API endpoints.
-    pub account_api: Types::AccountApi,
+    pub account_api: AccountApiRouter<Types::AccountApi>,
     /// The Block API endpoints.
     pub block_api: Types::BlockApi,
     /// The Call API endpoints.
@@ -269,12 +276,8 @@ pub struct Server<Types: ServerType> {
     pub search_api: Types::SearchApi,
     /// The Optional API endpoints.
     pub optional_api: OptionalApiRouter<Types::OptionalApi>,
-    /// The caller used to interact with the node
-    pub node_caller: Types::NodeCaller,
     /// The optional configuration details.
     pub configuration: Configuration<Types::CustomConfig>,
-    /// the asserter to be used when asserting requests
-    pub asserters: AsserterTable,
 }
 
 // impl<Types: ServerType> Default for Server<Types> {
@@ -346,6 +349,7 @@ impl<Types: ServerType> Server<Types> {
 
         let mut app = Router::new();
         app = Types::middleware(&self.configuration, app)
+            .nest("/account", self.account_api.to_router())
             .nest("/optional", self.optional_api.to_router())
             .layer(
                 tower::ServiceBuilder::new()

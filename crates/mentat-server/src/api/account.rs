@@ -2,13 +2,18 @@
 //! These traits are easily overridable for custom
 //! implementations.
 
+use std::fmt::Debug;
+
+use axum::extract::{ConnectInfo, State};
+
 use super::*;
+use crate::conf::Configuration;
 
 /// AccountAPIServicer defines the api actions for the AccountAPI service
 #[axum::async_trait]
-pub trait AccountApi: Default {
+pub trait AccountApi: Clone + Debug + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// Get an array of all AccountBalances for an
     /// [`crate::identifiers::AccountIdentifier`] and the
@@ -73,23 +78,32 @@ pub trait AccountApi: Default {
 /// The AccountAPIRouter implementation should parse necessary information from
 /// the http request, pass the data to a AccountAPIServicer to perform the
 /// required actions, then write the service results to the http response.
-#[axum::async_trait]
-pub trait AccountApiRouter: Clone + AccountApi {
+#[derive(Clone, Debug)]
+pub struct AccountApiRouter<Api: AccountApi> {
+    /// Api
+    pub api: Api,
+    /// Asserter
+    pub asserter: Asserter,
+    /// Caller
+    pub node_caller: Api::NodeCaller,
+}
+
+impl<Api: AccountApi> AccountApiRouter<Api> {
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "account_balance")]
     async fn call_account_balance(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedAccountBalanceRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedAccountBalanceRequest>,
     ) -> MentatResponse<UncheckedAccountBalanceResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.account_balance_request(data.as_ref())?;
+            self.asserter.account_balance_request(data.as_ref())?;
             let resp = self
-                .account_balance(caller, data.unwrap().into(), node_caller)
+                .api
+                .account_balance(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -100,20 +114,36 @@ pub trait AccountApiRouter: Clone + AccountApi {
     async fn call_account_coins(
         &self,
         caller: Caller,
+        mode: &Mode,
         asserter: &Asserter,
         data: Option<UncheckedAccountCoinsRequest>,
-        mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedAccountCoinsResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
             asserter.account_coins_request(data.as_ref())?;
             let resp = self
-                .account_coins(caller, data.unwrap().into(), node_caller)
+                .api
+                .account_coins(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
         }
+    }
+}
+
+impl<Api: AccountApi + 'static> ToRouter for AccountApiRouter<Api> {
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        axum::Router::new().route(
+            "/balance",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedAccountBalanceRequest>>| async move {
+                    self.call_account_balance(Caller { ip }, &conf.mode, req_data)
+                        .await
+                },
+            ),
+        )
     }
 }
