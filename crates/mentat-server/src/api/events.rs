@@ -6,9 +6,9 @@ use super::*;
 
 /// EventsAPIServicer defines the api actions for the EventsAPI service
 #[axum::async_trait]
-pub trait EventsApi {
+pub trait EventsApi: Clone + Debug + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// `/events/blocks` allows the `_caller` to query a sequence of
     /// [`crate::models::BlockEvent`]s indicating which blocks were added and
@@ -29,30 +29,42 @@ pub trait EventsApi {
     }
 }
 
-/// EventsAPIRouter defines the required methods for binding the api requests to
-/// a responses for the EventsAPI
-/// The EventsAPIRouter implementation should parse necessary information from
-/// the http request, pass the data to a EventsAPIServicer to perform the
-/// required actions, then write the service results to the http response.
-#[axum::async_trait]
-pub trait EventsApiRouter: EventsApi + Clone + Default {
+crate::router!(EventsApiRouter, EventsApi);
+
+impl<Api: EventsApi> EventsApiRouter<Api> {
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/events/blocks")]
     async fn call_events_blocks(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedEventsBlocksRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedEventsBlocksResponse> {
-        asserter.events_block_request(data.as_ref())?;
+        self.asserter.events_block_request(data.as_ref())?;
         let resp = self
-            .events_blocks(caller, data.unwrap().into(), node_caller)
+            .api
+            .events_blocks(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         // if assert_resp {
         //     events_blocks_response(Some(&resp)).unwrap();
         // }
         Ok(Json(resp))
+    }
+}
+
+impl<Api> ToRouter for EventsApiRouter<Api>
+where
+    Api: EventsApi + 'static,
+{
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        axum::Router::new().route(
+            "/blocks",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedEventsBlocksRequest>>| async move {
+                    self.call_events_blocks(Caller { ip }, req_data).await
+                },
+            ),
+        )
     }
 }

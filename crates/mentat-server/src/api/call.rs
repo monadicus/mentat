@@ -6,9 +6,9 @@ use super::*;
 
 /// CallAPIServicer defines the api actions for the CallAPI service
 #[axum::async_trait]
-pub trait CallApi {
+pub trait CallApi: Clone + Debug + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// Make a Network-Specific Procedure Call
     async fn call(
@@ -21,31 +21,45 @@ pub trait CallApi {
     }
 }
 
-/// CallAPIRouter defines the required methods for binding the api requests to a
-/// responses for the CallAPI
-/// The CallAPIRouter implementation should parse necessary information from the
-/// http request, pass the data to a CallAPIServicer to perform the required
-/// actions, then write the service results to the http response.
-#[axum::async_trait]
-pub trait CallApiRouter: CallApi + Clone + Default {
+crate::router!(CallApiRouter, CallApi);
+
+impl<Api: CallApi> CallApiRouter<Api> {
     /// This endpoint only runs in online mode
+    #[tracing::instrument(name = "/call")]
     async fn call_call(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedCallRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedCallRequest>,
     ) -> MentatResponse<UncheckedCallResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.call_request(data.as_ref())?;
+            self.asserter.call_request(data.as_ref())?;
             Ok(Json(
-                self.call(caller, data.unwrap().into(), node_caller)
+                self.api
+                    .call(caller, data.unwrap().into(), &self.node_caller)
                     .await?
                     .into(),
             ))
         }
+    }
+}
+
+impl<Api> ToRouter for CallApiRouter<Api>
+where
+    Api: CallApi + 'static,
+{
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        axum::Router::new().route(
+            "/",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedCallRequest>>| async move {
+                    self.call_call(Caller { ip }, &conf.mode, req_data).await
+                },
+            ),
+        )
     }
 }

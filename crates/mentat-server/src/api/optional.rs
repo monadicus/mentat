@@ -2,13 +2,10 @@
 //! These traits are easily overridable for custom
 //! implementations.
 
-use std::fmt::Debug;
-
-use axum::extract::{ConnectInfo, State};
 use sysinfo::{Pid, ProcessExt, System, SystemExt};
 
 use super::*;
-use crate::conf::{Configuration, NodePid, ServerPid};
+use crate::conf::{NodePid, ServerPid};
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
@@ -106,7 +103,7 @@ pub struct OptionalApiRouter<Api: OptionalApi> {
 
 impl<Api: OptionalApi> OptionalApiRouter<Api> {
     /// For performing a health check on the server.
-    #[tracing::instrument(name = "health")]
+    #[tracing::instrument(name = "/optional/health")]
     pub async fn call_health(
         &self,
         caller: Caller,
@@ -126,7 +123,7 @@ impl<Api: OptionalApi> OptionalApiRouter<Api> {
     }
 
     /// This endpoint only runs in online mode.
-    #[tracing::instrument(name = "synced")]
+    #[tracing::instrument(name = "/optional/synced")]
     async fn call_synced(&self, mode: &Mode) -> MentatResponse<Synced> {
         if !self.enabled {
             MentatError::not_implemented()

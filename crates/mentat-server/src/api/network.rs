@@ -6,9 +6,9 @@ use super::*;
 
 /// NetworkAPIServicer defines the api actions for the NetworkAPI service
 #[axum::async_trait]
-pub trait NetworkApi {
+pub trait NetworkApi: Clone + Debug + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// This endpoint returns a list of
     /// [`crate::identifiers::NetworkIdentifier`]s that the Rosetta
@@ -51,65 +51,99 @@ pub trait NetworkApi {
     }
 }
 
-/// NetworkAPIRouter defines the required methods for binding the api requests
-/// to a responses for the NetworkAPI
-/// The NetworkAPIRouter implementation should parse necessary information from
-/// the http request, pass the data to a NetworkAPIServicer to perform the
-/// required actions, then write the service results to the http response.
-#[axum::async_trait]
-pub trait NetworkApiRouter: NetworkApi + Clone + Default {
+crate::router!(NetworkApiRouter, NetworkApi);
+
+impl<Api: NetworkApi> NetworkApiRouter<Api> {
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/network/list")]
     async fn call_network_list(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedMetadataRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedNetworkListResponse> {
-        asserter.metadata_request(data.as_ref())?;
+        self.asserter.metadata_request(data.as_ref())?;
         let resp = self
-            .network_list(caller, data.unwrap().into(), node_caller)
+            .api
+            .network_list(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
     }
 
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/network/options")]
     async fn call_network_options(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedNetworkRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedNetworkOptionsResponse> {
-        asserter.network_request(data.as_ref())?;
+        self.asserter.network_request(data.as_ref())?;
         let resp = self
-            .network_options(caller, data.unwrap().into(), node_caller)
+            .api
+            .network_options(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
     }
 
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "/network/status")]
     async fn call_network_status(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedNetworkRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedNetworkRequest>,
     ) -> MentatResponse<UncheckedNetworkStatusResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.network_request(data.as_ref())?;
+            self.asserter.network_request(data.as_ref())?;
             let resp = self
-                .network_status(caller, data.unwrap().into(), node_caller)
+                .api
+                .network_status(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
         }
+    }
+}
+
+impl<Api> ToRouter for NetworkApiRouter<Api>
+where
+    Api: NetworkApi + 'static,
+{
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        let list = self.clone();
+        let options = self.clone();
+        axum::Router::new()
+            .route(
+                "/list",
+                axum::routing::post(
+                    |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                     Json(req_data): Json<Option<UncheckedMetadataRequest>>| async move {
+                        list.call_network_list(Caller { ip }, req_data).await
+                    },
+                ),
+            )
+            .route(
+                "/options",
+                axum::routing::post(
+                    |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                     Json(req_data): Json<Option<UncheckedNetworkRequest>>| async move {
+                        options.call_network_options(Caller { ip }, req_data).await
+                    },
+                ),
+            )
+            .route(
+                "/status",
+                axum::routing::post(
+                    |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                     State(conf): State<Configuration<CustomConfig>>,
+                     Json(req_data): Json<Option<UncheckedNetworkRequest>>| async move {
+                        self.call_network_status(Caller { ip }, &conf.mode, req_data)
+                            .await
+                    },
+                ),
+            )
     }
 }

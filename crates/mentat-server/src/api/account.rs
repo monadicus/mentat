@@ -2,12 +2,7 @@
 //! These traits are easily overridable for custom
 //! implementations.
 
-use std::fmt::Debug;
-
-use axum::extract::{ConnectInfo, State};
-
 use super::*;
-use crate::conf::Configuration;
 
 /// AccountAPIServicer defines the api actions for the AccountAPI service
 #[axum::async_trait]
@@ -73,24 +68,11 @@ pub trait AccountApi: Clone + Debug + Send + Sync {
     }
 }
 
-/// AccountAPIRouter defines the required methods for binding the api requests
-/// to a responses for the AccountAPI
-/// The AccountAPIRouter implementation should parse necessary information from
-/// the http request, pass the data to a AccountAPIServicer to perform the
-/// required actions, then write the service results to the http response.
-#[derive(Clone, Debug)]
-pub struct AccountApiRouter<Api: AccountApi> {
-    /// Api
-    pub api: Api,
-    /// Asserter
-    pub asserter: Asserter,
-    /// Caller
-    pub node_caller: Api::NodeCaller,
-}
+crate::router!(AccountApiRouter, AccountApi);
 
 impl<Api: AccountApi> AccountApiRouter<Api> {
     /// This endpoint only runs in online mode.
-    #[tracing::instrument(name = "account_balance")]
+    #[tracing::instrument(name = "/account/balance")]
     async fn call_account_balance(
         &self,
         caller: Caller,
@@ -111,17 +93,17 @@ impl<Api: AccountApi> AccountApiRouter<Api> {
     }
 
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "/account/coins")]
     async fn call_account_coins(
         &self,
         caller: Caller,
         mode: &Mode,
-        asserter: &Asserter,
         data: Option<UncheckedAccountCoinsRequest>,
     ) -> MentatResponse<UncheckedAccountCoinsResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.account_coins_request(data.as_ref())?;
+            self.asserter.account_coins_request(data.as_ref())?;
             let resp = self
                 .api
                 .account_coins(caller, data.unwrap().into(), &self.node_caller)
@@ -132,15 +114,32 @@ impl<Api: AccountApi> AccountApiRouter<Api> {
     }
 }
 
-impl<Api: AccountApi + 'static> ToRouter for AccountApiRouter<Api> {
+impl<Api> ToRouter for AccountApiRouter<Api>
+where
+    Api: AccountApi + 'static,
+{
     fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
-        axum::Router::new().route(
+        let balance = self.clone();
+        axum::Router::new()
+        .route(
             "/balance",
             axum::routing::post(
                 |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
                  State(conf): State<Configuration<CustomConfig>>,
                  Json(req_data): Json<Option<UncheckedAccountBalanceRequest>>| async move {
-                    self.call_account_balance(Caller { ip }, &conf.mode, req_data)
+                    balance
+                        .call_account_balance(Caller { ip }, &conf.mode, req_data)
+                        .await
+                },
+            ),
+        )
+        .route(
+            "/coin",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedAccountCoinsRequest>>| async move {
+                    self.call_account_coins(Caller { ip }, &conf.mode, req_data)
                         .await
                 },
             ),

@@ -4,7 +4,7 @@ use serde::de::DeserializeOwned;
 use sysinfo::{Pid, PidExt};
 pub mod middleware;
 
-use std::{net::SocketAddr, sync::Arc};
+use std::{fmt::Debug, net::SocketAddr, sync::Arc};
 
 use axum::{extract::FromRef, Router};
 use mentat_types::MentatError;
@@ -23,23 +23,23 @@ pub trait ServerType: Sized + 'static {
     /// The blockchain's `AccountApi` Rosetta implementation.
     type AccountApi: AccountApi<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `BlockApi` Rosetta implementation.
-    type BlockApi: BlockApiRouter<NodeCaller = Self::NodeCaller>;
+    type BlockApi: BlockApi<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `CallApi` Rosetta implementation.
-    type CallApi: CallApiRouter<NodeCaller = Self::NodeCaller>;
+    type CallApi: CallApi<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `ConstructionApi` Rosetta implementation.
-    type ConstructionApi: ConstructionApiRouter<NodeCaller = Self::NodeCaller>;
+    type ConstructionApi: ConstructionApi<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `Events` Rosetta implementation.
-    type EventsApi: EventsApiRouter<NodeCaller = Self::NodeCaller>;
+    type EventsApi: EventsApi<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `MempoolApi` Rosetta implementation.
-    type MempoolsApi: MempoolApiRouter<NodeCaller = Self::NodeCaller>;
+    type MempoolsApi: MempoolApi<NodeCaller = Self::NodeCaller>;
     /// The blockchain's `NetworkApi` Rosetta implementation.
-    type NetworkApi: NetworkApiRouter<NodeCaller = Self::NodeCaller>;
+    type NetworkApi: NetworkApi<NodeCaller = Self::NodeCaller>;
     /// Any optional endpoints for the Mentat implementation.
     type OptionalApi: OptionalApi<NodeCaller = Self::NodeCaller> + Send + Sync;
     /// The blockchain's `SearchApi` Rosetta implementation.
-    type SearchApi: SearchApiRouter<NodeCaller = Self::NodeCaller>;
+    type SearchApi: SearchApi<NodeCaller = Self::NodeCaller>;
     /// The Caller used to interact with the node.
-    type NodeCaller: From<Configuration<Self::CustomConfig>> + Send + Sync + Clone;
+    type NodeCaller: From<Configuration<Self::CustomConfig>> + Send + Sync + Clone + Debug;
     /// The nodes's `NodeConf` implementation.
     type CustomConfig: DeserializeOwned + NodeConf;
 
@@ -152,29 +152,44 @@ impl<Types: ServerType> ServerBuilder<Types> {
         Server {
             account_api: self
                 .account_api
-                .map(|api| AccountApiRouter {
-                    api,
-                    asserter: asserters.account_api,
-                    node_caller: node_caller.clone(),
-                })
+                .map(|api| ApiRouter::from(api, asserters.account_api, node_caller.clone()))
                 .expect("You did not set the call api."),
-            block_api: self.block_api.expect("You did not set the call api."),
-            call_api: self.call_api.expect("You did not set the call api."),
+            block_api: self
+                .block_api
+                .map(|api| ApiRouter::from(api, asserters.block_api, node_caller.clone()))
+                .expect("You did not set the call api."),
+            call_api: self
+                .call_api
+                .map(|api| ApiRouter::from(api, asserters.call_api, node_caller.clone()))
+                .expect("You did not set the call api."),
             construction_api: self
                 .construction_api
+                .map(|api| ApiRouter::from(api, asserters.construction_api, node_caller.clone()))
                 .expect("You did not set the construction api."),
-            events_api: self.events_api.expect("You did not set the call api."),
-            mempool_api: self.mempool_api.expect("You did not set the call api."),
-            network_api: self.network_api.expect("You did not set the call api."),
+            events_api: self
+                .events_api
+                .map(|api| ApiRouter::from(api, asserters.events_api, node_caller.clone()))
+                .expect("You did not set the call api."),
+            mempool_api: self
+                .mempool_api
+                .map(|api| ApiRouter::from(api, asserters.mempool_api, node_caller.clone()))
+                .expect("You did not set the call api."),
+            network_api: self
+                .network_api
+                .map(|api| ApiRouter::from(api, asserters.network_api, node_caller.clone()))
+                .expect("You did not set the call api."),
             optional_api: self
                 .optional_api
                 .map(|(api, enabled)| OptionalApiRouter {
                     api,
                     enabled,
-                    node_caller,
+                    node_caller: node_caller.clone(),
                 })
                 .expect("You did not set the additional api."),
-            search_api: self.search_api.expect("You did not set the call api."),
+            search_api: self
+                .search_api
+                .map(|api| ApiRouter::from(api, asserters.search_api, node_caller.clone()))
+                .expect("You did not set the call api."),
 
             configuration,
         }
@@ -261,44 +276,24 @@ pub struct Server<Types: ServerType> {
     /// The Account API endpoints.
     pub account_api: AccountApiRouter<Types::AccountApi>,
     /// The Block API endpoints.
-    pub block_api: Types::BlockApi,
+    pub block_api: BlockApiRouter<Types::BlockApi>,
     /// The Call API endpoints.
-    pub call_api: Types::CallApi,
+    pub call_api: CallApiRouter<Types::CallApi>,
     /// The Construction API endpoints.
-    pub construction_api: Types::ConstructionApi,
+    pub construction_api: ConstructionApiRouter<Types::ConstructionApi>,
     /// The Events API endpoints.
-    pub events_api: Types::EventsApi,
+    pub events_api: EventsApiRouter<Types::EventsApi>,
     /// The Mempool API endpoints.
-    pub mempool_api: Types::MempoolsApi,
+    pub mempool_api: MempoolApiRouter<Types::MempoolsApi>,
     /// The network API endpoints.
-    pub network_api: Types::NetworkApi,
+    pub network_api: NetworkApiRouter<Types::NetworkApi>,
     /// The search API endpoints.
-    pub search_api: Types::SearchApi,
+    pub search_api: SearchApiRouter<Types::SearchApi>,
     /// The Optional API endpoints.
     pub optional_api: OptionalApiRouter<Types::OptionalApi>,
     /// The optional configuration details.
     pub configuration: Configuration<Types::CustomConfig>,
 }
-
-// impl<Types: ServerType> Default for Server<Types> {
-//     fn default() -> Self {
-//         let configuration = Types::CustomConfig::load_config();
-//         Self {
-//             account_api: Default::default(),
-//             block_api: Default::default(),
-//             call_api: Default::default(),
-//             construction_api: Default::default(),
-//             events_api: Default::default(),
-//             mempool_api: Default::default(),
-//             network_api: Default::default(),
-//             search_api: Default::default(),
-//             optional_api: Default::default(),
-//             node_caller: Types::NodeCaller::from(configuration.clone()),
-//             asserters: Types::init_asserters(&configuration),
-//             configuration,
-//         }
-//     }
-// }
 
 /// The AppState
 #[derive(Clone)]
@@ -350,14 +345,20 @@ impl<Types: ServerType> Server<Types> {
         let mut app = Router::new();
         app = Types::middleware(&self.configuration, app)
             .nest("/account", self.account_api.to_router())
+            .nest("/block", self.block_api.to_router())
+            .nest("/call", self.call_api.to_router())
+            .nest("/construction", self.construction_api.to_router())
+            .nest("/events", self.events_api.to_router())
+            .nest("/mempool", self.mempool_api.to_router())
+            .nest("/network", self.network_api.to_router())
             .nest("/optional", self.optional_api.to_router())
+            .nest("/search", self.search_api.to_router())
             .layer(
                 tower::ServiceBuilder::new()
                     .layer(axum::middleware::from_fn(content_type_middleware)),
             )
             .fallback(MentatError::not_found);
         let app = app.with_state(state);
-        // Types::middleware(&self.configuration, app);
 
         // TODO this currently writes mentat-server
         // This will be fixed when non basic generic const types stabilize.
