@@ -106,7 +106,7 @@ impl MetadataDescription {
     pub fn new<T: Default + JsonType + 'static>(key: String) -> Self {
         Self {
             key,
-            value_kind: Box::new(T::default()),
+            value_kind: Box::<T>::default(),
         }
     }
 }
