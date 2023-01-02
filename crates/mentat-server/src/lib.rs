@@ -57,7 +57,7 @@ pub mod macro_exports {
     pub use super::{
         api::*,
         conf::{Configuration, ServerPid},
-        server::{AppState, Server},
+        server::Server,
         *,
     };
 }

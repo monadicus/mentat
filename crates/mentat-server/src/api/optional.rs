@@ -9,7 +9,7 @@ use crate::conf::{NodePid, ServerPid};
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
-pub trait OptionalApi: Clone + Debug + Send + Sync {
+pub trait OptionalApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
     type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
@@ -98,10 +98,19 @@ pub struct OptionalApiRouter<Api: OptionalApi> {
     /// if health is enabled
     pub enabled: bool,
     /// Caller
-    pub node_caller: Api::NodeCaller,
+    pub node_caller: Arc<Api::NodeCaller>,
 }
 
 impl<Api: OptionalApi> OptionalApiRouter<Api> {
+    /// Generates a default from a given node caller.
+    pub fn default_from_caller(node_caller: Arc<Api::NodeCaller>) -> Self {
+        Self {
+            api: Default::default(),
+            enabled: Default::default(),
+            node_caller,
+        }
+    }
+
     /// For performing a health check on the server.
     #[tracing::instrument(name = "/optional/health")]
     pub async fn call_health(

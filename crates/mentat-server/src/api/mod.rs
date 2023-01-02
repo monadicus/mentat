@@ -45,7 +45,7 @@ pub struct ApiRouter<Api, NodeCaller> {
     /// An `Asserter` instance for the API.
     pub asserter: Asserter,
     /// The `NodeCaller` instance for the router.
-    pub node_caller: NodeCaller,
+    pub node_caller: Arc<NodeCaller>,
 }
 
 impl<Api, NodeCaller> ApiRouter<Api, NodeCaller> {
@@ -53,7 +53,7 @@ impl<Api, NodeCaller> ApiRouter<Api, NodeCaller> {
     pub fn from<R: From<ApiRouter<Api, NodeCaller>>>(
         api: Api,
         asserter: Asserter,
-        node_caller: NodeCaller,
+        node_caller: Arc<NodeCaller>,
     ) -> R {
         Self {
             api,
@@ -75,7 +75,18 @@ macro_rules! router {
             /// An `Asserter` instance for the API.
             pub asserter: Asserter,
             /// The `NodeCaller` instance for the router.
-            pub node_caller: Api::NodeCaller,
+            pub node_caller: ::std::sync::Arc<Api::NodeCaller>,
+        }
+
+        impl<Api: $api> $router<Api> {
+            /// Generates a default from a given node caller.
+            pub fn default_from_caller(node_caller: ::std::sync::Arc<Api::NodeCaller>) -> Self {
+                Self {
+                    api: Default::default(),
+                    asserter: Default::default(),
+                    node_caller,
+                }
+            }
         }
 
         impl<Api: $api<NodeCaller = NodeCaller>, NodeCaller> From<ApiRouter<Api, NodeCaller>>
@@ -92,8 +103,8 @@ macro_rules! router {
     };
 }
 
-/// ToRouter
+/// A trait to define how to convert structs into an `axum::Router`.
 pub trait ToRouter {
-    /// Converts it to a router
+    /// For converting the type to the router.
     fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>>;
 }

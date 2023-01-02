@@ -126,6 +126,12 @@ pub struct Configuration<Custom: NodeConf> {
     pub custom: Custom,
 }
 
+impl<Custom: NodeConf> AsRef<Configuration<Custom>> for Configuration<Custom> {
+    fn as_ref(&self) -> &Configuration<Custom> {
+        self
+    }
+}
+
 impl<Custom> Configuration<Custom>
 where
     Custom: NodeConf,

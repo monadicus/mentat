@@ -6,7 +6,7 @@ use super::*;
 /// ConstructionAPIServicer defines the api actions for the ConstructionAPI
 /// service
 #[axum::async_trait]
-pub trait ConstructionApi: Clone + Debug + Send + Sync {
+pub trait ConstructionApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
     type NodeCaller: Clone + Debug + Send + Sync + 'static;
 

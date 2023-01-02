@@ -6,7 +6,7 @@ use super::*;
 
 /// EventsAPIServicer defines the api actions for the EventsAPI service
 #[axum::async_trait]
-pub trait EventsApi: Clone + Debug + Send + Sync {
+pub trait EventsApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
     type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
