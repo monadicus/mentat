@@ -6,9 +6,9 @@ use super::*;
 
 /// MempoolAPIServicer defines the api actions for the MempoolAPI service
 #[axum::async_trait]
-pub trait MempoolApi {
+pub trait MempoolApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// Get all [`crate::identifiers::TransactionIdentifier`]s in the mempool
     async fn mempool(
@@ -40,28 +40,24 @@ pub trait MempoolApi {
     }
 }
 
-/// MempoolAPIRouter defines the required methods for binding the api requests
-/// to a responses for the MempoolAPI
-/// The MempoolAPIRouter implementation should parse necessary information from
-/// the http request, pass the data to a MempoolAPIServicer to perform the
-/// required actions, then write the service results to the http response.
-#[axum::async_trait]
-pub trait MempoolApiRouter: MempoolApi + Clone + Default {
+crate::router!(MempoolApiRouter, MempoolApi);
+
+impl<Api: MempoolApi> MempoolApiRouter<Api> {
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "/mempool")]
     async fn call_mempool(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedNetworkRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedNetworkRequest>,
     ) -> MentatResponse<UncheckedMempoolResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.network_request(data.as_ref())?;
+            self.asserter.network_request(data.as_ref())?;
             let resp: UncheckedMempoolResponse = self
-                .mempool(caller, data.unwrap().into(), node_caller)
+                .api
+                .mempool(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -69,23 +65,53 @@ pub trait MempoolApiRouter: MempoolApi + Clone + Default {
     }
 
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "/mempool/transaction")]
     async fn call_mempool_transaction(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedMempoolTransactionRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedMempoolTransactionRequest>,
     ) -> MentatResponse<UncheckedMempoolTransactionResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.mempool_transaction_request(data.as_ref())?;
+            self.asserter.mempool_transaction_request(data.as_ref())?;
             let resp: UncheckedMempoolTransactionResponse = self
-                .mempool_transaction(caller, data.unwrap().into(), node_caller)
+                .api
+                .mempool_transaction(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
         }
+    }
+}
+
+impl<Api> ToRouter for MempoolApiRouter<Api>
+where
+    Api: MempoolApi + 'static,
+{
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        let mempool = self.clone();
+        axum::Router::new()
+        .route(
+            "/",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedNetworkRequest>>| async move {
+                    mempool.call_mempool(Caller { ip }, &conf.mode, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/transaction",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedMempoolTransactionRequest>>| async move {
+                    self.call_mempool_transaction(Caller { ip }, &conf.mode, req_data).await
+                },
+            ),
+        )
     }
 }

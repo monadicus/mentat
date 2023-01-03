@@ -6,9 +6,9 @@ use super::*;
 /// ConstructionAPIServicer defines the api actions for the ConstructionAPI
 /// service
 #[axum::async_trait]
-pub trait ConstructionApi: Default {
+pub trait ConstructionApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// Combine creates a network-specific transaction from an unsigned
     /// transaction and an array of provided signatures. The signed transaction
@@ -24,7 +24,7 @@ pub trait ConstructionApi: Default {
     }
 
     /// Derive returns the [`crate::identifiers::AccountIdentifier`] associated
-    /// with a public key. Blockchains that require an on-chain action to
+    /// with a public key. Constructionchains that require an on-chain action to
     /// create an account should not implement this method.
     async fn derive(
         &self,
@@ -133,79 +133,72 @@ pub trait ConstructionApi: Default {
     }
 }
 
-/// ConstructionAPIRouter defines the required methods for binding the api
-/// requests to a responses for the ConstructionAPI The ConstructionAPIRouter
-/// implementation should parse necessary information from the http request,
-/// pass the data to a ConstructionAPIServicer to perform the required actions,
-/// then write the service results to the http response.
-#[axum::async_trait]
-pub trait ConstructionApiRouter: Clone + ConstructionApi {
+crate::router!(ConstructionApiRouter, ConstructionApi);
+
+impl<Api: ConstructionApi> ConstructionApiRouter<Api> {
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/construction/combine")]
     async fn call_combine(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedConstructionCombineRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionCombineResponse> {
-        asserter.construction_combine_request(data.as_ref())?;
+        self.asserter.construction_combine_request(data.as_ref())?;
         let resp = self
-            .combine(caller, data.unwrap().into(), node_caller)
+            .api
+            .combine(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
     }
 
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/construction/derive")]
     async fn call_derive(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedConstructionDeriveRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionDeriveResponse> {
-        asserter.construction_derive_request(data.as_ref())?;
+        self.asserter.construction_derive_request(data.as_ref())?;
         let resp = self
-            .derive(caller, data.unwrap().into(), node_caller)
+            .api
+            .derive(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
     }
 
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/construction/hash")]
     async fn call_hash(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedConstructionHashRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedTransactionIdentifierResponse> {
-        asserter.construction_hash_request(data.as_ref())?;
+        self.asserter.construction_hash_request(data.as_ref())?;
         let resp = self
-            .hash(caller, data.unwrap().into(), node_caller)
+            .api
+            .hash(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
     }
 
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/construction/metadata")]
     async fn call_metadata(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedConstructionMetadataRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedConstructionMetadataRequest>,
     ) -> MentatResponse<UncheckedConstructionMetadataResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.construction_metadata_request(data.as_ref())?;
+            self.asserter.construction_metadata_request(data.as_ref())?;
             let resp = self
-                .metadata(caller, data.unwrap().into(), node_caller)
+                .api
+                .metadata(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -213,72 +206,163 @@ pub trait ConstructionApiRouter: Clone + ConstructionApi {
     }
 
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/construction/parse")]
     async fn call_parse(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedConstructionParseRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionParseResponse> {
-        asserter.construction_parse_request(data.as_ref())?;
+        self.asserter.construction_parse_request(data.as_ref())?;
         let data: ConstructionParseRequest = data.unwrap().into();
-        let resp = self.parse(caller, data, node_caller).await?.into();
-        Ok(Json(resp))
-    }
-
-    /// This endpoint runs in both offline and online mode.
-    async fn call_payloads(
-        &self,
-        caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedConstructionPayloadsRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
-    ) -> MentatResponse<UncheckedConstructionPayloadsResponse> {
-        asserter.construction_payload_request(data.as_ref())?;
         let resp = self
-            .payloads(caller, data.unwrap().into(), node_caller)
+            .api
+            .parse(caller, data, &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
     }
 
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/construction/payloads")]
+    async fn call_payloads(
+        &self,
+        caller: Caller,
+        data: Option<UncheckedConstructionPayloadsRequest>,
+    ) -> MentatResponse<UncheckedConstructionPayloadsResponse> {
+        self.asserter.construction_payload_request(data.as_ref())?;
+        let resp = self
+            .api
+            .payloads(caller, data.unwrap().into(), &self.node_caller)
+            .await?
+            .into();
+        Ok(Json(resp))
+    }
+
+    /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/construction/preprocess")]
     async fn call_preprocess(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedConstructionPreprocessRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedConstructionPreprocessResponse> {
-        asserter.construction_preprocess_request(data.as_ref())?;
+        self.asserter
+            .construction_preprocess_request(data.as_ref())?;
         let resp = self
-            .preprocess(caller, data.unwrap().into(), node_caller)
+            .api
+            .preprocess(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
     }
 
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "/construction/submit")]
     async fn call_submit(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedConstructionSubmitRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedConstructionSubmitRequest>,
     ) -> MentatResponse<UncheckedTransactionIdentifierResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.construction_submit_request(data.as_ref())?;
+            self.asserter.construction_submit_request(data.as_ref())?;
             let resp = self
-                .submit(caller, data.unwrap().into(), node_caller)
+                .api
+                .submit(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
         }
+    }
+}
+
+impl<Api> ToRouter for ConstructionApiRouter<Api>
+where
+    Api: ConstructionApi + 'static,
+{
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        let combine = self.clone();
+        let derive = self.clone();
+        let hash = self.clone();
+        let metadata = self.clone();
+        let parse = self.clone();
+        let payloads = self.clone();
+        let preprocess = self.clone();
+        axum::Router::new()
+        .route(
+            "/combine",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedConstructionCombineRequest>>| async move {
+                    combine.call_combine(Caller { ip }, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/derive",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedConstructionDeriveRequest>>| async move {
+                    derive.call_derive(Caller { ip }, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/hash",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedConstructionHashRequest>>| async move {
+                    hash.call_hash(Caller { ip }, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/metadata",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedConstructionMetadataRequest>>| async move {
+                    metadata.call_metadata(Caller { ip }, &conf.mode, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/parse",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedConstructionParseRequest>>| async move {
+                    parse.call_parse(Caller { ip }, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/payloads",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedConstructionPayloadsRequest>>| async move {
+                    payloads.call_payloads(Caller { ip }, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/preprocess",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedConstructionPreprocessRequest>>| async move {
+                    preprocess.call_preprocess(Caller { ip }, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/submit",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedConstructionSubmitRequest>>| async move {
+                    self.call_submit(Caller { ip }, &conf.mode, req_data).await
+                },
+            ),
+        )
     }
 }

@@ -97,7 +97,7 @@ pub fn network_status_response(resp: Option<&UncheckedNetworkStatusResponse>) ->
             resp.current_block_identifier
         )
     })?;
-    timestamp(resp.current_block_timestamp as isize).map_err(|e| {
+    timestamp(resp.current_block_timestamp).map_err(|e| {
         format!(
             "current block timestamp {} is invalid: {e}",
             resp.current_block_timestamp

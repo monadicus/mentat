@@ -5,7 +5,6 @@
 
 extern crate proc_macro;
 
-mod route_builder;
 mod unchecked;
 
 use proc_macro::TokenStream;
@@ -96,20 +95,16 @@ fn gen_derive(server_def: &ItemStruct) -> TokenStream2 {
 /// Generates the main function for the given mentat implementation.
 fn gen_main(
     server_call: &TokenStream2,
-    server_type: &Ident,
-    cache_type: Option<&Ident>,
+    _server_type: &Ident,
+    _cache_type: Option<&Ident>,
 ) -> TokenStream2 {
-    let routes = route_builder::build_routes(server_type, cache_type);
-
     quote!(
         use ::mentat_server::{conf::NodePid, macro_exports::tokio, sysinfo::Pid};
         #[tokio::main]
         async fn main() {
             use ::mentat_server::macro_exports::*;
             let server = #server_call;
-            let mut app = Router::new();
-            #routes
-            server.serve(app).await
+            server.serve().await
         }
     )
 }

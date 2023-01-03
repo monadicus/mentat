@@ -5,13 +5,13 @@
 use sysinfo::{Pid, ProcessExt, System, SystemExt};
 
 use super::*;
-use crate::conf::NodePid;
+use crate::conf::{NodePid, ServerPid};
 
 #[axum::async_trait]
 /// The `OptionalApi` Trait.
-pub trait OptionalApi: Clone + Default {
+pub trait OptionalApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// returns local and global chain tips
     async fn synced(&self, _node_caller: &Self::NodeCaller) -> Result<Synced> {
@@ -24,15 +24,15 @@ pub trait OptionalApi: Clone + Default {
         caller: Caller,
         mode: &Mode,
         node_caller: &Self::NodeCaller,
-        server_pid: Pid,
-        node_pid: NodePid,
+        server_pid: &ServerPid,
+        node_pid: &NodePid,
     ) -> Result<HealthCheckResponse> {
         tracing::debug!("health check!");
         let system = System::new_all();
         Ok(HealthCheckResponse {
             caller,
             msg: "Healthy!".to_string(),
-            usage: self.usage("server", &system, server_pid).await?,
+            usage: self.usage("server", &system, server_pid.0).await?,
             node: NodeInformation {
                 usage: self.usage("node", &system, node_pid.0).await?,
                 address: self.node_address(node_caller).await?,
@@ -88,36 +88,86 @@ pub trait OptionalApi: Clone + Default {
     }
 }
 
-/// Trait to wrap the `OptionalApi`.
-/// This trait helps to define default behavior for running the endpoints
+/// Struct to wrap the `OptionalApi`.
+/// This struct helps to define default behavior for running the endpoints
 /// on different modes.
-#[axum::async_trait]
-pub trait OptionalApiRouter: OptionalApi + Clone + Default {
+#[derive(Clone, Debug)]
+pub struct OptionalApiRouter<Api: OptionalApi> {
+    /// api
+    pub api: Api,
+    /// if health is enabled
+    pub enabled: bool,
+    /// Caller
+    pub node_caller: Arc<Api::NodeCaller>,
+}
+
+impl<Api: OptionalApi> OptionalApiRouter<Api> {
+    /// Generates a default from a given node caller.
+    pub fn default_from_caller(node_caller: Arc<Api::NodeCaller>) -> Self {
+        Self {
+            api: Default::default(),
+            enabled: Default::default(),
+            node_caller,
+        }
+    }
+
     /// For performing a health check on the server.
-    async fn call_health(
+    #[tracing::instrument(name = "/optional/health")]
+    pub async fn call_health(
         &self,
-        _caller: Caller,
-        _mode: &Mode,
-        _node_caller: &Self::NodeCaller,
-        _server_pid: Pid,
-        _node_pid: NodePid,
+        caller: Caller,
+        mode: &Mode,
+        server_pid: ServerPid,
+        node_pid: NodePid,
     ) -> MentatResponse<HealthCheckResponse> {
-        MentatError::not_implemented()
+        if self.enabled {
+            Ok(Json(
+                self.api
+                    .health(caller, mode, &self.node_caller, &server_pid, &node_pid)
+                    .await?,
+            ))
+        } else {
+            MentatError::not_implemented()
+        }
     }
 
     /// This endpoint only runs in online mode.
-    async fn call_synced(
-        &self,
-        _caller: Caller,
-        mode: &Mode,
-        node_caller: &Self::NodeCaller,
-        _server_pid: Pid,
-        _node_pid: NodePid,
-    ) -> MentatResponse<Synced> {
-        if mode.is_offline() {
+    #[tracing::instrument(name = "/optional/synced")]
+    async fn call_synced(&self, mode: &Mode) -> MentatResponse<Synced> {
+        if !self.enabled {
+            MentatError::not_implemented()
+        } else if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            Ok(Json(self.synced(node_caller).await?))
+            Ok(Json(self.api.synced(&self.node_caller).await?))
         }
+    }
+}
+
+impl<Api: OptionalApi + 'static> ToRouter for OptionalApiRouter<Api> {
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        let health = self.clone();
+        axum::Router::new()
+            .route(
+                "/health",
+                axum::routing::get(
+                    |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                     State(conf): State<Configuration<CustomConfig>>,
+                     State(server_pid): State<ServerPid>,
+                     State(node_pid): State<NodePid>| async move {
+                        health
+                            .call_health(Caller { ip }, &conf.mode, server_pid, node_pid)
+                            .await
+                    },
+                ),
+            )
+            .route(
+                "/synced",
+                axum::routing::get(
+                    |State(conf): State<Configuration<CustomConfig>>| async move {
+                        self.call_synced(&conf.mode).await
+                    },
+                ),
+            )
     }
 }

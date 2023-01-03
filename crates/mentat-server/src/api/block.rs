@@ -6,9 +6,9 @@ use super::*;
 
 /// BlockAPIServicer defines the api actions for the BlockAPI service
 #[axum::async_trait]
-pub trait BlockApi {
+pub trait BlockApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// Get a block by its [`crate::identifiers::BlockIdentifier`]. If
     /// transactions are returned in the same call to the node as fetching
@@ -62,28 +62,24 @@ pub trait BlockApi {
     }
 }
 
-/// BlockAPIRouter defines the required methods for binding the api requests to
-/// a responses for the BlockAPI
-/// The BlockAPIRouter implementation should parse necessary information from
-/// the http request, pass the data to a BlockAPIServicer to perform the
-/// required actions, then write the service results to the http response.
-#[axum::async_trait]
-pub trait BlockApiRouter: BlockApi + Clone + Default {
+crate::router!(BlockApiRouter, BlockApi);
+
+impl<Api: BlockApi> BlockApiRouter<Api> {
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "/block")]
     async fn call_block(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedBlockRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedBlockRequest>,
     ) -> MentatResponse<UncheckedBlockResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.block_request(data.as_ref())?;
+            self.asserter.block_request(data.as_ref())?;
             let resp: UncheckedBlockResponse = self
-                .block(caller, data.unwrap().into(), node_caller)
+                .api
+                .block(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
@@ -91,23 +87,54 @@ pub trait BlockApiRouter: BlockApi + Clone + Default {
     }
 
     /// This endpoint only runs in online mode.
+    #[tracing::instrument(name = "/block/transaction")]
     async fn call_block_transaction(
         &self,
         caller: Caller,
-        asserter: &Asserter,
-        data: Option<UncheckedBlockTransactionRequest>,
         mode: &Mode,
-        node_caller: &Self::NodeCaller,
+        data: Option<UncheckedBlockTransactionRequest>,
     ) -> MentatResponse<UncheckedBlockTransactionResponse> {
         if mode.is_offline() {
             MentatError::unavailable_offline(Some(mode))
         } else {
-            asserter.block_transaction_request(data.as_ref())?;
+            self.asserter.block_transaction_request(data.as_ref())?;
             let resp: UncheckedBlockTransactionResponse = self
-                .block_transaction(caller, data.unwrap().into(), node_caller)
+                .api
+                .block_transaction(caller, data.unwrap().into(), &self.node_caller)
                 .await?
                 .into();
             Ok(Json(resp))
         }
+    }
+}
+
+impl<Api> ToRouter for BlockApiRouter<Api>
+where
+    Api: BlockApi + 'static,
+{
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        let block = self.clone();
+        axum::Router::new()
+        .route(
+            "/",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedBlockRequest>>| async move {
+                    block.call_block(Caller { ip }, &conf.mode, req_data).await
+                },
+            ),
+        )
+        .route(
+            "/transaction",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 State(conf): State<Configuration<CustomConfig>>,
+                 Json(req_data): Json<Option<UncheckedBlockTransactionRequest>>| async move {
+                    self.call_block_transaction(Caller { ip }, &conf.mode, req_data)
+                        .await
+                },
+            ),
+        )
     }
 }

@@ -4,7 +4,6 @@
 #![warn(clippy::todo)]
 
 pub mod api;
-pub mod cache;
 pub mod conf;
 pub mod server;
 
@@ -45,13 +44,20 @@ pub use tracing_tree;
 
 #[doc(hidden)]
 pub mod macro_exports {
+    pub use std::sync::Arc;
+
     pub use axum::{
-        extract::{self, ConnectInfo, Extension, Json},
+        extract::{self, ConnectInfo, Extension, Json, State},
         routing,
         Router,
     };
     pub use mentat_types::*;
     pub use tracing::Instrument;
 
-    pub use super::{api::*, cache::Cache, conf::Configuration, server::Server, *};
+    pub use super::{
+        api::*,
+        conf::{Configuration, ServerPid},
+        server::Server,
+        *,
+    };
 }

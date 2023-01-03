@@ -18,8 +18,13 @@ use super::*;
 
 /// A wrapper type around a Pid.
 /// So we can write our functionality around it.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct NodePid(pub Pid);
+
+/// A wrapper type around a Pid.
+/// So we can write our functionality around it.
+#[derive(Clone, Copy, Debug)]
+pub struct ServerPid(pub Pid);
 
 /// Custom configuration settings for running a node.
 ///
@@ -119,6 +124,12 @@ pub struct Configuration<Custom: NodeConf> {
         skip_serializing_if = "Configuration::<Custom>::skip_serializing_custom"
     )]
     pub custom: Custom,
+}
+
+impl<Custom: NodeConf> AsRef<Configuration<Custom>> for Configuration<Custom> {
+    fn as_ref(&self) -> &Configuration<Custom> {
+        self
+    }
 }
 
 impl<Custom> Configuration<Custom>

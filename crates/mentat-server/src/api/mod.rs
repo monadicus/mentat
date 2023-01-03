@@ -17,9 +17,94 @@ pub use network::*;
 mod optional;
 pub use optional::*;
 mod search;
-use axum::Json;
+
+use std::{fmt::Debug, sync::Arc};
+
+use axum::{
+    extract::{ConnectInfo, State},
+    Json,
+};
 use mentat_asserter::Asserter;
 use mentat_types::*;
 pub use search::*;
 
-use crate::conf::Mode;
+use crate::{
+    conf::{Configuration, Mode, NodeConf},
+    server::AppState,
+};
+
+/// ApiRouter defines the required methods for binding the api requests
+/// to a responses for the specified api trait.
+/// The ApiRouter implementation should parse necessary information from
+/// the http request, pass the data to a specified API servicer to perform the
+/// required actions, then write the service results to the http response.
+#[derive(Clone, Debug)]
+pub struct ApiRouter<Api, NodeCaller> {
+    /// The API internals it has.
+    pub api: Api,
+    /// An `Asserter` instance for the API.
+    pub asserter: Asserter,
+    /// The `NodeCaller` instance for the router.
+    pub node_caller: Arc<NodeCaller>,
+}
+
+impl<Api, NodeCaller> ApiRouter<Api, NodeCaller> {
+    /// Creates a new ApiRouter from the given args.
+    pub fn from<R: From<ApiRouter<Api, NodeCaller>>>(
+        api: Api,
+        asserter: Asserter,
+        node_caller: Arc<NodeCaller>,
+    ) -> R {
+        Self {
+            api,
+            asserter,
+            node_caller,
+        }
+        .into()
+    }
+}
+
+#[macro_export]
+/// Creates a Router Specific type and implements From<ApiRouter> for it.
+macro_rules! router {
+    ($router:ident, $api:ident) => {
+        #[derive(Clone, Debug)]
+        pub struct $router<Api: $api> {
+            /// The API internals it has.
+            pub api: Api,
+            /// An `Asserter` instance for the API.
+            pub asserter: Asserter,
+            /// The `NodeCaller` instance for the router.
+            pub node_caller: ::std::sync::Arc<Api::NodeCaller>,
+        }
+
+        impl<Api: $api> $router<Api> {
+            /// Generates a default from a given node caller.
+            pub fn default_from_caller(node_caller: ::std::sync::Arc<Api::NodeCaller>) -> Self {
+                Self {
+                    api: Default::default(),
+                    asserter: Default::default(),
+                    node_caller,
+                }
+            }
+        }
+
+        impl<Api: $api<NodeCaller = NodeCaller>, NodeCaller> From<ApiRouter<Api, NodeCaller>>
+            for $router<Api>
+        {
+            fn from(router: ApiRouter<Api, NodeCaller>) -> Self {
+                Self {
+                    api: router.api,
+                    asserter: router.asserter,
+                    node_caller: router.node_caller,
+                }
+            }
+        }
+    };
+}
+
+/// A trait to define how to convert structs into an `axum::Router`.
+pub trait ToRouter {
+    /// For converting the type to the router.
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>>;
+}

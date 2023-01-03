@@ -651,7 +651,7 @@ fn test_sync_no_reorg() {
         blocks[99].as_ref().unwrap().block_identifier.clone();
 
     for (i, b) in blocks.into_iter().enumerate() {
-        expect_block(&mut syncer, true, Some(i as usize), Ok(b.clone()), 1);
+        expect_block(&mut syncer, true, Some(i), Ok(b.clone()), 1);
 
         if let Some(b) = b {
             expect_block_seen(&mut syncer, true, b.clone(), 1);
@@ -951,7 +951,7 @@ fn test_sync_dynamic() {
 
     for (i, b) in blocks.into_iter().enumerate() {
         let tmp_b = b.clone();
-        custom_expect_block(&mut syncer, Some(i as usize), 1, move |s, _, _, id| {
+        custom_expect_block(&mut syncer, Some(i), 1, move |s, _, _, id| {
             if id.index == Some(100) {
                 assert_eq!(*s.concurrency.lock(), 1)
             }
@@ -992,7 +992,7 @@ fn test_sync_dynamic_overhead() {
 
     for (i, b) in blocks.into_iter().enumerate() {
         let tmp_b = b.clone();
-        custom_expect_block(&mut syncer, Some(i as usize), 1, move |s, _, _, id| {
+        custom_expect_block(&mut syncer, Some(i), 1, move |s, _, _, id| {
             if id.index == Some(100) {
                 assert_eq!(*s.concurrency.lock(), 1)
             }

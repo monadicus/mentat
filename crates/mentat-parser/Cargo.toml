@@ -5,14 +5,14 @@ edition = "2021"
 rust-version = "1.62.1"
 
 [dependencies]
-indexmap = "1.9.1"
-mentat-asserter = { path = "../mentat-asserter" }
-mentat-types = { path = "../mentat-types" }
-serde = { version = "1.0.136", default-features = false, features = ["derive"] }
-thiserror = "1.0.31"
-num-bigint-dig = "0.8.1"
-serde_json = "1.0.82"
-num-traits = "0.2.15"
+indexmap = { workspace = true }
+mentat-asserter = { workspace = true }
+mentat-types = { workspace = true }
+num-bigint-dig = { workspace = true }
+num-traits = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
-mentat-test-utils = { path = "../mentat-test-utils" }
+mentat-test-utils = { workspace = true }

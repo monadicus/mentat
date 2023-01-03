@@ -6,9 +6,9 @@ use super::*;
 
 /// SearchAPIServicer defines the api actions for the SearchAPI service
 #[axum::async_trait]
-pub trait SearchApi {
+pub trait SearchApi: Clone + Debug + Default + Send + Sync {
     /// the caller used to interact with the underlying node
-    type NodeCaller: Send + Sync;
+    type NodeCaller: Clone + Debug + Send + Sync + 'static;
 
     /// `/events/blocks` allows the `_caller` to query a sequence of
     /// [`crate::models::BlockEvent`]s indicating which blocks were added and
@@ -29,27 +29,39 @@ pub trait SearchApi {
     }
 }
 
-/// SearchAPIRouter defines the required methods for binding the api requests to
-/// a responses for the SearchAPI
-/// The SearchAPIRouter implementation should parse necessary information from
-/// the http request, pass the data to a SearchAPIServicer to perform the
-/// required actions, then write the service results to the http response.
-#[axum::async_trait]
-pub trait SearchApiRouter: SearchApi + Clone + Default {
+crate::router!(SearchApiRouter, SearchApi);
+
+impl<Api: SearchApi> SearchApiRouter<Api> {
     /// This endpoint runs in both offline and online mode.
+    #[tracing::instrument(name = "/search/transactions")]
     async fn call_search_transactions(
         &self,
         caller: Caller,
-        asserter: &Asserter,
         data: Option<UncheckedSearchTransactionsRequest>,
-        _mode: &Mode,
-        node_caller: &Self::NodeCaller,
     ) -> MentatResponse<UncheckedSearchTransactionsResponse> {
-        asserter.search_transactions_request(data.as_ref())?;
+        self.asserter.search_transactions_request(data.as_ref())?;
         let resp = self
-            .search_transactions(caller, data.unwrap().into(), node_caller)
+            .api
+            .search_transactions(caller, data.unwrap().into(), &self.node_caller)
             .await?
             .into();
         Ok(Json(resp))
+    }
+}
+
+impl<Api> ToRouter for SearchApiRouter<Api>
+where
+    Api: SearchApi + 'static,
+{
+    fn to_router<CustomConfig: NodeConf>(self) -> axum::Router<Arc<AppState<CustomConfig>>> {
+        axum::Router::new().route(
+            "/transactions",
+            axum::routing::post(
+                |ConnectInfo(ip): ConnectInfo<::std::net::SocketAddr>,
+                 Json(req_data): Json<Option<UncheckedSearchTransactionsRequest>>| async move {
+                    self.call_search_transactions(Caller { ip }, req_data).await
+                },
+            ),
+        )
     }
 }

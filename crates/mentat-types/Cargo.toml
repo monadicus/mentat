@@ -5,14 +5,14 @@ edition = "2021"
 rust-version = "1.62.1"
 
 [dependencies]
-axum = { version = "0.5.1", default-features = false, features = ["json"] }
-from_tuple = "0.1.2"
-indexmap = { version = "1.8.1", default-features = false, features = ["serde"] }
-mentat-macros = { path = "../../mentat-macros" }
-num-bigint-dig = { version = "0.8.1" }
-sha2 = { version = "0.10.2" }
-serde = { version = "1.0.136", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.79", default-features = false }
+axum = { workspace = true }
+from_tuple = { workspace = true }
+indexmap = { workspace = true }
+mentat-macros = { workspace = true }
+num-bigint-dig = { workspace = true }
+sha2 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 [dev-dependencies]
-mentat-test-utils = { path = "../mentat-test-utils" }
+mentat-test-utils = { workspace = true }
