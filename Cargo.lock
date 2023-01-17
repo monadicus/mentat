@@ -840,8 +840,10 @@ dependencies = [
 name = "mentat-constructor"
 version = "0.1.0"
 dependencies = [
+ "indexmap",
  "mentat-test-utils",
  "mentat-tokenizer",
+ "mentat-types",
  "serde_json",
  "thiserror",
 ]
