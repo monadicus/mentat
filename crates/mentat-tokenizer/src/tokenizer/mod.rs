@@ -1,6 +1,7 @@
 use crate::errors::Result;
 
 mod lexer;
+pub use lexer::Lexer;
 mod parser_context;
 pub use parser_context::*;
 mod source_map;
@@ -11,13 +12,13 @@ mod tokens;
 pub use tokens::*;
 
 #[derive(Debug, Clone)]
-pub struct Token {
+pub struct Token<T> {
     pub span: Span,
-    pub kind: TokenKind,
+    pub kind: T,
 }
 
-impl Token {
-    pub(crate) fn new(kind: TokenKind, start: usize, stop: usize) -> Self {
+impl<T: TokenKind> Token<T> {
+    pub(crate) fn new(kind: T, start: usize, stop: usize) -> Self {
         Self {
             span: Span::new(start.into(), stop.into()),
             kind,
@@ -25,19 +26,19 @@ impl Token {
     }
 
     #[inline]
-    pub(crate) const fn dummy() -> Self {
+    pub(crate) fn dummy() -> Self {
         Self {
-            kind: TokenKind::Dot,
+            kind: T::dummy(),
             span: Span::dummy(),
         }
     }
 }
 
-pub fn tokenize(src: &str) -> Result<Vec<Token>> {
+pub fn tokenize<L: Lexer>(src: &str) -> Result<Vec<Token<L>>> {
     let mut tokenizer = Tokenizer::new(src);
     let mut tokens = Vec::new();
 
-    while let Some((kind, start, stop)) = tokenizer.next_token()? {
+    while let Some((kind, start, stop)) = tokenizer.next_token::<L>()? {
         tokens.push(Token::new(kind, start, stop));
     }
 

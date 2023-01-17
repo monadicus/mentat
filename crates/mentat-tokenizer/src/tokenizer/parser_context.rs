@@ -1,33 +1,31 @@
-// TODO
-
 use super::{span::Span, tokens::TokenKind, Token};
 use crate::errors::{ContextError, Result};
 
-#[derive(Debug, Clone, Copy)]
-pub enum Delimiter {
-    Brace,
-    Bracket,
-    Parenthesis,
+// #[derive(Debug, Clone, Copy)]
+// pub enum Delimiter {
+//     Brace,
+//     Bracket,
+//     Parenthesis,
+// }
+
+// impl Delimiter {
+//     pub fn pair(self) -> (TokenKind, TokenKind) {
+//         match self {
+//             Self::Brace => (TokenKind::LeftCurly, TokenKind::RightCurly),
+//             Self::Bracket => (TokenKind::LeftBracket,
+// TokenKind::RightBracket),             Self::Parenthesis =>
+// (TokenKind::LeftParen, TokenKind::RightParen),         }
+//     }
+// }
+
+pub struct ParserContext<T> {
+    tokens: Vec<Token<T>>,
+    pub curr_token: Token<T>,
+    pub prev_token: Token<T>,
 }
 
-impl Delimiter {
-    pub fn pair(self) -> (TokenKind, TokenKind) {
-        match self {
-            Self::Brace => (TokenKind::LeftCurly, TokenKind::RightCurly),
-            Self::Bracket => (TokenKind::LeftBracket, TokenKind::RightBracket),
-            Self::Parenthesis => (TokenKind::LeftParen, TokenKind::RightParen),
-        }
-    }
-}
-
-pub struct ParserContext {
-    tokens: Vec<Token>,
-    pub curr_token: Token,
-    pub prev_token: Token,
-}
-
-impl ParserContext {
-    pub fn new(mut tokens: Vec<Token>) -> Self {
+impl<T: TokenKind> ParserContext<T> {
+    pub fn new(mut tokens: Vec<Token<T>>) -> Self {
         tokens.reverse();
 
         let mut context = Self {
@@ -41,13 +39,13 @@ impl ParserContext {
     }
 
     pub fn bump(&mut self) {
-        if let TokenKind::Eof = self.prev_token.kind {
+        if self.prev_token.kind.is_eof() {
             panic!("attempted to bump the parser past EOF (may be stuck in a loop)");
         }
 
         // Extract next token, or `Eof` if there was none.
         let next_token = self.tokens.pop().unwrap_or(Token {
-            kind: TokenKind::Eof,
+            kind: T::eof(),
             span: self.curr_token.span,
         });
 
@@ -55,16 +53,16 @@ impl ParserContext {
         self.prev_token = std::mem::replace(&mut self.curr_token, next_token);
     }
 
-    pub fn check(&self, tok: &TokenKind) -> bool {
-        &self.curr_token.kind == tok
+    pub fn check(&self, tok: &T) -> bool {
+        self.curr_token.kind.check(tok)
     }
 
     #[track_caller]
-    pub fn eat(&mut self, token: &TokenKind) -> bool {
+    pub fn eat(&mut self, token: &T) -> bool {
         self.check(token).then(|| self.bump()).is_some()
     }
 
-    pub fn look_ahead<R>(&self, dist: usize, looker: impl FnOnce(&Token) -> R) -> R {
+    pub fn look_ahead<R>(&self, dist: usize, looker: impl FnOnce(&Token<T>) -> R) -> R {
         if dist == 0 {
             return looker(&self.curr_token);
         }
@@ -78,8 +76,8 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub fn eat_identifier(&mut self) -> Option<String> {
-        if let TokenKind::Identifier(ident) = self.curr_token.kind.clone() {
+    pub fn eat_identifier(&mut self) -> Option<T::IdentifierType> {
+        if let Some(ident) = self.curr_token.kind.is_identifier() {
             self.bump();
             return Some(ident);
         }
@@ -87,7 +85,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub fn expect_identifier(&mut self) -> Result<String> {
+    pub fn expect_identifier(&mut self) -> Result<T::IdentifierType> {
         if let Some(ident) = self.eat_identifier() {
             Ok(ident)
         } else {
@@ -100,7 +98,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub fn eat_any(&mut self, tokens: &[TokenKind]) -> bool {
+    pub fn eat_any(&mut self, tokens: &[T]) -> bool {
         tokens
             .iter()
             .any(|x| self.check(x))
@@ -109,12 +107,12 @@ impl ParserContext {
     }
 
     #[track_caller]
-    fn unexpected<T>(&self, expected: impl std::fmt::Display) -> Result<T> {
+    fn unexpected<R>(&self, expected: impl std::fmt::Display) -> Result<R> {
         ContextError::unexpected_token(&self.curr_token.kind, expected, self.curr_token.span)
     }
 
     #[track_caller]
-    pub fn expect(&mut self, token: &TokenKind) -> Result<Span> {
+    pub fn expect(&mut self, token: &T) -> Result<Span> {
         if self.eat(token) {
             Ok(self.prev_token.span)
         } else {
@@ -123,7 +121,7 @@ impl ParserContext {
     }
 
     #[track_caller]
-    pub fn expect_any(&mut self, tokens: &[TokenKind]) -> Result<Span> {
+    pub fn expect_any(&mut self, tokens: &[T]) -> Result<Span> {
         if self.eat_any(tokens) {
             Ok(self.prev_token.span)
         } else {
