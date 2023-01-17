@@ -80,7 +80,7 @@ impl TokenKind for Token {
 }
 
 impl Lexer for Token {
-    fn tokenize_single(input: &str) -> mentat_tokenizer::Result<(Self, usize)>
+    fn tokenize_single(_input: &str) -> mentat_tokenizer::Result<(Self, usize)>
     where
         Self: Sized,
     {

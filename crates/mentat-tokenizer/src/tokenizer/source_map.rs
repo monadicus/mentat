@@ -88,7 +88,7 @@ fn analyze_source_file(
     let src_bytes = src.as_bytes();
 
     while i < src.len() {
-        let i_usize = i as usize;
+        let i_usize = i;
         let byte = src_bytes[i_usize];
         let mut char_len = 1;
 
