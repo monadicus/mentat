@@ -26,7 +26,6 @@ pub struct UncheckedSigningPayload {
     #[unchecked(bytes)]
     pub bytes: Vec<u8>,
     /// `SignatureType` is the type of a cryptographic signature.
-    #[unchecked(option_enum)]
     pub signature_type: UncheckedSignatureType,
 }
 

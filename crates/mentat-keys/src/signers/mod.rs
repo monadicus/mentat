@@ -2,7 +2,7 @@ mod edwards25519;
 pub use edwards25519::SignerEdwards25519;
 
 mod signer;
-pub use signer::Signer;
+pub use signer::*;
 
 #[cfg(test)]
 #[path = ""]

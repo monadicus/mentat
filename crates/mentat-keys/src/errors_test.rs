@@ -32,10 +32,10 @@ fn test_err() {
         TestCase {
             name: "is a keys error",
             payload: KeysError::ErrPrivKeyLengthInvalid.into(),
-            criteria: (true, ""),
+            criteria: (true, "keys error"),
         },
         TestCase {
-            name: "",
+            name: "not a keys error",
             payload: Blah {
                 content: "blah".to_string(),
             }

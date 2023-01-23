@@ -8,9 +8,9 @@ use mentat_types::{
     UncheckedSignatureType,
 };
 
-use super::Signer;
+use super::SignerInterface;
 use crate::{
-    errors::KeysError,
+    errors::{KeysError, KeysResult},
     types::{KeyPair, UncheckedKeyPair},
 };
 
@@ -19,20 +19,13 @@ pub struct SignerEdwards25519 {
     pub key_pair: UncheckedKeyPair,
 }
 
-impl Signer for SignerEdwards25519 {
+impl SignerInterface for SignerEdwards25519 {
     fn public_key(&self) -> PublicKey {
-        // UGH
-        // &self.key_pair.public_key
         let kp: KeyPair = self.key_pair.clone().into();
         kp.public_key
     }
 
-    fn sign(
-        &self,
-        payload: SigningPayload,
-        sig_type: SignatureType,
-    ) -> crate::errors::KeysResult<Signature> {
-        // TODO can we avoid clone?
+    fn sign(&self, payload: SigningPayload, sig_type: SignatureType) -> KeysResult<Signature> {
         let valid_key_pair = self
             .key_pair
             .clone()
@@ -40,12 +33,16 @@ impl Signer for SignerEdwards25519 {
             .map_err(|err| format!("key pair is invalid: {err}"))?;
 
         // TODO gotta fix this somehow...
-        let payload_st = payload.signature_type.as_ref().unwrap();
-        if !(matches!(payload_st, SignatureType::Ed25519) || payload_st.to_string().is_empty()) {
+        // let payload_st = payload.signature_type.as_ref().unwrap();
+        if !(matches!(
+            payload.signature_type,
+            // Not sure why it's allowed to be empty string here.
+            SignatureType::Ed25519 | SignatureType::EmptyString
+        )) {
             Err(format!(
                 "expected signing payload signature type {} but got {}: {}",
                 SignatureType::Ed25519,
-                payload_st,
+                payload.signature_type,
                 KeysError::ErrSignUnsupportedPayloadSignatureType
             ))?;
         }
@@ -72,8 +69,7 @@ impl Signer for SignerEdwards25519 {
         })
     }
 
-    fn verify(&self, signature: UncheckedSignature) -> crate::errors::KeysResult<()> {
-        // BWUH
+    fn verify(&self, signature: UncheckedSignature) -> KeysResult<()> {
         if signature.signature_type != UncheckedSignatureType::ED25519.into() {
             Err(format!(
                 "expected signing payload signature type {} but got {}: {}",

@@ -22,7 +22,6 @@ pub struct UncheckedSignature {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub public_key: Option<UncheckedPublicKey>,
     /// [`SignatureType`] is the type of a cryptographic signature.
-    #[unchecked(option_enum)]
     pub signature_type: UncheckedSignatureType,
     /// The hex bytes for the `Signature`.
     #[serde(

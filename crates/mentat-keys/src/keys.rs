@@ -60,7 +60,7 @@ impl KeyPair {
         // TODO maybe move to their types
         let key_pair: UncheckedKeyPair = match curve {
             CurveType::Edwards25519 => {
-                // TODO theirs doesn't error here
+                // TODO rosetta doesn't error here
                 let seed = ed25519_compact::Seed::from_slice(&private_key).unwrap();
                 let key_pair = ed25519_compact::KeyPair::from_seed(seed);
 
@@ -116,17 +116,16 @@ impl KeyPair {
         Ok(valid)
     }
 
-    // TODO can we remove dynamic dispatch somehow?
     /// signer returns the constructs a `Signer` for the `KeyPair`.
-    pub fn signer(self) -> KeysResult<Box<dyn Signer>> {
-        match self.public_key.curve_type {
-            CurveType::Edwards25519 => Ok(Box::new(SignerEdwards25519 {
+    pub fn signer(self) -> KeysResult<Signer> {
+        Ok(match self.public_key.curve_type {
+            CurveType::Edwards25519 => Signer::Edwards25519(SignerEdwards25519 {
                 key_pair: self.into(),
-            })),
+            }),
             CurveType::Secp256k1 => todo!(),
             CurveType::Secp256r1 => todo!(),
             CurveType::Tweedle => todo!(),
             CurveType::Pallas => todo!(),
-        }
+        })
     }
 }
