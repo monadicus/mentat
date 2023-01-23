@@ -270,8 +270,9 @@ pub fn decode_from_hex_string(hex: String) -> Result<Vec<u8>, u8> {
     Ok(converted_bytes)
 }
 
+// TODO maybe move this and null_default_bytes_to_hex to utils?
 /// For serializing a slice of bytes to a hex string.
-pub(crate) fn bytes_to_hex_str<S>(bytes: &[u8], s: S) -> Result<S::Ok, S::Error>
+pub fn bytes_to_hex_str<S>(bytes: &[u8], s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -280,7 +281,7 @@ where
 }
 
 /// custom deserializer that replaces `null` with an empty vec of bytes
-pub(crate) fn null_default_bytes_to_hex<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
+pub fn null_default_bytes_to_hex<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
 where
     D: Deserializer<'de>,
 {

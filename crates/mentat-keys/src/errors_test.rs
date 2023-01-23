@@ -1,21 +1,48 @@
-use std::collections::HashMap;
+use std::fmt;
 
-use create::KeysError;
+use mentat_test_utils::TestCase;
+
+use crate::errors::KeysError;
+
+// TODO this blah pattern is repeated.
+#[derive(Debug)]
+struct Blah {
+    content: String,
+}
+
+impl fmt::Display for Blah {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "blah content: {}", self.content)
+    }
+}
+
+impl std::error::Error for Blah {}
+
+fn err(err: Box<dyn std::error::Error>) -> (bool, &'static str) {
+    if err.is::<KeysError>() {
+        (true, "keys error")
+    } else {
+        (false, "")
+    }
+}
 
 #[test]
 fn test_err() {
-    let mut tests = HashMap::new();
-    tests.insert(
-        "is a keys error",
-        (Err(KeysError::ErrPrivKeyLengthInvalid), true),
-    );
-    tests.insert("not a keys error", (Err("blah"), false));
+    let tests = vec![
+        TestCase {
+            name: "is a keys error",
+            payload: KeysError::ErrPrivKeyLengthInvalid.into(),
+            criteria: (true, ""),
+        },
+        TestCase {
+            name: "",
+            payload: Blah {
+                content: "blah".to_string(),
+            }
+            .into(),
+            criteria: (false, ""),
+        },
+    ];
 
-    for (name, test) in tests.iter() {
-        let is = matches!(
-            std::mem::discriminant(&KeysError),
-            std::mem::discriminant(test.0.unwrap_err())
-        );
-        assert_eq!(test.1, is);
-    }
+    TestCase::run_output_match(tests, err);
 }

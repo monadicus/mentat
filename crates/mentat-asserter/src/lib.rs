@@ -48,7 +48,7 @@ mod server;
 pub use server::*;
 
 mod util;
-use util::*;
+pub use util::*;
 
 #[cfg(test)]
 #[path = ""]

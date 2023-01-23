@@ -66,6 +66,6 @@ pub(crate) fn account_array(arr_name: &str, arr: &[Option<AccountIdentifier>]) -
 
 /// `bytes_array_zero` returns a boolean indicating if
 /// all elements in an array are 0.
-pub(crate) fn bytes_array_zero(arr: &[u8]) -> bool {
+pub fn bytes_array_zero(arr: &[u8]) -> bool {
     arr.iter().all(|b| b == &0)
 }
