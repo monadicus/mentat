@@ -72,7 +72,7 @@ pub enum SignatureType {
     #[serde(rename = "schnorr_1")]
     Schnorr1,
     /// r (32-bytes) + s (32-bytes) where s = Hash(1st pk + 2nd pk + r)
-    EchnorrPoseidon,
+    SchnorrPoseidon,
     /// Necessary to match rosetta logic.
     EmptyString,
 }
@@ -84,7 +84,7 @@ impl From<UncheckedSignatureType> for SignatureType {
             UncheckedSignatureType::ECDSA_RECOVERY => Self::EcdsaRecovery,
             UncheckedSignatureType::ED25519 => Self::Ed25519,
             UncheckedSignatureType::SCHNORR_1 => Self::Schnorr1,
-            UncheckedSignatureType::SCHNORR_POSEIDON => Self::EchnorrPoseidon,
+            UncheckedSignatureType::SCHNORR_POSEIDON => Self::SchnorrPoseidon,
             empty if empty.is_empty() => Self::EmptyString,
             i => panic!("unsupported ExemptionType: {i}"),
         }
@@ -98,7 +98,7 @@ impl From<SignatureType> for UncheckedSignatureType {
             SignatureType::EcdsaRecovery => Self::ECDSA_RECOVERY.into(),
             SignatureType::Ed25519 => Self::ED25519.into(),
             SignatureType::Schnorr1 => Self::SCHNORR_1.into(),
-            SignatureType::EchnorrPoseidon => Self::SCHNORR_POSEIDON.into(),
+            SignatureType::SchnorrPoseidon => Self::SCHNORR_POSEIDON.into(),
             SignatureType::EmptyString => "".into(),
         }
     }
@@ -111,7 +111,7 @@ impl fmt::Display for SignatureType {
             SignatureType::EcdsaRecovery => write!(f, "ecdsa_recovery"),
             SignatureType::Ed25519 => write!(f, "ed25519"),
             SignatureType::Schnorr1 => write!(f, "schnorr_1"),
-            SignatureType::EchnorrPoseidon => write!(f, "schnorr_poseidon"),
+            SignatureType::SchnorrPoseidon => write!(f, "schnorr_poseidon"),
             SignatureType::EmptyString => write!(f, "unspecified_signature_type"),
         }
     }

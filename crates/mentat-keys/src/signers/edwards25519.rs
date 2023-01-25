@@ -14,7 +14,6 @@ use crate::{
     types::{KeyPair, UncheckedKeyPair},
 };
 
-// TODO maybe figure out better representation?
 pub struct SignerEdwards25519 {
     pub key_pair: UncheckedKeyPair,
 }
@@ -32,11 +31,8 @@ impl SignerInterface for SignerEdwards25519 {
             .is_valid()
             .map_err(|err| format!("key pair is invalid: {err}"))?;
 
-        // TODO gotta fix this somehow...
-        // let payload_st = payload.signature_type.as_ref().unwrap();
         if !(matches!(
             payload.signature_type,
-            // Not sure why it's allowed to be empty string here.
             SignatureType::Ed25519 | SignatureType::EmptyString
         )) {
             Err(format!(
