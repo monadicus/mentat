@@ -6,15 +6,9 @@ use mentat_types::{
     Signature,
     SignatureType,
     SigningPayload,
-    UncheckedSignatureType,
 };
 
-use crate::{
-    errors::KeysError,
-    types::{KeyPair, UncheckedKeyPair},
-    Signer,
-    SignerInterface,
-};
+use crate::{errors::KeysError, types::KeyPair, Signer, SignerInterface};
 
 fn mock_signer() -> Signer {
     let key_pair = KeyPair::generate(CurveType::Edwards25519).unwrap();
@@ -22,16 +16,14 @@ fn mock_signer() -> Signer {
     key_pair.signer().unwrap()
 }
 
-// TODO this needs to be a signature type and signature type needs to support
-// unknown and empty
-fn mock_payload(msg: Vec<u8>, signature_type: UncheckedSignatureType) -> SigningPayload {
+fn mock_payload(msg: Vec<u8>, signature_type: SignatureType) -> SigningPayload {
     SigningPayload {
         account_identifier: Some(AccountIdentifier {
             address: "test".to_string(),
             ..Default::default()
         }),
         bytes: msg,
-        signature_type: signature_type.into(),
+        signature_type,
         ..Default::default()
     }
 }
@@ -43,22 +35,22 @@ fn test_sign_edwards25519() {
     let tests = vec![
         TestCase {
             name: "correct payload signature type",
-            payload: mock_payload(vec![0; 32], UncheckedSignatureType::ED25519.into()),
+            payload: mock_payload(vec![0; 32], SignatureType::Ed25519),
             criteria: None,
         },
         TestCase {
             name: "implicit payload signature type",
-            payload: mock_payload(vec![0; 32], UncheckedSignatureType::from("")),
+            payload: mock_payload(vec![0; 32], SignatureType::EmptyString),
             criteria: None,
         },
         TestCase {
             name: "incorrect payload signature type 1",
-            payload: mock_payload(vec![0; 33], UncheckedSignatureType::ECDSA.into()),
+            payload: mock_payload(vec![0; 33], SignatureType::Ecdsa),
             criteria: Some(KeysError::ErrSignUnsupportedPayloadSignatureType),
         },
         TestCase {
             name: "incorrect payload signature type 2",
-            payload: mock_payload(vec![0; 34], UncheckedSignatureType::ECDSA.into()),
+            payload: mock_payload(vec![0; 34], SignatureType::EcdsaRecovery),
             criteria: Some(KeysError::ErrSignUnsupportedPayloadSignatureType),
         },
     ];
@@ -76,7 +68,7 @@ fn mock_signature(
     msg: Vec<u8>,
     sig: Vec<u8>,
 ) -> Signature {
-    let payload = SigningPayload {
+    let signing_payload = SigningPayload {
         account_identifier: Some(AccountIdentifier {
             address: "test".into(),
             ..Default::default()
@@ -85,5 +77,81 @@ fn mock_signature(
         signature_type,
         ..Default::default()
     };
-    todo!()
+
+    Signature {
+        signing_payload,
+        public_key,
+        signature_type,
+        bytes: sig,
+    }
+}
+
+#[test]
+fn test_verify_edwards_25519() {
+    let signer = mock_signer();
+
+    let mut simple_bytes = vec![0; 32];
+    let hello = "hello".as_bytes();
+    simple_bytes[..hello.len()].copy_from_slice(hello);
+
+    let payload = SigningPayload {
+        account_identifier: Some(AccountIdentifier {
+            address: "test".to_string(),
+            ..Default::default()
+        }),
+        bytes: simple_bytes.clone(),
+        signature_type: SignatureType::Ed25519,
+        ..Default::default()
+    };
+    let test_sig = signer.sign(payload, SignatureType::Ed25519).unwrap();
+
+    let tests = vec![
+        TestCase {
+            name: "incorrect payload signature type 1",
+            payload: mock_signature(
+                SignatureType::Ecdsa,
+                signer.public_key(),
+                simple_bytes.clone(),
+                simple_bytes.clone(),
+            ),
+            criteria: Some(KeysError::ErrVerifyUnsupportedPayloadSignatureType),
+        },
+        TestCase {
+            name: "incorrect payload signature type 2",
+            payload: mock_signature(
+                SignatureType::EcdsaRecovery,
+                signer.public_key(),
+                simple_bytes.clone(),
+                simple_bytes.clone(),
+            ),
+            criteria: Some(KeysError::ErrVerifyUnsupportedPayloadSignatureType),
+        },
+        TestCase {
+            name: "incorrect payload signature msg",
+            payload: mock_signature(
+                SignatureType::Ed25519,
+                signer.public_key(),
+                {
+                    let mut simple_bytes = vec![0; 40];
+                    let hello = "hello".as_bytes();
+                    simple_bytes[..hello.len()].copy_from_slice(hello);
+                    simple_bytes
+                },
+                test_sig.bytes.clone(),
+            ),
+            criteria: Some(KeysError::ErrVerifyFailed),
+        },
+        TestCase {
+            name: "correct payload signature",
+            payload: mock_signature(
+                SignatureType::Ed25519,
+                signer.public_key(),
+                simple_bytes.clone(),
+                test_sig.bytes,
+            ),
+            criteria: None,
+        },
+    ];
+
+    TestCase::run_err_match(tests, |p| signer.verify(p.into()))
 }
