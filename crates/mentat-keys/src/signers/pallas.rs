@@ -6,7 +6,7 @@ use mentat_types::{
     UncheckedSignature,
     UncheckedSignatureType,
 };
-use mina_signer::{PubKey, SecKey};
+use mina_signer::PubKey;
 use serde::Deserialize;
 
 use super::SignerInterface;
@@ -15,6 +15,7 @@ use crate::{
     types::{KeyPair, UncheckedKeyPair},
 };
 
+/// `SignerPallas` is initialized from a `UncheckedKeyPair`.
 pub struct SignerPallas {
     pub key_pair: UncheckedKeyPair,
 }

@@ -8,29 +8,12 @@ use mentat_types::{
     SigningPayload,
 };
 
-use crate::{errors::KeysError, types::KeyPair, Signer, SignerInterface};
-
-fn mock_signer() -> Signer {
-    let key_pair = KeyPair::generate(CurveType::Edwards25519).unwrap();
-
-    key_pair.signer().unwrap()
-}
-
-fn mock_payload(msg: Vec<u8>, signature_type: SignatureType) -> SigningPayload {
-    SigningPayload {
-        account_identifier: Some(AccountIdentifier {
-            address: "test".to_string(),
-            ..Default::default()
-        }),
-        bytes: msg,
-        signature_type,
-        ..Default::default()
-    }
-}
+use super::{mock_payload, mock_signer};
+use crate::{errors::KeysError, SignerInterface};
 
 #[test]
 fn test_sign_edwards25519() {
-    let signer = mock_signer();
+    let signer = mock_signer(CurveType::Edwards25519);
 
     let tests = vec![
         TestCase {
@@ -56,7 +39,6 @@ fn test_sign_edwards25519() {
     ];
 
     // TODO if not an error also check
-    // assert.NoError(t, err)
     // assert.Len(t, signature.Bytes, 64)
     // assert.Equal(t, signerEdwards25519.PublicKey(), signature.PublicKey)
     TestCase::run_err_match(tests, |p| signer.sign(p, SignatureType::Ed25519))
@@ -88,7 +70,7 @@ fn mock_signature(
 
 #[test]
 fn test_verify_edwards_25519() {
-    let signer = mock_signer();
+    let signer = mock_signer(CurveType::Edwards25519);
 
     let mut simple_bytes = vec![0; 32];
     let hello = "hello".as_bytes();

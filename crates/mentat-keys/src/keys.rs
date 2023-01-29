@@ -5,6 +5,8 @@ use crate::{
     types::{KeyPair, UncheckedKeyPair},
     Signer,
     SignerEdwards25519,
+    SignerPallas,
+    SignerSecp256k1,
 };
 
 /// `PRIV_KEY_BYTES_LEN` are 32-bytes for all supported curve types.
@@ -61,21 +63,38 @@ impl KeyPair {
         let key_pair: UncheckedKeyPair = match curve {
             CurveType::Edwards25519 => {
                 // TODO rosetta doesn't error here
-                let seed = ed25519_compact::Seed::from_slice(&private_key).unwrap();
+                let seed = ed25519_compact::Seed::from_slice(&private_key).expect("TODO");
                 let key_pair = ed25519_compact::KeyPair::from_seed(seed);
 
                 UncheckedKeyPair {
                     public_key: Some(UncheckedPublicKey {
                         bytes: key_pair.pk.to_vec(),
-                        curve_type: UncheckedCurveType::from(UncheckedCurveType::EDWARDS25519),
+                        curve_type: curve.into(),
                     }),
                     private_key: seed.to_vec(),
                 }
             }
-            CurveType::Secp256k1 => todo!(),
+            CurveType::Secp256k1 => {
+                let secp = secp256k1::Secp256k1::new();
+                let priv_key = secp256k1::SecretKey::from_slice(&private_key).expect("TODO");
+                let pub_key = priv_key.public_key(&secp);
+
+                UncheckedKeyPair {
+                    public_key: Some(UncheckedPublicKey {
+                        bytes: pub_key.serialize().to_vec(),
+                        curve_type: curve.into(),
+                    }),
+                    private_key: priv_key.secret_bytes().to_vec(),
+                }
+            }
             CurveType::Secp256r1 => todo!(),
-            CurveType::Tweedle => todo!(),
             CurveType::Pallas => todo!(),
+            _ => {
+                return Err(KeysError::from(format!(
+                    "curve type {curve} is invalid: {}",
+                    KeysError::ErrCurveTypeNotSupported
+                )));
+            }
         };
 
         let valid = key_pair
@@ -98,15 +117,31 @@ impl KeyPair {
                 UncheckedKeyPair {
                     public_key: Some(UncheckedPublicKey {
                         bytes: key_pair.pk.to_vec(),
-                        curve_type: UncheckedCurveType::from(UncheckedCurveType::EDWARDS25519),
+                        curve_type: curve.into(),
                     }),
                     private_key: seed.to_vec(),
                 }
             }
-            CurveType::Secp256k1 => todo!(),
+            CurveType::Secp256k1 => {
+                let secp = secp256k1::Secp256k1::new();
+                let (priv_key, pub_key) = secp.generate_keypair(&mut secp256k1::rand::thread_rng());
+
+                UncheckedKeyPair {
+                    public_key: Some(UncheckedPublicKey {
+                        bytes: pub_key.serialize().to_vec(),
+                        curve_type: curve.into(),
+                    }),
+                    private_key: priv_key.secret_bytes().to_vec(),
+                }
+            }
             CurveType::Secp256r1 => todo!(),
-            CurveType::Tweedle => todo!(),
             CurveType::Pallas => todo!(),
+            _ => {
+                return Err(KeysError::from(format!(
+                    "curve type {curve} is invalid: {}",
+                    KeysError::ErrCurveTypeNotSupported
+                )));
+            }
         };
 
         let valid = key_pair
@@ -122,10 +157,14 @@ impl KeyPair {
             CurveType::Edwards25519 => Signer::Edwards25519(SignerEdwards25519 {
                 key_pair: self.into(),
             }),
-            CurveType::Secp256k1 => todo!(),
+            CurveType::Secp256k1 => Signer::Secp256k1(SignerSecp256k1 {
+                key_pair: self.into(),
+            }),
             CurveType::Secp256r1 => todo!(),
             CurveType::Tweedle => todo!(),
-            CurveType::Pallas => todo!(),
+            CurveType::Pallas => Signer::Pallas(SignerPallas {
+                key_pair: self.into(),
+            }),
         })
     }
 }

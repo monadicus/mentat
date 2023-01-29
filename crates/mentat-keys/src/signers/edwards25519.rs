@@ -14,6 +14,7 @@ use crate::{
     types::{KeyPair, UncheckedKeyPair},
 };
 
+/// `SignerEdwards25519` is initialized from a `UncheckedKeyPair`.
 pub struct SignerEdwards25519 {
     pub key_pair: UncheckedKeyPair,
 }
@@ -51,9 +52,8 @@ impl SignerInterface for SignerEdwards25519 {
             ))?;
         }
 
-        // TODO what to do with these errors
         let private_key =
-            EdKeyPair::from_seed(Seed::from_slice(&valid_key_pair.private_key).unwrap());
+            EdKeyPair::from_seed(Seed::from_slice(&valid_key_pair.private_key).expect("TODO"));
         let signature = private_key.sk.sign(&payload.bytes, None);
 
         Ok(Signature {
