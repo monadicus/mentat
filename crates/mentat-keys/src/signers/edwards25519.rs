@@ -45,9 +45,8 @@ impl SignerInterface for SignerEdwards25519 {
 
         if !matches!(sig_type, SignatureType::Ed25519) {
             Err(format!(
-                "expected signature type {} but got {}: {}",
+                "expected signature type {} but got {sig_type}: {}",
                 SignatureType::Ed25519,
-                sig_type,
                 KeysError::ErrSignUnsupportedSignatureType
             ))?;
         }

@@ -6,6 +6,7 @@ use mentat_types::{
     UncheckedSignature,
     UncheckedSignatureType,
 };
+use mina_signer::{PubKey, SecKey};
 use serde::Deserialize;
 
 use super::SignerInterface;
@@ -25,6 +26,7 @@ impl SignerInterface for SignerPallas {
     }
 
     fn sign(&self, payload: SigningPayload, sig_type: SignatureType) -> KeysResult<Signature> {
+        // TODO some of this seems repetitive so far?
         let valid_key_pair = self
             .key_pair
             .clone()
@@ -45,9 +47,8 @@ impl SignerInterface for SignerPallas {
 
         if !matches!(sig_type, SignatureType::SchnorrPoseidon) {
             Err(format!(
-                "expected signature type {} but got {}: {}",
+                "expected signature type {} but got {sig_type}: {}",
                 SignatureType::SchnorrPoseidon,
-                sig_type,
                 KeysError::ErrSignUnsupportedSignatureType
             ))?;
         }
@@ -56,11 +57,12 @@ impl SignerInterface for SignerPallas {
             signature_type: payload.signature_type,
             signing_payload: payload,
             public_key: valid_key_pair.public_key,
-            bytes: todo!(),
+            bytes: todo!("Not possible with this library"),
         })
     }
 
     fn verify(&self, signature: UncheckedSignature) -> KeysResult<()> {
+        // TODO some of this seems repetitive so far?
         if signature.signature_type != UncheckedSignatureType::SCHNORR_POSEIDON.into() {
             Err(format!(
                 "expected signing payload signature type {} but got {}: {}",
@@ -74,27 +76,37 @@ impl SignerInterface for SignerPallas {
             .map_err(|err| format!("signature is invalid: {err}"))?;
         let signature: Signature = signature.into();
 
-        todo!();
+        todo!("not possible with this library");
 
         Ok(())
     }
 }
 
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug)]
+#[repr(u8)]
+pub enum NetworkType {
+    TestNet,
+    MainNet,
+    NullNet,
+}
+
 // https://github.com/coinbase/kryptology/blob/master/pkg/signatures/schnorr/mina/txn.go
+#[derive(Debug)]
 struct Transaction {
     fee: u64,
     fee_token: u64,
-    fee_payer_pk: (),
+    fee_payer_pk: PubKey,
     nonce: u32,
     valid_until: u32,
     memo: String,
     tag: [bool; 3],
-    source_pk: (),
-    receiver_pk: (),
+    source_pk: PubKey,
+    receiver_pk: PubKey,
     token_id: u64,
     amount: u64,
     locked: bool,
-    network_id: (),
+    network_id: NetworkType,
 }
 
 #[derive(Debug, Deserialize)]
@@ -115,8 +127,58 @@ impl TryFrom<PayloadFields> for Transaction {
     type Error = KeysError;
 
     fn try_from(value: PayloadFields) -> Result<Self, Self::Error> {
-      // let public_key = mina_signer::PubKey;
-        todo!()
+        let from_public_key = PubKey::from_address(&value.from)
+            .map_err(|err| format!("failed to parse \"from\" address: {err}"))?;
+
+        let to_public_key = PubKey::from_address(&value.to)
+            .map_err(|err| format!("failed to parse \"to\" address: {err}"))?;
+
+        let fee = value
+            .fee
+            .parse()
+            .map_err(|err| format!("failed to parse uint for fee: {err}"))?;
+
+        let amount = if let Some(amt) = value.amount {
+            amt.parse()
+                .map_err(|err| format!("failed to parse uint for fee: {err}"))?
+        } else {
+            0
+        };
+
+        let nonce = value
+            .nonce
+            .parse()
+            .map_err(|err| format!("failed to parse uint for nonce: {err}"))?;
+
+        let valid_until = if let Some(valid_until) = value.valid_until {
+            valid_until
+                .parse()
+                .map_err(|err| format!("failed to parse uint for valid until memo: {err}"))?
+        } else {
+            0
+        };
+
+        let memo = if let Some(memo) = value.memo {
+            memo
+        } else {
+            String::new()
+        };
+
+        Ok(Transaction {
+            fee,
+            fee_token: 1,
+            fee_payer_pk: from_public_key.clone(),
+            nonce,
+            valid_until,
+            memo,
+            tag: [false, false, false],
+            source_pk: from_public_key,
+            receiver_pk: to_public_key,
+            token_id: 1,
+            amount,
+            locked: false,
+            network_id: NetworkType::TestNet,
+        })
     }
 }
 
