@@ -8,6 +8,7 @@ rust-version = "1.62.1"
 mentat-asserter = { workspace = true }
 mentat-macros = { workspace = true }
 mentat-types = { workspace = true }
+p256 = { version = "0.12" }
 secp256k1 = { version = "0.26", features = ["rand-std", "recovery"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -15,6 +16,7 @@ thiserror = { workspace = true }
 ed25519-compact = { version = "2.0" }
 mina-hasher = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
 mina-signer = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
+rand = { version = "0.8" }
 # mina-hasher = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
 # mina-signer = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
 # p256 = { version = "0.11.1", default-features = false, features = ["ecdsa"] }

@@ -1,15 +1,7 @@
 use mentat_test_utils::TestCase;
-use mentat_types::{
-    AccountIdentifier,
-    CurveType,
-    PublicKey,
-    Signature,
-    SignatureType,
-    SigningPayload,
-};
+use mentat_types::{AccountIdentifier, CurveType, SignatureType, SigningPayload};
 
-use super::{mock_payload, mock_signature, mock_signer};
-use crate::{errors::KeysError, SignerInterface};
+use super::*;
 
 #[test]
 fn test_sign_edwards25519() {

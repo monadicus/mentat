@@ -9,11 +9,7 @@ use mentat_types::{
 use mina_signer::PubKey;
 use serde::Deserialize;
 
-use super::SignerInterface;
-use crate::{
-    errors::{KeysError, KeysResult},
-    types::{KeyPair, UncheckedKeyPair},
-};
+use super::*;
 
 /// `SignerPallas` is initialized from a `UncheckedKeyPair`.
 pub struct SignerPallas {
@@ -54,12 +50,13 @@ impl SignerInterface for SignerPallas {
             ))?;
         }
 
-        Ok(Signature {
-            signature_type: payload.signature_type,
-            signing_payload: payload,
-            public_key: valid_key_pair.public_key,
-            bytes: todo!("Not possible with this library"),
-        })
+        todo!("Not possible with this library")
+        // Ok(Signature {
+        //     signature_type: payload.signature_type,
+        //     signing_payload: payload,
+        //     public_key: valid_key_pair.public_key,
+        //     bytes: todo!("Not possible with this library"),
+        // })
     }
 
     fn verify(&self, signature: UncheckedSignature) -> KeysResult<()> {
@@ -75,11 +72,11 @@ impl SignerInterface for SignerPallas {
 
         mentat_asserter::signatures(&[Some(&signature)])
             .map_err(|err| format!("signature is invalid: {err}"))?;
-        let signature: Signature = signature.into();
+        let _signature: Signature = signature.into();
 
         todo!("not possible with this library");
 
-        Ok(())
+        // Ok(())
     }
 }
 

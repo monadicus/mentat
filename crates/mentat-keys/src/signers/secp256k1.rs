@@ -1,11 +1,7 @@
+use ::secp256k1::{ecdsa, schnorr, Message, Secp256k1, SecretKey};
 use mentat_types::{PublicKey, Signature, SignatureType, SigningPayload, UncheckedSignature};
-use secp256k1::{Message, Secp256k1, SecretKey};
 
-use super::SignerInterface;
-use crate::{
-    errors::{KeysError, KeysResult},
-    types::{KeyPair, UncheckedKeyPair},
-};
+use super::*;
 
 /// `SignerSecp256k1` is initialized from a `UncheckedKeyPair`.
 pub struct SignerSecp256k1 {
@@ -89,19 +85,19 @@ impl SignerInterface for SignerSecp256k1 {
         if !match signature.signature_type {
             SignatureType::Ecdsa => {
                 let pub_key = private_key.public_key(&secp);
-                let sig = secp256k1::ecdsa::Signature::from_compact(&signature.bytes)
+                let sig = ecdsa::Signature::from_compact(&signature.bytes)
                     .map_err(|_| KeysError::ErrVerifyFailed)?;
                 secp.verify_ecdsa(&msg, &sig, &pub_key).is_ok()
             }
             SignatureType::EcdsaRecovery => {
                 let pub_key = private_key.public_key(&secp);
-                let sig = secp256k1::ecdsa::Signature::from_compact(&signature.bytes[..=64])
+                let sig = ecdsa::Signature::from_compact(&signature.bytes[..=64])
                     .map_err(|_| KeysError::ErrVerifyFailed)?;
                 secp.verify_ecdsa(&msg, &sig, &pub_key).is_ok()
             }
             SignatureType::Schnorr1 => {
                 let (pub_key, _) = private_key.x_only_public_key(&secp);
-                let sig = secp256k1::schnorr::Signature::from_slice(&signature.bytes)
+                let sig = schnorr::Signature::from_slice(&signature.bytes)
                     .map_err(|_| KeysError::ErrVerifyFailed)?;
                 secp.verify_schnorr(&sig, &msg, &pub_key).is_ok()
             }

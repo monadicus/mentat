@@ -1,6 +1,6 @@
 use mentat_types::{PublicKey, Signature, SignatureType, SigningPayload, UncheckedSignature};
 
-use crate::{errors::KeysResult, SignerEdwards25519, SignerPallas, SignerSecp256k1};
+use super::*;
 
 /// `SignerInterface` is an interface for different curve signers
 pub trait SignerInterface {
@@ -15,6 +15,7 @@ pub enum Signer {
     Edwards25519(SignerEdwards25519),
     Pallas(SignerPallas),
     Secp256k1(SignerSecp256k1),
+    Secp256r1(SignerSecp256r1),
 }
 
 impl SignerInterface for Signer {
@@ -23,6 +24,7 @@ impl SignerInterface for Signer {
             Self::Edwards25519(s) => s.public_key(),
             Self::Pallas(s) => s.public_key(),
             Self::Secp256k1(s) => s.public_key(),
+            Self::Secp256r1(s) => s.public_key(),
         }
     }
 
@@ -31,6 +33,7 @@ impl SignerInterface for Signer {
             Self::Edwards25519(s) => s.sign(payload, sig_type),
             Self::Pallas(s) => s.sign(payload, sig_type),
             Self::Secp256k1(s) => s.sign(payload, sig_type),
+            Self::Secp256r1(s) => s.sign(payload, sig_type),
         }
     }
 
@@ -39,6 +42,7 @@ impl SignerInterface for Signer {
             Self::Edwards25519(s) => s.verify(signature),
             Self::Pallas(s) => s.verify(signature),
             Self::Secp256k1(s) => s.verify(signature),
+            Self::Secp256r1(s) => s.verify(signature),
         }
     }
 }

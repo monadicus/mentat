@@ -1,4 +1,4 @@
-use mentat_types::{decode_from_hex_string, CurveType, UncheckedCurveType, UncheckedPublicKey};
+use mentat_types::{decode_from_hex_string, CurveType, UncheckedPublicKey};
 
 use crate::{
     errors::{KeysError, KeysResult},
@@ -7,6 +7,7 @@ use crate::{
     SignerEdwards25519,
     SignerPallas,
     SignerSecp256k1,
+    SignerSecp256r1,
 };
 
 /// `PRIV_KEY_BYTES_LEN` are 32-bytes for all supported curve types.
@@ -76,18 +77,31 @@ impl KeyPair {
             }
             CurveType::Secp256k1 => {
                 let secp = secp256k1::Secp256k1::new();
-                let priv_key = secp256k1::SecretKey::from_slice(&private_key).expect("TODO");
-                let pub_key = priv_key.public_key(&secp);
+                let private_key = secp256k1::SecretKey::from_slice(&private_key).expect("TODO");
+                let public_key = private_key.public_key(&secp);
 
                 UncheckedKeyPair {
                     public_key: Some(UncheckedPublicKey {
-                        bytes: pub_key.serialize().to_vec(),
+                        bytes: public_key.serialize().to_vec(),
                         curve_type: curve.into(),
                     }),
-                    private_key: priv_key.secret_bytes().to_vec(),
+                    private_key: private_key.secret_bytes().to_vec(),
                 }
             }
-            CurveType::Secp256r1 => todo!(),
+            CurveType::Secp256r1 => {
+                let private_key = p256::ecdsa::SigningKey::from_bytes(&private_key).expect("TODO");
+                let public_key: p256::PublicKey =
+                    p256::ecdsa::VerifyingKey::from(&private_key).into();
+                let encoded_point = p256::EncodedPoint::from(public_key);
+
+                UncheckedKeyPair {
+                    public_key: Some(UncheckedPublicKey {
+                        bytes: encoded_point.as_bytes().to_vec(),
+                        curve_type: curve.into(),
+                    }),
+                    private_key: private_key.to_bytes().as_slice().to_vec(),
+                }
+            }
             CurveType::Pallas => todo!(),
             _ => {
                 return Err(KeysError::from(format!(
@@ -124,17 +138,31 @@ impl KeyPair {
             }
             CurveType::Secp256k1 => {
                 let secp = secp256k1::Secp256k1::new();
-                let (priv_key, pub_key) = secp.generate_keypair(&mut secp256k1::rand::thread_rng());
+                let (private_key, public_key) =
+                    secp.generate_keypair(&mut secp256k1::rand::thread_rng());
 
                 UncheckedKeyPair {
                     public_key: Some(UncheckedPublicKey {
-                        bytes: pub_key.serialize().to_vec(),
+                        bytes: public_key.serialize().to_vec(),
                         curve_type: curve.into(),
                     }),
-                    private_key: priv_key.secret_bytes().to_vec(),
+                    private_key: private_key.secret_bytes().to_vec(),
                 }
             }
-            CurveType::Secp256r1 => todo!(),
+            CurveType::Secp256r1 => {
+                let private_key = p256::ecdsa::SigningKey::random(&mut rand::thread_rng());
+                let public_key: p256::PublicKey =
+                    p256::ecdsa::VerifyingKey::from(&private_key).into();
+                let encoded_point = p256::EncodedPoint::from(public_key);
+
+                UncheckedKeyPair {
+                    public_key: Some(UncheckedPublicKey {
+                        bytes: encoded_point.as_bytes().to_vec(),
+                        curve_type: curve.into(),
+                    }),
+                    private_key: private_key.to_bytes().as_slice().to_vec(),
+                }
+            }
             CurveType::Pallas => todo!(),
             _ => {
                 return Err(KeysError::from(format!(
@@ -160,7 +188,9 @@ impl KeyPair {
             CurveType::Secp256k1 => Signer::Secp256k1(SignerSecp256k1 {
                 key_pair: self.into(),
             }),
-            CurveType::Secp256r1 => todo!(),
+            CurveType::Secp256r1 => Signer::Secp256r1(SignerSecp256r1 {
+                key_pair: self.into(),
+            }),
             CurveType::Tweedle => todo!(),
             CurveType::Pallas => Signer::Pallas(SignerPallas {
                 key_pair: self.into(),

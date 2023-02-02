@@ -50,3 +50,27 @@ pub fn mock_signature(
         bytes: sig,
     }
 }
+
+const HASH_LENGTH: usize = 32;
+
+#[derive(Debug, Default)]
+pub struct Hash([u8; HASH_LENGTH]);
+
+impl Hash {
+    fn set_bytes(&mut self, mut bytes: &[u8]) {
+        if bytes.len() > HASH_LENGTH {
+            bytes = &bytes[bytes.len() - HASH_LENGTH..];
+        }
+        self.0[HASH_LENGTH - bytes.len()..].copy_from_slice(bytes)
+    }
+
+    fn bytes(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+pub fn hash(message: &str) -> Vec<u8> {
+    let mut hash = Hash::default();
+    hash.set_bytes(message.as_bytes());
+    hash.bytes().to_vec()
+}

@@ -8,11 +8,7 @@ use mentat_types::{
     UncheckedSignatureType,
 };
 
-use super::SignerInterface;
-use crate::{
-    errors::{KeysError, KeysResult},
-    types::{KeyPair, UncheckedKeyPair},
-};
+use super::*;
 
 /// `SignerEdwards25519` is initialized from a `UncheckedKeyPair`.
 pub struct SignerEdwards25519 {

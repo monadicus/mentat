@@ -1,6 +1,6 @@
 use mentat_types::CurveType;
 
-use crate::types::{KeyPair, UncheckedKeyPair};
+use crate::types::KeyPair;
 
 #[test]
 fn test_json_encoding() {}
@@ -14,7 +14,7 @@ fn test_generate_key_pair_edwards25519() {}
 #[test]
 fn test_generate_key_pair_pallas() {}
 
-fn mock_keypair(private_key: Vec<u8>, curve: CurveType) -> KeyPair {
+fn _mock_keypair(private_key: Vec<u8>, curve: CurveType) -> KeyPair {
     let mut key_pair = KeyPair::generate(curve).unwrap();
     key_pair.private_key = private_key;
     key_pair
