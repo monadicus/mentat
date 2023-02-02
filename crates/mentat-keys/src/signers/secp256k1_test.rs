@@ -1,7 +1,7 @@
 use mentat_test_utils::TestCase;
-use mentat_types::{CurveType, SignatureType, SigningPayload};
+use mentat_types::{AccountIdentifier, CurveType, SignatureType, SigningPayload};
 
-use super::{mock_payload, mock_signer};
+use super::{mock_payload, mock_signature, mock_signer};
 use crate::{errors::KeysError, SignerInterface};
 
 const HASH_LENGTH: usize = 32;
@@ -62,7 +62,7 @@ fn test_sign_secp256k1() {
             payload: TestSecp256k1Payload {
                 payload: mock_payload(hash("hello123"), SignatureType::Ed25519),
                 sig_type: SignatureType::Ed25519,
-                sig_len: 65,
+                sig_len: 64,
             },
             criteria: Some(KeysError::ErrSignUnsupportedSignatureType),
         },
@@ -71,14 +71,134 @@ fn test_sign_secp256k1() {
             payload: TestSecp256k1Payload {
                 payload: mock_payload(hash("hello1234"), SignatureType::Schnorr1),
                 sig_type: SignatureType::Schnorr1,
-                sig_len: 65,
+                sig_len: 64,
             },
             criteria: None,
         },
     ];
 
-    // TODO if not an error also check
-    // assert.Equal(t, len(signature.Bytes), test.sigLen)
-    // assert.Equal(t, signerSecp256k1.PublicKey(), signature.PublicKey)
-    TestCase::run_err_match(tests, |p| signer.sign(p.payload, p.sig_type))
+    TestCase::run_err_match(tests, |p| {
+        let sig = signer.sign(p.payload, p.sig_type)?;
+        assert_eq!(sig.bytes.len(), p.sig_len);
+        assert_eq!(signer.public_key(), sig.public_key);
+
+        Ok::<_, KeysError>(sig)
+    })
+}
+
+#[test]
+fn test_verify_secp256k1() {
+    let signer = mock_signer(CurveType::Secp256k1);
+
+    let signature_esdca = signer
+        .sign(
+            SigningPayload {
+                account_identifier: Some(AccountIdentifier {
+                    address: "hello".to_string(),
+                    ..Default::default()
+                }),
+                bytes: hash("hello"),
+                signature_type: SignatureType::Ecdsa,
+                ..Default::default()
+            },
+            SignatureType::Ecdsa,
+        )
+        .unwrap();
+    let signature_esdca_recovery = signer
+        .sign(
+            SigningPayload {
+                account_identifier: Some(AccountIdentifier {
+                    address: "hello".to_string(),
+                    ..Default::default()
+                }),
+                bytes: hash("hello"),
+                signature_type: SignatureType::EcdsaRecovery,
+                ..Default::default()
+            },
+            SignatureType::EcdsaRecovery,
+        )
+        .unwrap();
+    let signature_schnorr1 = signer
+        .sign(
+            SigningPayload {
+                account_identifier: Some(AccountIdentifier {
+                    address: "hello".to_string(),
+                    ..Default::default()
+                }),
+                bytes: hash("hello"),
+                signature_type: SignatureType::Schnorr1,
+                ..Default::default()
+            },
+            SignatureType::Schnorr1,
+        )
+        .unwrap();
+
+    let mut simple_bytes = vec![0; 33];
+    let hello = "hello".as_bytes();
+    simple_bytes[..hello.len()].copy_from_slice(hello);
+
+    let tests = vec![
+        TestCase {
+            name: "incorrect payload signature type",
+            payload: mock_signature(
+                SignatureType::Ed25519,
+                signer.public_key(),
+                hash("hello"),
+                simple_bytes.clone(),
+            ),
+            criteria: Some(KeysError::ErrVerifyUnsupportedSignatureType),
+        },
+        TestCase {
+            name: "verify failed 1",
+            payload: mock_signature(
+                SignatureType::Ecdsa,
+                signer.public_key(),
+                hash("hello"),
+                simple_bytes.clone(),
+            ),
+            criteria: Some(KeysError::ErrVerifyFailed),
+        },
+        TestCase {
+            name: "verify failed 2",
+            payload: mock_signature(
+                SignatureType::Schnorr1,
+                signer.public_key(),
+                hash("hello"),
+                simple_bytes.clone(),
+            ),
+            criteria: Some(KeysError::ErrVerifyFailed),
+        },
+        TestCase {
+            name: "good ecdsa signature",
+            payload: mock_signature(
+                SignatureType::Ecdsa,
+                signer.public_key(),
+                hash("hello"),
+                signature_esdca.bytes,
+            ),
+            criteria: None,
+        },
+        TestCase {
+            name: "good ecdsa recovery signature",
+            payload: mock_signature(
+                SignatureType::EcdsaRecovery,
+                signer.public_key(),
+                hash("hello"),
+                signature_esdca_recovery.bytes,
+            ),
+            criteria: None,
+        },
+        TestCase {
+            name: "good schnorr1 signature",
+            payload: mock_signature(
+                SignatureType::Schnorr1,
+                signer.public_key(),
+                hash("hello"),
+                signature_schnorr1.bytes,
+            ),
+            criteria: None,
+        },
+    ];
+
+    TestCase::run_err_match(tests, |p| signer.verify(p.into()))
 }

@@ -8,7 +8,7 @@ use mentat_types::{
     SigningPayload,
 };
 
-use super::{mock_payload, mock_signer};
+use super::{mock_payload, mock_signature, mock_signer};
 use crate::{errors::KeysError, SignerInterface};
 
 #[test]
@@ -38,34 +38,13 @@ fn test_sign_edwards25519() {
         },
     ];
 
-    // TODO if not an error also check
-    // assert.Len(t, signature.Bytes, 64)
-    // assert.Equal(t, signerEdwards25519.PublicKey(), signature.PublicKey)
-    TestCase::run_err_match(tests, |p| signer.sign(p, SignatureType::Ed25519))
-}
+    TestCase::run_err_match(tests, |p| {
+        let sig = signer.sign(p, SignatureType::Ed25519)?;
+        assert_eq!(sig.bytes.len(), 64);
+        assert_eq!(signer.public_key(), sig.public_key);
 
-fn mock_signature(
-    signature_type: SignatureType,
-    public_key: PublicKey,
-    msg: Vec<u8>,
-    sig: Vec<u8>,
-) -> Signature {
-    let signing_payload = SigningPayload {
-        account_identifier: Some(AccountIdentifier {
-            address: "test".into(),
-            ..Default::default()
-        }),
-        bytes: msg,
-        signature_type,
-        ..Default::default()
-    };
-
-    Signature {
-        signing_payload,
-        public_key,
-        signature_type,
-        bytes: sig,
-    }
+        Ok::<_, KeysError>(sig)
+    })
 }
 
 #[test]

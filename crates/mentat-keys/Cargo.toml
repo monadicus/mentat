@@ -8,7 +8,7 @@ rust-version = "1.62.1"
 mentat-asserter = { workspace = true }
 mentat-macros = { workspace = true }
 mentat-types = { workspace = true }
-secp256k1 = { version = "0.26", features = ["rand-std"] }
+secp256k1 = { version = "0.26", features = ["rand-std", "recovery"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
