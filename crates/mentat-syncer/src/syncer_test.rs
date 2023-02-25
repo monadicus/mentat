@@ -77,10 +77,10 @@ impl Handler for ArcMockHandler {
         self.0.lock().block_added(syncer, context, block)
     }
 
-    fn block_removed<'a>(
+    fn block_removed(
         &self,
         context: &Context<SyncerError>,
-        block: Option<&'a BlockIdentifier>,
+        block: Option<&BlockIdentifier>,
     ) -> SyncerResult<()> {
         self.0.lock().block_removed(context, block)
     }

@@ -91,7 +91,7 @@ impl SignerInterface for SignerSecp256k1 {
             }
             SignatureType::EcdsaRecovery => {
                 let pub_key = private_key.public_key(&secp);
-                let sig = ecdsa::Signature::from_compact(&signature.bytes[..=64])
+                let sig = ecdsa::Signature::from_compact(&signature.bytes[..64])
                     .map_err(|_| KeysError::ErrVerifyFailed)?;
                 secp.verify_ecdsa(&msg, &sig, &pub_key).is_ok()
             }

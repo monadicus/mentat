@@ -69,7 +69,7 @@ fn test_verify_secp256k1() {
         .sign(
             SigningPayload {
                 account_identifier: Some(AccountIdentifier {
-                    address: "hello".to_string(),
+                    address: "test".to_string(),
                     ..Default::default()
                 }),
                 bytes: hash("hello"),
@@ -83,7 +83,7 @@ fn test_verify_secp256k1() {
         .sign(
             SigningPayload {
                 account_identifier: Some(AccountIdentifier {
-                    address: "hello".to_string(),
+                    address: "test".to_string(),
                     ..Default::default()
                 }),
                 bytes: hash("hello"),
@@ -97,7 +97,7 @@ fn test_verify_secp256k1() {
         .sign(
             SigningPayload {
                 account_identifier: Some(AccountIdentifier {
-                    address: "hello".to_string(),
+                    address: "test".to_string(),
                     ..Default::default()
                 }),
                 bytes: hash("hello"),
