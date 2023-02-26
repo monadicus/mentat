@@ -107,4 +107,94 @@ fn test_key_pair_validity() {
 }
 
 #[test]
-fn test_import_private_key() {}
+fn test_import_private_key() {
+    struct Payload {
+        private_key: String,
+        curve: CurveType,
+    }
+
+    let tests = vec![
+        TestCase {
+            name: "simple ed25519",
+            payload: Payload {
+                private_key: "aeb121b4c545f0f850e1480492508c65a250e9965b0d90176fab4d7506398ebb"
+                    .to_string(),
+                curve: CurveType::Edwards25519,
+            },
+            criteria: None,
+        },
+        TestCase {
+            name: "simple Secp256k1",
+            payload: Payload {
+                private_key: "0b188af56b25d007fbc4bbf2176cd2a54d876ce4774bb5df38b7c83349405b7a"
+                    .to_string(),
+                curve: CurveType::Secp256k1,
+            },
+            criteria: None,
+        },
+        // TestCase {
+        //     name: "simple Pallas",
+        //     payload: Payload {
+        //         private_key: "92D872DA7B3C90CF69D347908C3D3D692EA033A1D6E4A1695FCDCF6BBED87F37"
+        //             .to_string(),
+        //         curve: CurveType::Pallas,
+        //     },
+        //     criteria: None,
+        // },
+        TestCase {
+            name: "short ed25519",
+            payload: Payload {
+                private_key: "asd".to_string(),
+                curve: CurveType::Edwards25519,
+            },
+            criteria: Some(KeysError::ErrPrivKeyUndecodable),
+        },
+        TestCase {
+            name: "short Secp256k1",
+            payload: Payload {
+                private_key: "asd".to_string(),
+                curve: CurveType::Secp256k1,
+            },
+            criteria: Some(KeysError::ErrPrivKeyUndecodable),
+        },
+        // TestCase {
+        //     name: "short pallas",
+        //     payload: Payload {
+        //         private_key: "asd".to_string(),
+        //         curve: CurveType::Secp256k1,
+        //     },
+        //     criteria: Some(KeysError::ErrPrivKeyUndecodable),
+        // },
+        TestCase {
+            name: "long ed25519",
+            payload: Payload {
+                private_key: "aeb121b4c545f0f850e1480492508c65a250e9965b0d90176fab4d7506398ebbaeb121b4c545f0f850e1480492508c65a250e9965b0d90176fab4d7506398ebb"
+                    .to_string(),
+                curve: CurveType::Edwards25519,
+            },
+            criteria: Some(KeysError::ErrPrivKeyLengthInvalid),
+        },
+        TestCase {
+            name: "long Secp256k1",
+            payload: Payload {
+                private_key: "0b188af56b25d007fbc4bbf2176cd2a54d876ce4774bb5df38b7c83349405b7a0b188af56b25d007fbc4bbf2176cd2a54d876ce4774bb5df38b7c83349405b7a"
+                    .to_string(),
+                curve: CurveType::Secp256k1,
+            },
+            criteria: Some(KeysError::ErrPrivKeyLengthInvalid),
+        },
+        // TestCase {
+        //     name: "long Pallas",
+        //     payload: Payload {
+        //         private_key: "92D872DA7B3C90CF69D347908C3D3D692EA033A1D6E4A1695FCDCF6BBED87F3792D872DA7B3C90CF69D347908C3D3D692EA033A1D6E4A1695FCDCF6BBED87F37"
+        //             .to_string(),
+        //         curve: CurveType::Pallas,
+        //     },
+        //     criteria: Some(KeysError::ErrPrivKeyLengthInvalid),
+        // },
+    ];
+
+    TestCase::run_err_match(tests, |p| {
+        KeyPair::import_private_key(p.private_key, p.curve)
+    });
+}
