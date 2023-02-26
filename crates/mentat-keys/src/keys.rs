@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// `PRIV_KEY_BYTES_LEN` are 32-bytes for all supported curve types.
-const PRIV_KEY_BYTES_LEN: usize = 32;
+pub const PRIV_KEY_BYTES_LEN: usize = 32;
 
 fn private_key_valid(private_key: &[u8]) -> KeysResult<()> {
     // We will need to add a match statement here if we add support

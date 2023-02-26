@@ -7,7 +7,7 @@ use super::*;
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct UncheckedCurveType(String);
+pub struct UncheckedCurveType(pub String);
 
 impl UncheckedCurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
