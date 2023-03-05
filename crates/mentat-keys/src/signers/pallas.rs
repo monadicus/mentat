@@ -1,4 +1,3 @@
-use ark_ff::fields::Field;
 use mentat_types::{
     PublicKey,
     Signature,
@@ -7,8 +6,6 @@ use mentat_types::{
     UncheckedSignature,
     UncheckedSignatureType,
 };
-use mina_hasher::{Hashable, ROInput};
-use mina_signer::{CompressedPubKey, Keypair, NetworkId, PubKey, ScalarField, SecKey, Signer};
 use serde::Deserialize;
 
 use super::*;
@@ -52,23 +49,7 @@ impl SignerInterface for SignerPallas {
             ))?;
         }
 
-        // let sf: ScalarField =
-        // ScalarField::from_random_bytes(&self.key_pair.private_key).expect("TODO");
-        // let private_key = SecKey::new(sf);
-        let private_key = mentat_types::encode_to_hex_string(&self.key_pair.private_key);
-        let key_pair = Keypair::from_hex(&private_key).expect("UH");
-        let signature_type = payload.signature_type;
-        let signing_payload = payload.clone();
-        let tx: Transaction = payload.try_into()?;
-
-        let mut signer = mina_signer::create_legacy::<Transaction>(NetworkId::MAINNET);
-        signer.sign(&key_pair, &tx);
-        Ok(Signature {
-            signature_type,
-            signing_payload,
-            public_key: valid_key_pair.public_key,
-            bytes: vec![],
-        })
+        unimplemented!("no good library exists for this in rust")
     }
 
     fn verify(&self, signature: UncheckedSignature) -> KeysResult<()> {
@@ -86,7 +67,7 @@ impl SignerInterface for SignerPallas {
             .map_err(|err| format!("signature is invalid: {err}"))?;
         let _signature: Signature = signature.into();
 
-        todo!("not possible with this library");
+        unimplemented!("no good library exists for this in rust")
 
         // Ok(())
     }
@@ -101,84 +82,86 @@ pub enum NetworkType {
     NullNet,
 }
 
+type PallasPublicKey = ();
+
 // https://github.com/coinbase/kryptology/blob/master/pkg/signatures/schnorr/mina/txn.go
 #[derive(Debug, Clone)]
 struct Transaction {
     fee: u64,
     fee_token: u64,
-    fee_payer_pk: CompressedPubKey,
+    fee_payer_pk: PallasPublicKey,
     nonce: u32,
     valid_until: u32,
     memo: String,
     tag: [bool; 3],
-    source_pk: CompressedPubKey,
-    receiver_pk: CompressedPubKey,
+    source_pk: PallasPublicKey,
+    receiver_pk: PallasPublicKey,
     token_id: u64,
     amount: u64,
     locked: bool,
     network_id: NetworkType,
 }
 
-impl Hashable for Transaction {
-    type D = NetworkId;
+// impl Hashable for Transaction {
+//     type D = NetworkId;
 
-    fn to_roinput(&self) -> mina_hasher::ROInput {
-        let mut roi = ROInput::new();
+//     fn to_roinput(&self) -> mina_hasher::ROInput {
+//         let mut roi = ROInput::new();
 
-        roi = roi.append_field(self.fee_payer_pk.x);
-        roi = roi.append_field(self.source_pk.x);
-        roi = roi.append_field(self.receiver_pk.x);
+//         roi = roi.append_field(self.fee_payer_pk.x);
+//         roi = roi.append_field(self.source_pk.x);
+//         roi = roi.append_field(self.receiver_pk.x);
 
-        roi = roi.append_u64(self.fee);
-        roi = roi.append_u64(self.fee_token);
-        roi = roi.append_u32(self.nonce);
-        roi = roi.append_u32(self.valid_until);
-        roi = roi.append_bytes(self.memo.as_bytes());
+//         roi = roi.append_u64(self.fee);
+//         roi = roi.append_u64(self.fee_token);
+//         roi = roi.append_u32(self.nonce);
+//         roi = roi.append_u32(self.valid_until);
+//         roi = roi.append_bytes(self.memo.as_bytes());
 
-        for b in self.tag {
-            roi = roi.append_bool(b);
-        }
+//         for b in self.tag {
+//             roi = roi.append_bool(b);
+//         }
 
-        roi = roi.append_u64(self.token_id);
-        roi = roi.append_u64(self.amount);
-        roi = roi.append_bool(self.locked);
+//         roi = roi.append_u64(self.token_id);
+//         roi = roi.append_u64(self.amount);
+//         roi = roi.append_bool(self.locked);
 
-        roi
-    }
+//         roi
+//     }
 
-    fn domain_string(domain_param: Self::D) -> Option<String> {
-        match domain_param {
-            NetworkId::MAINNET => "MinaSignatureMainnet",
-            NetworkId::TESTNET => "CodaSignature",
-        }
-        .to_string()
-        .into()
-    }
-}
+//     fn domain_string(domain_param: Self::D) -> Option<String> {
+//         match domain_param {
+//             NetworkId::MAINNET => "MinaSignatureMainnet",
+//             NetworkId::TESTNET => "CodaSignature",
+//         }
+//         .to_string()
+//         .into()
+//     }
+// }
 
-#[derive(Debug, Deserialize)]
-struct PayloadFields {
-    to: String,
-    from: String,
-    fee: String,
+#[derive(Debug, Deserialize, Default)]
+pub struct PayloadFields {
+    pub to: String,
+    pub from: String,
+    pub fee: String,
     #[serde(skip_serializing_if = "Option::is_empty")]
-    amount: Option<String>,
-    nonce: String,
+    pub amount: Option<String>,
+    pub nonce: String,
     #[serde(skip_serializing_if = "Option::is_empty")]
-    valid_until: Option<String>,
+    pub valid_until: Option<String>,
     #[serde(skip_serializing_if = "Option::is_empty")]
-    memo: Option<String>,
+    pub memo: Option<String>,
 }
 
 impl TryFrom<PayloadFields> for Transaction {
     type Error = KeysError;
 
     fn try_from(value: PayloadFields) -> Result<Self, Self::Error> {
-        let from_public_key = PubKey::from_address(&value.from)
-            .map_err(|err| format!("failed to parse \"from\" address: {err}"))?;
-
-        let to_public_key = PubKey::from_address(&value.to)
-            .map_err(|err| format!("failed to parse \"to\" address: {err}"))?;
+        // let from_public_key = PubKey::from_address(&value.from)
+        // .map_err(|err| format!("failed to parse \"from\" address: {err}"))?;
+        //
+        // let to_public_key = PubKey::from_address(&value.to)
+        // .map_err(|err| format!("failed to parse \"to\" address: {err}"))?;
 
         let fee = value
             .fee
@@ -214,13 +197,13 @@ impl TryFrom<PayloadFields> for Transaction {
         Ok(Transaction {
             fee,
             fee_token: 1,
-            fee_payer_pk: from_public_key.into_compressed(),
+            fee_payer_pk: (),
             nonce,
             valid_until,
             memo,
             tag: [false, false, false],
-            source_pk: from_public_key.into_compressed(),
-            receiver_pk: to_public_key.into_compressed(),
+            source_pk: (),
+            receiver_pk: (),
             token_id: 1,
             amount,
             locked: false,
@@ -229,9 +212,9 @@ impl TryFrom<PayloadFields> for Transaction {
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct PallasSigningPayload {
-    payment: Option<PayloadFields>,
+#[derive(Debug, Deserialize, Default)]
+pub struct PallasSigningPayload {
+    pub payment: Option<PayloadFields>,
 }
 
 impl TryFrom<SigningPayload> for Transaction {

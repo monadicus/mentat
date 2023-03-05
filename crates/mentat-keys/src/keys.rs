@@ -1,6 +1,4 @@
-use ark_ff::{Field, ToBytes};
-use mentat_types::{decode_from_hex_string, encode_to_hex_string, CurveType, UncheckedPublicKey};
-use pasta_curves::group::ff::FromUniformBytes;
+use mentat_types::{decode_from_hex_string, CurveType, UncheckedPublicKey};
 
 use crate::{
     errors::{KeysError, KeysResult},
@@ -104,27 +102,7 @@ impl KeyPair {
                     private_key: private_key.to_bytes().as_slice().to_vec(),
                 }
             }
-            CurveType::Pallas => {
-                use pasta_curves::{
-                    group::{Group, GroupEncoding},
-                    pallas::{Affine, Base, Point, Scalar},
-                };
-                let mut private_key_bytes = [0u8; 64];
-                private_key_bytes[..32].copy_from_slice(&private_key);
-                let priv_key = Scalar::from_uniform_bytes(&private_key_bytes);
-                dbg!(&priv_key);
-                let generator = Point::generator();
-                let public_key_point = generator * priv_key;
-                let public_key_bytes = public_key_point.to_bytes();
-                dbg!(public_key_bytes);
-                UncheckedKeyPair {
-                    public_key: Some(UncheckedPublicKey {
-                        bytes: public_key_bytes.to_vec(),
-                        curve_type: curve.into(),
-                    }),
-                    private_key,
-                }
-            }
+            CurveType::Pallas => unimplemented!("no good library exists for this in rust"),
             _ => {
                 return Err(KeysError::from(format!(
                     "curve type {curve} is invalid: {}",
@@ -185,7 +163,7 @@ impl KeyPair {
                     private_key: private_key.to_bytes().as_slice().to_vec(),
                 }
             }
-            CurveType::Pallas => todo!(),
+            CurveType::Pallas => unimplemented!("no good library exists for this in rust"),
             _ => {
                 return Err(KeysError::from(format!(
                     "curve type {curve} is invalid: {}",

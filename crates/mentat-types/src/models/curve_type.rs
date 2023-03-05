@@ -25,7 +25,7 @@ impl UncheckedCurveType {
     pub fn valid(&self) -> bool {
         matches!(
             self.0.as_str(),
-            Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE
+            Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE | Self::PALLAS
         )
     }
 
