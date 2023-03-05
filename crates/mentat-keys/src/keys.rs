@@ -48,7 +48,7 @@ impl KeyPair {
     /// `import_private_key` returns a `KeyPair` from a hex-encoded private key
     /// string.
     pub fn import_private_key(private_key_hex: String, curve: CurveType) -> KeysResult<Self> {
-        let private_key = decode_from_hex_string(private_key_hex.clone()).map_err(|_| {
+        let private_key = decode_from_hex_string(private_key_hex).map_err(|_| {
             format!(
                 "failed to decode private key hex: {}",
                 KeysError::ErrPrivKeyUndecodable

@@ -23,7 +23,7 @@ impl SignerInterface for SignerPallas {
 
     fn sign(&self, payload: SigningPayload, sig_type: SignatureType) -> KeysResult<Signature> {
         // TODO some of this seems repetitive so far?
-        let valid_key_pair = self
+        let _valid_key_pair = self
             .key_pair
             .clone()
             .is_valid()
@@ -78,8 +78,8 @@ impl SignerInterface for SignerPallas {
 #[repr(u8)]
 pub enum NetworkType {
     TestNet,
-    MainNet,
-    NullNet,
+    // MainNet,
+    // NullNet,
 }
 
 type PallasPublicKey = ();
@@ -87,19 +87,19 @@ type PallasPublicKey = ();
 // https://github.com/coinbase/kryptology/blob/master/pkg/signatures/schnorr/mina/txn.go
 #[derive(Debug, Clone)]
 struct Transaction {
-    fee: u64,
-    fee_token: u64,
-    fee_payer_pk: PallasPublicKey,
-    nonce: u32,
-    valid_until: u32,
-    memo: String,
-    tag: [bool; 3],
-    source_pk: PallasPublicKey,
-    receiver_pk: PallasPublicKey,
-    token_id: u64,
-    amount: u64,
-    locked: bool,
-    network_id: NetworkType,
+    _fee: u64,
+    _fee_token: u64,
+    _fee_payer_pk: PallasPublicKey,
+    _nonce: u32,
+    _valid_until: u32,
+    _memo: String,
+    _tag: [bool; 3],
+    _source_pk: PallasPublicKey,
+    _receiver_pk: PallasPublicKey,
+    _token_id: u64,
+    _amount: u64,
+    _locked: bool,
+    _network_id: NetworkType,
 }
 
 // impl Hashable for Transaction {
@@ -163,24 +163,24 @@ impl TryFrom<PayloadFields> for Transaction {
         // let to_public_key = PubKey::from_address(&value.to)
         // .map_err(|err| format!("failed to parse \"to\" address: {err}"))?;
 
-        let fee = value
+        let _fee = value
             .fee
             .parse()
             .map_err(|err| format!("failed to parse uint for fee: {err}"))?;
 
-        let amount = if let Some(amt) = value.amount {
+        let _amount = if let Some(amt) = value.amount {
             amt.parse()
                 .map_err(|err| format!("failed to parse uint for fee: {err}"))?
         } else {
             0
         };
 
-        let nonce = value
+        let _nonce = value
             .nonce
             .parse()
             .map_err(|err| format!("failed to parse uint for nonce: {err}"))?;
 
-        let valid_until = if let Some(valid_until) = value.valid_until {
+        let _valid_until = if let Some(valid_until) = value.valid_until {
             valid_until
                 .parse()
                 .map_err(|err| format!("failed to parse uint for valid until memo: {err}"))?
@@ -188,26 +188,26 @@ impl TryFrom<PayloadFields> for Transaction {
             0
         };
 
-        let memo = if let Some(memo) = value.memo {
+        let _memo = if let Some(memo) = value.memo {
             memo
         } else {
             String::new()
         };
 
         Ok(Transaction {
-            fee,
-            fee_token: 1,
-            fee_payer_pk: (),
-            nonce,
-            valid_until,
-            memo,
-            tag: [false, false, false],
-            source_pk: (),
-            receiver_pk: (),
-            token_id: 1,
-            amount,
-            locked: false,
-            network_id: NetworkType::TestNet,
+            _fee,
+            _fee_token: 1,
+            _fee_payer_pk: (),
+            _nonce,
+            _valid_until,
+            _memo,
+            _tag: [false, false, false],
+            _source_pk: (),
+            _receiver_pk: (),
+            _token_id: 1,
+            _amount,
+            _locked: false,
+            _network_id: NetworkType::TestNet,
         })
     }
 }
