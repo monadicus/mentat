@@ -1,3 +1,4 @@
+use ark_ff::fields::Field;
 use mentat_types::{
     PublicKey,
     Signature,
@@ -6,7 +7,8 @@ use mentat_types::{
     UncheckedSignature,
     UncheckedSignatureType,
 };
-use mina_signer::PubKey;
+use mina_hasher::{Hashable, ROInput};
+use mina_signer::{CompressedPubKey, Keypair, NetworkId, PubKey, ScalarField, SecKey, Signer};
 use serde::Deserialize;
 
 use super::*;
@@ -50,13 +52,23 @@ impl SignerInterface for SignerPallas {
             ))?;
         }
 
-        todo!("Not possible with this library")
-        // Ok(Signature {
-        //     signature_type: payload.signature_type,
-        //     signing_payload: payload,
-        //     public_key: valid_key_pair.public_key,
-        //     bytes: todo!("Not possible with this library"),
-        // })
+        // let sf: ScalarField =
+        // ScalarField::from_random_bytes(&self.key_pair.private_key).expect("TODO");
+        // let private_key = SecKey::new(sf);
+        let private_key = mentat_types::encode_to_hex_string(&self.key_pair.private_key);
+        let key_pair = Keypair::from_hex(&private_key).expect("UH");
+        let signature_type = payload.signature_type;
+        let signing_payload = payload.clone();
+        let tx: Transaction = payload.try_into()?;
+
+        let mut signer = mina_signer::create_legacy::<Transaction>(NetworkId::MAINNET);
+        signer.sign(&key_pair, &tx);
+        Ok(Signature {
+            signature_type,
+            signing_payload,
+            public_key: valid_key_pair.public_key,
+            bytes: vec![],
+        })
     }
 
     fn verify(&self, signature: UncheckedSignature) -> KeysResult<()> {
@@ -81,7 +93,7 @@ impl SignerInterface for SignerPallas {
 }
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(u8)]
 pub enum NetworkType {
     TestNet,
@@ -90,21 +102,58 @@ pub enum NetworkType {
 }
 
 // https://github.com/coinbase/kryptology/blob/master/pkg/signatures/schnorr/mina/txn.go
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Transaction {
     fee: u64,
     fee_token: u64,
-    fee_payer_pk: PubKey,
+    fee_payer_pk: CompressedPubKey,
     nonce: u32,
     valid_until: u32,
     memo: String,
     tag: [bool; 3],
-    source_pk: PubKey,
-    receiver_pk: PubKey,
+    source_pk: CompressedPubKey,
+    receiver_pk: CompressedPubKey,
     token_id: u64,
     amount: u64,
     locked: bool,
     network_id: NetworkType,
+}
+
+impl Hashable for Transaction {
+    type D = NetworkId;
+
+    fn to_roinput(&self) -> mina_hasher::ROInput {
+        let mut roi = ROInput::new();
+
+        roi = roi.append_field(self.fee_payer_pk.x);
+        roi = roi.append_field(self.source_pk.x);
+        roi = roi.append_field(self.receiver_pk.x);
+
+        roi = roi.append_u64(self.fee);
+        roi = roi.append_u64(self.fee_token);
+        roi = roi.append_u32(self.nonce);
+        roi = roi.append_u32(self.valid_until);
+        roi = roi.append_bytes(self.memo.as_bytes());
+
+        for b in self.tag {
+            roi = roi.append_bool(b);
+        }
+
+        roi = roi.append_u64(self.token_id);
+        roi = roi.append_u64(self.amount);
+        roi = roi.append_bool(self.locked);
+
+        roi
+    }
+
+    fn domain_string(domain_param: Self::D) -> Option<String> {
+        match domain_param {
+            NetworkId::MAINNET => "MinaSignatureMainnet",
+            NetworkId::TESTNET => "CodaSignature",
+        }
+        .to_string()
+        .into()
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -165,13 +214,13 @@ impl TryFrom<PayloadFields> for Transaction {
         Ok(Transaction {
             fee,
             fee_token: 1,
-            fee_payer_pk: from_public_key.clone(),
+            fee_payer_pk: from_public_key.into_compressed(),
             nonce,
             valid_until,
             memo,
             tag: [false, false, false],
-            source_pk: from_public_key,
-            receiver_pk: to_public_key,
+            source_pk: from_public_key.into_compressed(),
+            receiver_pk: to_public_key.into_compressed(),
             token_id: 1,
             amount,
             locked: false,

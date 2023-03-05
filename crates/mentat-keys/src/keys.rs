@@ -1,4 +1,6 @@
-use mentat_types::{decode_from_hex_string, CurveType, UncheckedPublicKey};
+use ark_ff::{Field, ToBytes};
+use mentat_types::{decode_from_hex_string, encode_to_hex_string, CurveType, UncheckedPublicKey};
+use pasta_curves::group::ff::FromUniformBytes;
 
 use crate::{
     errors::{KeysError, KeysResult},
@@ -48,7 +50,7 @@ impl KeyPair {
     /// `import_private_key` returns a `KeyPair` from a hex-encoded private key
     /// string.
     pub fn import_private_key(private_key_hex: String, curve: CurveType) -> KeysResult<Self> {
-        let private_key = decode_from_hex_string(private_key_hex).map_err(|_| {
+        let private_key = decode_from_hex_string(private_key_hex.clone()).map_err(|_| {
             format!(
                 "failed to decode private key hex: {}",
                 KeysError::ErrPrivKeyUndecodable
@@ -102,7 +104,27 @@ impl KeyPair {
                     private_key: private_key.to_bytes().as_slice().to_vec(),
                 }
             }
-            CurveType::Pallas => todo!(),
+            CurveType::Pallas => {
+                use pasta_curves::{
+                    group::{Group, GroupEncoding},
+                    pallas::{Affine, Base, Point, Scalar},
+                };
+                let mut private_key_bytes = [0u8; 64];
+                private_key_bytes[..32].copy_from_slice(&private_key);
+                let priv_key = Scalar::from_uniform_bytes(&private_key_bytes);
+                dbg!(&priv_key);
+                let generator = Point::generator();
+                let public_key_point = generator * priv_key;
+                let public_key_bytes = public_key_point.to_bytes();
+                dbg!(public_key_bytes);
+                UncheckedKeyPair {
+                    public_key: Some(UncheckedPublicKey {
+                        bytes: public_key_bytes.to_vec(),
+                        curve_type: curve.into(),
+                    }),
+                    private_key,
+                }
+            }
             _ => {
                 return Err(KeysError::from(format!(
                     "curve type {curve} is invalid: {}",

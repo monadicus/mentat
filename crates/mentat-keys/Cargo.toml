@@ -17,6 +17,10 @@ ed25519-compact = { version = "2.0" }
 mina-hasher = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
 mina-signer = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
 rand = { version = "0.8" }
+ark-ff = "0.3"
+pasta_curves = "0.5.1"
+hex = "0.4.3"
+pallas = "0.18.0"
 # mina-hasher = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
 # mina-signer = { git = "https://github.com/o1-labs/proof-systems", default-features = false }
 # p256 = { version = "0.11.1", default-features = false, features = ["ecdsa"] }

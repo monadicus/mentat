@@ -2,7 +2,7 @@ mod edwards25519;
 pub use edwards25519::SignerEdwards25519;
 
 mod pallas;
-pub use pallas::SignerPallas;
+pub use self::pallas::SignerPallas;
 
 mod secp256k1;
 pub use self::secp256k1::*;
