@@ -32,6 +32,7 @@ futures = "0.3"
 include_dir = "0.7"
 indexmap = { version = "1.9", default-features = false, features = ["serde"] }
 mentat-asserter = { path = "./crates/mentat-asserter" }
+mentat-keys = { path = "./crates/mentat-keys" }
 mentat-macros = { path = "./mentat-macros" }
 mentat-tokenizer = { path = "./crates/mentat-tokenizer" }
 mentat-types = { path = "./crates/mentat-types" }

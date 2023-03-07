@@ -967,6 +967,7 @@ name = "mentat-constructor"
 version = "0.1.0"
 dependencies = [
  "indexmap",
+ "mentat-keys",
  "mentat-test-utils",
  "mentat-tokenizer",
  "mentat-types",

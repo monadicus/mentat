@@ -1,102 +1,6 @@
-use indexmap::IndexMap;
-use mentat_tokenizer::Span;
-use mentat_types::{
-    AccountIdentifier,
-    Amount,
-    CoinIdentifier,
-    Currency,
-    CurveType,
-    NetworkIdentifier,
-    Operation,
-    SubAccountIdentifier,
-};
-use serde_json::Value;
+use mentat_keys::types::UncheckedKeyPair;
 
-/// `Broadcast` contains information needed to create and broadcast a
-/// transaction. `Broadcast` is returned from `Job` processing only IF a
-/// broadcast is required.
-pub struct Broadcast {
-    network: NetworkIdentifier,
-    intent: Vec<Operation>,
-    metadata: IndexMap<String, Value>,
-    confirmation_depth: i64,
-    dry_run: bool,
-}
-
-/// `Job` is an instantiation of a `Workflow`.
-pub struct Job {
-    /// Identifier is a UUID that is generated when a `Job` is stored in
-    /// `JobStorage` for the first time. When executing the first scenario in a
-    /// `Job`, this will be empty.
-    identifier: String,
-    state: String,
-    index: i32,
-    status: Status,
-    /// workflow is the name of the `Workflow` being executed.
-    workflow: String,
-    /// Scenarios are copied into each context in case a configuration file
-    /// changes that could corrupt in-process flows.
-    scenarios: Vec<Scenario>,
-}
-
-/// `Status` is status of a `Job`.
-pub enum Status {
-    /// Broadcasting means that the intent of the last scenario is broadcasting.
-    Broadcasting,
-    /// Completed means that all scenarios were completed successfully.
-    Completed,
-    /// Failed means that Broadcasting failed.
-    Failed,
-    /// Ready means that a `Job` is ready to process.
-    Ready,
-}
-
-/// `Workflow` is a collection of scenarios to run (i.e. transactions to
-/// broadcast) with some shared state.
-pub struct Workflow {
-    name: String,
-    /// Concurrency is the number of workflows of a particular kind to execute
-    /// at once. For example, you may not want to process concurrent workflows
-    /// of some staking operations that take days to play out.
-    concurrency: i8,
-    scenarios: Vec<Scenario>,
-    span: Span,
-}
-
-/// `ReservedWorkflow` is a `Workflow` reserved for special circumstances.
-/// All ReservedWorkflows must exist when running the constructor.
-pub enum ReservedWorkflow {
-    /// CreateAccount is where another account (already with funds) creates a
-    /// new account. It is possible to configure how many accounts should be
-    /// created. CreateAccount must be executed with a concurrency of 1.
-    CreateAccount,
-    /// RequestFunds is where the user funds an account. This flow is invoked
-    /// when there are no pending broadcasts and it is not possible to make
-    /// progress on any Flows or start new ones. RequestFunds must be executed
-    /// with a concurrency of 1.
-    RequestFunds,
-    /// ReturnFunds is invoked on shutdown so funds can be returned to a single
-    /// address (like a faucet). This is useful for CI testing.
-    ReturnFunds,
-}
-
-/// `Scenario` is a collection of `Action`s with a specific confirmation depth.
-///
-/// There is a special variable you can set at the end of a scenario called
-/// "<scenario_name>.operations" to indicate that a transaction should be
-/// broadcast. It is also possible to specify the network where the transaction
-/// should be broadcast and the metadata to provide in a call to
-/// /construction/preprocess.
-///
-/// Once a scenario is broadcasted and confirmed, the transaction details are
-/// placed in a special variable called "transaction". This can be used in
-/// scenarios following the execution of this one. <workflow
-/// name>(<concurrency>) { ...scenarios }
-pub struct Scenario {
-    name: String,
-    scenarios: Vec<Action>,
-    span: Span,
-}
+use super::*;
 
 /// <scenario name> {
 ///   <output path> = <action type>(<input>);
@@ -110,38 +14,20 @@ pub struct Action {
     span: Span,
 }
 
-/// `ReservedVariable` is a reserved variable field in a `Job`'s state.
-pub enum ReservedVariable {
-    /// ConfirmationDepth is the amount of blocks we wait to confirm a
-    /// transaction. We allow setting this on a per scenario basis because
-    /// certain transactions may only be considered complete after some time
-    /// (ex: staking transaction).
-    // "confirmation_depth"
-    ConfirmationDepth,
-    /// DryRun is a `bool` that indicates whether we should perform the entire
-    /// transaction construction process or just /construction/preprocess
-    /// and /construction/metadata to determine the suggested transaction
-    /// fee. If this variable is not populated, we assume that it is NOT a
-    /// dry run.
-    // "dry_run"
-    DryRun,
-    /// Network is the `NetworkIdentifier` to use for broadcast.
-    // "network"
-    Network,
-    /// Operations are the `Vec<Operation>` to use as intent.
-    // "operations"
-    Operations,
-    /// PreprocessMetadata is the metadata to provide to
-    /// /construction/preprocess.
-    // "preprocess_metadata"
-    PreprocessMetadata,
-    /// SuggestedFee is the `Vec<Amount>` returned from an implementation's
-    /// /construction/metadata endpoint (if implemented).
-    // "suggested_fee"
-    SuggestedFee,
-    /// Transaction is the `Transaction` confirmed on-chain.
-    // "transaction"
-    Transaction,
+pub enum HttpMethod {
+    Get,
+    Post,
+}
+
+pub enum MathOperation {
+    /// Addition is adding lhs + rhs.
+    Addition,
+    /// Subtraction is adding lhs - rhs.
+    Subtraction,
+    /// Multiplication is adding lhs * rhs.
+    Multiplication,
+    /// Division is adding lhs / rhs.
+    Division,
 }
 
 /// `ActionType` is a type of Action that can be processed and it's input.
@@ -250,11 +136,12 @@ pub enum ActionType {
     /// origination). This can also be used to log information during execution.
     // "print_message"
     PrintMessage(String),
-    // SaveAccount saves a generated *keys.KeyPair and `AccountIdentifier` to key storage.
+    /// SaveAccount saves a generated [`UncheckedKeyPair`] and
+    /// [`AccountIdentifier`] to key storage.
     // "save_account"
     SaveAccount {
         account_identifier: AccountIdentifier,
-        key_pair: (), // todo KEYS,
+        key_pair: UncheckedKeyPair,
     },
     /// SetBlob stores an arbitrary blob at some key (any valid JSON is accepted
     /// as a key). If a value at a key already exists, it will be overwritten.
@@ -281,22 +168,6 @@ pub enum ActionType {
     /// used to generate random transaction amounts.
     // "random_number"
     RandomNumber { minimum: String, maximum: String },
-}
-
-pub enum HttpMethod {
-    Get,
-    Post,
-}
-
-pub enum MathOperation {
-    /// Addition is adding lhs + rhs.
-    Addition,
-    /// Subtraction is adding lhs - rhs.
-    Subtraction,
-    /// Multiplication is adding lhs * rhs.
-    Multiplication,
-    /// Division is adding lhs / rhs.
-    Division,
 }
 
 /// `FindBalanceOutput` is returned by `Action::FindBalance`.
