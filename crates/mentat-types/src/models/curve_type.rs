@@ -7,7 +7,7 @@ use super::*;
 /// CurveType is the type of cryptographic curve associated with a PublicKey.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct UncheckedCurveType(String);
+pub struct UncheckedCurveType(pub String);
 
 impl UncheckedCurveType {
     /// <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
@@ -25,7 +25,7 @@ impl UncheckedCurveType {
     pub fn valid(&self) -> bool {
         matches!(
             self.0.as_str(),
-            Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE
+            Self::SECP256K1 | Self::SECP256R1 | Self::EDWARDS25519 | Self::TWEEDLE | Self::PALLAS
         )
     }
 

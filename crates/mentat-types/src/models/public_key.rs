@@ -20,6 +20,5 @@ pub struct UncheckedPublicKey {
     pub bytes: Vec<u8>,
     /// [`CurveType`] is the type of cryptographic curve associated with a
     /// PublicKey.
-    #[unchecked(option_enum)]
     pub curve_type: UncheckedCurveType,
 }
