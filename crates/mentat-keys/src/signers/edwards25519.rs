@@ -48,8 +48,9 @@ impl SignerInterface for SignerEdwards25519 {
             ))?;
         }
 
+        // Safe to unwrap here, private_key size has already been checked.
         let private_key =
-            EdKeyPair::from_seed(Seed::from_slice(&valid_key_pair.private_key).expect("TODO"));
+            EdKeyPair::from_seed(Seed::from_slice(&valid_key_pair.private_key).unwrap());
         let signature = private_key.sk.sign(&payload.bytes, None);
 
         Ok(Signature {

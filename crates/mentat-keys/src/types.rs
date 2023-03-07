@@ -13,5 +13,6 @@ pub struct UncheckedKeyPair {
         deserialize_with = "null_default_bytes_to_hex"
     )]
     // Needs to serialize and deserialize from hex
+    // TODO change private_key to [u8; 32] for the checked version at some point
     pub private_key: Vec<u8>,
 }

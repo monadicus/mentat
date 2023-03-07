@@ -61,7 +61,6 @@ impl SignerInterface for SignerSecp256r1 {
 
         let private_key = SigningKey::from_bytes(&self.key_pair.private_key)
             .map_err(|_| KeysError::ErrPubKeyNotOnCurve)?;
-        // TODO no error for failed to sign?
         let sig: PSignature = private_key.sign(&payload.bytes);
         Ok(Signature {
             signature_type: payload.signature_type,

@@ -13,7 +13,7 @@ use crate::{
 /// `PRIV_KEY_BYTES_LEN` are 32-bytes for all supported curve types.
 pub const PRIV_KEY_BYTES_LEN: usize = 32;
 
-fn private_key_valid(private_key: &[u8]) -> KeysResult<()> {
+fn private_key_valid(private_key: &[u8]) -> KeysResult<[u8; PRIV_KEY_BYTES_LEN]> {
     // We will need to add a match statement here if we add support
     // for CurveTypes that have a different private key length than
     // `PRIV_KEY_BYTES_LEN`.
@@ -29,7 +29,7 @@ fn private_key_valid(private_key: &[u8]) -> KeysResult<()> {
         Err(KeysError::ErrPrivKeyZero)?;
     }
 
-    Ok(())
+    Ok(private_key.try_into().unwrap())
 }
 
 impl UncheckedKeyPair {
@@ -58,13 +58,14 @@ impl KeyPair {
         // We check the parsed private key length to ensure we don't panic (most
         // crypto libraries panic with incorrect private key lengths instead of
         // throwing an error).
-        private_key_valid(&private_key).map_err(|err| format!("private key is invalid: {err}"))?;
+        let private_key = private_key_valid(&private_key)
+            .map_err(|err| format!("private key is invalid: {err}"))?;
 
         // TODO maybe move to their types
         let key_pair: UncheckedKeyPair = match curve {
             CurveType::Edwards25519 => {
-                // TODO rosetta doesn't error here
-                let seed = ed25519_compact::Seed::from_slice(&private_key).expect("TODO");
+                // Safe to unwrap here from above checks
+                let seed = ed25519_compact::Seed::from(private_key);
                 let key_pair = ed25519_compact::KeyPair::from_seed(seed);
 
                 UncheckedKeyPair {
@@ -77,7 +78,8 @@ impl KeyPair {
             }
             CurveType::Secp256k1 => {
                 let secp = secp256k1::Secp256k1::new();
-                let private_key = secp256k1::SecretKey::from_slice(&private_key).expect("TODO");
+                // Safe to unwrap private_key is 32 bytes already
+                let private_key = secp256k1::SecretKey::from_slice(&private_key).unwrap();
                 let public_key = private_key.public_key(&secp);
 
                 UncheckedKeyPair {
@@ -89,7 +91,8 @@ impl KeyPair {
                 }
             }
             CurveType::Secp256r1 => {
-                let private_key = p256::ecdsa::SigningKey::from_bytes(&private_key).expect("TODO");
+                // Safe to unwrap private_key is 32 bytes already
+                let private_key = p256::ecdsa::SigningKey::from_bytes(&private_key).unwrap();
                 let public_key: p256::PublicKey =
                     p256::ecdsa::VerifyingKey::from(&private_key).into();
                 let encoded_point = p256::EncodedPoint::from(public_key);
@@ -123,8 +126,6 @@ impl KeyPair {
         // TODO maybe move to their types
         let key_pair: UncheckedKeyPair = match curve {
             CurveType::Edwards25519 => {
-                // todo this doesn't fail
-                // "failed to generate key pair for edwards25519 curve type: %w"
                 let seed = ed25519_compact::Seed::generate();
                 let key_pair = ed25519_compact::KeyPair::from_seed(seed);
 

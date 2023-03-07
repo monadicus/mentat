@@ -22,7 +22,6 @@ impl SignerInterface for SignerPallas {
     }
 
     fn sign(&self, payload: SigningPayload, sig_type: SignatureType) -> KeysResult<Signature> {
-        // TODO some of this seems repetitive so far?
         let _valid_key_pair = self
             .key_pair
             .clone()
@@ -53,7 +52,6 @@ impl SignerInterface for SignerPallas {
     }
 
     fn verify(&self, signature: UncheckedSignature) -> KeysResult<()> {
-        // TODO some of this seems repetitive so far?
         if signature.signature_type != UncheckedSignatureType::SCHNORR_POSEIDON.into() {
             Err(format!(
                 "expected signing payload signature type {} but got {}: {}",
